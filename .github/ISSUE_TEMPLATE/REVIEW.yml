@@ -3,6 +3,19 @@ description: "Submit a review request for code, features, or documents."
 title: "[REVIEW] - <title>"
 labels: ["review", "pending-review"]
 body:
+  - type: checkboxes
+    id: review_type
+    attributes:
+      label: "📌 Review Type"
+      description: "Select the type of review required."
+      options:
+        - label: "Code Review"
+        - label: "Pull Request (PR) Review"
+        - label: "Documentation Review"
+        - label: "Meeting Notes Review"
+    validations:
+      required: true
+
   - type: textarea
     id: review_summary
     attributes:
@@ -36,5 +49,14 @@ body:
       label: "⚠️ Concerns"
       description: "Mention any specific concerns or areas that need extra attention."
       placeholder: "e.g., potential issues, alternative implementations."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: "🗒️ Additional Notes"
+      description: "Any extra context or details?"
+      placeholder: "e.g., Dependencies, blockers, or next steps."
     validations:
       required: false
