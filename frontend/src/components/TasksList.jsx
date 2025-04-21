@@ -1,0 +1,81 @@
+import {
+  Paper,
+  Typography,
+  Box,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Button,
+  Chip
+} from '@mui/material';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import { useNavigate } from 'react-router-dom';
+
+const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true }) => {
+  const navigate = useNavigate();
+
+  // Filter tasks by status if needed
+  const filteredTasks = tasks.slice(0, limit);
+
+  return (
+    <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <TaskAltIcon sx={{ mr: 1 }} /> {title}
+        </Box>
+        {tasks.length > 0 && (
+          <Chip 
+            label={tasks.length} 
+            size="small" 
+            color="primary" 
+            sx={{ bgcolor: '#e8f5e9', color: '#2e7d32', fontWeight: 'bold' }} 
+          />
+        )}
+      </Typography>
+      
+      {filteredTasks.length > 0 ? (
+        <List dense>
+          {filteredTasks.map((task) => (
+            <ListItem key={task.id} sx={{
+              mb: 1,
+              borderRadius: 1,
+              bgcolor: task.status === 'Pending' ? '#fff9c4' : 
+                      task.status === 'In Progress' ? '#e3f2fd' : '#e8f5e9'
+            }}>
+              <ListItemIcon>
+                <TaskAltIcon color={
+                  task.status === 'Pending' ? 'warning' : 
+                  task.status === 'In Progress' ? 'primary' : 'success'
+                } />
+              </ListItemIcon>
+              <ListItemText 
+                primary={task.title} 
+                secondary={`Due: ${task.deadline} • ${task.assignee || 'Unassigned'}`}
+              />
+            </ListItem>
+          ))}
+        </List>
+      ) : (
+        <Box sx={{ py: 2, textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
+            No tasks available.
+          </Typography>
+        </Box>
+      )}
+      
+      {showViewAll && tasks.length > 0 && (
+        <Button 
+          variant="text" 
+          color="primary" 
+          onClick={() => navigate('/tasks')}
+          sx={{ mt: 1, color: '#2e7d32' }}
+        >
+          {tasks.length > limit ? `View All (${tasks.length})` : 'Manage Tasks'}
+        </Button>
+      )}
+    </Paper>
+  );
+};
+
+export default TasksList;
