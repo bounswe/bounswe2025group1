@@ -7,6 +7,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.serializers import AuthTokenSerializer
+from .serializers import RegisterSerializer
 
 # Views will be implemented later
 # For example:
@@ -22,18 +23,12 @@ class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-
-        if not username or not password:
-            return Response({'error': 'Please provide both username and password'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if User.objects.filter(username=username).exists():
-            return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
-
-        user = User.objects.create_user(username=username, password=password)
-        token = Token.objects.create(user=user)
-        return Response({'token': token.key}, status=status.HTTP_201_CREATED)
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomLoginView(ObtainAuthToken):
