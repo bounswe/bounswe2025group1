@@ -14,6 +14,8 @@ import Register from './pages/auth/Register';
 import GardenList from './pages/garden/GardenList';
 import GardenDetail from './pages/garden/GardenDetail';
 import ForumList from './pages/forum/ForumList';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 
 // Context providers
 import { AuthProvider } from './contexts/AuthContext';
@@ -131,6 +133,8 @@ function App() {
                 <Route path="/gardens" element={<GardenList />} />
                 <Route path="/gardens/:gardenId" element={<GardenDetail />} />
                 <Route path="/forum" element={<ForumList />} />
+                <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+                <Route path="/auth/reset-password" element={<ResetPassword />} />
                 {/* Additional routes will be implemented later */}
                 <Route path="*" element={<Home />} />
               </Routes>
