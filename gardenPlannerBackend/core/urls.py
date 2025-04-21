@@ -24,10 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     # Add api/ path when you create app-specific URLs
-    # path('api/', include('garden.urls')),
-    path('api/register/', RegisterView.as_view(), name='register'),
-    path('api/login/', CustomLoginView.as_view(), name='login'),
-    path('api/logout/', LogoutView.as_view(), name='logout')
+    path('api/', include('garden.urls')),
 ]
 
 # Serve media files in development
