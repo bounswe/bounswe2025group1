@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import {
   Container,
@@ -85,7 +86,12 @@ const ForgotPassword = () => {
               Enter your email and we'll send you a link to reset your password if it exists.
             </Typography>
             {error && (
-              <Typography color="error" sx={{ mt: 2 }}>
+              <Typography
+                color="error"
+                role="alert"
+                data-testid="error-message"
+                sx={{ mt: 2 }}
+              >
                 {error}
               </Typography>
             )}
