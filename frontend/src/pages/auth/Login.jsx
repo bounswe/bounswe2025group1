@@ -37,14 +37,14 @@ const Login = () => {
       });
 
       if (success) {
-        toast.success('🌿 Welcome back to the garden!', {
+        toast.success('Welcome back to the garden!', {
           position: 'top-right',
           theme: 'colored'
         });
-        navigate('/');
+        setTimeout(() => navigate('/'), 2000); 
       }
     } catch (err) {
-      toast.error('❌ Failed to log in. Please check your credentials.', {
+      toast.error('Failed to log in. Please check your credentials.', {
         position: 'top-right',
         theme: 'colored'
       });
@@ -64,7 +64,6 @@ const Login = () => {
         justifyContent: 'center',
       }}
     >
-      <ToastContainer />
       <Box sx={{ mt: -10 }}>
         <Paper
           elevation={4}

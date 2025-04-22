@@ -13,6 +13,9 @@ import {
 import EmailIcon from '@mui/icons-material/Email';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -33,6 +36,9 @@ const ForgotPassword = () => {
     try {
       // Simulate success
       setSubmitted(true);
+      toast.info('Reset link has been sent if such an email exists.', {
+        position: 'top-right'
+      });
     } catch (err) {
       setError('Failed to send reset link. Try again later.');
       console.error(err);
@@ -85,7 +91,7 @@ const ForgotPassword = () => {
             )}
             {submitted ? (
               <Typography sx={{ mt: 3 }} color="success.main">
-                🌿 Reset link sent! Please check your email.
+                Please check your email.
               </Typography>
             ) : (
               <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
@@ -124,11 +130,22 @@ const ForgotPassword = () => {
               </Box>
             )}
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                <Link href="/auth/login" underline="hover" color="primary">
-                  Go back to login
-                </Link>
-              </Typography>
+              <Button
+                variant="outlined"
+                href="/auth/login"
+                sx={{
+                  textTransform: 'none',
+                  borderColor: '#8bc34a',
+                  marginTop: 3,
+                  color: '#558b2f',
+                  '&:hover': {
+                    backgroundColor: '#f1f8e9',
+                    borderColor: '#558b2f',
+                  }
+                }}
+              >
+                ← Back to Login
+              </Button>
             </Box>
           </Box>
         </Paper>

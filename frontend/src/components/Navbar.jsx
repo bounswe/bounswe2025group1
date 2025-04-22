@@ -34,6 +34,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContextUtils';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const pages = [
   { name: 'Home', path: '/', icon: <HomeIcon /> },
@@ -82,13 +84,19 @@ function Navbar() {
   
   const handleMenuAction = (path, action) => {
     handleCloseUserMenu();
-    
+
     if (action === 'logout') {
       logout();
-      navigate('/');
+      console.log('User logged out');
+      toast.success('You’ve been logged out.', {
+        position: 'top-right',
+        theme: 'colored'
+      });
+      setTimeout(() => navigate('/'), 2000);
     } else if (path) {
       navigate(path);
     }
+    
   };
 
   const toggleDrawer = (open) => (event) => {
@@ -408,12 +416,18 @@ function Navbar() {
                   <ListItemButton
                     onClick={() => {
                       setDrawerOpen(false);
+
                       if (setting.action === 'logout') {
                         logout();
-                        navigate('/');
+                        toast.info('You’ve been logged out.', {
+                          position: 'top-right',
+                          theme: 'colored'
+                        });
+                        setTimeout(() => navigate('/'), 2000);
                       } else if (setting.path) {
                         navigate(setting.path);
                       }
+                      
                     }}
                     sx={{ py: 1.5 }}
                   >
@@ -433,7 +447,7 @@ function Navbar() {
               color="primary" 
               fullWidth 
               onClick={() => {
-                navigate('/auth/login');
+                navigate('/');
                 setDrawerOpen(false);
               }}
               sx={{ mb: 1 }}
