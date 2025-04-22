@@ -1,18 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
-  Container,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Paper,
-  Avatar,
-  InputAdornment,
-  Link
+  Container, Box, Typography, TextField, Button, Paper, Avatar, InputAdornment, Link, List, ListItem, ListItemIcon, ListItemText
 } from '@mui/material';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import LockIcon from '@mui/icons-material/Lock';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -22,6 +19,13 @@ const ResetPassword = () => {
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
+
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  const isLongEnough = password.length >= 8;
+  const allValid = hasUpper && hasLower && hasNumber && hasSpecial && isLongEnough;
 
   useEffect(() => {
     if (!token) {
@@ -33,25 +37,35 @@ const ResetPassword = () => {
     e.preventDefault();
     setError('');
 
-    if (!token) {
-      return setError('Reset token is missing.');
-    }
-    if (password !== confirmPassword) {
+    // mock purpose, disable token
+    // if (!token) return setError('Reset token is missing.');
+    if (password !== confirmPassword){
+      toast.error('Passwords do not match.', { position: 'top-right' });
       return setError('Passwords do not match.');
     }
-    if (password.length < 6) {
-      return setError('Password must be at least 6 characters.');
+    if (!(hasUpper && hasLower && hasNumber && hasSpecial && isLongEnough)) {
+      toast.error('Password does not meet all requirements.', { position: 'top-right' });
+      return setError('Password does not meet all requirements.');
     }
 
     try {
-      // Replace this with your actual API call
-      console.log('Sending new password to backend with token:', token);
+      // Simulated backend call
       setSubmitted(true);
-      setTimeout(() => navigate('/auth/login'), 2000); // Simulate redirect
+      toast.success('Password reset successfully!', { position: 'top-right' });
+      setTimeout(() => navigate('/auth/login'), 2000);
     } catch (err) {
       setError('Failed to reset password. Please try again.');
     }
   };
+
+  const renderRequirement = (label, met) => (
+    <ListItem dense sx={{ color: met ? 'success.main' : 'text.secondary' }}>
+      <ListItemIcon sx={{ minWidth: 30 }}>
+        {met ? <CheckCircleIcon fontSize="small" /> : <RadioButtonUncheckedIcon fontSize="small" />}
+      </ListItemIcon>
+      <ListItemText primary={label} />
+    </ListItem>
+  );
 
   return (
     <Container
@@ -76,9 +90,7 @@ const ResetPassword = () => {
           }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Avatar sx={{ m: 1, bgcolor: '#c9dbb6' }}>
-              🌼
-            </Avatar>
+            <Avatar sx={{ m: 1, bgcolor: '#c9dbb6' }}>🌼</Avatar>
             <Typography component="h1" variant="h5" fontWeight="bold">
               Reset Your Password
             </Typography>
@@ -89,7 +101,7 @@ const ResetPassword = () => {
             )}
             {submitted ? (
               <Typography sx={{ mt: 3 }} color="success.main">
-                ✅ Password reset! Redirecting to login...
+                Password reset. Redirecting to login...
               </Typography>
             ) : (
               <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
@@ -126,22 +138,35 @@ const ResetPassword = () => {
                     ),
                   }}
                 />
+                <List dense sx={{ pl: 1, mb: 2 }}>
+                  {renderRequirement('At least 8 characters', isLongEnough)}
+                  {renderRequirement('At least one uppercase letter', hasUpper)}
+                  {renderRequirement('At least one lowercase letter', hasLower)}
+                  {renderRequirement('At least one number', hasNumber)}
+                  {renderRequirement('At least one special character (!@#$%)', hasSpecial)}
+                </List>
                 <Button
                   type="submit"
                   fullWidth
                   variant="contained"
                   startIcon={<LockResetIcon />}
+                  disabled={!allValid}
                   sx={{
-                    mt: 3,
+                    mt: 1,
                     background: 'linear-gradient(90deg, #8bc34a 0%, #558b2f 100%)',
                     color: '#fff',
                     '&:hover': {
                       background: 'linear-gradient(90deg, #7cb342 0%, #33691e 100%)',
+                    },
+                    '&.Mui-disabled': {
+                      background: '#cfd8dc', // optional gray disabled state
+                      color: '#666',
                     }
                   }}
                 >
                   Reset Password
                 </Button>
+
               </Box>
             )}
             <Box sx={{ textAlign: 'center', mt: 2 }}>
