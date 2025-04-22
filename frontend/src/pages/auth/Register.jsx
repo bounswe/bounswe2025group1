@@ -1,26 +1,19 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Container,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Grid,
-  Link,
-  Paper,
-  Avatar,
-  FormControlLabel,
-  Checkbox,
-  InputAdornment
+  Container, Box, Typography, TextField, Button, Grid, Link, Paper, Avatar,
+  FormControlLabel, Checkbox, InputAdornment, List, ListItem, ListItemIcon, ListItemText
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonIcon from '@mui/icons-material/Person';
 import BadgeIcon from '@mui/icons-material/Badge';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
+import { toast } from 'react-toastify';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -32,9 +25,22 @@ const Register = () => {
     username: '',
     agreeTerms: false
   });
+  const [captchaToken, setCaptchaToken] = useState('');
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  // Validations
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const hasUpper = /[A-Z]/.test(formData.password);
+  const hasLower = /[a-z]/.test(formData.password);
+  const hasNumber = /\d/.test(formData.password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(formData.password);
+  const isLongEnough = formData.password.length >= 8;
+  const passwordsMatch = formData.password === formData.confirmPassword;
+  const validEmail = emailRegex.test(formData.email);
+
+  const allValid = hasUpper && hasLower && hasNumber && hasSpecial && isLongEnough && passwordsMatch && validEmail && formData.agreeTerms && captchaToken;
 
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target;
@@ -48,12 +54,9 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    if (formData.password !== formData.confirmPassword) {
-      return setError('Passwords do not match');
-    }
-
-    if (!formData.agreeTerms) {
-      return setError('You must agree to the terms and conditions');
+    if (!allValid) {
+      toast.error("Please complete all fields correctly.", { position: 'top-right' });
+      return;
     }
 
     try {
@@ -65,184 +68,106 @@ const Register = () => {
       });
 
       if (success) {
+        toast.success("Welcome to the community!", { position: 'top-right' });
         navigate('/');
       }
     } catch (err) {
-      setError('Failed to create an account.');
+      toast.error('Failed to create an account.', { position: 'top-right' });
       console.error(err);
     }
   };
 
+  const renderRequirement = (label, met) => (
+    <ListItem dense sx={{ color: met ? 'success.main' : 'text.secondary' }}>
+      <ListItemIcon sx={{ minWidth: 30 }}>
+        {met ? <CheckCircleIcon fontSize="small" /> : <RadioButtonUncheckedIcon fontSize="small" />}
+      </ListItemIcon>
+      <ListItemText primary={label} />
+    </ListItem>
+  );
+
   return (
-    <Container
-      component="main"
-      maxWidth="sm"
-      sx={{
-        backgroundColor: '#f1f8e9',
-        minHeight: '80vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
-    >
+    <Container component="main" maxWidth="sm" sx={{
+      backgroundColor: '#f1f8e9',
+      minHeight: '80vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
       <Box>
-        <Paper
-          elevation={4}
-          sx={{
-            p: 4,
-            borderRadius: 3,
-            backgroundColor: '#ffffffee',
-            boxShadow: '0px 6px 20px rgba(85, 139, 47, 0.2)',
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              width: '100%',
-            }}
-          >
-            <Avatar sx={{ m: 1, bgcolor: '#c9dbb6' }}>
-              🌱
-            </Avatar>
+        <Paper elevation={4} sx={{
+          p: 4,
+          borderRadius: 3,
+          backgroundColor: '#ffffffee',
+          boxShadow: '0px 6px 20px rgba(85, 139, 47, 0.2)',
+        }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <Avatar sx={{ m: 1, bgcolor: '#c9dbb6' }}>🌱</Avatar>
             <Typography component="h1" variant="h5" fontWeight="bold">
               Join the Garden Community
             </Typography>
-            {error && (
-              <Typography
-                color="error"
-                sx={{ mt: 2 }}
-                data-testid="error-message"
-              >
-                {error}
-              </Typography>
-            )}
+            {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
 
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    name="firstName"
-                    required
-                    fullWidth
-                    label="First Name"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
+                  <TextField name="firstName" required fullWidth label="First Name" value={formData.firstName} onChange={handleChange}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon /></InputAdornment> }} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    name="lastName"
-                    required
-                    fullWidth
-                    label="Last Name"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
+                  <TextField name="lastName" required fullWidth label="Last Name" value={formData.lastName} onChange={handleChange}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon /></InputAdornment> }} />
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField
-                    name="username"
-                    required
-                    fullWidth
-                    label="Username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <BadgeIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
+                  <TextField name="username" required fullWidth label="Username" value={formData.username} onChange={handleChange}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><BadgeIcon /></InputAdornment> }} />
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField
-                    name="email"
-                    required
-                    fullWidth
-                    label="Email Address"
-                    value={formData.email}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <EmailIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
+                  <TextField name="email" required fullWidth label="Email Address" value={formData.email} onChange={handleChange}
+                    error={!!formData.email && !validEmail}
+                    helperText={!!formData.email && !validEmail ? "Invalid email format" : ""}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon /></InputAdornment> }} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    name="password"
-                    label="Password"
-                    type="password"
-                    required
-                    fullWidth
-                    value={formData.password}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LockIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
+                  <TextField name="password" label="Password" type="password" required fullWidth value={formData.password} onChange={handleChange}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><LockIcon /></InputAdornment> }} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    name="confirmPassword"
-                    label="Confirm Password"
-                    type="password"
-                    required
-                    fullWidth
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LockIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        name="agreeTerms"
-                        color="primary"
-                        checked={formData.agreeTerms}
-                        onChange={handleChange}
-                      />
-                    }
-                    label="I agree to the terms and conditions"
-                  />
+                  <TextField name="confirmPassword" label="Confirm Password" type="password" required fullWidth value={formData.confirmPassword} onChange={handleChange}
+                    error={!!formData.confirmPassword && !passwordsMatch}
+                    helperText={!!formData.confirmPassword && !passwordsMatch ? "Passwords do not match" : ""}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><LockIcon /></InputAdornment> }} />
                 </Grid>
               </Grid>
+
+              <List dense sx={{ pl: 1, pt: 2 }}>
+                {renderRequirement('At least 8 characters', isLongEnough)}
+                {renderRequirement('At least one uppercase letter', hasUpper)}
+                {renderRequirement('At least one lowercase letter', hasLower)}
+                {renderRequirement('At least one number', hasNumber)}
+                {renderRequirement('At least one special character (!@#$%)', hasSpecial)}
+              </List>
+
+              <Box sx={{ mt: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox name="agreeTerms" color="primary" checked={formData.agreeTerms} onChange={handleChange} />
+                  }
+                  label="I agree to the terms and conditions"
+                />
+              </Box>
+              <Box sx={{  display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <ReCAPTCHA
+                  sitekey="6Lef7SArAAAAAKfDLZdY__Sf-mcujkc1YnXp0fu3"
+                  onChange={(token) => setCaptchaToken(token)}
+                />
+              </Box>
+
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
+                disabled={!allValid}
                 sx={{
                   mt: 3,
                   mb: 2,
@@ -250,11 +175,16 @@ const Register = () => {
                   color: '#fff',
                   '&:hover': {
                     background: 'linear-gradient(90deg, #7cb342 0%, #33691e 100%)',
+                  },
+                  '&.Mui-disabled': {
+                    background: '#cfd8dc',
+                    color: '#666',
                   }
                 }}
               >
                 Sign Up
               </Button>
+
               <Box sx={{ textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
                   Already have an account?{' '}
