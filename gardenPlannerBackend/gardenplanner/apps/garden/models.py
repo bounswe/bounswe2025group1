@@ -12,3 +12,6 @@ from django.contrib.auth.models import User
 #     name = models.CharField(max_length=100)
 #     user = models.ForeignKey(User, on_delete=models.CASCADE)
 #     # other fields...
+#
+#
+# IMPORTANT NOTE: A Profile model must be implemented for storing location information. Please check RegisterSerializer in serializers.py

@@ -18,12 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from garden.views import RegisterView, CustomLoginView, LogoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     # Add api/ path when you create app-specific URLs
-    # path('api/', include('garden.urls')),
+    path('api/', include('garden.urls')),
 ]
 
 # Serve media files in development
