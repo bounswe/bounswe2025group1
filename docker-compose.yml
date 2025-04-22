@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    env_file:
+      - ./frontend/.env
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./gardenPlannerBackend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./gardenPlannerBackend:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    env_file:
+      - ./gardenPlannerBackend/.env
+    environment:
+      - DEBUG=True
+    networks:
+      - app-network
+
+  # Note: Mobile app container is primarily for development purposes
+  mobile:
+    build:
+      context: ./MOBILE/CommunityGardenApp
+    ports:
+      - "19000:19000"  # Expo
+      - "19001:19001"  # Metro
+      - "19002:19002"  # DevTools
+      - "8081:8081" # React Native Web
+    volumes:
+      - ./MOBILE/CommunityGardenApp:/app
+      - /app/node_modules
+    env_file:
+      - ./MOBILE/CommunityGardenApp/.env
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  static_volume:
+  media_volume:
