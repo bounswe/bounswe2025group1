@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Box,
@@ -17,14 +16,13 @@ import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -33,16 +31,25 @@ const ForgotPassword = () => {
       return;
     }
 
-    // Placeholder for API call
     try {
-      // Simulate success
+      const response = await fetch('/api/forgot-password/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const resData = await response.json();
+        throw new Error(resData.detail || 'Failed to send reset link.');
+      }
+
       setSubmitted(true);
       toast.info('Reset link has been sent if such an email exists.', {
         position: 'top-right'
       });
     } catch (err) {
-      setError('Failed to send reset link. Try again later.');
-      console.error(err);
+      toast.error(err.message, { position: 'top-right' });
+      setError(err.message);
     }
   };
 
@@ -68,6 +75,7 @@ const ForgotPassword = () => {
             boxShadow: '0px 6px 20px rgba(85, 139, 47, 0.2)',
           }}
         >
+          <ToastContainer />
           <Box
             sx={{
               display: 'flex',
@@ -76,9 +84,7 @@ const ForgotPassword = () => {
               width: '100%',
             }}
           >
-            <Avatar sx={{ m: 1, bgcolor: '#c9dbb6' }}>
-              🌾
-            </Avatar>
+            <Avatar sx={{ m: 1, bgcolor: '#c9dbb6' }}>🌾</Avatar>
             <Typography component="h1" variant="h5" fontWeight="bold">
               Forgot your password?
             </Typography>

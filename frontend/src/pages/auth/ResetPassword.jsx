@@ -34,28 +34,43 @@ const ResetPassword = () => {
     }
   }, [token]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // mock purpose, disable token
-    // if (!token) return setError('Reset token is missing.');
-    if (password !== confirmPassword){
+    if (!token) {
+      toast.error('Reset token is missing.', { position: 'top-right' });
+      return setError('Reset token is missing.');
+    }
+
+    if (password !== confirmPassword) {
       toast.error('Passwords do not match.', { position: 'top-right' });
       return setError('Passwords do not match.');
     }
-    if (!(hasUpper && hasLower && hasNumber && hasSpecial && isLongEnough)) {
+
+    if (!allValid) {
       toast.error('Password does not meet all requirements.', { position: 'top-right' });
       return setError('Password does not meet all requirements.');
     }
 
     try {
-      // Simulated backend call
-      setSubmitted(true);
+      const response = await fetch('/api/reset-password/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password }),
+      });
+
+      if (!response.ok) {
+        const resData = await response.json();
+        throw new Error(resData.detail || 'Failed to reset password.');
+      }
+
       toast.success('Password reset successfully!', { position: 'top-right' });
+      setSubmitted(true);
       setTimeout(() => navigate('/auth/login'), 2000);
     } catch (err) {
-      setError('Failed to reset password. Please try again.');
+      toast.error(err.message, { position: 'top-right' });
+      setError(err.message);
     }
   };
 

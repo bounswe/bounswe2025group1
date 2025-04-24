@@ -23,14 +23,14 @@ const Register = () => {
     firstName: '',
     lastName: '',
     username: '',
-    agreeTerms: false
+    agreeTerms: false,
+    location: ''
   });
   const [captchaToken, setCaptchaToken] = useState('');
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  // Validations
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const hasUpper = /[A-Z]/.test(formData.password);
   const hasLower = /[a-z]/.test(formData.password);
@@ -39,7 +39,6 @@ const Register = () => {
   const isLongEnough = formData.password.length >= 8;
   const passwordsMatch = formData.password === formData.confirmPassword;
   const validEmail = emailRegex.test(formData.email);
-
   const allValid = hasUpper && hasLower && hasNumber && hasSpecial && isLongEnough && passwordsMatch && validEmail && formData.agreeTerms && captchaToken;
 
   const handleChange = (e) => {
@@ -50,7 +49,7 @@ const Register = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -60,17 +59,35 @@ const Register = () => {
     }
 
     try {
-      const success = register({
-        email: formData.email,
-        name: `${formData.firstName} ${formData.lastName}`,
-        username: formData.username,
-        id: Math.random().toString(36).substr(2, 9)
+      const response = await fetch('/api/register/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          password: formData.password,
+          location: formData.location || 'Istanbul' // default fallback
+        }),
       });
 
-      if (success) {
-        toast.success("Welcome to the community!", { position: 'top-right' });
-        navigate('/');
-      }
+      if (!response.ok) throw new Error('Registration failed');
+
+      const data = await response.json();
+      const user = {
+        username: formData.username,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName
+      };
+
+      register(user, data.token);
+
+      toast.success("Welcome to the community!", { position: 'top-right' });
+      navigate('/');
     } catch (err) {
       toast.error('Failed to create an account.', { position: 'top-right' });
       console.error(err);
@@ -127,6 +144,10 @@ const Register = () => {
                     error={!!formData.email && !validEmail}
                     helperText={!!formData.email && !validEmail ? "Invalid email format" : ""}
                     InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon /></InputAdornment> }} />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField name="location" required fullWidth label="Location" value={formData.location} onChange={handleChange}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><PersonAddIcon /></InputAdornment> }} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField name="password" label="Password" type="password" required fullWidth value={formData.password} onChange={handleChange}

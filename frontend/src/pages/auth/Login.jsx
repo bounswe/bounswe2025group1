@@ -1,6 +1,5 @@
 // Login.jsx
-import React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Box,
@@ -12,43 +11,53 @@ import {
   Avatar,
   InputAdornment
 } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useAuth } from '../../contexts/AuthContextUtils';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const success = login({
-        email,
-        name: 'Demo User',
-        id: '123456'
+      const response = await fetch('/api/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
       });
 
-      if (success) {
-        toast.success('Welcome back to the garden!', {
-          position: 'top-right',
-          theme: 'colored'
-        });
-        setTimeout(() => navigate('/'), 2000); 
+      if (!response.ok) {
+        throw new Error('Login failed');
       }
-    } catch (err) {
+
+      const data = await response.json();
+
+      // Save user and token via context
+      const user = { username };
+      login(user, data.token);
+
+      toast.success('Welcome back to the garden!', {
+        position: 'top-right',
+        theme: 'colored',
+      });
+
+      setTimeout(() => navigate('/'), 2000);
+    } catch (error) {
       toast.error('Failed to log in. Please check your credentials.', {
         position: 'top-right',
-        theme: 'colored'
+        theme: 'colored',
       });
-      console.error(err);
+      console.error(error);
     }
   };
 
@@ -64,6 +73,7 @@ const Login = () => {
         justifyContent: 'center',
       }}
     >
+      <ToastContainer />
       <Box sx={{ mt: -10 }}>
         <Paper
           elevation={4}
@@ -84,13 +94,13 @@ const Login = () => {
                 margin="normal"
                 required
                 fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
+                id="username"
+                label="Username"
+                name="username"
+                autoComplete="username"
                 autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
