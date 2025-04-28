@@ -7,7 +7,7 @@ import AuthContext from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 
 // Mock fetch
-global.fetch = vi.fn();
+window.fetch = vi.fn();
 
 // Mock toastify
 vi.mock('react-toastify', async () => {

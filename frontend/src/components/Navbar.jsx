@@ -283,7 +283,7 @@ function Navbar() {
               >
                 <Box sx={{ px: 2, py: 1, textAlign: 'center', borderBottom: '1px solid #eee' }}>
                   <Typography variant="subtitle1" component="div">
-                    {currentUser?.name || 'Guest'}
+                    {currentUser?.username || 'Guest'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {currentUser?.email || 'Not logged in'}

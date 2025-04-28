@@ -16,6 +16,7 @@ import GardenDetail from './pages/garden/GardenDetail';
 import ForumList from './pages/forum/ForumList';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
+import Profile from './pages/profile/Profile';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -152,6 +153,8 @@ function App() {
                 <Route path="/forum" element={<ForumList />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/:userId" element={<Profile />} />
                 {/* Additional routes will be implemented later */}
                 <Route path="*" element={<Home />} />
               </Routes>

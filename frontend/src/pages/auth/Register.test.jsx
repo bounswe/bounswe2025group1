@@ -6,7 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 // Mock fetch API
-global.fetch = vi.fn();
+window.fetch = vi.fn();
 
 // Mock register function
 const mockRegister = vi.fn();

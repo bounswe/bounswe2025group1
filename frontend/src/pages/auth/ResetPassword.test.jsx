@@ -6,7 +6,7 @@ import ResetPassword from './ResetPassword';
 import { toast } from 'react-toastify';
 
 // Mock fetch for API calls
-global.fetch = vi.fn();
+window.fetch = vi.fn();
 
 // Mock toast
 vi.mock('react-toastify', async () => {

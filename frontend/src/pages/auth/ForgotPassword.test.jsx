@@ -5,7 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import ForgotPassword from './ForgotPassword';
 
 // Mock fetch
-global.fetch = vi.fn();
+window.fetch = vi.fn();
 
 // Mock toast
 vi.mock('react-toastify', async () => {
