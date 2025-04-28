@@ -59,7 +59,7 @@ const Register = () => {
     }
 
     try {
-      const response = await fetch('/api/register/', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -127,33 +127,33 @@ const Register = () => {
 
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField name="firstName" required fullWidth label="First Name" value={formData.firstName} onChange={handleChange}
                     InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon /></InputAdornment> }} />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField name="lastName" required fullWidth label="Last Name" value={formData.lastName} onChange={handleChange}
                     InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon /></InputAdornment> }} />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField name="username" required fullWidth label="Username" value={formData.username} onChange={handleChange}
                     InputProps={{ startAdornment: <InputAdornment position="start"><BadgeIcon /></InputAdornment> }} />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField name="email" required fullWidth label="Email Address" value={formData.email} onChange={handleChange}
                     error={!!formData.email && !validEmail}
                     helperText={!!formData.email && !validEmail ? "Invalid email format" : ""}
                     InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon /></InputAdornment> }} />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField name="location" required fullWidth label="Location" value={formData.location} onChange={handleChange}
                     InputProps={{ startAdornment: <InputAdornment position="start"><PersonAddIcon /></InputAdornment> }} />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField name="password" label="Password" type="password" required fullWidth value={formData.password} onChange={handleChange}
                     InputProps={{ startAdornment: <InputAdornment position="start"><LockIcon /></InputAdornment> }} />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField name="confirmPassword" label="Confirm Password" type="password" required fullWidth value={formData.confirmPassword} onChange={handleChange}
                     error={!!formData.confirmPassword && !passwordsMatch}
                     helperText={!!formData.confirmPassword && !passwordsMatch ? "Passwords do not match" : ""}

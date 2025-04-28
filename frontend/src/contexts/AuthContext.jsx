@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token'); 
   
-      const response = await fetch('/api/logout/', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/logout/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

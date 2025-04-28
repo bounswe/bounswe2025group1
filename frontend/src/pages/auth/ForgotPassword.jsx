@@ -12,7 +12,6 @@ import {
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import LockResetIcon from '@mui/icons-material/LockReset';
-import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -20,7 +19,6 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,7 +30,7 @@ const ForgotPassword = () => {
     }
 
     try {
-      const response = await fetch('/api/forgot-password/', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/forgot-password/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

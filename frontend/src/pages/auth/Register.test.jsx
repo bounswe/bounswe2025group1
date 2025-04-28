@@ -3,9 +3,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Register from './Register';
 import { BrowserRouter } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
-// ✅ Mock register function
-const mockRegister = vi.fn(() => true);
+// Mock fetch API
+global.fetch = vi.fn();
+
+// Mock register function
+const mockRegister = vi.fn();
+
+// Mock navigate
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+    const actual = await vi.importActual('react-router-dom');
+    return {
+        ...actual,
+        useNavigate: () => mockNavigate
+    };
+});
 
 vi.mock('../../contexts/AuthContextUtils', () => ({
     useAuth: () => ({
@@ -13,7 +27,7 @@ vi.mock('../../contexts/AuthContextUtils', () => ({
     }),
 }));
 
-// ✅ Mock toast
+// Mock toast
 vi.mock('react-toastify', async () => {
     const actual = await vi.importActual('react-toastify');
     return {
@@ -25,16 +39,14 @@ vi.mock('react-toastify', async () => {
     };
 });
 
-// ✅ Mock ReCAPTCHA
+// Mock ReCAPTCHA
 vi.mock('react-google-recaptcha', () => ({
     __esModule: true,
     default: ({ onChange }) => {
-        React.useEffect(() => {
-            onChange('mock-token');
-        }, []);
+        // Simulate verification immediately
+        onChange('mock-token');
         return <div data-testid="mock-recaptcha" />;
     }
-
 }));
 
 const renderPage = () =>
@@ -47,6 +59,12 @@ const renderPage = () =>
 describe('Register Page', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        
+        // Setup a successful response for fetch by default
+        fetch.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({ token: 'fake-token' })
+        });
     });
 
     it('renders all form fields and the sign-up button', () => {
@@ -64,7 +82,6 @@ describe('Register Page', () => {
     });
 
     it('shows error toast if user submits invalid form', async () => {
-        const { toast } = await import('react-toastify');
         renderPage();
       
         fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } });
@@ -82,10 +99,10 @@ describe('Register Page', () => {
       
         const button = screen.getByRole('button', { name: /sign up/i });
       
-        // ❌ Form should be invalid → button stays disabled
+        // Form should be invalid → button stays disabled
         expect(button).toBeDisabled();
       
-        // ✅ Simulate submit even though button is disabled
+        // Simulate submit even though button is disabled
         fireEvent.submit(button.closest('form'));
       
         await waitFor(() => {
@@ -94,37 +111,59 @@ describe('Register Page', () => {
             expect.anything()
           );
         });
-      });
+    });
       
-
-
     it('calls register and shows success toast on valid form submit', async () => {
-        const { toast } = await import('react-toastify');
         renderPage();
 
+        // Fill in valid form data
         fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'John' } });
         fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Doe' } });
         fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'johndoe' } });
         fireEvent.change(screen.getByLabelText(/email address/i), {
             target: { value: 'john@example.com' },
         });
+        fireEvent.change(screen.getByLabelText(/location/i), {
+            target: { value: 'New York' },
+        });
+        
         const [passwordInput, confirmPasswordInput] = screen.getAllByLabelText(/password/i);
         fireEvent.change(passwordInput, { target: { value: 'StrongP@ss1' } });
         fireEvent.change(confirmPasswordInput, { target: { value: 'StrongP@ss1' } });
 
+        // Accept terms
         fireEvent.click(screen.getByLabelText(/i agree to the terms/i));
 
-        const button = screen.getByRole('button', { name: /sign up/i });
-        await waitFor(() => expect(button).toBeEnabled());
-
+        // Wait for button to be enabled and click it
+        let button;
+        await waitFor(() => {
+            button = screen.getByRole('button', { name: /sign up/i });
+            expect(button).toBeEnabled();
+        });
+        
         fireEvent.click(button);
 
+        // Verify the API is called correctly
         await waitFor(() => {
-            expect(mockRegister).toHaveBeenCalled();
-            expect(toast.success).toHaveBeenCalledWith(
-                'Welcome to the community!',
-                expect.anything()
+            expect(fetch).toHaveBeenCalledWith(
+                expect.any(String),
+                expect.objectContaining({
+                    method: 'POST',
+                    body: expect.stringContaining('johndoe')
+                })
             );
         });
+
+        // Verify the register function is called
+        await waitFor(() => {
+            expect(mockRegister).toHaveBeenCalled();
+        });
+        
+        // Verify the success toast and navigation
+        expect(toast.success).toHaveBeenCalledWith(
+            'Welcome to the community!',
+            expect.anything()
+        );
+        expect(mockNavigate).toHaveBeenCalledWith('/');
     });
 });

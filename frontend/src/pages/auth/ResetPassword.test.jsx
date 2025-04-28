@@ -3,8 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import ResetPassword from './ResetPassword';
+import { toast } from 'react-toastify';
 
-// ✅ Mock toast
+// Mock fetch for API calls
+global.fetch = vi.fn();
+
+// Mock toast
 vi.mock('react-toastify', async () => {
   const actual = await vi.importActual('react-toastify');
   return {
@@ -29,6 +33,12 @@ const renderWithToken = (token = 'mock-token') =>
 describe('ResetPassword Page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Setup default success response for fetch
+    fetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ message: 'Password reset successful' })
+    });
   });
 
   it('renders form with a token', () => {
@@ -46,7 +56,6 @@ describe('ResetPassword Page', () => {
   });
 
   it('shows error if passwords do not match', async () => {
-    const { toast } = await import('react-toastify');
     renderWithToken();
 
     fireEvent.change(screen.getByLabelText(/new password/i), { target: { value: 'StrongP@ss1' } });
@@ -63,7 +72,6 @@ describe('ResetPassword Page', () => {
   });
 
   it('shows error if password does not meet requirements', async () => {
-    const { toast } = await import('react-toastify');
     renderWithToken();
 
     fireEvent.change(screen.getByLabelText(/new password/i), { target: { value: 'weak' } });
@@ -79,7 +87,6 @@ describe('ResetPassword Page', () => {
   });
 
   it('shows success and navigates to login on valid reset', async () => {
-    const { toast } = await import('react-toastify');
     renderWithToken();
 
     fireEvent.change(screen.getByLabelText(/new password/i), { target: { value: 'StrongP@ss1' } });
@@ -87,11 +94,16 @@ describe('ResetPassword Page', () => {
 
     const button = screen.getByRole('button', { name: /reset password/i });
     await waitFor(() => expect(button).toBeEnabled());
+    
+    // Click the reset button
     fireEvent.click(button);
 
+    // Wait for the success message and redirection
     await waitFor(() => {
+      expect(fetch).toHaveBeenCalled();
       expect(toast.success).toHaveBeenCalledWith('Password reset successfully!', expect.anything());
-      expect(screen.getByText(/redirecting to login/i)).toBeInTheDocument();
     });
+    
+    expect(screen.getByText(/redirecting to login/i)).toBeInTheDocument();
   });
 });

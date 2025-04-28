@@ -1,11 +1,15 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Login from './Login';
 import AuthContext from '../../contexts/AuthContextUtils';
+import { toast } from 'react-toastify';
 
-// ✅ Replace `jest.mock` with `vi.mock`
+// Mock fetch
+global.fetch = vi.fn();
+
+// Mock toastify
 vi.mock('react-toastify', async () => {
   const actual = await vi.importActual('react-toastify');
   return {
@@ -18,7 +22,17 @@ vi.mock('react-toastify', async () => {
   };
 });
 
-const mockLogin = vi.fn(() => true);
+// Mock navigate
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate
+  };
+});
+
+const mockLogin = vi.fn();
 
 const mockContext = {
   login: mockLogin,
@@ -38,45 +52,72 @@ const renderWithProviders = () =>
   );
 
 describe('Login page', () => {
-  it('renders email and password inputs', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    
+    // Setup a successful response for fetch by default
+    fetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ token: 'fake-token' })
+    });
+  });
+
+  it('renders username and password inputs', () => {
     renderWithProviders();
-    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
   });
 
-  it('calls login and shows success toast on submit', () => {
+  it('calls login and shows success toast on submit', async () => {
     renderWithProviders();
-    fireEvent.change(screen.getByLabelText(/email address/i), {
-      target: { value: 'user@example.com' }
+    fireEvent.change(screen.getByLabelText(/username/i), {
+      target: { value: 'testuser' }
     });
     fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: 'securepass' }
     });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
-    expect(mockLogin).toHaveBeenCalledWith(
-      expect.objectContaining({
-        email: 'user@example.com',
-        name: 'Demo User',
-        id: '123456'
-      })
-    );
+    // Wait for the fetch and login to be called
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
+        method: 'POST',
+        body: expect.any(String)
+      }));
+    });
     
+    await waitFor(() => {
+      expect(mockLogin).toHaveBeenCalled();
+    });
+    
+    expect(toast.success).toHaveBeenCalled();
+  
   });
 
-  it('shows error toast when login fails', () => {
-    mockLogin.mockImplementationOnce(() => {
-      throw new Error('login failed');
+  it('shows error toast when login fails', async () => {
+    // Setup a failed response
+    fetch.mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Login failed' })
     });
+    
     renderWithProviders();
-    fireEvent.change(screen.getByLabelText(/email address/i), {
-      target: { value: 'fail@example.com' }
+    fireEvent.change(screen.getByLabelText(/username/i), {
+      target: { value: 'fail' }
     });
     fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: 'wrong' }
     });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
-    expect(mockLogin).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalled();
+    });
+    
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled();
+    });
+    
+    expect(mockLogin).not.toHaveBeenCalled();
   });
 });

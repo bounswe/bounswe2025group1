@@ -16,7 +16,7 @@ import GardenDetail from './pages/garden/GardenDetail';
 import ForumList from './pages/forum/ForumList';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Context providers
