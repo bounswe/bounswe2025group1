@@ -198,3 +198,21 @@ class ForumPostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ForumPost.objects.all()
     serializer_class = ForumPostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    
+    
+from .models import Comment
+from .serializers import CommentSerializer
+
+class CommentListCreateView(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class CommentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]

@@ -23,4 +23,7 @@ urlpatterns = [
     # ForumPost Management
     path('forum/', views.ForumPostListCreateView.as_view(), name='forum-list-create'),
     path('forum/<int:pk>/', views.ForumPostRetrieveUpdateDestroyView.as_view(), name='forum-detail'),
+    # ForumPost Comment management
+    path('comments/', views.CommentListCreateView.as_view(), name='comment-list-create'),
+    path('comments/<int:pk>/', views.CommentRetrieveUpdateDestroyView.as_view(), name='comment-detail'),
 ] 

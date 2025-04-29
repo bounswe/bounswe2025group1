@@ -81,10 +81,11 @@ class ForumPostSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'content', 'author', 'author_username', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at', 'author']
 
+
 class CommentSerializer(serializers.ModelSerializer):
-    author_username = serializers.ReadOnlyField(source='author.username')
+    author_username = serializers.CharField(source='author.username', read_only=True)
 
     class Meta:
         model = Comment
         fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'created_at']
-        read_only_fields = ['id', 'created_at', 'author']
+        read_only_fields = ['id', 'author', 'author_username', 'created_at']
