@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth.models import User
-from .models import ForumPost, Comment
+from garden.models import ForumPost, Comment
 
 class ForumPostTests(TestCase):
 
