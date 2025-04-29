@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task
 
 # Serializers will be implemented later
 # For example:
@@ -70,3 +70,48 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
         read_only_fields = ['id', 'profile']
+
+class GardenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Garden
+        fields = ['id', 'name', 'description', 'location', 'is_public', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+class GardenMembershipSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    garden_name = serializers.CharField(source='garden.name', read_only=True)
+    garden = serializers.PrimaryKeyRelatedField(queryset=Garden.objects.all(), required=True)
+    
+    class Meta:
+        model = GardenMembership
+        fields = ['id', 'garden', 'username', 'garden_name', 'role', 'status', 'joined_at', 'updated_at']
+        read_only_fields = ['id', 'joined_at', 'updated_at']
+        
+    def validate(self, data):
+        if not data.get('garden'):
+            raise serializers.ValidationError({"garden": "Garden ID is required"})
+        return data
+
+class CustomTaskTypeSerializer(serializers.ModelSerializer):
+    garden_name = serializers.CharField(source='garden.name', read_only=True)
+    
+    class Meta:
+        model = CustomTaskType
+        fields = ['id', 'garden', 'garden_name', 'name', 'description', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+class TaskSerializer(serializers.ModelSerializer):
+    assigned_by_username = serializers.CharField(source='assigned_by.username', read_only=True)
+    assigned_to_username = serializers.CharField(source='assigned_to.username', read_only=True, allow_null=True)
+    garden_name = serializers.CharField(source='garden.name', read_only=True)
+    custom_type_name = serializers.CharField(source='custom_type.name', read_only=True, allow_null=True)
+    assigned_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, write_only=True)
+    
+    class Meta:
+        model = Task
+        fields = ['id', 'garden', 'garden_name', 'title', 'description', 
+                 'custom_type', 'custom_type_name', 
+                 'assigned_by', 'assigned_by_username', 
+                 'assigned_to', 'assigned_to_username', 
+                 'status', 'due_date', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']

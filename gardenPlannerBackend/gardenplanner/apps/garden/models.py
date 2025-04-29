@@ -58,3 +58,79 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
     else:
         instance.profile.save()
+
+
+class Garden(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    is_public = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.name
+
+
+class GardenMembership(models.Model):
+    ROLE_CHOICES = [
+        ('MANAGER', 'Garden Manager'),
+        ('WORKER', 'Garden Worker'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('ACCEPTED', 'Accepted'),
+        ('REJECTED', 'Rejected'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='garden_memberships')
+    garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='memberships')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='WORKER')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    joined_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('user', 'garden')
+        
+    def __str__(self):
+        return f"{self.user.username} - {self.garden.name} ({self.get_role_display()})"
+
+
+class CustomTaskType(models.Model):
+    garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='custom_task_types')
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('garden', 'name')
+    
+    def __str__(self):
+        return f"{self.name} ({self.garden.name})"
+
+
+class Task(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('ACCEPTED', 'Accepted'),
+        ('DECLINED', 'Declined'),
+        ('IN_PROGRESS', 'In Progress'),
+        ('COMPLETED', 'Completed'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+    
+    garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='tasks')
+    title = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    custom_type = models.ForeignKey(CustomTaskType, on_delete=models.SET_NULL, related_name='tasks', null=True, blank=True)
+    assigned_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks_assigned')
+    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks_received', null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    due_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.title
