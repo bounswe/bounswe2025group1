@@ -70,3 +70,21 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
         read_only_fields = ['id', 'profile']
+
+from .models import ForumPost, Comment  # ✅ make sure this import is included if not already present
+
+class ForumPostSerializer(serializers.ModelSerializer):
+    author_username = serializers.ReadOnlyField(source='author.username')
+
+    class Meta:
+        model = ForumPost
+        fields = ['id', 'title', 'content', 'author', 'author_username', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'author']
+
+class CommentSerializer(serializers.ModelSerializer):
+    author_username = serializers.ReadOnlyField(source='author.username')
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'created_at']
+        read_only_fields = ['id', 'created_at', 'author']

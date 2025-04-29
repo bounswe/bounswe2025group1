@@ -20,4 +20,7 @@ urlpatterns = [
     path('profile/follow/', views.FollowView.as_view(), name='follow'),
     path('profile/followers/', views.FollowersListView.as_view(), name='followers'),
     path('profile/following/', views.FollowingListView.as_view(), name='following'),
+    # ForumPost Management
+    path('forum/', views.ForumPostListCreateView.as_view(), name='forum-list-create'),
+    path('forum/<int:pk>/', views.ForumPostRetrieveUpdateDestroyView.as_view(), name='forum-detail'),
 ] 

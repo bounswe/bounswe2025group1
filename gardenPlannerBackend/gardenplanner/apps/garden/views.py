@@ -177,3 +177,24 @@ class PasswordResetConfirmView(APIView):
         user.save()
 
         return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
+
+from .models import ForumPost
+from .serializers import ForumPostSerializer
+
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
+from rest_framework import generics
+
+
+class ForumPostListCreateView(generics.ListCreateAPIView):
+    queryset = ForumPost.objects.all().order_by('-created_at')
+    serializer_class = ForumPostSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class ForumPostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ForumPost.objects.all()
+    serializer_class = ForumPostSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
