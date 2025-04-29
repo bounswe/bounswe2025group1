@@ -93,7 +93,10 @@ class CommentTests(TestCase):
         comment = Comment.objects.create(forum_post=self.post, content='Old content', author=self.user)
         
         url = reverse('garden:comment-detail', kwargs={'pk': comment.pk})
-        data = {'content': 'Updated content'}
+        data = {
+            'forum_post': self.post.id,   # add this line
+            'content': 'Updated content'
+        }
         response = self.client.put(url, data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
