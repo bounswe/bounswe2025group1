@@ -2,14 +2,6 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Profile
 
-# Serializers will be implemented later
-# For example:
-# 
-# class PlantSerializer(serializers.ModelSerializer):
-#     pass
-# 
-# class GardenSerializer(serializers.ModelSerializer):
-#     pass 
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
@@ -52,7 +44,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
         )
         
-        # Profile is created by signal, now update fields
+        # Profile is created by signal, updating process
         if location:
             user.profile.location = location
         if profile_picture:
@@ -71,7 +63,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
         read_only_fields = ['id', 'profile']
 
-from .models import ForumPost, Comment  # ✅ make sure this import is included if not already present
+from .models import ForumPost, Comment
 
 class ForumPostSerializer(serializers.ModelSerializer):
     author_username = serializers.ReadOnlyField(source='author.username')

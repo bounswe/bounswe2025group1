@@ -1,33 +1,29 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_strin
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import viewsets, status, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.serializers import AuthTokenSerializer
-from .serializers import RegisterSerializer, ProfileSerializer, UserSerializer, ProfileUpdateSerializer, FollowSerializer
-from .models import Profile
-from django.contrib.auth.forms import PasswordResetForm
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
-from django.template.loader import render_to_string
-from django.conf import settings
-from django.core.mail import send_mail
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import generics
 
-
-# Views will be implemented later
-# For example:
-# 
-# class PlantViewSet(viewsets.ModelViewSet):
-#     pass
-# 
-# class GardenViewSet(viewsets.ModelViewSet):
-#     pass
+from .serializers import RegisterSerializer, ProfileSerializer, UserSerializer, ProfileUpdateSerializer, FollowSerializer
+from .models import Profile
+from .models import ForumPost
+from .serializers import ForumPostSerializer
 
 
 class RegisterView(APIView):
@@ -178,12 +174,7 @@ class PasswordResetConfirmView(APIView):
 
         return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
 
-from .models import ForumPost
-from .serializers import ForumPostSerializer
 
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-
-from rest_framework import generics
 
 
 class ForumPostListCreateView(generics.ListCreateAPIView):
