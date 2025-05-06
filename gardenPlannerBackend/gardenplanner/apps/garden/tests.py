@@ -94,7 +94,7 @@ class CommentTests(TestCase):
         
         url = reverse('garden:comment-detail', kwargs={'pk': comment.pk})
         data = {
-            'forum_post': self.post.id,   # add this line
+            'forum_post': self.post.id,
             'content': 'Updated content'
         }
         response = self.client.put(url, data, format='json')
