@@ -2,6 +2,14 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.db import models
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import viewsets, status, permissions, filters
@@ -9,37 +17,22 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import serializers
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import generics
+
 from .serializers import (
     RegisterSerializer, ProfileSerializer, UserSerializer, ProfileUpdateSerializer, 
     FollowSerializer, GardenSerializer, GardenMembershipSerializer, 
-    CustomTaskTypeSerializer, TaskSerializer
+    CustomTaskTypeSerializer, TaskSerializer, ForumPostSerializer, CommentSerializer
 )
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task
-from django.contrib.auth.forms import PasswordResetForm
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
-from django.template.loader import render_to_string
-from django.conf import settings
-from django.core.mail import send_mail
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.decorators import action
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
 from .permissions import (
     IsSystemAdministrator, IsModerator, IsMember, 
     IsGardenManager, IsGardenMember, IsGardenPublic,
     IsTaskAssignee
 )
-
-
-# Views will be implemented later
-# For example:
-# 
-# class PlantViewSet(viewsets.ModelViewSet):
-#     pass
-# 
-# class GardenViewSet(viewsets.ModelViewSet):
-#     pass
-
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -243,233 +236,59 @@ class GardenViewSet(viewsets.ModelViewSet):
         )
 
 
-class GardenMembershipViewSet(viewsets.ModelViewSet):
-    serializer_class = GardenMembershipSerializer
-    
-    def get_queryset(self):
-        """
-        Filter memberships based on user role:
-        - System admins can see all memberships
-        - Garden managers can see memberships for their gardens
-        - Users can see their own memberships
-        """
-        user = self.request.user
-        # System Admin can see all memberships
-        if user.profile.role == 'ADMIN':
-            return GardenMembership.objects.all()
-        
-        # Garden managers can see memberships for their gardens
-        manager_gardens = GardenMembership.objects.filter(
-            user=user, 
-            role='MANAGER',
-            status='ACCEPTED'
-        ).values_list('garden_id', flat=True)
-        
-        if manager_gardens:
-            return GardenMembership.objects.filter(garden_id__in=manager_gardens)
-        
-        # Users can see their own memberships
-        return GardenMembership.objects.filter(user=user)
-    
-    def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
-        if self.action in ['create']:
-            permission_classes = [IsMember]
-        elif self.action in ['list', 'retrieve']:
-            permission_classes = [IsAuthenticated]
-        elif self.action in ['update', 'partial_update', 'destroy']:
-            permission_classes = [IsGardenManager | IsSystemAdministrator]
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+class ForumPostListCreateView(generics.ListCreateAPIView):
+    queryset = ForumPost.objects.all()
+    serializer_class = ForumPostSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
     def perform_create(self, serializer):
-        """Set the user field to the current user when creating a membership"""
-        serializer.save(user=self.request.user)
-    
-    @action(detail=False, methods=['get'], url_path='my-gardens')
-    def my_gardens(self, request):
-        """Get gardens where the user is a member"""
-        memberships = GardenMembership.objects.filter(
-            user=request.user,
-            status='ACCEPTED'
-        )
-        gardens = [membership.garden for membership in memberships]
-        serializer = GardenSerializer(gardens, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['post'], url_path='accept')
-    def accept_membership(self, request, pk=None):
-        """Accept a garden membership request (managers only)"""
-        membership = self.get_object()
-        
-        # Check if the current user is a manager of this garden
-        has_permission = GardenMembership.objects.filter(
-            user=request.user,
-            garden=membership.garden,
-            role='MANAGER',
-            status='ACCEPTED'
-        ).exists() or request.user.profile.role == 'ADMIN'
-        
-        if not has_permission:
-            return Response(
-                {"error": "You don't have permission to accept membership requests for this garden"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        membership.status = 'ACCEPTED'
-        membership.save()
-        return Response(GardenMembershipSerializer(membership).data)
+        serializer.save(author=self.request.user)
 
 
-class CustomTaskTypeViewSet(viewsets.ModelViewSet):
-    serializer_class = CustomTaskTypeSerializer
+class ForumPostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ForumPost.objects.all()
+    serializer_class = ForumPostSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
-    def get_queryset(self):
-        """
-        Filter task types based on user role and garden membership:
-        - System admins can see all task types
-        - Users can see task types for gardens they're a member of
-        """
-        user = self.request.user
-        # System Admin can see all task types
-        if user.profile.role == 'ADMIN':
-            return CustomTaskType.objects.all()
-        
-        # Users can see task types for gardens they're a member of
-        member_gardens = GardenMembership.objects.filter(
-            user=user, 
-            status='ACCEPTED'
-        ).values_list('garden_id', flat=True)
-        
-        return CustomTaskType.objects.filter(garden_id__in=member_gardens)
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.author != request.user:
+            return Response({"detail": "You do not have permission to edit this post."}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
     
-    def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            permission_classes = [IsGardenManager | IsSystemAdministrator]
-        else:
-            permission_classes = [IsGardenMember | IsSystemAdministrator]
-        return [permission() for permission in permission_classes]
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.author != request.user:
+            return Response({"detail": "You do not have permission to delete this post."}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
 
 
-class TaskViewSet(viewsets.ModelViewSet):
-    serializer_class = TaskSerializer
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['title', 'description']
-    ordering_fields = ['due_date', 'created_at', 'status']
-    
-    def get_queryset(self):
-        """
-        Filter tasks based on user role and garden membership:
-        - System admins can see all tasks
-        - Garden managers can see all tasks in their gardens
-        - Garden workers can see tasks assigned to them or unassigned tasks in their gardens
-        """
-        user = self.request.user
-        # System Admin can see all tasks
-        if user.profile.role == 'ADMIN':
-            return Task.objects.all()
-        
-        # Get gardens where user is a member
-        memberships = GardenMembership.objects.filter(
-            user=user, 
-            status='ACCEPTED'
-        )
-        
-        # Get all gardens where user is a manager
-        manager_gardens = [m.garden_id for m in memberships if m.role == 'MANAGER']
-        
-        # If user is a manager in any gardens, show all tasks for those gardens
-        if manager_gardens:
-            return Task.objects.filter(garden_id__in=manager_gardens)
-        
-        # Otherwise show tasks assigned to the user or unassigned tasks in gardens they're a member of
-        worker_gardens = [m.garden_id for m in memberships]
-        return Task.objects.filter(
-            (models.Q(assigned_to=user) | models.Q(assigned_to=None)) &
-            models.Q(garden_id__in=worker_gardens)
-        )
-    
-    def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            permission_classes = [IsGardenManager | IsSystemAdministrator]
-        elif self.action in ['list', 'retrieve']:
-            permission_classes = [IsGardenMember | IsTaskAssignee | IsSystemAdministrator]
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+class CommentListCreateView(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
     def perform_create(self, serializer):
-        """Set the assigned_by field to the current user when creating a task"""
-        serializer.save(assigned_by=self.request.user)
+        serializer.save(author=self.request.user)
+
+
+class CommentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
-    @action(detail=True, methods=['post'], url_path='accept')
-    def accept_task(self, request, pk=None):
-        """Accept a task (workers only)"""
-        task = self.get_object()
-        
-        if task.assigned_to != request.user:
-            return Response(
-                {"error": "You cannot accept a task that is not assigned to you"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        if task.status not in ['PENDING', 'DECLINED']:
-            return Response(
-                {"error": f"Task cannot be accepted because it has status: {task.status}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        task.status = 'ACCEPTED'
-        task.save()
-        return Response(TaskSerializer(task).data)
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.author != request.user:
+            return Response({"detail": "You do not have permission to edit this comment."}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
     
-    @action(detail=True, methods=['post'], url_path='decline')
-    def decline_task(self, request, pk=None):
-        """Decline a task (workers only)"""
-        task = self.get_object()
-        
-        if task.assigned_to != request.user:
-            return Response(
-                {"error": "You cannot decline a task that is not assigned to you"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        if task.status not in ['PENDING', 'ACCEPTED']:
-            return Response(
-                {"error": f"Task cannot be declined because it has status: {task.status}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        task.status = 'DECLINED'
-        task.save()
-        return Response(TaskSerializer(task).data)
-    
-    @action(detail=True, methods=['post'], url_path='complete')
-    def complete_task(self, request, pk=None):
-        """Mark a task as completed (workers only)"""
-        task = self.get_object()
-        
-        if task.assigned_to != request.user:
-            return Response(
-                {"error": "You cannot complete a task that is not assigned to you"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        if task.status != 'IN_PROGRESS':
-            return Response(
-                {"error": f"Task cannot be completed because it has status: {task.status}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        task.status = 'COMPLETED'
-        task.save()
-        return Response(TaskSerializer(task).data)
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.author != request.user:
+            return Response({"detail": "You do not have permission to delete this comment."}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)

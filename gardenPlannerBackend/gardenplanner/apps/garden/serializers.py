@@ -1,15 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
 
-# Serializers will be implemented later
-# For example:
-# 
-# class PlantSerializer(serializers.ModelSerializer):
-#     pass
-# 
-# class GardenSerializer(serializers.ModelSerializer):
-#     pass 
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
@@ -52,7 +44,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
         )
         
-        # Profile is created by signal, now update fields
+        # Profile is created by signal, updating process
         if location:
             user.profile.location = location
         if profile_picture:
@@ -115,3 +107,20 @@ class TaskSerializer(serializers.ModelSerializer):
                  'assigned_to', 'assigned_to_username', 
                  'status', 'due_date', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+class ForumPostSerializer(serializers.ModelSerializer):
+    author_username = serializers.ReadOnlyField(source='author.username')
+
+    class Meta:
+        model = ForumPost
+        fields = ['id', 'title', 'content', 'author', 'author_username', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'author']
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author_username = serializers.CharField(source='author.username', read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'created_at']
+        read_only_fields = ['id', 'author', 'author_username', 'created_at']

@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+
 from . import views
 
 app_name = 'garden'
@@ -10,6 +11,14 @@ router.register(r'gardens', views.GardenViewSet, basename='garden')
 router.register(r'memberships', views.GardenMembershipViewSet, basename='membership')
 router.register(r'task-types', views.CustomTaskTypeViewSet, basename='task-type')
 router.register(r'tasks', views.TaskViewSet, basename='task')
+
+# Create forum-specific URL patterns
+forum_patterns = [
+    path('', views.ForumPostListCreateView.as_view(), name='forum-list-create'),
+    path('<int:pk>/', views.ForumPostRetrieveUpdateDestroyView.as_view(), name='forum-detail'),
+    path('comments/', views.CommentListCreateView.as_view(), name='comment-list-create'),
+    path('comments/<int:pk>/', views.CommentRetrieveUpdateDestroyView.as_view(), name='comment-detail'),
+]
 
 urlpatterns = [
     # Include router URLs
@@ -28,4 +37,7 @@ urlpatterns = [
     path('profile/follow/', views.FollowView.as_view(), name='follow'),
     path('profile/followers/', views.FollowersListView.as_view(), name='followers'),
     path('profile/following/', views.FollowingListView.as_view(), name='following'),
+    
+    # Forum endpoints with namespace
+    path('forum/', include(forum_patterns)),
 ] 
