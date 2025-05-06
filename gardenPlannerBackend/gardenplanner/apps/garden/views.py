@@ -23,16 +23,17 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import generics
 
 from .serializers import (
-    RegisterSerializer, ProfileSerializer, UserSerializer, ProfileUpdateSerializer, 
-    FollowSerializer, GardenSerializer, GardenMembershipSerializer, 
+    RegisterSerializer, ProfileSerializer, UserSerializer, ProfileUpdateSerializer,
+    FollowSerializer, GardenSerializer, GardenMembershipSerializer,
     CustomTaskTypeSerializer, TaskSerializer, ForumPostSerializer, CommentSerializer
 )
 from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
 from .permissions import (
-    IsSystemAdministrator, IsModerator, IsMember, 
+    IsSystemAdministrator, IsModerator, IsMember,
     IsGardenManager, IsGardenMember, IsGardenPublic,
     IsTaskAssignee
 )
+
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -49,7 +50,7 @@ class RegisterView(APIView):
 class CustomLoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
-                                          context={'request': request})
+                                           context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
@@ -62,25 +63,25 @@ class CustomLoginView(ObtainAuthToken):
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         try:
             request.user.auth_token.delete()
         except (AttributeError, Token.DoesNotExist):
             pass
-        
+
         logout(request)
         return Response({"success": "Successfully logged out."}, status=status.HTTP_200_OK)
 
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         """Get current user's profile"""
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
-    
+
     def put(self, request):
         """Update current user's profile"""
         serializer = ProfileUpdateSerializer(request.user.profile, data=request.data, partial=True)
@@ -92,7 +93,7 @@ class ProfileView(APIView):
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request, user_id):
         """Get another user's profile"""
         user = get_object_or_404(User, id=user_id)
@@ -102,7 +103,7 @@ class UserProfileView(APIView):
 
 class FollowView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         """Follow a user"""
         serializer = FollowSerializer(data=request.data)
@@ -111,7 +112,7 @@ class FollowView(APIView):
             request.user.profile.follow(user_to_follow.profile)
             return Response({"status": "success", "message": f"You are now following {user_to_follow.username}"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request):
         """Unfollow a user"""
         serializer = FollowSerializer(data=request.data)
@@ -124,7 +125,7 @@ class FollowView(APIView):
 
 class FollowersListView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         """Get list of users that follow the current user"""
         followers = request.user.profile.followers.all()
@@ -134,7 +135,7 @@ class FollowersListView(APIView):
 
 class FollowingListView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         """Get list of users that the current user is following"""
         following = request.user.profile.following.all()
@@ -160,7 +161,7 @@ class PasswordResetAPIView(APIView):
 
                 # You can use a template instead of plain string
                 message = f"Hi {user.username},\n\nClick the link below to reset your password:\n{reset_url}"
-                
+
                 # Send email
                 send_mail(
                     'Password Reset Request',
@@ -169,7 +170,7 @@ class PasswordResetAPIView(APIView):
                     [user.email],
                     fail_silently=False,
                 )
-                
+
             return Response(
                 {'message': 'Password reset link has been sent to your email address.'},
                 status=status.HTTP_200_OK
@@ -184,23 +185,23 @@ class PasswordResetAPIView(APIView):
 
 class PasswordResetConfirmView(APIView):
     permission_classes = [permissions.AllowAny]
-    
+
     def post(self, request, uidb64, token):
         try:
             uid = urlsafe_base64_decode(uidb64).decode()
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             return Response({'error': 'Invalid reset link.'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
         if default_token_generator.check_token(user, token):
             new_password = request.data.get('new_password')
             if not new_password:
                 return Response({'error': 'New password is required.'}, status=status.HTTP_400_BAD_REQUEST)
-                
+
             user.set_password(new_password)
             user.save()
             return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
-        
+
         return Response({'error': 'Invalid reset link or it has expired.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -210,7 +211,7 @@ class GardenViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'created_at']
-    
+
     def get_permissions(self):
         """
         Instantiates and returns the list of permissions that this view requires.
@@ -224,7 +225,7 @@ class GardenViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
-    
+
     def perform_create(self, serializer):
         garden = serializer.save()
         # When a user creates a garden, they automatically become a manager
@@ -236,11 +237,66 @@ class GardenViewSet(viewsets.ModelViewSet):
         )
 
 
+class GardenMembershipViewSet(viewsets.ModelViewSet):
+    queryset = GardenMembership.objects.all()
+    serializer_class = GardenMembershipSerializer
+
+    def get_permissions(self):
+        if self.action in ['create']:
+            permission_classes = [IsAuthenticated]
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            permission_classes = [IsGardenManager | IsSystemAdministrator]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+
+class CustomTaskTypeViewSet(viewsets.ModelViewSet):
+    queryset = CustomTaskType.objects.all()
+    serializer_class = CustomTaskTypeSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [IsAuthenticated, IsGardenMember | IsGardenPublic]
+        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAuthenticated, IsGardenManager]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+
+class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['title', 'description']
+    ordering_fields = ['due_date', 'created_at', 'status']
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [IsAuthenticated, IsGardenMember | IsGardenPublic]
+        elif self.action in ['create']:
+            permission_classes = [IsAuthenticated, IsGardenMember]
+        elif self.action in ['update', 'partial_update']:
+            permission_classes = [IsAuthenticated, IsGardenManager | IsTaskAssignee]
+        elif self.action in ['destroy']:
+            permission_classes = [IsAuthenticated, IsGardenManager]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def perform_create(self, serializer):
+        serializer.save(assigned_by=self.request.user)
+
+
 class ForumPostListCreateView(generics.ListCreateAPIView):
-    queryset = ForumPost.objects.all()
+    queryset = ForumPost.objects.all().order_by('-created_at')
     serializer_class = ForumPostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    
+
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
@@ -249,19 +305,19 @@ class ForumPostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ForumPost.objects.all()
     serializer_class = ForumPostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    
+
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.author != request.user:
-            return Response({"detail": "You do not have permission to edit this post."}, 
-                           status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "You do not have permission to edit this post."},
+                            status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
-    
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.author != request.user:
-            return Response({"detail": "You do not have permission to delete this post."}, 
-                           status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "You do not have permission to delete this post."},
+                            status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
 
 
@@ -269,7 +325,7 @@ class CommentListCreateView(generics.ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    
+
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
@@ -278,17 +334,17 @@ class CommentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    
+
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.author != request.user:
-            return Response({"detail": "You do not have permission to edit this comment."}, 
-                           status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "You do not have permission to edit this comment."},
+                            status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
-    
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.author != request.user:
-            return Response({"detail": "You do not have permission to delete this comment."}, 
-                           status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "You do not have permission to delete this comment."},
+                            status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
