@@ -6,10 +6,9 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('garden', '0001_initial'),
+        ('garden', '0002_add_garden_membership_task_models'),
     ]
 
     operations = [
