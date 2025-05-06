@@ -14,6 +14,11 @@ import Register from './pages/auth/Register';
 import GardenList from './pages/garden/GardenList';
 import GardenDetail from './pages/garden/GardenDetail';
 import ForumList from './pages/forum/ForumList';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import Profile from './pages/profile/Profile';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Context providers
 import { AuthProvider } from './contexts/AuthContext';
@@ -105,19 +110,34 @@ theme = responsiveFontSizes(theme);
 function App() {
   return (
     <ThemeProvider theme={theme}>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light" // options: 'light', 'dark', 'colored'
+        toastClassName="custom-toast"
+        bodyClassName="custom-toast-body"
+      />
+
       <CssBaseline />
       <AuthProvider>
         <Router>
           <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
             <Navbar />
-            <Box 
+            <Box
               component="main"
-              sx={{ 
-                flexGrow: 1, 
-                pt: { xs: 1, md: 2 }, 
-                pb: { xs: 2, md: 4 }, 
-                width: '100%', 
-                maxWidth: '100%', 
+              sx={{
+                flexGrow: 1,
+                pt: { xs: 1, md: 2 },
+                pb: { xs: 2, md: 4 },
+                width: '100%',
+                maxWidth: '100%',
                 overflowX: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
@@ -131,16 +151,20 @@ function App() {
                 <Route path="/gardens" element={<GardenList />} />
                 <Route path="/gardens/:gardenId" element={<GardenDetail />} />
                 <Route path="/forum" element={<ForumList />} />
+                <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+                <Route path="/auth/reset-password" element={<ResetPassword />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/:userId" element={<Profile />} />
                 {/* Additional routes will be implemented later */}
                 <Route path="*" element={<Home />} />
               </Routes>
             </Box>
-            <Box 
-              component="footer" 
-              sx={{ 
-                py: 3, 
-                px: 2, 
-                mt: 'auto', 
+            <Box
+              component="footer"
+              sx={{
+                py: 3,
+                px: 2,
+                mt: 'auto',
                 backgroundColor: '#f5f5f5',
                 textAlign: 'center',
                 width: '100%'

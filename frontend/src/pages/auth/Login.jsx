@@ -1,91 +1,106 @@
-import { useState } from 'react';
-import { 
-  Container, 
-  Box, 
-  Typography, 
-  TextField, 
-  Button, 
-  Grid, 
-  Link, 
-  Paper, 
-  Avatar 
+// Login.jsx
+import React, { useState } from 'react';
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Link,
+  Paper,
+  Avatar,
+  InputAdornment
 } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
-import InputAdornment from '@mui/material/InputAdornment';
 import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContextUtils';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    
+
     try {
-      // In a real app, this would be replaced with an API call
-      const success = login({
-        email,
-        name: 'Demo User', // This would come from the API response
-        id: '123456' // This would come from the API response
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/login/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
       });
-      
-      if (success) {
-        navigate('/');
+
+      if (!response.ok) {
+        throw new Error('Login failed');
       }
-    } catch (err) {
-      setError('Failed to log in. Please check your credentials.');
-      console.error(err);
+
+      const data = await response.json();
+
+      // Save user and token via context
+      const user = { username };
+      login(user, data.token);
+
+      toast.success('Welcome back to the garden!', {
+        position: 'top-right',
+        theme: 'colored',
+      });
+
+      setTimeout(() => navigate('/'), 2000);
+    } catch (error) {
+      toast.error('Failed to log in. Please check your credentials.', {
+        position: 'top-right',
+        theme: 'colored',
+      });
+      console.error(error);
     }
   };
 
   return (
-    <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
-            <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-              <LockOutlinedIcon />
-            </Avatar>
-            <Typography component="h1" variant="h5">
-              Sign in
+    <Container
+      component="main"
+      maxWidth="sm"
+      sx={{
+        backgroundColor: '#f1f8e9',
+        minHeight: '80vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <ToastContainer />
+      <Box sx={{ mt: -10 }}>
+        <Paper
+          elevation={4}
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            backgroundColor: '#ffffffee',
+            boxShadow: '0px 6px 20px rgba(85, 139, 47, 0.2)',
+          }}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Avatar sx={{ m: 1, bgcolor: '#c9dbb6' }}>🌿</Avatar>
+            <Typography component="h1" variant="h5" fontWeight="bold">
+              Sign in to Garden Planner
             </Typography>
-            {error && (
-              <Typography color="error" sx={{ mt: 2 }}>
-                {error}
-              </Typography>
-            )}
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
               <TextField
                 margin="normal"
                 required
                 fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
+                id="username"
+                label="Username"
+                name="username"
+                autoComplete="username"
                 autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -117,22 +132,29 @@ const Login = () => {
                 type="submit"
                 fullWidth
                 variant="contained"
-                sx={{ mt: 3, mb: 2, bgcolor: '#558b2f' }}
+                sx={{
+                  mt: 3,
+                  mb: 2,
+                  background: 'linear-gradient(90deg, #8bc34a 0%, #558b2f 100%)',
+                  color: '#fff',
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, #7cb342 0%, #33691e 100%)',
+                  }
+                }}
               >
                 Sign In
               </Button>
-              <Grid container direction="column">
-                <Grid>
-                  <Link href="#" variant="body2">
-                    Forgot password?
+              <Box sx={{ mt: 3, textAlign: 'center' }}>
+                <Link href="/auth/forgot-password" variant="body2" underline="hover" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  Forgot password?
+                </Link>
+                <Typography variant="body2" color="text.secondary">
+                  Don’t have an account?{' '}
+                  <Link href="/auth/register" underline="hover" color="primary">
+                    Sign up
                   </Link>
-                </Grid>
-                <Grid>
-                  <Link href="/auth/register" variant="body2">
-                    {"Don't have an account? Sign Up"}
-                  </Link>
-                </Grid>
-              </Grid>
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </Paper>

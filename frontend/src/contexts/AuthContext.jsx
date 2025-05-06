@@ -3,45 +3,72 @@ import AuthContext from './AuthContextUtils';
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is logged in on initial load
+
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const storedToken = localStorage.getItem('token');
+    if (storedUser && storedToken) {
       setCurrentUser(JSON.parse(storedUser));
+      setToken(storedToken);
     }
     setLoading(false);
   }, []);
 
-  // Login function
-  const login = (userData) => {
-    // In a real app, you'd validate credentials with an API
+
+  const login = (userData, jwtToken) => {
     setCurrentUser(userData);
+    setToken(jwtToken);
     localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', jwtToken);
     return true;
   };
 
-  // Register function
-  const register = (userData) => {
-    // In a real app, you'd send registration data to an API
+
+  const register = (userData, jwtToken) => {
     setCurrentUser(userData);
+    setToken(jwtToken);
     localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', jwtToken);
     return true;
   };
 
-  // Logout function
-  const logout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem('user');
-  };
 
+  const logout = async () => {
+    try {
+      const token = localStorage.getItem('token'); 
+  
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/logout/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${token}`
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error('Logout failed');
+      }
+  
+      localStorage.removeItem('token'); // clear token
+      setCurrentUser(null);
+      setToken(null);
+      return true;
+    } catch (error) {
+      console.error('Logout error:', error);
+      return false;
+    }
+  };
+  
   const value = {
     currentUser,
+    token,
     loading,
     login,
     register,
-    logout
+    logout,
   };
 
   return (
@@ -51,5 +78,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Only export the component from this file
 export default AuthProvider;
