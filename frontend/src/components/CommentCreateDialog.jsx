@@ -14,6 +14,7 @@ import AddCommentIcon from '@mui/icons-material/AddComment';
 import SendIcon from '@mui/icons-material/Send';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
+import React from 'react';
 
 const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
   const [content, setContent] = useState('');

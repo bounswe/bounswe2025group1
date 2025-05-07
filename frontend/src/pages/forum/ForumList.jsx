@@ -12,7 +12,6 @@ import {
   InputAdornment,
   CircularProgress,
   Divider,
-  Chip,
   Avatar,
   Paper,
   Fab,
@@ -27,6 +26,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import ForumCreateDialog from '../../components/ForumCreateDialog';
 import CommentCreateDialog from '../../components/CommentCreateDialog';
+import React from 'react';
 
 const ForumList = () => {
   const [posts, setPosts] = useState([]);

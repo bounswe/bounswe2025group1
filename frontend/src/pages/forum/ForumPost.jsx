@@ -5,7 +5,6 @@ import {
   Container,
   Typography,
   Box,
-  Grid,
   Card,
   CardContent,
   Button,
@@ -31,6 +30,7 @@ import AddCommentIcon from '@mui/icons-material/AddComment';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import CommentCreateDialog from '../../components/CommentCreateDialog';
+import React from 'react';
 
 const ForumPost = () => {
   const { postId } = useParams();

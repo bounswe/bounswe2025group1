@@ -13,6 +13,7 @@ import {
 import ForumIcon from '@mui/icons-material/Forum';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
+import React from 'react';
 
 const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
   const [title, setTitle] = useState('');

@@ -14,6 +14,7 @@ import {
 import ForumIcon from '@mui/icons-material/Forum';
 import ChatIcon from '@mui/icons-material/Chat';
 import { useNavigate } from 'react-router-dom';
+import React from 'react';
 
 const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
   const navigate = useNavigate();
