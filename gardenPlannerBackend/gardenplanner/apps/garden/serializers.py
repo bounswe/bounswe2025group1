@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
-
+from django.contrib.auth import get_user_model
+from django.conf import settings
+import requests
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
@@ -23,38 +25,59 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 class FollowSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
 
+
+def verify_recaptcha(token):
+    url = 'https://www.google.com/recaptcha/api/siteverify'
+    data = {
+        'secret': settings.RECAPTCHA_SECRET_KEY,
+        'response': token,
+    }
+    response = requests.post(url, data=data)
+    return response.json()
+    
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     location = serializers.CharField(required=False, allow_blank=True)
     profile_picture = serializers.ImageField(required=False)
+    captcha = serializers.CharField(write_only=True)
 
     class Meta:
-        model = User
-        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'location', 'profile_picture']
+        model = get_user_model()
+        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'location', 'profile_picture', 'captcha']
+
+   
+    def validate(self, data):
+        captcha_token = data.pop('captcha', None)
+        result = verify_recaptcha(captcha_token)
+
+        if not result.get('success'):
+            raise serializers.ValidationError({'captcha': 'Invalid captcha. Try again.'})
+
+        return data
 
     def create(self, validated_data):
+        validated_data.pop('captcha', None)
         location = validated_data.pop('location', None)
         profile_picture = validated_data.pop('profile_picture', None)
-        
-        user = User.objects.create_user(
+
+        user = self.Meta.model.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
             password=validated_data['password'],
         )
-        
-        # Profile is created by signal, updating process
-        if location:
-            user.profile.location = location
-        if profile_picture:
-            user.profile.profile_picture = profile_picture
-        
-        if location or profile_picture:
-            user.profile.save()
-            
-        return user
 
+        profile, _ = Profile.objects.get_or_create(user=user)
+        if location:
+            profile.location = location
+        if profile_picture:
+            profile.profile_picture = profile_picture
+        if location or profile_picture:
+            profile.save()
+
+        return user
+    
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
     
