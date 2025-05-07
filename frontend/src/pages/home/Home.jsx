@@ -25,24 +25,35 @@ const Home = () => {
   const [weather, setWeather] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { currentUser } = useAuth();
+  const { currentUser, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch data in parallel for better performance
-        const [gardensRes, tasksRes, weatherRes, postsRes] = await Promise.all([
+        const [gardensRes, tasksRes, weatherRes] = await Promise.all([
           api.getGardens(),
           api.getTasks(),
-          api.getWeather(),
-          api.getPosts()
+          api.getWeather()
         ]);
+
+        // Fetch forum posts directly from API endpoint
+        const postsResponse = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, {
+          headers: {
+            'Authorization': token ? `Token ${token}` : undefined
+          }
+        });
+        
+        let postsData = [];
+        if (postsResponse.ok) {
+          postsData = await postsResponse.json();
+        }
 
         setGardens(gardensRes.data);
         setTasks(tasksRes.data);
         setWeather(weatherRes.data);
-        setPosts(postsRes.data);
+        setPosts(postsData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -51,7 +62,7 @@ const Home = () => {
     };
 
     fetchData();
-  }, []);
+  }, [token]);
 
   // Get pending tasks
   const pendingTasks = tasks.filter(task => task.status === 'Pending');

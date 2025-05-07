@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe,test, expect, vi, beforeEach } from 'vitest';
 import ForumList from './ForumList';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +15,7 @@ vi.mock('../../contexts/AuthContextUtils', () => ({
 }));
 
 vi.mock('../../components/ForumCreateDialog', () => ({
-  default: ({ open, onClose, onPostCreated }) => (
+  default: ({ onPostCreated }) => (
     <div data-testid="forum-create-dialog" onClick={() => onPostCreated({
       id: '123',
       title: 'New Post',
@@ -30,7 +30,7 @@ vi.mock('../../components/ForumCreateDialog', () => ({
 }));
 
 vi.mock('../../components/CommentCreateDialog', () => ({
-  default: ({ open, onClose, postId, onCommentCreated }) => (
+  default: ({ onCommentCreated }) => (
     <div data-testid="comment-create-dialog" onClick={() => onCommentCreated()}>
       Mock Comment Create Dialog
     </div>
@@ -38,7 +38,7 @@ vi.mock('../../components/CommentCreateDialog', () => ({
 }));
 
 // Mock fetch
-global.fetch = vi.fn();
+window.fetch = vi.fn();
 
 describe('ForumList Component', () => {
   const mockNavigate = vi.fn();

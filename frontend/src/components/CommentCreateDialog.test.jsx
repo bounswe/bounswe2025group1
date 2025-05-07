@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe, test, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import CommentCreateDialog from './CommentCreateDialog';
 import { useAuth } from '../contexts/AuthContextUtils';
 import React from 'react';
@@ -17,7 +17,7 @@ vi.mock('react-toastify', () => ({
 }));
 
 // Mock fetch
-global.fetch = vi.fn();
+window.fetch = vi.fn();
 
 // Set up environment variables
 beforeAll(() => {

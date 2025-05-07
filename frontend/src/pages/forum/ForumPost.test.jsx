@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 import ForumPost from './ForumPost';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -23,7 +23,7 @@ vi.mock('react-toastify', () => ({
 }));
 
 vi.mock('../../components/CommentCreateDialog', () => ({
-  default: ({ open, onClose, postId, onCommentCreated }) => (
+  default: ({ onCommentCreated }) => (
     <div data-testid="comment-create-dialog" onClick={() => onCommentCreated({
       id: 'comment-1',
       content: 'New comment',
@@ -36,7 +36,7 @@ vi.mock('../../components/CommentCreateDialog', () => ({
 }));
 
 // Mock fetch
-global.fetch = vi.fn();
+window.fetch = vi.fn();
 
 describe('ForumPost Component', () => {
   const mockNavigate = vi.fn();
