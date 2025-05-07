@@ -16,33 +16,28 @@ import {
   Avatar,
   Paper,
   Fab,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Alert
+  Tooltip
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import ForumIcon from '@mui/icons-material/Forum';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
-import CommentIcon from '@mui/icons-material/Comment';
+import AddCommentIcon from '@mui/icons-material/AddComment';
+import ReadMoreIcon from '@mui/icons-material/ReadMore';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
-import { toast } from 'react-toastify';
+import ForumCreateDialog from '../../components/ForumCreateDialog';
+import CommentCreateDialog from '../../components/CommentCreateDialog';
 
 const ForumList = () => {
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  // Post creation dialog states
+  
+  // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [newPostTitle, setNewPostTitle] = useState('');
-  const [newPostContent, setNewPostContent] = useState('');
-  const [createLoading, setCreateLoading] = useState(false);
-  const [createError, setCreateError] = useState(null);
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState(null);
   
   const { currentUser, token } = useAuth();
   const navigate = useNavigate();
@@ -73,69 +68,6 @@ const ForumList = () => {
     fetchPosts();
   }, [token]);
 
-  // Handle post creation
-  const handleCreatePost = async () => {
-    // Validation
-    if (!newPostTitle.trim() || !newPostContent.trim()) {
-      setCreateError('Title and content are required.');
-      return;
-    }
-    
-    try {
-      setCreateLoading(true);
-      setCreateError(null);
-      
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
-        },
-        body: JSON.stringify({
-          title: newPostTitle,
-          content: newPostContent
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create post');
-      }
-      
-      const newPost = await response.json();
-      
-      // Update posts list with the new post
-      setPosts([newPost, ...posts]);
-      setFilteredPosts([newPost, ...filteredPosts]);
-      
-      // Reset form and close dialog
-      setNewPostTitle('');
-      setNewPostContent('');
-      setCreateDialogOpen(false);
-      setCreateLoading(false);
-      
-      // Show success toast notification
-      toast.success('Post created successfully!');
-      
-      // Navigate to the new post view
-      navigate(`/forum/${newPost.id}`);
-    } catch (error) {
-      console.error('Error creating post:', error);
-      setCreateError('Failed to create post. Please try again later.');
-      setCreateLoading(false);
-      
-      // Show error toast notification
-      toast.error('Failed to create post. Please try again.');
-    }
-  };
-
-  // Reset form when dialog is closed
-  const handleCloseDialog = () => {
-    setNewPostTitle('');
-    setNewPostContent('');
-    setCreateError(null);
-    setCreateDialogOpen(false);
-  };
-
   const handleSearch = (event) => {
     const value = event.target.value.toLowerCase();
     setSearchTerm(value);
@@ -152,6 +84,27 @@ const ForumList = () => {
     );
     
     setFilteredPosts(filtered);
+  };
+
+  const handlePostCreated = (newPost) => {
+    setPosts([newPost, ...posts]);
+    setFilteredPosts([newPost, ...filteredPosts]);
+    setCreateDialogOpen(false);
+    
+    // Navigate to the new post view
+    navigate(`/forum/${newPost.id}`);
+  };
+
+  const handleOpenCommentDialog = (postId) => {
+    setSelectedPostId(postId);
+    setCommentDialogOpen(true);
+  };
+
+  const handleCommentCreated = () => {
+    setCommentDialogOpen(false);
+    
+    // Navigate to the post view to see the comment
+    navigate(`/forum/${selectedPostId}`);
   };
 
   const formatDate = (dateString) => {
@@ -178,7 +131,7 @@ const ForumList = () => {
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#2e7d32', display: 'flex', alignItems: 'center' }}>
           <ForumIcon sx={{ mr: 1 }} /> Community Forum
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary" paragraph>
+        <Typography variant="subtitle1" color="text.secondary" paragraph sx={{ textAlign: 'left' }}>
           Join discussions, share gardening tips, and connect with fellow garden enthusiasts.
         </Typography>
         <Divider sx={{ my: 2 }} />
@@ -187,7 +140,7 @@ const ForumList = () => {
       {/* Search and Filter */}
       <Paper elevation={1} sx={{ p: 2, mb: 4 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, md: 6}}>
             <TextField
               fullWidth
               placeholder="Search posts by title, content or author..."
@@ -204,15 +157,21 @@ const ForumList = () => {
               size="small"
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip label="All Topics" color="primary" variant="outlined" onClick={() => {}} />
-              {currentUser && (
-                <Chip label="Following" variant="outlined" onClick={() => {}} />
+          <Grid size={{ xs: 12, md: 6}} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, alignItems: 'center' }}>
+          {currentUser && (
+                <Button 
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setCreateDialogOpen(true)}
+                  sx={{ 
+                    ml: 2,
+                    bgcolor: '#558b2f', 
+                    '&:hover': { bgcolor: '#33691e' }
+                  }}
+                >
+                  New Post
+                </Button>
               )}
-              <Chip label="Most Popular" variant="outlined" onClick={() => {}} />
-              <Chip label="Recent" variant="outlined" onClick={() => {}} />
-            </Box>
           </Grid>
         </Grid>
       </Paper>
@@ -243,40 +202,30 @@ const ForumList = () => {
                         User {post.author} • {formatDate(post.created_at)}
                       </Typography>
                     </Box>
-                    <Chip 
-                      label="Gardening Tips" 
-                      size="small" 
-                      sx={{ bgcolor: '#e8f5e9', color: '#2e7d32' }} 
-                    />
                   </Box>
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ textAlign: 'left' }}>
                     {post.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 2, textAlign: 'left' }}>
                     {post.content.length > 200 
                       ? `${post.content.substring(0, 200)}...` 
                       : post.content
                     }
                   </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      {/* We might not have likes data in the API yet */}
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <ThumbUpIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-                        <Typography variant="body2" color="text.secondary">
-                          0
-                        </Typography>
-                      </Box>
-                      {/* We might not have comments count in the API yet */}
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <CommentIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-                        <Typography variant="body2" color="text.secondary">
-                          0
-                        </Typography>
-                      </Box>
-                    </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                    {currentUser && (
+                      <Button 
+                      variant="text"
+                        startIcon={<AddCommentIcon />}
+                        onClick={() => handleOpenCommentDialog(post.id)}
+                        sx={{ mr: 2, color: '#558b2f', borderColor: '#558b2f' }}
+                      >
+                        Comment
+                      </Button>
+                    )}
                     <Button 
                       variant="text"
+                      startIcon={<ReadMoreIcon />}
                       onClick={() => navigate(`/forum/${post.id}`)}
                       sx={{ color: '#558b2f' }}
                     >
@@ -289,7 +238,7 @@ const ForumList = () => {
           </Card>
         ))
       ) : (
-        <Box sx={{ textAlign: 'center', py: 5 }}>
+        <Box sx={{ py: 5, textAlign: 'left' }}>
           <Typography variant="h6" color="text.secondary">
             No posts found
           </Typography>
@@ -299,96 +248,41 @@ const ForumList = () => {
         </Box>
       )}
 
-      {/* Create Post Button (for logged in users) */}
+      {/* Create Post Floating Action Button (for logged in users) */}
       {currentUser && (
-        <Fab
-          color="primary"
-          aria-label="create post"
-          sx={{ 
-            position: 'fixed', 
-            bottom: 24, 
-            right: 24,
-            backgroundColor: '#558b2f',
-            '&:hover': {
-              backgroundColor: '#33691e',
-            }
-          }}
-          onClick={() => setCreateDialogOpen(true)}
-        >
-          <AddIcon />
-        </Fab>
-      )}
-      
-      {/* Create Post Dialog */}
-      <Dialog 
-        open={createDialogOpen} 
-        onClose={handleCloseDialog}
-        fullWidth
-        maxWidth="md"
-      >
-        <DialogTitle sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}>
-          <ForumIcon sx={{ mr: 1 }} /> Create New Post
-        </DialogTitle>
-        
-        <DialogContent>
-          {createError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {createError}
-            </Alert>
-          )}
-          
-          <DialogContentText sx={{ mb: 2 }}>
-            Share your gardening experiences, questions, or tips with the community.
-          </DialogContentText>
-          
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Title"
-            fullWidth
-            variant="outlined"
-            value={newPostTitle}
-            onChange={(e) => setNewPostTitle(e.target.value)}
-            required
-            sx={{ mb: 2 }}
-          />
-          
-          <TextField
-            label="Content"
-            multiline
-            rows={10}
-            fullWidth
-            variant="outlined"
-            value={newPostContent}
-            onChange={(e) => setNewPostContent(e.target.value)}
-            required
-          />
-        </DialogContent>
-        
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={handleCloseDialog} variant="outlined">
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleCreatePost}
-            variant="contained"
-            disabled={createLoading}
+        <Tooltip title="Create new post" arrow placement="left">
+          <Fab
+            color="primary"
+            aria-label="create post"
             sx={{ 
-              bgcolor: '#558b2f', 
-              '&:hover': { 
-                bgcolor: '#33691e' 
+              position: 'fixed', 
+              bottom: 24, 
+              right: 24,
+              backgroundColor: '#558b2f',
+              '&:hover': {
+                backgroundColor: '#33691e',
               }
             }}
+            onClick={() => setCreateDialogOpen(true)}
           >
-            {createLoading ? (
-              <>
-                <CircularProgress size={20} sx={{ mr: 1 }} />
-                Posting...
-              </>
-            ) : 'Post'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <AddIcon />
+          </Fab>
+        </Tooltip>
+      )}
+      
+      {/* Dialog Components */}
+      <ForumCreateDialog 
+        open={createDialogOpen} 
+        onClose={() => setCreateDialogOpen(false)}
+        onPostCreated={handlePostCreated}
+      />
+      
+      <CommentCreateDialog
+        open={commentDialogOpen}
+        onClose={() => setCommentDialogOpen(false)}
+        postId={selectedPostId}
+        onCommentCreated={handleCommentCreated}
+      />
     </Container>
   );
 };

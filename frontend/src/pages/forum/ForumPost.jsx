@@ -21,15 +21,16 @@ import {
   DialogContentText,
   DialogTitle,
   Alert,
-  Fab
+  Fab,
+  Tooltip
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import SendIcon from '@mui/icons-material/Send';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
+import CommentCreateDialog from '../../components/CommentCreateDialog';
 
 const ForumPost = () => {
   const { postId } = useParams();
@@ -42,11 +43,8 @@ const ForumPost = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [error, setError] = useState(null);
   
-  // Comment dialog states
+  // Comment dialog state
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
-  const [newComment, setNewComment] = useState('');
-  const [commentLoading, setCommentLoading] = useState(false);
-  const [commentError, setCommentError] = useState(null);
   
   const { currentUser, token } = useAuth();
   const navigate = useNavigate();
@@ -105,51 +103,9 @@ const ForumPost = () => {
     }
   }, [postId, token]);
 
-  const handleCommentSubmit = async () => {
-    if (!newComment.trim()) return;
-    
-    try {
-      setCommentLoading(true);
-      setCommentError(null);
-      
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/comments/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
-        },
-        body: JSON.stringify({
-          forum_post: postId,
-          content: newComment
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to post comment');
-      }
-      
-      const data = await response.json();
-      setComments([...comments, data]);
-      setNewComment('');
-      setCommentDialogOpen(false);
-      setCommentLoading(false);
-      
-      // Show success toast notification
-      toast.success('Comment posted successfully!');
-    } catch (error) {
-      console.error('Error posting comment:', error);
-      setCommentError('Failed to post your comment. Please try again.');
-      setCommentLoading(false);
-      
-      // Show error toast notification
-      toast.error('Failed to post comment. Please try again.');
-    }
-  };
-
-  const handleCloseCommentDialog = () => {
+  const handleCommentCreated = (newComment) => {
+    setComments([...comments, newComment]);
     setCommentDialogOpen(false);
-    setNewComment('');
-    setCommentError(null);
   };
 
   const handlePostUpdate = async () => {
@@ -250,7 +206,7 @@ const ForumPost = () => {
   if (!post) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
-        <Typography variant="h5" color="text.secondary" sx={{ textAlign: 'center', py: 5 }}>
+        <Typography variant="h5" color="text.secondary" sx={{ textAlign: 'left', py: 5 }}>
           Post not found
         </Typography>
         <Button 
@@ -267,13 +223,15 @@ const ForumPost = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
       {/* Back Button */}
-      <Button 
-        startIcon={<ArrowBackIcon />} 
-        onClick={() => navigate('/forum')}
-        sx={{ color: '#558b2f', mb: 2 }}
-      >
-        Back to Forums
-      </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+        <Button 
+          startIcon={<ArrowBackIcon />} 
+          onClick={() => navigate('/forum')}
+          sx={{ color: '#558b2f', mb: 2 }}
+        >
+          Back to Forums
+        </Button>
+      </Box>
 
       {/* Post Content */}
       <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
@@ -316,7 +274,7 @@ const ForumPost = () => {
           // View Mode
           <>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <Typography variant="h4" gutterBottom sx={{ color: '#2e7d32', fontWeight: 'bold' }}>
+              <Typography variant="h4" gutterBottom sx={{ color: '#2e7d32', fontWeight: 'bold', textAlign: 'left' }}>
                 {post.title}
               </Typography>
               {post.author === currentUser?.id && (
@@ -354,17 +312,32 @@ const ForumPost = () => {
               </Box>
             </Box>
             
-            <Typography variant="body1" sx={{ mb: 3, whiteSpace: 'pre-wrap' }}>
+            <Typography variant="body1" sx={{ mb: 3, whiteSpace: 'pre-wrap', textAlign: 'left' }}>
               {post.content}
             </Typography>
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+              {currentUser && (
+                <Button 
+                  variant="outlined"
+                  startIcon={<AddCommentIcon />}
+                  onClick={() => setCommentDialogOpen(true)}
+                  sx={{ color: '#558b2f', borderColor: '#558b2f' }}
+                >
+                  Add Comment
+                </Button>
+              )}
+            </Box>
           </>
         )}
       </Paper>
 
       {/* Comments Section */}
-      <Typography variant="h5" gutterBottom sx={{ color: '#2e7d32', fontWeight: 'medium', mt: 4, mb: 2 }}>
-        Comments ({comments.length})
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: '#2e7d32', fontWeight: 'medium', mt: 4, mb: 2 }}>
+          Comments ({comments.length})
+        </Typography>
+      </Box>
       
       <Divider sx={{ mb: 3 }} />
       
@@ -386,7 +359,7 @@ const ForumPost = () => {
                       {formatDate(comment.created_at)}
                     </Typography>
                   </Box>
-                  <Typography variant="body2">
+                  <Typography variant="body2" sx={{ textAlign: 'left' }}>
                     {comment.content}
                   </Typography>
                 </Box>
@@ -395,7 +368,7 @@ const ForumPost = () => {
           </Card>
         ))
       ) : (
-        <Box sx={{ py: 3, textAlign: 'center' }}>
+        <Box sx={{ py: 3, textAlign: 'left' }}>
           <Typography variant="subtitle1" color="text.secondary">
             No comments yet
           </Typography>
@@ -405,82 +378,35 @@ const ForumPost = () => {
         </Box>
       )}
       
-      {/* Add Comment Button (for logged in users) */}
+      {/* Add Comment Floating Action Button (for logged in users) */}
       {currentUser && (
-        <Fab
-          color="primary"
-          aria-label="add comment"
-          sx={{ 
-            position: 'fixed', 
-            bottom: 24, 
-            right: 24,
-            backgroundColor: '#558b2f',
-            '&:hover': {
-              backgroundColor: '#33691e',
-            }
-          }}
-          onClick={() => setCommentDialogOpen(true)}
-        >
-          <AddCommentIcon />
-        </Fab>
-      )}
-      
-      {/* Add Comment Dialog */}
-      <Dialog 
-        open={commentDialogOpen} 
-        onClose={handleCloseCommentDialog}
-        fullWidth
-        maxWidth="md"
-      >
-        <DialogTitle sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}>
-          <AddCommentIcon sx={{ mr: 1 }} /> Add a Comment
-        </DialogTitle>
-        
-        <DialogContent>
-          {commentError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {commentError}
-            </Alert>
-          )}
-          
-          <DialogContentText sx={{ mb: 2 }}>
-            Share your thoughts about this post.
-          </DialogContentText>
-          
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Comment"
-            multiline
-            rows={5}
-            fullWidth
-            variant="outlined"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            required
-          />
-        </DialogContent>
-        
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={handleCloseCommentDialog} variant="outlined">
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleCommentSubmit}
-            variant="contained"
-            disabled={!newComment.trim() || commentLoading}
-            endIcon={commentLoading ? <CircularProgress size={20} /> : <SendIcon />}
+        <Tooltip title="Add comment" arrow placement="left">
+          <Fab
+            color="primary"
+            aria-label="add comment"
             sx={{ 
-              bgcolor: '#558b2f', 
-              '&:hover': { 
-                bgcolor: '#33691e' 
+              position: 'fixed', 
+              bottom: 24, 
+              right: 24,
+              backgroundColor: '#558b2f',
+              '&:hover': {
+                backgroundColor: '#33691e',
               }
             }}
+            onClick={() => setCommentDialogOpen(true)}
           >
-            {commentLoading ? 'Posting...' : 'Post Comment'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <AddCommentIcon />
+          </Fab>
+        </Tooltip>
+      )}
+      
+      {/* Comment Dialog Component */}
+      <CommentCreateDialog
+        open={commentDialogOpen}
+        onClose={() => setCommentDialogOpen(false)}
+        postId={postId}
+        onCommentCreated={handleCommentCreated}
+      />
       
       {/* Delete Confirmation Dialog */}
       <Dialog
