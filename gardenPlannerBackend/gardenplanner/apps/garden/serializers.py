@@ -4,6 +4,7 @@ from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, For
 from django.contrib.auth import get_user_model
 from django.conf import settings
 import requests
+from django.contrib.auth import authenticate
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
@@ -77,7 +78,32 @@ class RegisterSerializer(serializers.ModelSerializer):
             profile.save()
 
         return user
-    
+
+class LoginWithCaptchaSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(trim_whitespace=False)
+    captcha = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        captcha_token = attrs.get('captcha')
+        result = verify_recaptcha(captcha_token)
+        if not result.get('success'):
+            raise serializers.ValidationError({'recaptcha': 'Invalid captcha. Please try again.'})
+
+        username = attrs.get('username')
+        password = attrs.get('password')
+
+        if username and password:
+            user = authenticate(request=self.context.get('request'), username=username, password=password)
+            if not user:
+                raise serializers.ValidationError('Invalid username or password.')
+        else:
+            raise serializers.ValidationError('Must include "username" and "password".')
+
+        attrs['user'] = user
+        return attrs
+
+
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
     
