@@ -285,9 +285,6 @@ function Navbar() {
                   <Typography variant="subtitle1" component="div">
                     {currentUser?.username || 'Guest'}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {currentUser?.email || 'Not logged in'}
-                  </Typography>
                 </Box>
                 {settings.map((setting) => (
                   <MenuItem 
