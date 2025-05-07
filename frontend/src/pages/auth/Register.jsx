@@ -70,7 +70,8 @@ const Register = () => {
           first_name: formData.firstName,
           last_name: formData.lastName,
           password: formData.password,
-          location: formData.location || 'Istanbul' // default fallback
+          location: formData.location || 'Istanbul',
+          captcha: captchaToken,
         }),
       });
 
