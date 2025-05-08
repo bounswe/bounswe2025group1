@@ -17,23 +17,30 @@ import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContextUtils';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [captchaToken, setCaptchaToken] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      if (!captchaToken) {
+        toast.error('Please complete the reCAPTCHA.');
+        return;
+      }
       const response = await fetch(`${import.meta.env.VITE_API_URL}/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+
+        body: JSON.stringify({ username, password, captcha: captchaToken}),
       });
 
       if (!response.ok) {
@@ -128,6 +135,12 @@ const Login = () => {
                   ),
                 }}
               />
+               <Box sx={{  display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <ReCAPTCHA
+                  sitekey="6Lef7SArAAAAAKfDLZdY__Sf-mcujkc1YnXp0fu3"
+                  onChange={(token) => setCaptchaToken(token)}
+                />
+              </Box>
               <Button
                 type="submit"
                 fullWidth
