@@ -19,6 +19,8 @@ import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
 import ForumPreview from '../../components/ForumPreview';
 
+const widgetHeight = 300; // Fixed height for the home page widgets
+
 const Home = () => {
   const [gardens, setGardens] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -143,17 +145,17 @@ const Home = () => {
 
           {/* Weather Widget Component */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <WeatherWidget weatherData={weather} />
+            <WeatherWidget weatherData={weather} widgetHeight={widgetHeight} />
           </Grid>
 
           {/* Tasks List Component */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <TasksList tasks={pendingTasks} title="Pending Tasks" limit={5} />
+            <TasksList tasks={pendingTasks} title="Pending Tasks" limit={5} widgetHeight={widgetHeight} />
           </Grid>
 
           {/* Forum Preview Component */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <ForumPreview posts={posts} limit={2} />
+            <ForumPreview posts={posts} limit={2} widgetHeight={widgetHeight} />
           </Grid>
         </Grid>
       </Container>
