@@ -11,7 +11,7 @@ import {
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 
-const WeatherWidget = () => {
+const WeatherWidget = ({widgetHeight}) => {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -158,7 +158,7 @@ const WeatherWidget = () => {
 
   if (loading) {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, textAlign: 'center' }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <CircularProgress color="success" size={40} />
         <Typography variant="body2" sx={{ mt: 2 }}>Loading weather data...</Typography>
       </Paper>
@@ -167,49 +167,55 @@ const WeatherWidget = () => {
 
   if (locationPermission === 'denied' || error) {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
           <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
         </Typography>
-        <Alert severity="info" sx={{ mb: 2 }}>
+        <Alert severity="info" sx={{ mb: 2,  }}>
           {error || 'Weather data requires location access'}
         </Alert>
-        <Button 
-          variant="contained" 
-          startIcon={<LocationOnIcon />}
-          onClick={requestLocationPermission}
-          color="primary"
-        >
-          Enable Location Access
-        </Button>
+        <Box sx={{ mt: 'auto' }}>
+          <Button 
+            variant="outlined" 
+            startIcon={<LocationOnIcon />}
+            onClick={requestLocationPermission}
+            color="primary"
+            fullWidth
+          >
+            Enable Location Access
+          </Button>
+        </Box>
       </Paper>
     );
   }
 
   if (locationPermission === 'prompt') {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, textAlign: 'center' }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
         </Typography>
-        <Typography variant="body1" sx={{ mb: 2 }}>
+        <Typography variant="body1" sx={{ mb: 2,  }}>
           Get local weather updates for your garden
         </Typography>
-        <Button 
-          variant="contained" 
-          startIcon={<LocationOnIcon />}
-          onClick={requestLocationPermission}
-          color="primary"
-        >
-          Share Location
-        </Button>
+        <Box sx={{ mt: 'auto' }}>
+          <Button 
+            variant="outlined" 
+            startIcon={<LocationOnIcon />}
+            onClick={requestLocationPermission}
+            color="primary"
+            fullWidth
+          >
+            Share Location
+          </Button>
+        </Box>
       </Paper>
     );
   }
 
   if (!weatherData) {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, textAlign: 'center' }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <Typography variant="body1" color="text.secondary">
           Weather data unavailable
         </Typography>
@@ -218,7 +224,7 @@ const WeatherWidget = () => {
   }
 
   return (
-    <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+    <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
         <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
       </Typography>
@@ -241,7 +247,7 @@ const WeatherWidget = () => {
       <Typography variant="body2" gutterBottom>
         3-Day Forecast:
       </Typography>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', flexGrow: 1 }}>
         {weatherData.forecast.map((day, index) => (
           <Box key={index} sx={{ textAlign: 'center' }}>
             <Typography variant="body2">{day.date}</Typography>
