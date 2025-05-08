@@ -159,13 +159,13 @@ const WeatherWidget = ({widgetHeight}) => {
 
   if (loading) {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
         <CircularProgress color="success" size={40} />
         <Typography variant="body2" sx={{ mt: 2 }}>Loading weather data...</Typography>
       </Paper>
     );
   }
-
+  
   if (locationPermission === 'denied' || error) {
     return (
       <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
