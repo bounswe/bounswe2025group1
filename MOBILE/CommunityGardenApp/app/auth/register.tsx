@@ -159,8 +159,11 @@ export default function RegisterScreen() {
                 placeholder="Password"
                 value={formData.password}
                 onChangeText={(text) => setFormData({ ...formData, password: text })}
-                secureTextEntry
+                secureTextEntry={true}
                 autoCapitalize="none"
+                textContentType="none"      
+                autoComplete="off" 
+                importantForAutofill="no"
               />
             </View>
 
@@ -171,8 +174,11 @@ export default function RegisterScreen() {
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
-                secureTextEntry
+                secureTextEntry={true}
                 autoCapitalize="none"
+                textContentType="none"      
+                autoComplete="off" 
+                importantForAutofill="no"         
               />
             </View>
 
