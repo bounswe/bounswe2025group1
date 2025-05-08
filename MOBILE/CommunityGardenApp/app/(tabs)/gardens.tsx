@@ -23,14 +23,17 @@ export default function GardensScreen() {
   const { token } = useAuth();
   const navigation = useNavigation();
   const router = useRouter();
+
   useEffect(() => {
     fetchGardens();
   }, []);
+
   useFocusEffect(
     useCallback(() => {
-      fetchGardens(); // refetch every time screen comes into focus
+      fetchGardens();
     }, [])
   );
+
   const fetchGardens = async () => {
     try {
       const data = await listPublicGardens();
@@ -43,12 +46,11 @@ export default function GardensScreen() {
   };
 
   const renderGarden = ({ item }: { item: Garden }) => (
-    <TouchableOpacity onPress={() => router.push(`/garden/${item.id}`)} style={styles.card}>
- <Text style={styles.title}>{item.name}</Text>
+    <TouchableOpacity onPress={() => router.push({ pathname: '/garden/[id]', params: { id: item.id.toString() } })} style={styles.card}>
+      <Text style={styles.title}>{item.name}</Text>
       {item.description ? <Text style={styles.desc}>{item.description}</Text> : null}
       {item.location ? <Text style={styles.loc}>📍 {item.location}</Text> : null}
     </TouchableOpacity>
-    
   );
 
   if (loading) {
@@ -66,9 +68,9 @@ export default function GardensScreen() {
       <TouchableOpacity
         style={styles.fab}
         onPress={() => router.push('/garden/CreateGardenScreen')}
-        >
+      >
         <Text style={styles.fabText}>＋</Text>
-       </TouchableOpacity>
+      </TouchableOpacity>
     </View>
   );
 }
