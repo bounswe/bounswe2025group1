@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import React from 'react';
 
 const WeatherWidget = ({widgetHeight}) => {
   const [weatherData, setWeatherData] = useState(null);
