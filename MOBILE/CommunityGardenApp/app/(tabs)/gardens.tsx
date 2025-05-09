@@ -46,13 +46,24 @@ export default function GardensScreen() {
   };
 
   const renderGarden = ({ item }: { item: Garden }) => (
-    <TouchableOpacity onPress={() => router.push({ pathname: '/garden/[id]', params: { id: item.id.toString() } })} style={styles.card}>
+    <View style={styles.card}>
       <Text style={styles.title}>{item.name}</Text>
       {item.description ? <Text style={styles.desc}>{item.description}</Text> : null}
       {item.location ? <Text style={styles.loc}>📍 {item.location}</Text> : null}
-    </TouchableOpacity>
+  
+      <TouchableOpacity
+        style={styles.detailButton}
+        onPress={() =>
+          router.push({
+            pathname: '/garden/[id]',
+            params: { id: item.id.toString() },
+          })
+        }
+      >
+        <Text style={styles.detailButtonText}>Go to Detail</Text>
+      </TouchableOpacity>
+    </View>
   );
-
   if (loading) {
     return <ActivityIndicator style={styles.loader} size="large" />;
   }
@@ -136,5 +147,18 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: '#fff',
     lineHeight: 34,
+  },
+  detailButton: {
+    marginTop: 10,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  detailButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });

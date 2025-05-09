@@ -5,7 +5,8 @@ import { API_URL, COLORS } from '../../constants/Config';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 const TABS = ['Gardens', 'Followers', 'Following'];
 
 export default function ProfileScreen() {
@@ -18,13 +19,15 @@ export default function ProfileScreen() {
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!token) {
-      router.replace('/auth/login');
-      return;
-    }
-    fetchProfile();
-  }, [token]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!token) {
+        router.replace('/auth/login');
+        return;
+      }
+      fetchProfile();  // <- this updates gardens, followers, etc.
+    }, [token])
+  );
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -62,10 +65,8 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = async () => {
-    Alert.alert('Logout', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', style: 'destructive', onPress: logout },
-    ]);
+    await logout();
+    router.replace('/auth/login'); // ✅ Navigate after logout
   };
 
   if (loading) {
