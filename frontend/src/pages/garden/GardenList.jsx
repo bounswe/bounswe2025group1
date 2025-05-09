@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Box, 
-  Grid, 
-  Card, 
-  CardContent, 
-  CardMedia, 
+import {
+  Container,
+  Typography,
+  Box,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
   Button,
   TextField,
   InputAdornment,
@@ -16,6 +16,11 @@ import {
   Divider,
   Fab
 } from '@mui/material';
+import {
+  Modal,
+  Fade,
+  Backdrop,
+} from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -23,6 +28,10 @@ import GroupIcon from '@mui/icons-material/Group';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import api from '../../utils/api';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { Switch } from '@mui/material';
+
 
 const GardenList = () => {
   const [gardens, setGardens] = useState([]);
@@ -31,6 +40,18 @@ const GardenList = () => {
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const [openModal, setOpenModal] = useState(false);
+  const handleOpenModal = () => setOpenModal(true);
+  const handleCloseModal = () => setOpenModal(false);
+
+  const [form, setForm] = useState({
+    type: '',
+    name: '',
+    description: '',
+    location: '',
+    size: '',
+    isPublic: true,
+  });
 
   useEffect(() => {
     const fetchGardens = async () => {
@@ -51,15 +72,76 @@ const GardenList = () => {
   const handleSearch = (event) => {
     const value = event.target.value.toLowerCase();
     setSearchTerm(value);
-    
-    const filtered = gardens.filter(garden => 
-      garden.name.toLowerCase().includes(value) || 
+
+    const filtered = gardens.filter(garden =>
+      garden.name.toLowerCase().includes(value) ||
       garden.description.toLowerCase().includes(value) ||
       garden.location.toLowerCase().includes(value)
     );
-    
+
     setFilteredGardens(filtered);
   };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/gardens/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: form.type,
+          name: form.name,
+          description: form.description,
+          location: form.location,
+          size: parseFloat(form.size),
+          isPublic: form.isPublic,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Garden creation failed');
+      }
+
+      const data = await response.json();
+
+      toast.success('Garden created successfully!', {
+        position: 'top-right',
+        theme: 'colored',
+      });
+
+      setGardens(prev => [...prev, data]);
+      setFilteredGardens(prev => [...prev, data]);
+
+      setForm({
+        type: '',
+        name: '',
+        description: '',
+        location: '',
+        size: '',
+        isPublic: true,
+      });
+      handleCloseModal();
+    } catch (error) {
+      toast.error('Failed to create garden. Please try again.', {
+        position: 'top-right',
+        theme: 'colored',
+      });
+      console.error(error);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -105,10 +187,10 @@ const GardenList = () => {
           <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {/* These would be functional filters in a complete implementation */}
-              <Chip label="All" color="primary" variant="outlined" onClick={() => {}} />
-              <Chip label="Nearby" variant="outlined" onClick={() => {}} />
-              <Chip label="Most Popular" variant="outlined" onClick={() => {}} />
-              <Chip label="Recently Added" variant="outlined" onClick={() => {}} />
+              <Chip label="All" color="primary" variant="outlined" onClick={() => { }} />
+              <Chip label="Nearby" variant="outlined" onClick={() => { }} />
+              <Chip label="Most Popular" variant="outlined" onClick={() => { }} />
+              <Chip label="Recently Added" variant="outlined" onClick={() => { }} />
             </Box>
           </Grid>
         </Grid>
@@ -119,10 +201,10 @@ const GardenList = () => {
         {filteredGardens.length > 0 ? (
           filteredGardens.map((garden) => (
             <Grid key={garden.id} size={{ xs: 12, sm: 6, md: 4 }}>
-              <Card 
-                sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
+              <Card
+                sx={{
+                  height: '100%',
+                  display: 'flex',
                   flexDirection: 'column',
                   transition: 'transform 0.2s, box-shadow 0.2s',
                   '&:hover': {
@@ -158,9 +240,9 @@ const GardenList = () => {
                   </Box>
                 </CardContent>
                 <Box sx={{ p: 2, pt: 0 }}>
-                  <Button 
-                    variant="contained" 
-                    color="primary" 
+                  <Button
+                    variant="contained"
+                    color="primary"
                     fullWidth
                     onClick={() => navigate(`/gardens/${garden.id}`)}
                     sx={{ backgroundColor: '#558b2f', '&:hover': { backgroundColor: '#33691e' } }}
@@ -188,20 +270,125 @@ const GardenList = () => {
         <Fab
           color="primary"
           aria-label="create garden"
-          sx={{ 
-            position: 'fixed', 
-            bottom: 24, 
+          sx={{
+            position: 'fixed',
+            bottom: 24,
             right: 24,
             backgroundColor: '#558b2f',
             '&:hover': {
               backgroundColor: '#33691e',
             }
           }}
-          onClick={() => navigate('/gardens/create')}
+          onClick={handleOpenModal}  // <-- update here
         >
           <AddIcon />
         </Fab>
       )}
+      <Modal
+        open={openModal}
+        onClose={handleCloseModal}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{ timeout: 500 }}
+      >
+        <Fade in={openModal}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 500,
+              bgcolor: 'background.paper',
+              borderRadius: 2,
+              boxShadow: 24,
+              p: 4,
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              Create New Garden
+            </Typography>
+
+            <TextField
+              label="Garden Name"
+              name="name"
+              fullWidth
+              margin="normal"
+              value={form.name}
+              onChange={handleChange}
+              required
+            />
+
+            <TextField
+              label="Type"
+              name="type"
+              fullWidth
+              margin="normal"
+              value={form.type}
+              onChange={handleChange}
+            />
+
+            <TextField
+              label="Description"
+              name="description"
+              fullWidth
+              margin="normal"
+              multiline
+              rows={3}
+              value={form.description}
+              onChange={handleChange}
+            />
+
+            <TextField
+              label="Location"
+              name="location"
+              fullWidth
+              margin="normal"
+              value={form.location}
+              onChange={handleChange}
+              required
+            />
+
+            <TextField
+              label="Size (m²)"
+              name="size"
+              type="number"
+              fullWidth
+              margin="normal"
+              value={form.size}
+              onChange={handleChange}
+            />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+              <Typography variant="body1" sx={{ mr: 2 }}>
+                Do you wish this garden to be public?
+              </Typography>
+              <Switch
+                checked={form.isPublic}
+                onChange={() => setForm(prev => ({ ...prev, isPublic: !prev.isPublic }))}
+                color="success"
+              />
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+              <Button
+                type="submit"
+                variant="contained"
+                sx={{
+                  backgroundColor: '#558b2f',
+                  '&:hover': { backgroundColor: '#33691e' }
+                }}
+              >
+                Create Garden
+              </Button>
+            </Box>
+          </Box>
+        </Fade>
+      </Modal>
+
+
     </Container>
   );
 };
