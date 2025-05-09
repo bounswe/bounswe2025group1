@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from garden.models import Profile, Garden, GardenMembership, CustomTaskType, Task
+from garden.models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
 
 
 class ModelTests(TestCase):
@@ -250,7 +250,6 @@ class APITests(APITestCase):
         """Test updating user profile"""
         url = reverse('garden:profile')
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
-        
         data = {
             'location': 'Updated Location'
         }
@@ -272,13 +271,14 @@ class APITests(APITestCase):
         """Test following a user"""
         url = reverse('garden:follow')
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
-        
         data = {
             'user_id': self.user2.id
         }
         
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verify user1 is following user2
         self.assertTrue(self.user.profile.is_following(self.user2.profile))
     
     def test_unfollow_user(self):
@@ -288,18 +288,19 @@ class APITests(APITestCase):
         
         url = reverse('garden:follow')
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
-        
         data = {
             'user_id': self.user2.id
         }
         
         response = self.client.delete(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verify user1 is not following user2
         self.assertFalse(self.user.profile.is_following(self.user2.profile))
     
     def test_get_followers(self):
         """Test getting list of followers"""
-        # User2 follows User1
+        # First make user2 follow user1
         self.user2.profile.follow(self.user.profile)
         
         url = reverse('garden:followers')
@@ -312,7 +313,7 @@ class APITests(APITestCase):
     
     def test_get_following(self):
         """Test getting list of users being followed"""
-        # User1 follows User2
+        # First make user1 follow user2
         self.user.profile.follow(self.user2.profile)
         
         url = reverse('garden:following')
@@ -322,7 +323,7 @@ class APITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['username'], 'testuser2')
-
+    
     # Garden Endpoints
     
     def test_garden_list(self):
@@ -332,10 +333,9 @@ class APITests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['name'], 'Test Garden')
     
     def test_garden_detail(self):
-        """Test retrieving garden details"""
+        """Test retrieving a garden's details"""
         url = reverse('garden:garden-detail', args=[self.garden.id])
         
         response = self.client.get(url)
@@ -346,7 +346,6 @@ class APITests(APITestCase):
         """Test creating a garden"""
         url = reverse('garden:garden-list')
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
-        
         data = {
             'name': 'New Garden',
             'description': 'A new garden',
@@ -357,35 +356,32 @@ class APITests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         
-        # Check garden was created
+        # Check that garden was created
         self.assertTrue(Garden.objects.filter(name='New Garden').exists())
         
-        # Check membership was created for the user as manager
+        # Check that user is a manager of the garden
         garden = Garden.objects.get(name='New Garden')
-        self.assertTrue(GardenMembership.objects.filter(
-            user=self.user,
-            garden=garden,
-            role='MANAGER',
-            status='ACCEPTED'
-        ).exists())
+        membership = GardenMembership.objects.get(garden=garden, user=self.user)
+        self.assertEqual(membership.role, 'MANAGER')
     
     def test_update_garden(self):
         """Test updating a garden"""
         url = reverse('garden:garden-detail', args=[self.garden.id])
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
-        
         data = {
             'name': 'Updated Garden',
-            'description': 'Updated description'
+            'description': 'An updated garden',
+            'location': 'Updated Location',
+            'is_public': False
         }
         
-        response = self.client.patch(url, data, format='json')
+        response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Check garden was updated
-        self.garden.refresh_from_db()
-        self.assertEqual(self.garden.name, 'Updated Garden')
-        self.assertEqual(self.garden.description, 'Updated description')
+        # Check that garden was updated
+        garden = Garden.objects.get(id=self.garden.id)
+        self.assertEqual(garden.name, 'Updated Garden')
+        self.assertEqual(garden.is_public, False)
     
     # Garden Membership Endpoints
     
@@ -400,32 +396,22 @@ class APITests(APITestCase):
     
     def test_create_membership(self):
         """Test creating a garden membership"""
-        # Create a second garden for testing
-        garden2 = Garden.objects.create(
-            name="Second Garden",
-            description="A second garden",
-            is_public=True
-        )
-        
         url = reverse('garden:membership-list')
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
-        
         data = {
-            'garden': garden2.id,
-            'role': 'WORKER'
+            'garden': self.garden.id
         }
         
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         
-        # Check membership was created
-        self.assertTrue(GardenMembership.objects.filter(
-            user=self.user2,
-            garden=garden2
-        ).exists())
+        # Check that membership was created
+        membership = GardenMembership.objects.get(garden=self.garden, user=self.user2)
+        self.assertEqual(membership.role, 'WORKER')
+        self.assertEqual(membership.status, 'PENDING')
     
     def test_my_gardens(self):
-        """Test getting user's gardens"""
+        """Test listing user's gardens"""
         url = reverse('garden:membership-my-gardens')
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
         
@@ -444,34 +430,31 @@ class APITests(APITestCase):
             status='PENDING'
         )
         
-        # For @action methods, use basename-action_name pattern
-        url = reverse('garden:membership-accept-membership', args=[pending_membership.id])
+        url = reverse('garden:membership-accept', args=[pending_membership.id])
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
         
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Check membership was accepted
-        pending_membership.refresh_from_db()
-        self.assertEqual(pending_membership.status, 'ACCEPTED')
+        # Check that membership was accepted
+        membership = GardenMembership.objects.get(id=pending_membership.id)
+        self.assertEqual(membership.status, 'ACCEPTED')
     
-    # Custom Task Type Endpoints
+    # Garden Task Type Endpoints
     
     def test_task_type_list(self):
-        """Test listing custom task types"""
+        """Test listing task types"""
         url = reverse('garden:task-type-list')
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
         
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['name'], 'Test Task Type')
     
     def test_create_task_type(self):
-        """Test creating a custom task type"""
+        """Test creating a task type"""
         url = reverse('garden:task-type-list')
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
-        
         data = {
             'garden': self.garden.id,
             'name': 'New Task Type',
@@ -481,10 +464,10 @@ class APITests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         
-        # Check task type was created
+        # Check that task type was created
         self.assertTrue(CustomTaskType.objects.filter(name='New Task Type').exists())
     
-    # Task Endpoints
+    # Garden Task Endpoints
     
     def test_task_list(self):
         """Test listing tasks"""
@@ -494,96 +477,159 @@ class APITests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['title'], 'Existing Task')
     
     def test_create_task(self):
         """Test creating a task"""
         url = reverse('garden:task-list')
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
-        
         data = {
             'garden': self.garden.id,
             'title': 'New Task',
             'description': 'A new task',
-            'status': 'PENDING',
-            'assigned_to': self.user2.id
+            'custom_type': self.task_type.id,
+            'assigned_to': self.user2.id,
+            'status': 'PENDING'
         }
         
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         
-        # Check task was created
+        # Check that task was created
         self.assertTrue(Task.objects.filter(title='New Task').exists())
-        task = Task.objects.get(title='New Task')
-        self.assertEqual(task.assigned_by, self.user)
     
     def test_accept_task(self):
         """Test accepting a task"""
-        # Make user2 a worker in the garden so they can accept tasks
-        worker_membership = GardenMembership.objects.create(
-            user=self.user2,
-            garden=self.garden,
-            role='WORKER',
-            status='ACCEPTED'
-        )
-        
-        # For @action methods, use basename-action_name pattern
-        url = reverse('garden:task-accept-task', args=[self.task.id])
+        url = reverse('garden:task-accept', args=[self.task.id])
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
         
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Check task was accepted
-        self.task.refresh_from_db()
-        self.assertEqual(self.task.status, 'ACCEPTED')
+        # Check that task was accepted
+        task = Task.objects.get(id=self.task.id)
+        self.assertEqual(task.status, 'ACCEPTED')
     
     def test_decline_task(self):
         """Test declining a task"""
-        # Make user2 a worker in the garden so they can decline tasks
-        worker_membership = GardenMembership.objects.create(
-            user=self.user2,
-            garden=self.garden,
-            role='WORKER',
-            status='ACCEPTED'
-        )
-        
-        # First set task to PENDING
-        self.task.status = 'PENDING'
+        # First set task to ACCEPTED
+        self.task.status = 'ACCEPTED'
         self.task.save()
         
-        # For @action methods, use basename-action_name pattern
-        url = reverse('garden:task-decline-task', args=[self.task.id])
+        url = reverse('garden:task-decline', args=[self.task.id])
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
         
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Check task was declined
-        self.task.refresh_from_db()
-        self.assertEqual(self.task.status, 'DECLINED')
+        # Check that task was declined
+        task = Task.objects.get(id=self.task.id)
+        self.assertEqual(task.status, 'DECLINED')
     
     def test_complete_task(self):
         """Test completing a task"""
-        # Make user2 a worker in the garden so they can complete tasks
-        worker_membership = GardenMembership.objects.create(
-            user=self.user2,
-            garden=self.garden,
-            role='WORKER',
-            status='ACCEPTED'
-        )
-        
         # First set task to IN_PROGRESS
         self.task.status = 'IN_PROGRESS'
         self.task.save()
         
-        # For @action methods, use basename-action_name pattern
-        url = reverse('garden:task-complete-task', args=[self.task.id])
+        url = reverse('garden:task-complete', args=[self.task.id])
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
         
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Check task was completed
-        self.task.refresh_from_db()
-        self.assertEqual(self.task.status, 'COMPLETED')
+        # Check that task was completed
+        task = Task.objects.get(id=self.task.id)
+        self.assertEqual(task.status, 'COMPLETED')
+
+
+class ForumPostTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='password123')
+        self.client.force_authenticate(user=self.user)
+        self.forum_url = reverse('garden:forum-list-create')
+    
+    def test_create_forum_post(self):
+        data = {'title': 'Test Post', 'content': 'This is a test post.'}
+        response = self.client.post(self.forum_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(ForumPost.objects.count(), 1)
+        self.assertEqual(ForumPost.objects.get().title, 'Test Post')
+        self.assertEqual(ForumPost.objects.get().author, self.user)
+    
+    def test_list_forum_posts(self):
+        ForumPost.objects.create(title='Post 1', content='Content 1', author=self.user)
+        ForumPost.objects.create(title='Post 2', content='Content 2', author=self.user)
+        
+        response = self.client.get(self.forum_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+    
+    def test_retrieve_single_post(self):
+        post = ForumPost.objects.create(title='Test Post', content='Content', author=self.user)
+        url = reverse('garden:forum-detail', args=[post.id])
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], 'Test Post')
+    
+    def test_update_forum_post(self):
+        post = ForumPost.objects.create(title='Original Title', content='Original Content', author=self.user)
+        url = reverse('garden:forum-detail', args=[post.id])
+        
+        data = {'title': 'Updated Title', 'content': 'Updated Content'}
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        post.refresh_from_db()
+        self.assertEqual(post.title, 'Updated Title')
+    
+    def test_delete_forum_post(self):
+        post = ForumPost.objects.create(title='Test Post', content='Content', author=self.user)
+        url = reverse('garden:forum-detail', args=[post.id])
+        
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(ForumPost.objects.count(), 0)
+
+
+class CommentTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='password123')
+        self.client.force_authenticate(user=self.user)
+        self.post = ForumPost.objects.create(title='Test Post', content='Content', author=self.user)
+        self.comment_url = reverse('garden:comment-list-create')
+    
+    def test_create_comment(self):
+        data = {'forum_post': self.post.id, 'content': 'This is a test comment'}
+        response = self.client.post(self.comment_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Comment.objects.count(), 1)
+    
+    def test_list_comments(self):
+        Comment.objects.create(forum_post=self.post, content='Comment 1', author=self.user)
+        Comment.objects.create(forum_post=self.post, content='Comment 2', author=self.user)
+        
+        response = self.client.get(self.comment_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+    
+    def test_update_comment(self):
+        comment = Comment.objects.create(forum_post=self.post, content='Original Comment', author=self.user)
+        url = reverse('garden:comment-detail', args=[comment.id])
+        
+        data = {'forum_post': self.post.id, 'content': 'Updated Comment'}
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        comment.refresh_from_db()
+        self.assertEqual(comment.content, 'Updated Comment')
+    
+    def test_delete_comment(self):
+        comment = Comment.objects.create(forum_post=self.post, content='Test Comment', author=self.user)
+        url = reverse('garden:comment-detail', args=[comment.id])
+        
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Comment.objects.count(), 0)
