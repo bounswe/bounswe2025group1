@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import {
   Modal, Fade, Backdrop, Box, Typography, TextField, MenuItem, Button
 } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import dayjs from 'dayjs';
 
 const cropOptions = [
   { label: 'Tomato', emoji: '🍅' },
@@ -16,7 +20,6 @@ const maintenanceOptions = [
   { label: 'Fertilizer', emoji: '🧪' },
   { label: 'Pest Control', emoji: '🐛' },
   { label: 'Pruning', emoji: '✂️' },
-  { label: 'Other', emoji: '➕' }
 ];
 
 const TaskModal = ({ open, onClose, onSubmit }) => {
@@ -24,7 +27,6 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
     type: 'Custom',
     title: '',
     description: '',
-    deadline: '',
     status: 'Pending',
     assignment_status: 'Unassigned',
     assignees: [],
@@ -33,6 +35,7 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
     custom_type: '',
   });
 
+  const [deadline, setDeadline] = useState(dayjs());
   const [harvestCrop, setHarvestCrop] = useState('');
   const [customCrop, setCustomCrop] = useState('');
   const [harvestAmount, setHarvestAmount] = useState('');
@@ -47,10 +50,12 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const updatedForm = { ...taskForm };
+    const formattedDeadline = deadline.toISOString();
+    updatedForm.deadline = formattedDeadline;
 
     if (taskForm.type === 'Harvest') {
       const cropName = harvestCrop === 'custom' ? customCrop : harvestCrop;
-      if (!cropName || !harvestAmount || !taskForm.deadline) {
+      if (!cropName || !harvestAmount) {
         alert("Please fill all required fields.");
         return;
       }
@@ -68,7 +73,6 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
       type: 'Custom',
       title: '',
       description: '',
-      deadline: '',
       status: 'Pending',
       assignment_status: 'Unassigned',
       assignees: [],
@@ -76,6 +80,7 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
       maintenance_type: '',
       custom_type: '',
     });
+    setDeadline(dayjs());
     setHarvestCrop('');
     setCustomCrop('');
     setHarvestAmount('');
@@ -100,7 +105,24 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
 
           <TextField label="Description" name="description" fullWidth margin="normal" multiline rows={3} value={taskForm.description} onChange={handleFormChange} />
 
-          <TextField label="Deadline" type="datetime-local" name="deadline" fullWidth margin="normal" InputLabelProps={{ shrink: true }} value={taskForm.deadline} onChange={handleFormChange} required />
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Box sx={{ mt: 2 }}>
+              <DateTimePicker
+                label="Deadline"
+                value={deadline}
+                onChange={(newValue) => setDeadline(newValue)}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    variant: 'outlined',
+                    margin: 'normal',
+                    size: 'medium',
+                  }
+                }}
+              />
+            </Box>
+          </LocalizationProvider>
+
 
           {taskForm.type === 'Harvest' && (
             <>
