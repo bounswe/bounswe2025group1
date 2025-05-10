@@ -33,6 +33,12 @@ import TaskIcon from '@mui/icons-material/Task';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import TaskModal from './TaskModal';
+import dayjs from 'dayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { StaticDatePicker, PickersDay } from '@mui/x-date-pickers';
+import { Badge } from '@mui/material';
+import CalendarTab from './CalendarTab';
 
 const GardenDetail = () => {
   const [garden, setGarden] = useState(null);
@@ -42,6 +48,8 @@ const GardenDetail = () => {
   const [openModal, setOpenModal] = useState(false);
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
+  const [calendarDate, setCalendarDate] = useState(dayjs());
+
   const [taskForm, setTaskForm] = useState({
     type: 'Custom',
     title: '',
@@ -439,19 +447,10 @@ const GardenDetail = () => {
 
         {/* Calendar Tab */}
         {activeTab === 2 && (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <CalendarMonthIcon sx={{ fontSize: 60, color: '#558b2f', opacity: 0.6 }} />
-            <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-              Garden Calendar
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              The calendar feature will be implemented in a future update.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              This section will display scheduled tasks, harvests, and maintenance activities.
-            </Typography>
-          </Box>
+          <CalendarTab tasks={tasks} />
         )}
+
+
       </Box>
       <TaskModal
         open={openModal}
