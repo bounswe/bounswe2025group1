@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Modal, Fade, Backdrop, Box, Typography, TextField, MenuItem, Button
+  Modal, Fade, Backdrop, Box, Typography, TextField, MenuItem, Button, FormControl, InputLabel, Select, OutlinedInput, Checkbox, ListItemText
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -22,12 +22,18 @@ const maintenanceOptions = [
   { label: 'Pruning', emoji: '✂️' },
 ];
 
+const userOptions = [
+  { id: 1, name: 'Alice' },
+  { id: 2, name: 'Bob' },
+  { id: 3, name: 'Charlie' },
+];
+
 const TaskModal = ({ open, onClose, onSubmit }) => {
   const [taskForm, setTaskForm] = useState({
     type: 'Custom',
     title: '',
     description: '',
-    status: 'Pending',
+    status: 'Not Started',
     assignment_status: 'Unassigned',
     assignees: [],
     harvest_amounts: {},
@@ -45,6 +51,11 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setTaskForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAssigneeChange = (event) => {
+    const { value } = event.target;
+    setTaskForm(prev => ({ ...prev, assignees: typeof value === 'string' ? value.split(',') : value }));
   };
 
   const handleSubmit = (e) => {
@@ -73,7 +84,7 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
       type: 'Custom',
       title: '',
       description: '',
-      status: 'Pending',
+      status: 'Not Started',
       assignment_status: 'Unassigned',
       assignees: [],
       harvest_amounts: {},
@@ -123,6 +134,24 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
             </Box>
           </LocalizationProvider>
 
+          {/* Assignee Selector */}
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Assignees</InputLabel>
+            <Select
+              multiple
+              value={taskForm.assignees}
+              onChange={handleAssigneeChange}
+              input={<OutlinedInput label="Assignees" />}
+              renderValue={(selected) => selected.map(id => userOptions.find(u => u.id === id)?.name).join(', ')}
+            >
+              {userOptions.map((user) => (
+                <MenuItem key={user.id} value={user.id}>
+                  <Checkbox checked={taskForm.assignees.indexOf(user.id) > -1} />
+                  <ListItemText primary={user.name} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
           {taskForm.type === 'Harvest' && (
             <>
