@@ -33,7 +33,7 @@ const MOCK_DATA = {
       image: 'https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
     }
   ],
-  
+
   // Mock tasks data
   tasks: [
     {
@@ -54,6 +54,26 @@ const MOCK_DATA = {
       deadline: '2025-04-18',
       gardenId: '1'
     },
+
+    { id: '1', title: 'Water tomato bed', description: '', status: 'Pending', assignee: 'John Doe', deadline: '2025-05-10', gardenId: '1' },
+    { id: '2', title: 'Harvest spinach', description: '', status: 'In Progress', assignee: 'Jane Smith', deadline: '2025-05-10', gardenId: '1' },
+    { id: '3', title: 'Pest control', description: '', status: 'Completed', assignee: 'Alex', deadline: '2025-05-11', gardenId: '1' },
+    { id: '4', title: 'Prune lavender', description: '', status: 'Pending', assignee: null, deadline: '2025-05-12', gardenId: '1' },
+    { id: '5', title: 'Fertilize soil', description: '', status: 'Pending', assignee: null, deadline: '2025-05-13', gardenId: '1' },
+    { id: '6', title: 'General maintenance', description: '', status: 'Pending', assignee: 'Team A', deadline: '2025-05-14', gardenId: '1' },
+    { id: '7', title: 'Harvest strawberries', description: '', status: 'Pending', assignee: null, deadline: '2025-05-15', gardenId: '1' },
+    { id: '8', title: 'Water herb section', description: '', status: 'Pending', assignee: null, deadline: '2025-05-15', gardenId: '1' },
+    { id: '9', title: 'Spray for aphids', description: '', status: 'Pending', assignee: null, deadline: '2025-05-17', gardenId: '1' },
+    { id: '10', title: 'Fertilize tomatoes', description: '', status: 'Pending', assignee: null, deadline: '2025-05-17', gardenId: '1' },
+    { id: '11', title: 'Prune rosemary', description: '', status: 'Pending', assignee: null, deadline: '2025-05-18', gardenId: '1' },
+    { id: '12', title: 'Harvest lettuce', description: '', status: 'Pending', assignee: null, deadline: '2025-05-19', gardenId: '1' },
+    { id: '13', title: 'Water fruit trees', description: '', status: 'Pending', assignee: null, deadline: '2025-05-20', gardenId: '1' },
+    { id: '14', title: 'Clean tools', description: '', status: 'Pending', assignee: null, deadline: '2025-05-21', gardenId: '1' },
+    { id: '15', title: 'Maintain compost area', description: '', status: 'Pending', assignee: null, deadline: '2025-05-21', gardenId: '1' },
+    { id: '16', title: 'Water greenhouse', description: '', status: 'Pending', assignee: null, deadline: '2025-05-22', gardenId: '1' },
+    { id: '17', title: 'Harvest peppers', description: '', status: 'Pending', assignee: null, deadline: '2025-05-22', gardenId: '1' },
+    { id: '18', title: 'Pest monitoring', description: '', status: 'Pending', assignee: null, deadline: '2025-05-24', gardenId: '1' },
+
     {
       id: '3',
       title: 'Plant new herbs',
@@ -73,7 +93,7 @@ const MOCK_DATA = {
       gardenId: '2'
     }
   ],
-  
+
   // Mock forum posts
   forumPosts: [
     {
@@ -107,7 +127,7 @@ const MOCK_DATA = {
       comments: 14
     }
   ],
-  
+
   // Mock weather data
   weather: {
     location: 'Istanbul',
@@ -134,7 +154,7 @@ const apiRequest = async (endpoint, method = 'GET', data = null) => {
   if (USE_MOCK_DATA) {
     // Simulate async behavior
     await new Promise(resolve => setTimeout(resolve, 300));
-    
+
     // Return mock data based on the endpoint
     switch (endpoint) {
       case '/gardens':
@@ -177,11 +197,11 @@ const apiRequest = async (endpoint, method = 'GET', data = null) => {
     }
 
     const response = await fetch(`${API_URL}${endpoint}`, options);
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('API request failed:', error);
@@ -195,7 +215,7 @@ export const api = {
   login: (credentials) => apiRequest('/auth/login', 'POST', credentials),
   register: (userData) => apiRequest('/auth/register', 'POST', userData),
   logout: () => apiRequest('/auth/logout', 'POST'),
-  
+
   // Garden endpoints
   getGardens: () => apiRequest('/gardens'),
   getGarden: (id) => apiRequest(`/gardens/${id}`),
@@ -204,7 +224,7 @@ export const api = {
   deleteGarden: (id) => apiRequest(`/gardens/${id}`, 'DELETE'),
   joinGarden: (id) => apiRequest(`/gardens/${id}/join`, 'POST'),
   leaveGarden: (id) => apiRequest(`/gardens/${id}/leave`, 'POST'),
-  
+
   // Task endpoints
   getTasks: () => apiRequest('/tasks'),
   getGardenTasks: (gardenId) => apiRequest(`/gardens/${gardenId}/tasks`),
@@ -215,7 +235,7 @@ export const api = {
   unassignTask: (id, userId) => apiRequest(`/tasks/${id}/unassign/${userId}`, 'POST'),
   acceptTask: (id) => apiRequest(`/tasks/${id}/accept`, 'POST'),
   declineTask: (id) => apiRequest(`/tasks/${id}/decline`, 'POST'),
-  
+
   // Forum endpoints
   getPosts: () => apiRequest('/forum'),
   getPost: (id) => apiRequest(`/forum/${id}`),
@@ -223,13 +243,13 @@ export const api = {
   updatePost: (id, post) => apiRequest(`/forum/${id}`, 'PUT', post),
   deletePost: (id) => apiRequest(`/forum/${id}`, 'DELETE'),
   addComment: (postId, comment) => apiRequest(`/forum/${postId}/comments`, 'POST', comment),
-  
+
   // User endpoints
   getUserProfile: (id) => apiRequest(`/users/${id}`),
   updateUserProfile: (id, profile) => apiRequest(`/users/${id}`, 'PUT', profile),
   followUser: (id) => apiRequest(`/users/${id}/follow`, 'POST'),
   unfollowUser: (id) => apiRequest(`/users/${id}/unfollow`, 'POST'),
-  
+
   // Weather endpoints
   getWeather: () => apiRequest('/weather'),
 };
