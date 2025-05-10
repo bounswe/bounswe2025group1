@@ -252,6 +252,22 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        garden = serializer.validated_data['garden']
+
+        if GardenMembership.objects.filter(user=user, garden=garden).exists():
+            raise serializers.ValidationError("You already have a membership or request pending for this garden.")
+
+        serializer.save(user=user)
+        
+    @action(detail=True, methods=['post'], url_path='accept')
+    def accept(self, request, pk=None):
+        membership = self.get_object()
+        membership.status = 'ACCEPTED'
+        membership.save()
+        return Response({'status': 'Membership accepted'})
+
 
 class CustomTaskTypeViewSet(viewsets.ModelViewSet):
     queryset = CustomTaskType.objects.all()
