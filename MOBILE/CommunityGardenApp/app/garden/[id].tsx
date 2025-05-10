@@ -138,7 +138,7 @@ export default function GardenDetailScreen() {
     }
   };
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.headerCard}>
         <Image source={{ uri: garden.image }} style={styles.headerImage} />
         <View style={styles.headerContent}>
@@ -174,7 +174,7 @@ export default function GardenDetailScreen() {
         {tab === 0 && (
           <View>
             <Text style={styles.sectionTitle}>Garden Tasks</Text>
-            {userIsManager && (
+            {membershipStatus === 'ACCEPTED' && userIsManager && (
             <TouchableOpacity
                 onPress={() => router.push({ pathname: '/tasks/create-task', params: { gardenId: id.toString() } })}
                 style={{ backgroundColor: COLORS.primary, padding: 10, borderRadius: 8, marginBottom: 16 }}
@@ -226,7 +226,7 @@ export default function GardenDetailScreen() {
           </View>
         )}
       </View>
-    </ScrollView>
+    </View>
   );
 }
 

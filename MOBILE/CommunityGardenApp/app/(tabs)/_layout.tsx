@@ -1,6 +1,7 @@
 import { Tabs, router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -67,7 +68,7 @@ export default function TabLayout() {
           name="gardens"
           options={{
             title: 'Gardens',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.crop.circle" color={color} />,
+            tabBarIcon: ({ color, size }) => <Ionicons name="leaf-outline" size={size || 28} color={color} />,
           }}
         />
       </Tabs>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_URL, COLORS } from '../../constants/Config';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 const TABS = ['Gardens', 'Followers', 'Following'];
@@ -25,7 +26,7 @@ export default function ProfileScreen() {
         router.replace('/auth/login');
         return;
       }
-      fetchProfile();  // <- this updates gardens, followers, etc.
+      fetchProfile();
     }, [token])
   );
 
@@ -41,16 +42,29 @@ export default function ProfileScreen() {
         setLoading(false);
         return;
       }
+      const headers = { Authorization: `Token ${token}` };
       const url = `${API_URL}/profile/`;
       console.log('Fetching profile from:', url, 'with token:', token);
-      const [profileRes, gardensRes, followersRes, followingRes] = await Promise.all([
-        axios.get(url, { headers: { Authorization: `Token ${token}` } }),
-        axios.get(`${API_URL}/memberships/my-gardens/`, { headers: { Authorization: `Token ${token}` } }),
-        axios.get(`${API_URL}/profile/followers/`, { headers: { Authorization: `Token ${token}` } }),
-        axios.get(`${API_URL}/profile/following/`, { headers: { Authorization: `Token ${token}` } }),
+      const [profileRes, membershipsRes, followersRes, followingRes] = await Promise.all([
+        axios.get(`${API_URL}/profile/`, { headers }),
+        axios.get(`${API_URL}/memberships/`, { headers }),
+        axios.get(`${API_URL}/profile/followers/`, { headers }),
+        axios.get(`${API_URL}/profile/following/`, { headers }),
       ]);
+      
+      const acceptedGardenIds = membershipsRes.data
+        .filter(m => m.status === 'ACCEPTED' && m.username === profileRes.data.username)
+        .map(m => m.garden);
+
+      const gardenDetails = await Promise.all(
+        acceptedGardenIds.map(id =>
+          axios.get(`${API_URL}/gardens/${id}/`, { headers }).then(res => res.data)
+        )
+      );
+      
+
       setProfile(profileRes.data);
-      setGardens(gardensRes.data);
+      setGardens(gardenDetails);
       setFollowers(followersRes.data);
       setFollowing(followingRes.data);
     } catch (error) {
@@ -66,7 +80,7 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     await logout();
-    router.replace('/auth/login'); // ✅ Navigate after logout
+    router.replace('/auth/login');
   };
 
   if (loading) {
@@ -85,7 +99,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Ionicons name="person-circle-outline" size={80} color={COLORS.primaryDark} style={{ marginBottom: 8 }} />
         <Text style={styles.username}>{profile.username}</Text>
@@ -112,7 +126,7 @@ export default function ProfileScreen() {
             <Text style={styles.sectionTitle}>Your Gardens</Text>
             <FlatList
               data={gardens}
-              keyExtractor={item => item.id.toString()}
+              keyExtractor={(item, index) => item?.id?.toString() || `fallback-${index}`}
               renderItem={({ item }) => (
                 <View style={styles.gardenCard}>
                   <Text style={styles.gardenName}>{item.name}</Text>
@@ -156,7 +170,7 @@ export default function ProfileScreen() {
           </View>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -183,4 +197,4 @@ const styles = StyleSheet.create({
   followerCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 10, padding: 12, marginBottom: 10, elevation: 1 },
   followerName: { marginLeft: 10, fontSize: 15, color: COLORS.primaryDark },
   emptyText: { color: COLORS.text, fontSize: 14, textAlign: 'center', marginVertical: 8 },
-}); 
+});

@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { COLORS } from '../../constants/Config';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Garden {
   id: number;
@@ -69,7 +70,7 @@ export default function GardensScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={gardens}
         keyExtractor={(item) => item.id.toString()}
@@ -82,7 +83,7 @@ export default function GardensScreen() {
       >
         <Text style={styles.fabText}>＋</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 30,
+    bottom: 100,
     backgroundColor: COLORS.primary,
     width: 60,
     height: 60,
@@ -160,5 +161,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    paddingTop: 20,           // Add top padding
+    paddingHorizontal: 16,    // Optional left/right padding
   },
 });

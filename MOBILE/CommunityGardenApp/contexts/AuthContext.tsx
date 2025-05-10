@@ -47,11 +47,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string,captcha: string) => {
     try {
       const response = await axios.post(`${API_URL}/login/`, {
         username,
         password,
+        captcha,
       });
 
       const { token: newToken, user_id, username: responseUsername } = response.data;
@@ -68,31 +69,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(userData);
       axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error:', error.response?.data || error.message);
       throw error;
     }
   };
-
   const register = async (userData: any) => {
     try {
+      // Step 1: Register the user
       const response = await axios.post(`${API_URL}/register/`, userData);
       const { token: newToken } = response.data;
-
+  
+      // Step 2: Store token and user
       const user = {
         username: userData.username,
         email: userData.email,
         firstName: userData.first_name,
         lastName: userData.last_name,
       };
-
+  
       await AsyncStorage.setItem('token', newToken);
       await AsyncStorage.setItem('user', JSON.stringify(user));
-      
+  
+      // Step 3: Set context and headers
       setToken(newToken);
       setUser(user);
       axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
+  
+      // ✅ Step 4: Ensure profile exists
+      try {
+        await axios.put(`${API_URL}/profile/`, {
+          location: userData.location || '',
+          profile_picture: null
+        }, {
+          headers: { Authorization: `Token ${newToken}` }
+        });
+      } catch (error) {
+        if (error.response?.status === 404) {
+          // Profile not created by backend – log this clearly
+          console.warn('Profile update failed: no profile found. Consider creating it explicitly if backend allows POST.');
+        } else {
+          throw error;  // rethrow other unexpected errors
+        }
+      }
+  
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('Registration error:', error.response?.data || error.message);
       throw error;
     }
   };
