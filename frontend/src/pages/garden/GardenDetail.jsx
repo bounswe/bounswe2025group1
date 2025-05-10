@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Box, 
-  Grid, 
-  Card, 
+import {
+  Container,
+  Typography,
+  Box,
+  Grid,
+  Card,
   CardContent,
   Button,
   Tabs,
@@ -22,19 +22,39 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import api from '../../utils/api';
-
-// Icons
+import {
+  Modal, TextField, MenuItem, Fade, Backdrop, Switch
+} from '@mui/material';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import GroupIcon from '@mui/icons-material/Group';
 import TaskIcon from '@mui/icons-material/Task';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import TaskModal from './TaskModal';
 
 const GardenDetail = () => {
   const [garden, setGarden] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [openModal, setOpenModal] = useState(false);
+  const handleOpenModal = () => setOpenModal(true);
+  const handleCloseModal = () => setOpenModal(false);
+  const [taskForm, setTaskForm] = useState({
+    type: 'Custom',
+    title: '',
+    description: '',
+    deadline: '',
+    status: 'Pending',
+    assignment_status: 'Unassigned',
+    assignees: [],
+    harvest_amounts: {},
+    maintenance_type: '',
+    custom_type: '',
+  });
+
   const { gardenId } = useParams();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -47,7 +67,7 @@ const GardenDetail = () => {
           api.getGarden(gardenId),
           api.getGardenTasks(gardenId)
         ]);
-        
+
         setGarden(gardenRes.data);
         setTasks(tasksRes.data);
         setLoading(false);
@@ -63,6 +83,12 @@ const GardenDetail = () => {
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setTaskForm(prev => ({ ...prev, [name]: value }));
+  };
+
 
   // Simulate user membership (in a complete implementation, this would come from the API)
   const isMember = currentUser ? true : false;
@@ -90,9 +116,9 @@ const GardenDetail = () => {
         <Typography variant="h5" color="error">
           Garden not found
         </Typography>
-        <Button 
-          variant="contained" 
-          color="primary" 
+        <Button
+          variant="contained"
+          color="primary"
           onClick={() => navigate('/gardens')}
           sx={{ mt: 2, backgroundColor: '#558b2f' }}
         >
@@ -106,6 +132,33 @@ const GardenDetail = () => {
   const pendingTasks = tasks.filter(task => task.status === 'Pending');
   const inProgressTasks = tasks.filter(task => task.status === 'In Progress');
   const completedTasks = tasks.filter(task => task.status === 'Completed');
+
+  const handleTaskSubmit = async (formData) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+        body: JSON.stringify({
+          ...formData,
+          garden: gardenId,
+          deadline: new Date(formData.deadline).toISOString(),
+        }),
+      });
+
+      if (!response.ok) throw new Error('Task creation failed');
+
+      const newTask = await response.json();
+      setTasks(prev => [...prev, newTask]);
+      toast.success('Task created!');
+      handleCloseModal();
+    } catch (err) {
+      console.error(err);
+      toast.error('Could not create task.');
+    }
+  };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
@@ -140,11 +193,11 @@ const GardenDetail = () => {
               {garden.description}
             </Typography>
           </Grid>
-          <Grid size={{xs: 12, md: 4}} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+          <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
             {currentUser ? (
               isMember ? (
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   color="error"
                   onClick={() => alert('Leave garden functionality would be implemented here')}
                   sx={{ mr: 1 }}
@@ -152,8 +205,8 @@ const GardenDetail = () => {
                   Leave Garden
                 </Button>
               ) : (
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   onClick={() => alert('Join garden functionality would be implemented here')}
                   sx={{ mr: 1, backgroundColor: '#558b2f' }}
                 >
@@ -161,8 +214,8 @@ const GardenDetail = () => {
                 </Button>
               )
             ) : (
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 onClick={() => navigate('/auth/login')}
                 sx={{ mr: 1, backgroundColor: '#558b2f' }}
               >
@@ -170,7 +223,7 @@ const GardenDetail = () => {
               </Button>
             )}
             {isManager && (
-              <Button 
+              <Button
                 variant="outlined"
                 color="primary"
                 onClick={() => alert('Garden settings would be implemented here')}
@@ -208,20 +261,20 @@ const GardenDetail = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h6" sx={{ color: '#558b2f' }}>Garden Tasks</Typography>
               {isMember && (
-                <Button 
+                <Button
                   variant="contained"
                   size="small"
-                  onClick={() => alert('Create task functionality would be implemented here')}
+                  onClick={handleOpenModal}
                   sx={{ backgroundColor: '#558b2f' }}
                 >
                   Add Task
                 </Button>
               )}
             </Box>
-            
+
             <Grid container spacing={3}>
               {/* Pending Tasks */}
-              <Grid size={{xs: 12, md: 4}}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Paper elevation={1} sx={{ p: 2, height: '100%', borderTop: '4px solid #ff9800' }}>
                   <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
                     Pending ({pendingTasks.length})
@@ -239,8 +292,8 @@ const GardenDetail = () => {
                             <Typography variant="caption">
                               {task.assignee || 'Unassigned'}
                             </Typography>
-                            <Button 
-                              size="small" 
+                            <Button
+                              size="small"
                               onClick={() => alert(`View task ${task.id}`)}
                               sx={{ color: '#558b2f', p: 0 }}
                             >
@@ -259,7 +312,7 @@ const GardenDetail = () => {
               </Grid>
 
               {/* In Progress Tasks */}
-              <Grid size={{xs: 12, md: 4}}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Paper elevation={1} sx={{ p: 2, height: '100%', borderTop: '4px solid #2196f3' }}>
                   <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
                     In Progress ({inProgressTasks.length})
@@ -277,8 +330,8 @@ const GardenDetail = () => {
                             <Typography variant="caption">
                               {task.assignee || 'Unassigned'}
                             </Typography>
-                            <Button 
-                              size="small" 
+                            <Button
+                              size="small"
                               onClick={() => alert(`View task ${task.id}`)}
                               sx={{ color: '#558b2f', p: 0 }}
                             >
@@ -297,7 +350,7 @@ const GardenDetail = () => {
               </Grid>
 
               {/* Completed Tasks */}
-              <Grid size={{xs: 12, md: 4}}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Paper elevation={1} sx={{ p: 2, height: '100%', borderTop: '4px solid #4caf50' }}>
                   <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
                     Completed ({completedTasks.length})
@@ -315,8 +368,8 @@ const GardenDetail = () => {
                             <Typography variant="caption">
                               {task.assignee || 'Unassigned'}
                             </Typography>
-                            <Button 
-                              size="small" 
+                            <Button
+                              size="small"
                               onClick={() => alert(`View task ${task.id}`)}
                               sx={{ color: '#558b2f', p: 0 }}
                             >
@@ -343,7 +396,7 @@ const GardenDetail = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h6" sx={{ color: '#558b2f' }}>Garden Members</Typography>
               {isManager && (
-                <Button 
+                <Button
                   variant="contained"
                   size="small"
                   onClick={() => alert('Invite members functionality would be implemented here')}
@@ -353,7 +406,7 @@ const GardenDetail = () => {
                 </Button>
               )}
             </Box>
-            
+
             <List>
               {members.map((member) => (
                 <Paper key={member.id} elevation={1} sx={{ mb: 2 }}>
@@ -363,13 +416,13 @@ const GardenDetail = () => {
                         <AccountCircleIcon />
                       </Avatar>
                     </ListItemAvatar>
-                    <ListItemText 
+                    <ListItemText
                       primary={member.name}
                       secondary={`Role: ${member.role}`}
                     />
                     {isManager && member.role !== 'Manager' && (
-                      <Button 
-                        size="small" 
+                      <Button
+                        size="small"
                         variant="outlined"
                         color="error"
                         onClick={() => alert(`Remove member ${member.id}`)}
@@ -400,6 +453,12 @@ const GardenDetail = () => {
           </Box>
         )}
       </Box>
+      <TaskModal
+        open={openModal}
+        onClose={handleCloseModal}
+        onSubmit={handleTaskSubmit}
+      />
+
     </Container>
   );
 };
