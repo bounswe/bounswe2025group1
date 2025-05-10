@@ -11,6 +11,14 @@ const cropOptions = [
   { label: 'Strawberry', emoji: '🍓' },
 ];
 
+const maintenanceOptions = [
+  { label: 'Irrigation', emoji: '💧' },
+  { label: 'Fertilizer', emoji: '🧪' },
+  { label: 'Pest Control', emoji: '🐛' },
+  { label: 'Pruning', emoji: '✂️' },
+  { label: 'Other', emoji: '➕' }
+];
+
 const TaskModal = ({ open, onClose, onSubmit }) => {
   const [taskForm, setTaskForm] = useState({
     type: 'Custom',
@@ -29,6 +37,7 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
   const [customCrop, setCustomCrop] = useState('');
   const [harvestAmount, setHarvestAmount] = useState('');
   const [harvestUnit, setHarvestUnit] = useState('kg');
+  const [customMaintenance, setCustomMaintenance] = useState('');
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -50,6 +59,10 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
       };
     }
 
+    if (taskForm.type === 'Maintenance' && taskForm.maintenance_type === 'custom') {
+      updatedForm.maintenance_type = customMaintenance;
+    }
+
     onSubmit(updatedForm);
     setTaskForm({
       type: 'Custom',
@@ -67,6 +80,7 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
     setCustomCrop('');
     setHarvestAmount('');
     setHarvestUnit('kg');
+    setCustomMaintenance('');
     onClose();
   };
 
@@ -113,7 +127,33 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
           )}
 
           {taskForm.type === 'Maintenance' && (
-            <TextField label="Maintenance Type" name="maintenance_type" fullWidth margin="normal" value={taskForm.maintenance_type} onChange={handleFormChange} required />
+            <>
+              <TextField
+                select
+                label="Maintenance Type"
+                name="maintenance_type"
+                fullWidth
+                margin="normal"
+                value={taskForm.maintenance_type}
+                onChange={handleFormChange}
+                required
+              >
+                {maintenanceOptions.map((option) => (
+                  <MenuItem key={option.label} value={option.label}>{`${option.emoji} ${option.label}`}</MenuItem>
+                ))}
+                <MenuItem value="custom">📝 Custom</MenuItem>
+              </TextField>
+              {taskForm.maintenance_type === 'custom' && (
+                <TextField
+                  label="Custom Maintenance"
+                  fullWidth
+                  margin="normal"
+                  value={customMaintenance}
+                  onChange={(e) => setCustomMaintenance(e.target.value)}
+                  required
+                />
+              )}
+            </>
           )}
 
           {taskForm.type === 'Custom' && (
