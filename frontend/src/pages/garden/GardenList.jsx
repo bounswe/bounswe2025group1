@@ -43,6 +43,8 @@ const GardenList = () => {
   const [openModal, setOpenModal] = useState(false);
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
+  const { token } = useAuth();
+
 
   const [form, setForm] = useState({
     type: '',
@@ -95,18 +97,17 @@ const GardenList = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/gardens/create`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/gardens/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Token ${token}`
         },
         body: JSON.stringify({
-          type: form.type,
           name: form.name,
-          description: form.description,
           location: form.location,
-          size: parseFloat(form.size),
-          isPublic: form.isPublic,
+          description: form.description,
+          is_public: form.isPublic,
         }),
       });
 
