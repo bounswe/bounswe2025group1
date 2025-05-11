@@ -56,16 +56,30 @@ const GardenDetail = () => {
 
   const handleTaskUpdate = async (updatedTask) => {
     try {
+      const payload = {
+        title: updatedTask.title,
+        description: updatedTask.description,
+        status: updatedTask.status?.toUpperCase() || 'PENDING',
+        due_date: new Date(updatedTask.deadline).toISOString(),
+        assigned_to: updatedTask.assignees?.[0] || null,
+        custom_type: updatedTask.custom_type ? parseInt(updatedTask.custom_type) : null,
+        garden: parseInt(gardenId)
+      };
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Token ${token}`
         },
-        body: JSON.stringify(updatedTask)
+        body: JSON.stringify(payload)
       });
 
-      if (!response.ok) throw new Error('Update failed');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Update failed:', errorText);
+        throw new Error('Update failed');
+      }
 
       const updated = await response.json();
       setTasks(prev => prev.map(t => (t.id === updated.id ? updated : t)));
@@ -75,6 +89,7 @@ const GardenDetail = () => {
       toast.error('Could not update task.');
     }
   };
+
 
   const handleTaskDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this task?')) return;
@@ -248,12 +263,13 @@ const GardenDetail = () => {
     const payload = {
       title: formData.title,
       description: formData.description,
-      status: 'PENDING',
+      status: formData.status?.toUpperCase() || 'PENDING',
       due_date: new Date(formData.deadline).toISOString(),
-      garden: gardenId,
+      garden: parseInt(gardenId),
       assigned_to: formData.assignees?.[0] || null,
-      custom_type: formData.custom_type ? parseInt(formData.custom_type) : null,
+      custom_type: formData.custom_type ? parseInt(formData.custom_type) : null
     };
+
 
 
     try {
@@ -335,7 +351,6 @@ const GardenDetail = () => {
         throw new Error('Failed to delete');
       }
     } catch (err) {
-      console.log(err)
       toast.error('Could not delete garden.');
     }
   };
@@ -437,23 +452,37 @@ const GardenDetail = () => {
       <Box sx={{ mt: 2 }}>
         {/* Tasks Tab */}
         {activeTab === 0 && (
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h6" sx={{ color: '#558b2f' }}>Garden Tasks</Typography>
+              {isMember && (
+                <Button
+                  variant="contained"
+                  onClick={handleOpenTaskModal}
+                  sx={{ backgroundColor: '#558b2f' }}
+                >
+                  Add Task
+                </Button>
+              )}
+            </Box>
 
+            <TaskBoard
+              tasks={tasks}
+              setTasks={setTasks}
+              onTaskClick={handleTaskChipClick}
+              onStatusUpdate={async (id, newStatus) => {
+                await fetch(`${import.meta.env.VITE_API_URL}/tasks/${id}/`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Token ${token}`
+                  },
+                  body: JSON.stringify({ status: newStatus })
+                });
+              }}
+            />
+          </Box>
 
-          <TaskBoard
-            tasks={tasks}
-            setTasks={setTasks}
-            onTaskClick={handleTaskChipClick}
-            onStatusUpdate={async (id, newStatus) => {
-              await fetch(`${import.meta.env.VITE_API_URL}/tasks/${id}/`, {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Token ${token}`
-                },
-                body: JSON.stringify({ status: newStatus })
-              });
-            }}
-          />
 
         )}
 
