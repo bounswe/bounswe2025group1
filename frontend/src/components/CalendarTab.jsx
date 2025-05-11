@@ -4,7 +4,7 @@ import { Box, Typography, Paper, Chip, Button } from '@mui/material';
 import isoWeek from 'dayjs/plugin/isoWeek';
 dayjs.extend(isoWeek);
 
-const CalendarTab = ({ tasks }) => {
+const CalendarTab = ({ tasks, onTaskClick }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
 
   const startOfMonth = currentMonth.startOf('month').startOf('week');
@@ -100,7 +100,8 @@ const CalendarTab = ({ tasks }) => {
                   key={task.id}
                   label={`${getChipEmoji(task)} ${task.title}`}
                   size="small"
-                  sx={{ maxWidth: '100%', bgcolor: getChipColor(task) }}
+                  sx={{ maxWidth: '100%', bgcolor: getChipColor(task), cursor: 'pointer' }}
+                  onClick={() => onTaskClick(task)}
                 />
               ))}
             </Box>
