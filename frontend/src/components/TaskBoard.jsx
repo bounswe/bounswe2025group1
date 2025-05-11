@@ -18,10 +18,11 @@ const STATUS_LABELS = {
   COMPLETED: 'Completed'
 };
 const STATUS_COLORS = {
-  PENDING: '#ff9800',
-  IN_PROGRESS: '#2196f3',
-  COMPLETED: '#4caf50'
+  PENDING: '#bbdefb',
+  IN_PROGRESS: '#ffe0b2',
+  COMPLETED: '#c8e6c9'
 };
+
 
 const TaskBoard = ({ tasks, setTasks, onStatusUpdate, onTaskClick }) => {
   const onDragEnd = (result) => {
@@ -74,11 +75,17 @@ const TaskBoard = ({ tasks, setTasks, onStatusUpdate, onTaskClick }) => {
                           sx={{
                             p: 1.5,
                             mb: 1.2,
-                            borderRadius: 1,
-                            backgroundColor: '#ffffff',
-                            boxShadow: 1,
-                            cursor: 'grab'
+                            borderRadius: 2,
+                            backgroundColor: task.status === 'COMPLETED' ? '#f5f5f5' : '#ffffff',
+                            opacity: task.status === 'COMPLETED' ? 0.85 : 1,
+                            color: task.status === 'COMPLETED' ? 'rgba(0,0,0,0.5)' : '',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                            }
                           }}
+
                         >
                           <Typography variant="subtitle2">{task.title}</Typography>
                           <Typography variant="caption" color="text.secondary">
