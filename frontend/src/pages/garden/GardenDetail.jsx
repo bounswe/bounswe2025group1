@@ -32,13 +32,13 @@ import GroupIcon from '@mui/icons-material/Group';
 import TaskIcon from '@mui/icons-material/Task';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import TaskModal from './TaskModal';
+import TaskModal from '../../components/TaskModal';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { StaticDatePicker, PickersDay } from '@mui/x-date-pickers';
 import { Badge } from '@mui/material';
-import CalendarTab from './CalendarTab';
+import CalendarTab from '../../components/CalendarTab';
 
 const GardenDetail = () => {
   const [garden, setGarden] = useState(null);
@@ -64,7 +64,7 @@ const GardenDetail = () => {
   });
 
   const { gardenId } = useParams();
-  const { currentUser } = useAuth();
+  const { currentUser, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -80,7 +80,6 @@ const GardenDetail = () => {
         setTasks(tasksRes.data);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching garden data:', error);
         setLoading(false);
       }
     };
@@ -142,31 +141,55 @@ const GardenDetail = () => {
   const completedTasks = tasks.filter(task => task.status === 'Completed');
 
   const handleTaskSubmit = async (formData) => {
+
+    if (!token) {
+      toast.error("You must be logged in to create a task.");
+      return;
+    }
+
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      status: 'PENDING', 
+      due_date: new Date(formData.deadline).toISOString(),
+      garden: gardenId,
+      assigned_to: formData.assignees?.[0] || null,
+      custom_type: formData.custom_type ? parseInt(formData.custom_type) : null,
+    };
+
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/create`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentUser.token}`,
+          Authorization: `Token ${token}`
         },
-        body: JSON.stringify({
-          ...formData,
-          garden: gardenId,
-          deadline: new Date(formData.deadline).toISOString(),
-        }),
+        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) throw new Error('Task creation failed');
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = text;
+      }
 
-      const newTask = await response.json();
-      setTasks(prev => [...prev, newTask]);
+      if (!response.ok) {
+        toast.error('Could not create task. Check your input and permissions.');
+        return;
+      }
+
+      setTasks(prev => [...prev, data]);
       toast.success('Task created!');
       handleCloseModal();
     } catch (err) {
-      console.error(err);
-      toast.error('Could not create task.');
+      toast.error('Something went wrong while creating the task.');
     }
   };
+
+
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
