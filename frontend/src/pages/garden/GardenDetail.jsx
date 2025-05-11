@@ -44,6 +44,51 @@ const GardenDetail = () => {
   const [openGardenEditModal, setOpenGardenEditModal] = useState(false);
   const handleOpenGardenEditModal = () => setOpenGardenEditModal(true);
   const handleCloseGardenEditModal = () => setOpenGardenEditModal(false);
+  const [customTaskTypes, setCustomTaskTypes] = useState([]);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
+
+  const handleTaskChipClick = (task) => {
+    setSelectedTask(task);
+    setEditTaskModalOpen(true);
+  };
+
+  const handleTaskUpdate = async (updatedTask) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`
+        },
+        body: JSON.stringify(updatedTask)
+      });
+
+      if (!response.ok) throw new Error('Update failed');
+
+      const updated = await response.json();
+      setTasks(prev => prev.map(t => (t.id === updated.id ? updated : t)));
+      toast.success('Task updated!');
+      setEditTaskModalOpen(false);
+    } catch (err) {
+      toast.error('Could not update task.');
+    }
+  };
+
+  const handleTaskDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
+        method: 'DELETE',
+        headers: { Authorization: `Token ${token}` }
+      });
+      setTasks(prev => prev.filter(t => t.id !== selectedTask.id));
+      toast.success('Task deleted');
+      setEditTaskModalOpen(false);
+    } catch {
+      toast.error('Failed to delete task');
+    }
+  };
 
   const [taskForm, setTaskForm] = useState({
     type: 'Custom',
@@ -110,6 +155,26 @@ const GardenDetail = () => {
 
     fetchGardenData();
   }, [gardenId]);
+
+
+  useEffect(() => {
+    const fetchCustomTaskTypes = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`, {
+          headers: { Authorization: `Token ${token}` }
+        });
+        const data = await response.json();
+        setCustomTaskTypes(data);
+      } catch (err) {
+        toast.error('Could not load custom task types');
+      }
+    };
+
+    if (token && gardenId) {
+      fetchCustomTaskTypes();
+    }
+  }, [token, gardenId]);
+
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -553,7 +618,7 @@ const GardenDetail = () => {
 
         {/* Calendar Tab */}
         {activeTab === 2 && (
-          <CalendarTab tasks={tasks} />
+          <CalendarTab tasks={tasks} onTaskClick={handleTaskChipClick} />
         )}
       </Box>
       <TaskModal
@@ -571,6 +636,16 @@ const GardenDetail = () => {
         handleDelete={handleDeleteGarden}
         mode="edit"
       />
+      <TaskModal
+        open={editTaskModalOpen}
+        onClose={() => setEditTaskModalOpen(false)}
+        onSubmit={handleTaskUpdate}
+        onDelete={handleTaskDelete}
+        initialData={selectedTask}
+        customTaskTypes={customTaskTypes}
+        mode="edit"
+      />
+
     </Container>
   );
 };
