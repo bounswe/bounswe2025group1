@@ -30,6 +30,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import TaskModal from '../../components/TaskModal';
 import CalendarTab from '../../components/CalendarTab';
 import GardenModal from '../../components/GardenModal';
+import TaskBoard from '../../components/TaskBoard';
 
 const GardenDetail = () => {
   const [garden, setGarden] = useState(null);
@@ -233,9 +234,9 @@ const GardenDetail = () => {
   }
 
   // Group tasks by status for display
-  const pendingTasks = tasks.filter(task => task.status === 'Pending');
-  const inProgressTasks = tasks.filter(task => task.status === 'In Progress');
-  const completedTasks = tasks.filter(task => task.status === 'Completed');
+  const pendingTasks = tasks.filter(task => task.status === 'PENDING');
+  const inProgressTasks = tasks.filter(task => task.status === 'IN_PROGRESS');
+  const completedTasks = tasks.filter(task => task.status === 'COMPLETED');
 
   const handleTaskSubmit = async (formData) => {
 
@@ -436,137 +437,24 @@ const GardenDetail = () => {
       <Box sx={{ mt: 2 }}>
         {/* Tasks Tab */}
         {activeTab === 0 && (
-          <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" sx={{ color: '#558b2f' }}>Garden Tasks</Typography>
-              {isMember && (
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={handleOpenTaskModal}
-                  sx={{ backgroundColor: '#558b2f' }}
-                >
-                  Add Task
-                </Button>
-              )}
-            </Box>
 
-            <Grid container spacing={3}>
-              {/* Pending Tasks */}
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Paper elevation={1} sx={{ p: 2, height: '100%', borderTop: '4px solid #ff9800' }}>
-                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    Pending ({pendingTasks.length})
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
-                  {pendingTasks.length > 0 ? (
-                    pendingTasks.map((task) => (
-                      <Card key={task.id} sx={{ mb: 1.5, bgcolor: '#fff9c4' }}>
-                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                          <Typography variant="subtitle2">{task.title}</Typography>
-                          <Typography variant="caption" color="text.secondary" display="block">
-                            Due: {task.deadline}
-                          </Typography>
-                          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption">
-                              {task.assignee || 'Unassigned'}
-                            </Typography>
-                            <Button
-                              size="small"
-                              onClick={() => alert(`View task ${task.id}`)}
-                              sx={{ color: '#558b2f', p: 0 }}
-                            >
-                              Details
-                            </Button>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                      No pending tasks
-                    </Typography>
-                  )}
-                </Paper>
-              </Grid>
 
-              {/* In Progress Tasks */}
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Paper elevation={1} sx={{ p: 2, height: '100%', borderTop: '4px solid #2196f3' }}>
-                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    In Progress ({inProgressTasks.length})
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
-                  {inProgressTasks.length > 0 ? (
-                    inProgressTasks.map((task) => (
-                      <Card key={task.id} sx={{ mb: 1.5, bgcolor: '#e3f2fd' }}>
-                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                          <Typography variant="subtitle2">{task.title}</Typography>
-                          <Typography variant="caption" color="text.secondary" display="block">
-                            Due: {task.deadline}
-                          </Typography>
-                          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption">
-                              {task.assignee || 'Unassigned'}
-                            </Typography>
-                            <Button
-                              size="small"
-                              onClick={() => alert(`View task ${task.id}`)}
-                              sx={{ color: '#558b2f', p: 0 }}
-                            >
-                              Details
-                            </Button>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                      No tasks in progress
-                    </Typography>
-                  )}
-                </Paper>
-              </Grid>
+          <TaskBoard
+            tasks={tasks}
+            setTasks={setTasks}
+            onTaskClick={handleTaskChipClick}
+            onStatusUpdate={async (id, newStatus) => {
+              await fetch(`${import.meta.env.VITE_API_URL}/tasks/${id}/`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Token ${token}`
+                },
+                body: JSON.stringify({ status: newStatus })
+              });
+            }}
+          />
 
-              {/* Completed Tasks */}
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Paper elevation={1} sx={{ p: 2, height: '100%', borderTop: '4px solid #4caf50' }}>
-                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    Completed ({completedTasks.length})
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
-                  {completedTasks.length > 0 ? (
-                    completedTasks.map((task) => (
-                      <Card key={task.id} sx={{ mb: 1.5, bgcolor: '#e8f5e9' }}>
-                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                          <Typography variant="subtitle2">{task.title}</Typography>
-                          <Typography variant="caption" color="text.secondary" display="block">
-                            Completed: {task.deadline}
-                          </Typography>
-                          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption">
-                              {task.assignee || 'Unassigned'}
-                            </Typography>
-                            <Button
-                              size="small"
-                              onClick={() => alert(`View task ${task.id}`)}
-                              sx={{ color: '#558b2f', p: 0 }}
-                            >
-                              Details
-                            </Button>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                      No completed tasks
-                    </Typography>
-                  )}
-                </Paper>
-              </Grid>
-            </Grid>
-          </Box>
         )}
 
         {/* Members Tab */}
