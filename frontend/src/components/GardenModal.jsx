@@ -2,7 +2,8 @@ import {
   Modal, Fade, Backdrop, Box, Typography, TextField, Switch, Button
 } from '@mui/material';
 
-const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, handleSubmit }) => {
+const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, handleSubmit, handleDelete, mode = 'create' }) => {
+
   return (
     <Modal
       open={open}
@@ -28,8 +29,9 @@ const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, ha
           }}
         >
           <Typography variant="h6" gutterBottom>
-            Create New Garden
+            {mode === 'edit' ? 'Edit Garden' : 'Create New Garden'}
           </Typography>
+
 
           <TextField
             label="Garden Name"
@@ -91,15 +93,23 @@ const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, ha
               color="success"
             />
           </Box>
-
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, gap: '3%' }}>
             <Button
               type="submit"
               variant="contained"
               sx={{ backgroundColor: '#558b2f', '&:hover': { backgroundColor: '#33691e' } }}
             >
-              Create Garden
+              {mode === 'edit' ? 'Save Changes' : 'Create Garden'}
             </Button>
+            {mode === 'edit' && (
+              <Button
+                variant="contained"
+                color="error"
+                onClick={handleDelete}
+              >
+                Delete Garden
+              </Button>
+            )}
           </Box>
         </Box>
       </Fade>
