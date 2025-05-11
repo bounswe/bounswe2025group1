@@ -51,12 +51,22 @@ const TaskModal = ({
     ...initialData
   });
 
-  const [deadline, setDeadline] = useState(dayjs());
+  const [deadline, setDeadline] = useState(
+    initialData?.deadline ? dayjs(initialData.deadline) : dayjs()
+  );
+
   const [harvestCrop, setHarvestCrop] = useState('');
   const [customCrop, setCustomCrop] = useState('');
   const [harvestAmount, setHarvestAmount] = useState('');
   const [harvestUnit, setHarvestUnit] = useState('kg');
   const [customMaintenance, setCustomMaintenance] = useState('');
+
+
+  useEffect(() => {
+    if (initialData?.deadline) {
+      setDeadline(dayjs(initialData.deadline));
+    }
+  }, [initialData]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;

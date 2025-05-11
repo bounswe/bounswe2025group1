@@ -535,13 +535,20 @@ const GardenDetail = () => {
 
         {/* Calendar Tab */}
         {activeTab === 2 && (
-          <CalendarTab tasks={tasks} onTaskClick={handleTaskChipClick} />
+          <CalendarTab tasks={tasks} onTaskClick={handleTaskChipClick} onEmptyDayClick={(date) => {
+            setTaskForm((prev) => ({
+              ...prev,
+              deadline: date.toISOString()
+            }));
+            setOpenTaskModal(true);
+          }} />
         )}
       </Box>
       <TaskModal
         open={openTaskModal}
         onClose={handleCloseTaskModal}
         onSubmit={handleTaskSubmit}
+        initialData={taskForm}
       />
       <GardenModal
         open={openGardenEditModal}
