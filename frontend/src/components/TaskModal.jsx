@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Modal, Fade, Backdrop, Box, Typography, TextField, MenuItem, Button, FormControl, InputLabel, Select, OutlinedInput, Checkbox, ListItemText
+  Modal, Fade, Backdrop, Box, Typography, TextField, MenuItem, Button, FormControl,
+  InputLabel, Select, OutlinedInput, Checkbox, ListItemText
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -28,17 +29,26 @@ const userOptions = [
   { id: 3, name: 'Charlie' },
 ];
 
-const TaskModal = ({ open, onClose, onSubmit }) => {
+const TaskModal = ({
+  open,
+  onClose,
+  onSubmit,
+  onDelete,
+  mode = 'create',
+  customTaskTypes = [],
+  initialData = {}
+}) => {
   const [taskForm, setTaskForm] = useState({
     type: 'Custom',
     title: '',
     description: '',
-    status: 'Not Started',
+    status: 'Pending',
     assignment_status: 'Unassigned',
     assignees: [],
     harvest_amounts: {},
     maintenance_type: '',
-    custom_type: '',
+    custom_type: 'custom',
+    ...initialData
   });
 
   const [deadline, setDeadline] = useState(dayjs());
@@ -80,23 +90,6 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
     }
 
     onSubmit(updatedForm);
-    setTaskForm({
-      type: 'Custom',
-      title: '',
-      description: '',
-      status: 'Not Started',
-      assignment_status: 'Unassigned',
-      assignees: [],
-      harvest_amounts: {},
-      maintenance_type: '',
-      custom_type: '',
-    });
-    setDeadline(dayjs());
-    setHarvestCrop('');
-    setCustomCrop('');
-    setHarvestAmount('');
-    setHarvestUnit('kg');
-    setCustomMaintenance('');
     onClose();
   };
 
@@ -104,7 +97,7 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
     <Modal open={open} onClose={onClose} closeAfterTransition BackdropComponent={Backdrop} BackdropProps={{ timeout: 500 }}>
       <Fade in={open}>
         <Box component="form" onSubmit={handleSubmit} sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 500, bgcolor: 'background.paper', borderRadius: 2, boxShadow: 24, p: 4 }}>
-          <Typography variant="h6" gutterBottom>Add Task</Typography>
+          <Typography variant="h6" gutterBottom>{mode === 'edit' ? 'Edit Task' : 'Add Task'}</Typography>
 
           <TextField select label="Type" name="type" value={taskForm.type} onChange={handleFormChange} fullWidth margin="normal">
             <MenuItem value="Harvest">Harvest</MenuItem>
@@ -113,7 +106,6 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
           </TextField>
 
           <TextField label="Title" name="title" fullWidth margin="normal" value={taskForm.title} onChange={handleFormChange} required />
-
           <TextField label="Description" name="description" fullWidth margin="normal" multiline rows={3} value={taskForm.description} onChange={handleFormChange} />
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -123,18 +115,12 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
                 value={deadline}
                 onChange={(newValue) => setDeadline(newValue)}
                 slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    variant: 'outlined',
-                    margin: 'normal',
-                    size: 'medium',
-                  }
+                  textField: { fullWidth: true, variant: 'outlined', margin: 'normal', size: 'medium' }
                 }}
               />
             </Box>
           </LocalizationProvider>
 
-          {/* Assignee Selector */}
           <FormControl fullWidth margin="normal">
             <InputLabel>Assignees</InputLabel>
             <Select
@@ -195,26 +181,20 @@ const TaskModal = ({ open, onClose, onSubmit }) => {
                 <MenuItem value="custom">📝 Custom</MenuItem>
               </TextField>
               {taskForm.maintenance_type === 'custom' && (
-                <TextField
-                  label="Custom Maintenance"
-                  fullWidth
-                  margin="normal"
-                  value={customMaintenance}
-                  onChange={(e) => setCustomMaintenance(e.target.value)}
-                  required
-                />
+                <TextField label="Custom Maintenance" fullWidth margin="normal" value={customMaintenance} onChange={(e) => setCustomMaintenance(e.target.value)} required />
               )}
             </>
           )}
 
-          {taskForm.type === 'Custom' && (
-            <TextField label="Custom Type" name="custom_type" fullWidth margin="normal" value={taskForm.custom_type} onChange={handleFormChange} required />
-          )}
-
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-            <Button type="submit" variant="contained" sx={{ backgroundColor: '#558b2f', '&:hover': { backgroundColor: '#33691e' } }}>
-              Create Task
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
+            <Button type="submit" variant="contained" sx={{ backgroundColor: '#558b2f' }}>
+              {mode === 'edit' ? 'Save Changes' : 'Create Task'}
             </Button>
+            {mode === 'edit' && (
+              <Button variant="contained" color="error" onClick={onDelete}>
+                Delete Task
+              </Button>
+            )}
           </Box>
         </Box>
       </Fade>
