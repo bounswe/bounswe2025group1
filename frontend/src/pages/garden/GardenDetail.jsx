@@ -21,34 +21,29 @@ import {
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
-import api from '../../utils/api';
-import {
-  Modal, TextField, MenuItem, Fade, Backdrop, Switch
-} from '@mui/material';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import GroupIcon from '@mui/icons-material/Group';
 import TaskIcon from '@mui/icons-material/Task';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import TaskModal from '../../components/TaskModal';
-import dayjs from 'dayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { StaticDatePicker, PickersDay } from '@mui/x-date-pickers';
-import { Badge } from '@mui/material';
 import CalendarTab from '../../components/CalendarTab';
+import GardenModal from '../../components/GardenModal';
 
 const GardenDetail = () => {
   const [garden, setGarden] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [openModal, setOpenModal] = useState(false);
-  const handleOpenModal = () => setOpenModal(true);
-  const handleCloseModal = () => setOpenModal(false);
-  const [calendarDate, setCalendarDate] = useState(dayjs());
+  const [openTaskModal, setOpenTaskModal] = useState(false);
+  const handleOpenTaskModal = () => setOpenTaskModal(true);
+  const handleCloseTaskModal = () => setOpenTaskModal(false);
+  const { currentUser } = useAuth();
+  const { token } = useAuth();
+  const [openGardenEditModal, setOpenGardenEditModal] = useState(false);
+  const handleOpenGardenEditModal = () => setOpenGardenEditModal(true);
+  const handleCloseGardenEditModal = () => setOpenGardenEditModal(false);
 
   const [taskForm, setTaskForm] = useState({
     type: 'Custom',
@@ -63,21 +58,50 @@ const GardenDetail = () => {
     custom_type: '',
   });
 
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    location: '',
+    type: '',
+    size: '',
+    isPublic: false,
+  });
+
   const { gardenId } = useParams();
-  const { currentUser, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchGardenData = async () => {
       try {
-        // Fetch garden details and tasks in parallel
-        const [gardenRes, tasksRes] = await Promise.all([
-          api.getGarden(gardenId),
-          api.getGardenTasks(gardenId)
-        ]);
+        const gardenRes = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`
+          }
+        });
+        const gardenData = await gardenRes.json();
+        setGarden(gardenData);
 
-        setGarden(gardenRes.data);
-        setTasks(tasksRes.data);
+        const tasksRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`
+          }
+        });
+        const tasksData = await tasksRes.json();
+        setTasks(tasksData);
+
+        setEditForm({
+          name: gardenData.name || '',
+          description: gardenData.description || '',
+          location: gardenData.location || '',
+          type: gardenData.type || '',
+          size: gardenData.size || '',
+          isPublic: gardenData.is_public || false,
+        });
+        setTasks(tasksData);
         setLoading(false);
       } catch (error) {
         setLoading(false);
@@ -97,6 +121,14 @@ const GardenDetail = () => {
   };
 
 
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleToggleEditPublic = () => {
+    setEditForm((prev) => ({ ...prev, isPublic: !prev.isPublic }));
+  };
   // Simulate user membership (in a complete implementation, this would come from the API)
   const isMember = currentUser ? true : false;
   const isManager = currentUser ? true : false;
@@ -150,7 +182,7 @@ const GardenDetail = () => {
     const payload = {
       title: formData.title,
       description: formData.description,
-      status: 'PENDING', 
+      status: 'PENDING',
       due_date: new Date(formData.deadline).toISOString(),
       garden: gardenId,
       assigned_to: formData.assignees?.[0] || null,
@@ -183,13 +215,64 @@ const GardenDetail = () => {
 
       setTasks(prev => [...prev, data]);
       toast.success('Task created!');
-      handleCloseModal();
+      handleCloseTaskModal();
     } catch (err) {
       toast.error('Something went wrong while creating the task.');
     }
   };
 
+  const handleGardenSubmit = async (e) => {
+    e.preventDefault();
 
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify({
+          name: editForm.name,
+          description: editForm.description,
+          location: editForm.location,
+          is_public: editForm.isPublic,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Update failed');
+
+      const updatedGarden = await response.json();
+      setGarden(updatedGarden);
+      toast.success('Garden updated!');
+      handleCloseGardenEditModal();
+    } catch (err) {
+      //toast.error('Error updating garden');
+    }
+  };
+
+  const handleDeleteGarden = async () => {
+    if (!window.confirm('Are you sure you want to delete this garden?')) return;
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`
+        }
+      });
+
+      if (res.status === 204) {
+        toast.success('Garden deleted');
+        navigate('/gardens');
+      } else {
+        throw new Error('Failed to delete');
+      }
+    } catch (err) {
+      console.log(err)
+      toast.error('Could not delete garden.');
+    }
+  };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
@@ -257,7 +340,7 @@ const GardenDetail = () => {
               <Button
                 variant="outlined"
                 color="primary"
-                onClick={() => alert('Garden settings would be implemented here')}
+                onClick={handleOpenGardenEditModal}
                 sx={{ color: '#558b2f', borderColor: '#558b2f' }}
               >
                 Manage Garden
@@ -295,7 +378,7 @@ const GardenDetail = () => {
                 <Button
                   variant="contained"
                   size="small"
-                  onClick={handleOpenModal}
+                  onClick={handleOpenTaskModal}
                   sx={{ backgroundColor: '#558b2f' }}
                 >
                   Add Task
@@ -472,15 +555,22 @@ const GardenDetail = () => {
         {activeTab === 2 && (
           <CalendarTab tasks={tasks} />
         )}
-
-
       </Box>
       <TaskModal
-        open={openModal}
-        onClose={handleCloseModal}
+        open={openTaskModal}
+        onClose={handleCloseTaskModal}
         onSubmit={handleTaskSubmit}
       />
-
+      <GardenModal
+        open={openGardenEditModal}
+        onClose={handleCloseGardenEditModal}
+        form={editForm}
+        handleChange={handleEditChange}
+        handleTogglePublic={handleToggleEditPublic}
+        handleSubmit={handleGardenSubmit}
+        handleDelete={handleDeleteGarden}
+        mode="edit"
+      />
     </Container>
   );
 };
