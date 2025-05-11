@@ -27,7 +27,6 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import GroupIcon from '@mui/icons-material/Group';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
-import api from '../../utils/api';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Switch } from '@mui/material';
@@ -58,9 +57,15 @@ const GardenList = () => {
   useEffect(() => {
     const fetchGardens = async () => {
       try {
-        const response = await api.getGardens();
-        setGardens(response.data);
-        setFilteredGardens(response.data);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/gardens/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+        const data = await response.json();
+        setGardens(data);
+        setFilteredGardens(data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching gardens:', error);
