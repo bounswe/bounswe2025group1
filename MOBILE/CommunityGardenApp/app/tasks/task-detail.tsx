@@ -26,30 +26,44 @@ export default function TaskDetailScreen() {
         headers: { Authorization: `Token ${token}` },
       });
       setTask(res.data);
+      console.log("All tasks for current user:", res.data);
 
       // Fetch garden members
       const memberRes = await axios.get(`${API_URL}/memberships/?garden=${res.data.garden}`, {
         headers: { Authorization: `Token ${token}` },
       });
-
-      const accepted = memberRes.data.filter(m => m.status === 'ACCEPTED');
+      const gardenId = res.data.garden;
+      const accepted = memberRes.data.filter(m => m.status === 'ACCEPTED' && m.garden === gardenId);
       setMembers(accepted.filter(m => m.role === 'WORKER'));
-      setIsManager(accepted.some(m => m.user === user.id && m.role === 'MANAGER'));
+      setIsManager(accepted.some(m => m.username === user.username && m.role === 'MANAGER'&& m.status ==='ACCEPTED'));
+      const workers = accepted.filter(m => m.role === 'WORKER');
+  
+
     } catch (err) {
       console.error('Error fetching task:', err);
     }
   };
 
   const handleAssign = async () => {
+
+    if (!selectedWorker) {
+      Alert.alert('Error', 'Please select a worker.');
+      return;
+    }
+
     try {
-      await axios.patch(`${API_URL}/tasks/${task.id}/`, {
-        assigned_to: selectedWorker,
+      console.log(parseInt(selectedWorker, 10))
+      await axios.post(`${API_URL}/tasks/${task.id}/assign/`, {
+        user_id: selectedWorker,
+        
       }, {
         headers: { Authorization: `Token ${token}` },
       });
+      
       Alert.alert('Success', 'Task assigned.');
-      fetchTask(); // Refresh
+      fetchTask(); // Refresh the task data
     } catch (err) {
+      console.error('Assign error:', err?.response?.data || err.message);
       Alert.alert('Error', 'Failed to assign task.');
     }
   };
@@ -108,6 +122,7 @@ export default function TaskDetailScreen() {
       {isManager && (
         <>
           <Text style={styles.label}>Assign to Worker:</Text>
+          
           <Picker
             selectedValue={selectedWorker}
             onValueChange={setSelectedWorker}
@@ -115,8 +130,9 @@ export default function TaskDetailScreen() {
           >
             <Picker.Item label="Select a worker" value="" />
             {members.map(member => (
-              <Picker.Item key={member.id} label={`User ${member.user}`} value={member.user} />
+              <Picker.Item key={member.id} label={`User ${member.username}`} value={member.user_id.toString()} />
             ))}
+            
           </Picker>
           <TouchableOpacity style={styles.assignBtn} onPress={handleAssign}>
             <Text style={styles.assignText}>Assign Task</Text>

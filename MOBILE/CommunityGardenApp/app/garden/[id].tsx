@@ -65,7 +65,7 @@ export default function GardenDetailScreen() {
       const res = await axios.get(`${API_URL}/memberships/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      const existing = res.data.find(m => m.garden === parseInt(id));
+      const existing = res.data.find(m => m.garden === parseInt(id) && m.username === user?.username);
       if (existing) setMembershipStatus(existing.status);
     } catch (err) {
       console.error('Membership status fetch error:', err);
@@ -78,7 +78,9 @@ export default function GardenDetailScreen() {
       const res = await axios.get(`${API_URL}/memberships/`, {
         headers: { Authorization: `Token ${token}` },
       });
+      
       const filtered = res.data.filter(m => m.garden === parseInt(id));
+
       setMembers(filtered);
     } catch (err) {
       console.error('Error fetching members:', err);
@@ -86,35 +88,40 @@ export default function GardenDetailScreen() {
   };
   const fetchTasks = async () => {
     try {
-      const res = await axios.get(`${API_URL}/tasks/`, {
+      const res = await axios.get(`${API_URL}/tasks/?garden=${id}`, {
         headers: { Authorization: `Token ${token}` },
       });
-  
-      // Workaround: filter tasks by garden ID manually
-      const filtered = res.data.filter(task => task.garden === parseInt(id));
-      setTasks(filtered);
+      setTasks(res.data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
     }
   };
-
   const handleJoin = async () => {
-    if (!token) return;
-    setJoining(true);
     try {
-      await axios.post(`${API_URL}/memberships/`, { garden: id }, {
-        headers: { Authorization: `Token ${token}` },
-      });
-      setMembershipStatus('PENDING');
-      Alert.alert('Request Sent', 'Your join request has been submitted.');
-    } catch (error) {
-      console.error('Join error:', error);
-      Alert.alert('Error', 'Could not send join request.');
-    } finally {
-      setJoining(false);
+
+      await axios.post(
+        `${API_URL}/memberships/`,
+        {
+          garden: id,
+          role: 'WORKER',
+          status: 'PENDING',
+        },
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
+      );
+  
+      alert('Join request sent!');
+      fetchMembershipStatus();
+      fetchMembers();
+      fetchTasks(); // optional
+    } catch (err) {
+      // console.error('Join error:', err.response?.data || err.message || err);
+      alert('Could not send join request');
     }
   };
 
+  console.log("ghjhk",tasks)
   const pendingTasks = tasks.filter(task => task.status === 'PENDING');
   const inProgressTasks = tasks.filter(task => task.status === 'IN_PROGRESS');
   const completedTasks = tasks.filter(task => task.status === 'COMPLETED');
@@ -122,7 +129,8 @@ export default function GardenDetailScreen() {
   if (loading || !garden) {
     return <ActivityIndicator style={{ flex: 1 }} size="large" color={COLORS.primary} />;
   }
-  const userIsManager = members.some(m => m.user === user?.id && m.role === 'MANAGER' && m.status === 'ACCEPTED');
+  const userIsManager = members.some(m => m.username === user?.username && m.role === 'MANAGER' && m.status === 'ACCEPTED');
+  
   const handleMembershipAccept = async (membershipId) => {
     try {
       await axios.post(
@@ -145,7 +153,7 @@ export default function GardenDetailScreen() {
           <Text style={styles.gardenName}>{garden.name}</Text>
           <View style={styles.chipRow}>
             <View style={styles.chip}><Ionicons name="location-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{garden.location}</Text></View>
-            <View style={styles.chip}><Ionicons name="people-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{members.length} Members</Text></View>
+            <View style={styles.chip}><Ionicons name="people-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{members.filter(m => m.status === 'ACCEPTED').length} Members</Text></View>
             <View style={styles.chip}><Ionicons name="list-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{tasks.length} Tasks</Text></View>
           </View>
           <Text style={styles.gardenDesc}>{garden.description}</Text>
@@ -198,7 +206,7 @@ export default function GardenDetailScreen() {
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
                 <View style={taskCardStyles.card}>
-                <Text style={taskCardStyles.title}>User ID: {item.user}</Text>
+                <Text style={taskCardStyles.title}>Username: {item.username}</Text>
                 <Text>Role: {item.role}</Text>
                 <Text>Status: {item.status}</Text>
 
@@ -206,7 +214,7 @@ export default function GardenDetailScreen() {
                 {userIsManager && item.status === 'PENDING' && (
                     <View style={{ flexDirection: 'row', marginTop: 8, gap: 10 }}>
                     <TouchableOpacity
-                        onPress={() => handleMembershipAction(item.id, 'ACCEPTED')}
+                        onPress={() => handleMembershipAccept(item.id, 'ACCEPTED')}
                         style={{ backgroundColor: 'green', padding: 6, borderRadius: 4 }}
                     >
                         <Text style={{ color: 'white' }}>Accept</Text>

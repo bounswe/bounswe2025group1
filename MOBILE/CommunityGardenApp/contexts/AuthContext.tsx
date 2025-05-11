@@ -58,6 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { token: newToken, user_id, username: responseUsername } = response.data;
       
       const userData = {
+        id:user_id,
         username: responseUsername,
         email: '', // You might want to fetch this from a profile endpoint
       };
@@ -81,6 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
       // Step 2: Store token and user
       const user = {
+        id: userData.id,
         username: userData.username,
         email: userData.email,
         firstName: userData.first_name,

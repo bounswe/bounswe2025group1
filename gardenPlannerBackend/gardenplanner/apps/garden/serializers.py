@@ -122,10 +122,11 @@ class GardenMembershipSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     garden_name = serializers.CharField(source='garden.name', read_only=True)
     garden = serializers.PrimaryKeyRelatedField(queryset=Garden.objects.all(), required=True)
-    
+    user_id = serializers.IntegerField(source='user.id', read_only=True)  # ✅ ADD THIS LINE
+
     class Meta:
         model = GardenMembership
-        fields = ['id', 'garden', 'username', 'garden_name', 'role', 'status', 'joined_at', 'updated_at']
+        fields = ['id','user_id', 'garden', 'username', 'garden_name', 'role', 'status', 'joined_at', 'updated_at']
         read_only_fields = ['id', 'joined_at', 'updated_at']
         
     def validate(self, data):
