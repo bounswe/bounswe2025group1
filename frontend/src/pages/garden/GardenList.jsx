@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import {
   Container,
@@ -58,11 +59,11 @@ const GardenList = () => {
     const fetchGardens = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/gardens/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
         const data = await response.json();
         setGardens(data);
         setFilteredGardens(data);
@@ -222,9 +223,10 @@ const GardenList = () => {
                 <CardMedia
                   component="img"
                   height="180"
-                  image={garden.image}
+                  image = "https://images.pexels.com/photos/131723/pexels-photo-131723.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=180&w=400"
                   alt={garden.name}
                 />
+
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h6" component="h2">
                     {garden.name}
