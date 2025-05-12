@@ -18,6 +18,7 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Profile from './pages/profile/Profile';
 import { ToastContainer } from 'react-toastify';
+import Tasks from './pages/task/Tasks';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Context providers
@@ -150,6 +151,7 @@ function App() {
                 <Route path="/auth/register" element={<Register />} />
                 <Route path="/gardens" element={<GardenList />} />
                 <Route path="/gardens/:gardenId" element={<GardenDetail />} />
+                <Route path='/tasks' element={<Tasks />} />
                 <Route path="/forum" element={<ForumList />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
