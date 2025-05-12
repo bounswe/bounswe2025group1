@@ -151,11 +151,25 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['id', 'garden', 'garden_name', 'title', 'description', 
-                 'custom_type', 'custom_type_name', 
+                 'task_type', 'custom_type', 'custom_type_name', 
                  'assigned_by', 'assigned_by_username', 
                  'assigned_to', 'assigned_to_username', 
                  'status', 'due_date', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate(self, data):
+        task_type = data.get('task_type')
+        custom_type = data.get('custom_type')
+        
+        # If task_type is CUSTOM, custom_type should be provided
+        if task_type == 'CUSTOM' and not custom_type:
+            raise serializers.ValidationError({"custom_type": "Custom type is required when task type is CUSTOM"})
+        
+        # If task_type is not CUSTOM, custom_type should be None
+        if task_type in ['HARVEST', 'MAINTENANCE'] and custom_type:
+            data['custom_type'] = None
+        
+        return data
 
 class ForumPostSerializer(serializers.ModelSerializer):
     author_username = serializers.ReadOnlyField(source='author.username')
