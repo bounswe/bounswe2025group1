@@ -26,7 +26,7 @@ export default function TaskDetailScreen() {
         headers: { Authorization: `Token ${token}` },
       });
       setTask(res.data);
-      console.log("All tasks for current user:", res.data);
+      
 
       // Fetch garden members
       const memberRes = await axios.get(`${API_URL}/memberships/?garden=${res.data.garden}`, {
@@ -53,7 +53,7 @@ export default function TaskDetailScreen() {
     }
 
     try {
-      console.log(parseInt(selectedWorker, 10))
+      
       await axios.post(`${API_URL}/tasks/${task.id}/assign/`, {
         user_id: selectedWorker,
         

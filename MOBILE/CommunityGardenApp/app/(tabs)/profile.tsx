@@ -27,10 +27,8 @@ export default function ProfileScreen() {
         return;
       }
   
-      if (!profile) {
-        fetchProfile();  // only fetch once unless manually invalidated
-      }
-    }, [token, profile])
+      fetchProfile();  // always re-fetch to sync followers/following
+    }, [token])
   );
   const fetchProfile = async () => {
     setLoading(true);
