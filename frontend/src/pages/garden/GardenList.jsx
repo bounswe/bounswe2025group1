@@ -222,9 +222,12 @@ const GardenList = () => {
               >
                 <CardMedia
                   component="img"
-                  height="180"
-                  image = "https://images.pexels.com/photos/131723/pexels-photo-131723.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=180&w=400"
+                  image={`/gardens/garden${garden.id % 5}.png`}
                   alt={garden.name}
+                  sx={{
+                    width: '100%',
+                    height: 180,
+                  }}
                 />
 
                 <CardContent sx={{ flexGrow: 1 }}>
