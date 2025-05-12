@@ -241,7 +241,9 @@ class GardenViewSet(viewsets.ModelViewSet):
 
 class GardenMembershipViewSet(viewsets.ModelViewSet):
     queryset = GardenMembership.objects.all()
+    queryset = GardenMembership.objects.all()
     serializer_class = GardenMembershipSerializer
+
 
     def get_permissions(self):
         if self.action in ['create']:
@@ -271,22 +273,33 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
 
 class CustomTaskTypeViewSet(viewsets.ModelViewSet):
     queryset = CustomTaskType.objects.all()
+    queryset = CustomTaskType.objects.all()
     serializer_class = CustomTaskTypeSerializer
+
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated, IsGardenMember | IsGardenPublic]
         elif self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [IsAuthenticated, IsGardenManager]
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [IsAuthenticated, IsGardenMember | IsGardenPublic]
+        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAuthenticated, IsGardenManager]
         else:
+            permission_classes = [IsAuthenticated]
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
         serializer.save()
 
+    def perform_create(self, serializer):
+        serializer.save()
+
 
 class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()
     serializer_class = TaskSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description']
@@ -328,19 +341,19 @@ class TaskViewSet(viewsets.ModelViewSet):
             models.Q(garden_id=garden_id)
         )
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            permission_classes = [IsGardenManager | IsSystemAdministrator]
-        elif self.action in ['list', 'retrieve']:
-            permission_classes = [IsGardenMember | IsTaskAssignee | IsSystemAdministrator]
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [IsAuthenticated, IsGardenMember | IsGardenPublic]
+        elif self.action in ['create']:
+            permission_classes = [IsAuthenticated, IsGardenMember]
+        elif self.action in ['update', 'partial_update']:
+            permission_classes = [IsAuthenticated, IsGardenManager | IsTaskAssignee]
+        elif self.action in ['destroy']:
+            permission_classes = [IsAuthenticated, IsGardenManager]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
-    
+
     def perform_create(self, serializer):
-        """Set the assigned_by field to the current user when creating a task"""
         serializer.save(assigned_by=self.request.user)
     
     @action(detail=True, methods=['post'], url_path='accept')
