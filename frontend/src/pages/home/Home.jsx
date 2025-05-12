@@ -39,10 +39,11 @@ const Home = () => {
           api.getPosts()
         ]);
 
-        setGardens(gardensRes.data);
-        setTasks(tasksRes.data);
-        setWeather(weatherRes.data);
-        setPosts(postsRes.data);
+        
+        setGardens(gardensRes.data || []);
+        setTasks(tasksRes.data || []);
+        setWeather(weatherRes.data || []);
+        setPosts(postsRes.data || []);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
