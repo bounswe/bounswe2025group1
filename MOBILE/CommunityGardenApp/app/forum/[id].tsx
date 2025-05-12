@@ -30,27 +30,28 @@ export default function ForumPostScreen() {
   const [commentText, setCommentText] = useState('');
   const router = useRouter();
 
+  const fetchPostAndComments = async () => {
+    try {
+      setLoading(true);
+      const postResponse = await axios.get(`${API_URL}/forum/${id}/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setPost(postResponse.data);
+
+      const commentsResponse = await axios.get(`${API_URL}/forum/comments/?forum_post=${id}`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setComments(commentsResponse.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching post data:', error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPostAndComments = async () => {
-      try {
-        setLoading(true);
-        const postResponse = await axios.get(`${API_URL}/forum/${id}/`, {
-          headers: { Authorization: `Token ${token}` },
-        });
-        setPost(postResponse.data);
-
-        const commentsResponse = await axios.get(`${API_URL}/forum/comments/?forum_post=${id}`, {
-          headers: { Authorization: `Token ${token}` },
-        });
-        setComments(commentsResponse.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching post data:', error);
-        setLoading(false);
-      }
-    };
-
     fetchPostAndComments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, token]);
 
   const handleAddComment = async () => {
@@ -59,13 +60,13 @@ export default function ForumPostScreen() {
       return;
     }
     try {
-      const response = await axios.post(
+      await axios.post(
         `${API_URL}/forum/comments/`,
         { forum_post: id, content: commentText },
         { headers: { Authorization: `Token ${token}` } }
       );
-      setComments([...comments, response.data]);
       setCommentText('');
+      await fetchPostAndComments();
     } catch (error) {
       Alert.alert('Error', 'Failed to add comment');
     }
