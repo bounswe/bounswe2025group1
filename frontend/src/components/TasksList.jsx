@@ -63,17 +63,6 @@ const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true 
           </Typography>
         </Box>
       )}
-      
-      {showViewAll && tasks.length > 0 && (
-        <Button 
-          variant="text" 
-          color="primary" 
-          onClick={() => navigate('/tasks')}
-          sx={{ mt: 1, color: '#2e7d32' }}
-        >
-          {tasks.length > limit ? `View All (${tasks.length})` : 'Manage Tasks'}
-        </Button>
-      )}
     </Paper>
   );
 };

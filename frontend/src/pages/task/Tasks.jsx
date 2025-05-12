@@ -4,7 +4,6 @@ import {
   Typography,
   Box,
   Grid,
-  Button,
   Paper,
   CircularProgress
 } from '@mui/material';
@@ -14,7 +13,6 @@ import api from '../../utils/api';
 import CalendarTab from '../../components/CalendarTab';
 import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
-import TaskModal from '../../components/TaskModal';
 
 const Tasks = () => {
   const { currentUser, token } = useAuth();
@@ -26,97 +24,39 @@ const Tasks = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ---------- New Task Modal ----------
-  const [openNewModal, setOpenNewModal] = useState(false);
-  const handleOpenNew = () => setOpenNewModal(true);
-  const handleCloseNew = () => setOpenNewModal(false);
-
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
-  const handleTaskChipClick = (task) => {
-    setSelectedTask(task);
-    setOpenEditModal(true);
-  };
-
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    deadline: '',
-    status: 'Pending',
-    assignees: [],
-    custom_type: ''
-  });
-
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [gRes, tRes, wRes, pRes] = await Promise.all([
+        const [gRes, wRes, pRes] = await Promise.all([
           api.getGardens(),
-          api.getTasks(),
           api.getWeather(),
           api.getPosts(),
         ]);
+
+        const tRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`
+          }
+        });
+        const taskData = await tRes.json();
+
         setGardens(gRes.data || []);
-        setTasks(tRes.data || []);
+        setTasks(taskData || []);
         setWeather(wRes.data || null);
         setPosts(pRes.data || []);
       } catch (e) {
-        console.error(e);
+        console.error('Failed to load data:', e);
       } finally {
         setLoading(false);
       }
     };
-    fetchAll();
-  }, []);
 
-  const pendingTasks = tasks.filter(t => t.status === 'Pending');
-
-  const handleCreate = async (data) => {
-    try {
-      const payload = {
-        title: data.title,
-        description: data.description,
-        status: data.status.toUpperCase(),
-        due_date: new Date(data.deadline).toISOString(),
-        assignees: data.assignees,
-        custom_type: data.custom_type
-      };
-      const res = await api.createTask(payload);
-      setTasks(tasks.concat(res.data));
-      handleCloseNew();
-    } catch {
-      console.error('Create failed');
+    if (token) {
+      fetchAll();
     }
-  };
-
-  const handleUpdate = async (data) => {
-    try {
-      const payload = {
-        title: data.title,
-        description: data.description,
-        status: data.status.toUpperCase(),
-        due_date: new Date(data.deadline).toISOString(),
-        assignees: data.assignees,
-        custom_type: data.custom_type
-      };
-      const res = await api.updateTask(selectedTask.id, payload);
-      setTasks(tasks.map(t => t.id === res.data.id ? res.data : t));
-      setOpenEditModal(false);
-    } catch {
-      console.error('Update failed');
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm('Delete this task?')) return;
-    try {
-      await api.deleteTask(selectedTask.id);
-      setTasks(tasks.filter(t => t.id !== selectedTask.id));
-      setOpenEditModal(false);
-    } catch {
-      console.error('Delete failed');
-    }
-  };
+  }, [token]);
 
   if (loading) {
     return (
@@ -125,6 +65,8 @@ const Tasks = () => {
       </Box>
     );
   }
+
+  const pendingTasks = tasks.filter(t => t.status === 'PENDING');
 
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
@@ -158,47 +100,20 @@ const Tasks = () => {
                 tasks={pendingTasks}
                 title=""
                 limit={4}
-                onTaskClick={handleTaskChipClick}
               />
             </Box>
           </Paper>
         </Box>
-        <Box mt={30}>
+        <Box mt={20}>
+          <Typography variant="h4" sx={{ mt: 1, mb: 2, color: '#558b2f' }}>
+            Task Calendar
+          </Typography>
+
           <CalendarTab
-            tasks={tasks.map(t => ({
-              ...t,
-              due_date: t.deadline
-            }))}
-            onTaskClick={handleTaskChipClick}
-            onEmptyDayClick={(date) => {
-              setFormData((prev) => ({
-                ...prev,
-                deadline: date.toISOString()
-              }));
-              handleOpenNew();
-            }}
+            tasks={tasks}
           />
         </Box>
       </Container>
-
-
-
-      {/* New Task Modal */}
-      <TaskModal
-        open={openNewModal}
-        onClose={handleCloseNew}
-        onSubmit={handleCreate}
-        initialData={formData}
-      />
-
-      {/* Edit Task Modal */}
-      <TaskModal
-        open={openEditModal}
-        onClose={() => setOpenEditModal(false)}
-        onSubmit={handleUpdate}
-        onDelete={handleDelete}
-        initialData={selectedTask}
-      />
     </Box>
   );
 };
