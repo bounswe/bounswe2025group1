@@ -18,7 +18,12 @@ import {
   ListItemText,
   ListItemAvatar,
   CircularProgress,
-  Paper
+  Paper,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
@@ -32,13 +37,17 @@ import TaskModal from '../../components/TaskModal';
 import CalendarTab from '../../components/CalendarTab';
 import GardenModal from '../../components/GardenModal';
 import TaskBoard from '../../components/TaskBoard';
+import api from '../../utils/api';
 
 const GardenDetail = () => {
   const [garden, setGarden] = useState(null);
   const [tasks, setTasks] = useState([]);
+  const [members, setMembers] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [openTaskModal, setOpenTaskModal] = useState(false);
+  const [openInviteModal, setOpenInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
   const handleOpenTaskModal = () => setOpenTaskModal(true);
   const handleCloseTaskModal = () => setOpenTaskModal(false);
   const { currentUser } = useAuth();
@@ -49,6 +58,9 @@ const GardenDetail = () => {
   const [customTaskTypes, setCustomTaskTypes] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
+  const [isMember, setIsMember] = useState(false);
+  const [isManager, setIsManager] = useState(false);
+  const [userMembership, setUserMembership] = useState(null);
 
   const handleTaskChipClick = (task) => {
     setSelectedTask(task);
@@ -155,6 +167,18 @@ const GardenDetail = () => {
         const tasksData = await tasksRes.json();
         setTasks(tasksData);
 
+        // Fetch garden members using our API function
+        const membersData = await api.getGardenMembers(gardenId);
+        setMembers(membersData.data || []);
+
+        // Check if current user is a member and their role
+        if (currentUser) {
+          const userMember = membersData.data?.find(m => m.user && m.user.id === currentUser.id);
+          setIsMember(!!userMember);
+          setIsManager(userMember?.role === 'MANAGER');
+          setUserMembership(userMember);
+        }
+
         setEditForm({
           name: gardenData.name || '',
           description: gardenData.description || '',
@@ -163,15 +187,15 @@ const GardenDetail = () => {
           size: gardenData.size || '',
           isPublic: gardenData.is_public || false,
         });
-        setTasks(tasksData);
         setLoading(false);
       } catch (error) {
+        console.error('Error fetching garden data:', error);
         setLoading(false);
       }
     };
 
     fetchGardenData();
-  }, [gardenId]);
+  }, [gardenId, currentUser, token]);
 
 
   useEffect(() => {
@@ -211,17 +235,100 @@ const GardenDetail = () => {
   const handleToggleEditPublic = () => {
     setEditForm((prev) => ({ ...prev, isPublic: !prev.isPublic }));
   };
-  // Simulate user membership (in a complete implementation, this would come from the API)
-  const isMember = currentUser ? true : false;
-  const isManager = currentUser ? true : false;
 
-  // Mock members data (in a real implementation, this would come from the API)
-  const members = [
-    { id: '1', name: 'John Doe', role: 'Manager' },
-    { id: '2', name: 'Jane Smith', role: 'Worker' },
-    { id: '3', name: 'Robert Johnson', role: 'Worker' },
-    { id: '4', name: 'Sarah Williams', role: 'Worker' },
-  ];
+  const handleJoinGarden = async () => {
+    try {
+      // Creates a membership request for the current user to join the garden
+      await api.joinGarden(parseInt(gardenId));
+      
+      toast.success('Request to join garden sent!');
+      
+      // Refresh members list
+      const membersData = await api.getGardenMembers(gardenId);
+      setMembers(membersData.data || []);
+      
+      // Update user membership status
+      const userMember = membersData.data?.find(m => m.user && m.user.id === currentUser.id);
+      setIsMember(!!userMember);
+      setUserMembership(userMember);
+    } catch (err) {
+      console.error('Join garden error:', err);
+      toast.error('Failed to join garden');
+    }
+  };
+
+  const handleLeaveGarden = async () => {
+    if (!window.confirm('Are you sure you want to leave this garden?')) return;
+    
+    try {
+      if (userMembership) {
+        await api.removeGardenMember(userMembership.id);
+        
+        toast.success('You have left the garden');
+        
+        // Update state
+        setIsMember(false);
+        setIsManager(false);
+        setUserMembership(null);
+        
+        // Refresh members list
+        const membersData = await api.getGardenMembers(gardenId);
+        setMembers(membersData.data || []);
+      }
+    } catch (err) {
+      console.error('Leave garden error:', err);
+      toast.error('Failed to leave garden');
+    }
+  };
+
+  const handleRemoveMember = async (membershipId) => {
+    if (!window.confirm('Are you sure you want to remove this member?')) return;
+    
+    try {
+      await api.removeGardenMember(membershipId);
+      
+      toast.success('Member removed from garden');
+      
+      // Refresh members list
+      const membersData = await api.getGardenMembers(gardenId);
+      setMembers(membersData.data || []);
+    } catch (err) {
+      console.error('Remove member error:', err);
+      toast.error('Failed to remove member');
+    }
+  };
+
+  const handleChangeMemberRole = async (membershipId, newRole) => {
+    try {
+      await api.updateGardenMember(membershipId, {
+        role: newRole
+      });
+      
+      toast.success('Member role updated');
+      
+      // Refresh members list
+      const membersData = await api.getGardenMembers(gardenId);
+      setMembers(membersData.data || []);
+    } catch (err) {
+      console.error('Change role error:', err);
+      toast.error('Failed to update member role');
+    }
+  };
+
+  const handleInviteMember = async () => {
+    try {
+      // Backend expects user by ID, not email, so we'd need to:
+      // 1. Find user ID by email
+      // 2. Then create membership
+      // For now, let's just show a notification that this is not implemented
+      toast.info('Email invitation not currently supported. Users must join using the Join Garden button.');
+      setOpenInviteModal(false);
+      setInviteEmail('');
+    } catch (err) {
+      console.error('Invite member error:', err);
+      toast.error('Failed to send invitation');
+    }
+  };
 
   if (loading) {
     return (
@@ -374,13 +481,13 @@ const GardenDetail = () => {
               />
               <Chip
                 icon={<GroupIcon />}
-                label={`${garden.members} Members`}
+                label={`${members.length} Members`}
                 size="small"
                 sx={{ bgcolor: '#e8f5e9' }}
               />
               <Chip
                 icon={<TaskIcon />}
-                label={`${garden.tasks} Tasks`}
+                label={`${tasks.length} Tasks`}
                 size="small"
                 sx={{ bgcolor: '#e8f5e9' }}
               />
@@ -395,7 +502,7 @@ const GardenDetail = () => {
                 <Button
                   variant="outlined"
                   color="error"
-                  onClick={() => alert('Leave garden functionality would be implemented here')}
+                  onClick={handleLeaveGarden}
                   sx={{ mr: 1 }}
                 >
                   Leave Garden
@@ -403,7 +510,7 @@ const GardenDetail = () => {
               ) : (
                 <Button
                   variant="contained"
-                  onClick={() => alert('Join garden functionality would be implemented here')}
+                  onClick={handleJoinGarden}
                   sx={{ mr: 1, backgroundColor: '#558b2f' }}
                 >
                   Join Garden
@@ -496,7 +603,7 @@ const GardenDetail = () => {
                 <Button
                   variant="contained"
                   size="small"
-                  onClick={() => alert('Invite members functionality would be implemented here')}
+                  onClick={() => setOpenInviteModal(true)}
                   sx={{ backgroundColor: '#558b2f' }}
                 >
                   Invite Members
@@ -514,22 +621,38 @@ const GardenDetail = () => {
                       </Avatar>
                     </ListItemAvatar>
                     <ListItemText
-                      primary={member.name}
-                      secondary={`Role: ${member.role}`}
+                      primary={member.user?.username || `User ${member.user?.id || 'Unknown'}`}
+                      secondary={`Role: ${member.role} • Status: ${member.status}`}
                     />
-                    {isManager && member.role !== 'Manager' && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="error"
-                        onClick={() => alert(`Remove member ${member.id}`)}
-                      >
-                        Remove
-                      </Button>
+                    {isManager && member.id !== userMembership?.id && (
+                      <>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => handleChangeMemberRole(member.id, member.role === 'MANAGER' ? 'WORKER' : 'MANAGER')}
+                          sx={{ mr: 1 }}
+                        >
+                          {member.role === 'MANAGER' ? 'Demote' : 'Promote'}
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          onClick={() => handleRemoveMember(member.id)}
+                        >
+                          Remove
+                        </Button>
+                      </>
                     )}
                   </ListItem>
                 </Paper>
               ))}
+              {members.length === 0 && (
+                <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 3 }}>
+                  No members found
+                </Typography>
+              )}
             </List>
           </Box>
         )}
@@ -570,6 +693,29 @@ const GardenDetail = () => {
         customTaskTypes={customTaskTypes}
         mode="edit"
       />
+
+      {/* Invite Member Modal */}
+      <Dialog open={openInviteModal} onClose={() => setOpenInviteModal(false)}>
+        <DialogTitle>Invite New Member</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Email Address"
+            type="email"
+            fullWidth
+            variant="outlined"
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenInviteModal(false)}>Cancel</Button>
+          <Button onClick={handleInviteMember} variant="contained" color="primary">
+            Send Invitation
+          </Button>
+        </DialogActions>
+      </Dialog>
 
     </Container>
   );

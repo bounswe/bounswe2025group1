@@ -217,13 +217,17 @@ export const api = {
   logout: () => apiRequest('/auth/logout', 'POST'),
 
   // Garden endpoints
-  getGardens: () => apiRequest('/gardens'),
-  getGarden: (id) => apiRequest(`/gardens/${id}`),
-  createGarden: (garden) => apiRequest('/gardens', 'POST', garden),
-  updateGarden: (id, garden) => apiRequest(`/gardens/${id}`, 'PUT', garden),
-  deleteGarden: (id) => apiRequest(`/gardens/${id}`, 'DELETE'),
-  joinGarden: (id) => apiRequest(`/gardens/${id}/join`, 'POST'),
-  leaveGarden: (id) => apiRequest(`/gardens/${id}/leave`, 'POST'),
+  getGardens: () => apiRequest('/gardens/'),
+  getGarden: (id) => apiRequest(`/gardens/${id}/`),
+  createGarden: (garden) => apiRequest('/gardens/', 'POST', garden),
+  updateGarden: (id, garden) => apiRequest(`/gardens/${id}/`, 'PUT', garden),
+  deleteGarden: (id) => apiRequest(`/gardens/${id}/`, 'DELETE'),
+  
+  // Garden Member endpoints
+  getGardenMembers: (gardenId) => apiRequest(`/memberships/?garden=${gardenId}`),
+  joinGarden: (gardenId) => apiRequest('/memberships/', 'POST', { garden: gardenId }),
+  updateGardenMember: (membershipId, memberData) => apiRequest(`/memberships/${membershipId}/`, 'PUT', memberData),
+  removeGardenMember: (membershipId) => apiRequest(`/memberships/${membershipId}/`, 'DELETE'),
 
   // Task endpoints
   getTasks: () => apiRequest('/tasks'),
