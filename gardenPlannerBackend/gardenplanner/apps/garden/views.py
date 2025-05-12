@@ -291,79 +291,13 @@ class TaskViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description']
     ordering_fields = ['due_date', 'created_at', 'status']
-    
-    # def get_queryset(self):
-    #     """
-    #     Filter tasks based on user role and garden membership:
-    #     - System admins can see all tasks
-    #     - Garden managers can see all tasks in their gardens
-    #     - Garden workers can see tasks assigned to them or unassigned tasks in their gardens
-    #     """
-    #     user = self.request.user
-    #     print(f"user:{user.username}")
-    #     # System Admin can see all tasks
-    #     if user.profile.role == 'ADMIN':
-    #         return Task.objects.all()
-        
-    #     # Get gardens where user is a member
-    #     memberships = GardenMembership.objects.filter(
-    #         user=user, 
-    #         status='ACCEPTED'
-    #     )
-    #     print(f" Memberships: {[ (m.garden_id, m.role) for m in memberships ]}")
-        
-    #     # Get all gardens where user is a manager
-    #     manager_gardens = [m.garden_id for m in memberships if m.role == 'MANAGER']
-    #     print(f"Manager gardens for user {user.username}: {manager_gardens}")
-    #     # If user is a manager in any gardens, show all tasks for those gardens
-    #     if manager_gardens:
-    #         mm=Task.objects.filter(garden_id__in=manager_gardens)
-    #         print(f"Tasks for manager {user.username}: {[ (t.id, t.title, t.garden_id) for t in mm ]}")
-    #         return Task.objects.filter(garden_id__in=manager_gardens)
-        
-    #     # Otherwise show tasks assigned to the user or unassigned tasks in gardens they're a member of
-    #     worker_gardens = [m.garden_id for m in memberships if m.role =="WORKER"]
-    #     print(f"Worker gardens for user {user.username}: {worker_gardens}")
-    #     return Task.objects.filter(
-    #         (models.Q(assigned_to=user) | models.Q(assigned_to=None)) &
-    #         models.Q(garden_id__in=worker_gardens)
-    #     )
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     garden_id = self.request.query_params.get('garden')  # required from frontend
-    #     if self.action == 'retrieve':
-    #         return Task.objects.all()  # allow looking up task by ID safely
-    #     if not garden_id:
-    #         return Task.objects.none()  # or raise a ValidationError
-
-    #     garden_id = int(garden_id)
-    #     print(f"Requested garden ID: {garden_id}, user: {user.username}")
-
-    #     # System Admins can view all
-    #     if user.profile.role == 'ADMIN':
-    #         return Task.objects.filter(garden_id=garden_id)
-
-    #     membership = GardenMembership.objects.filter(user=user, garden_id=garden_id, status='ACCEPTED').first()
-    #     if not membership:
-    #         print(f"User {user.username} is not a member of garden {garden_id}")
-    #         return Task.objects.none()
-
-    #     if membership.role == 'MANAGER':
-    #         print(f"User {user.username} is a MANAGER in garden {garden_id}")
-    #         return Task.objects.filter(garden_id=garden_id)
-    #     else:
-    #         print(f"User {user.username} is a WORKER in garden {garden_id}")
-    #         return Task.objects.filter(
-    #             (models.Q(assigned_to=user) | models.Q(assigned_to=None)) &
-    #             models.Q(garden_id=garden_id)
-    #         )
     def get_queryset(self):
         user = self.request.user
         action = getattr(self, 'action', None)
         print(f"[get_queryset] Action: {action}, User: {user.username}")
 
 
-        if action in ['retrieve', 'assign_task', 'accept', 'decline', 'complete']:
+        if action in ['retrieve', 'assign_task', 'accept_task', 'decline_task', 'complete_task']:
             memberships = GardenMembership.objects.filter(user=user, status='ACCEPTED')
             garden_ids = memberships.values_list('garden_id', flat=True)
             print(f"[get_queryset] Garden IDs for user {user.username}: {garden_ids}")
@@ -390,7 +324,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         print(f"User {user.username} is a WORKER in garden {garden_id}")
         return Task.objects.filter(
-            (models.Q(assigned_to=user) | models.Q(assigned_to=None)) &
+            (models.Q(assigned_to=user) | models.Q(assigned_to=None)|models.Q(status='DECLINED')) &
             models.Q(garden_id=garden_id)
         )
     def get_permissions(self):
@@ -426,7 +360,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        task.status = 'ACCEPTED'
+        task.status = 'IN_PROGRESS'
         task.save()
         return Response(TaskSerializer(task).data)
     

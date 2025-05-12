@@ -11,6 +11,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useLayoutEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
+import { Calendar } from 'react-native-calendars';
 const TABS = ['Tasks', 'Members', 'Calendar'];
 
 export default function GardenDetailScreen() {
@@ -122,9 +123,28 @@ export default function GardenDetailScreen() {
   };
 
   console.log("ghjhk",tasks)
-  const pendingTasks = tasks.filter(task => task.status === 'PENDING');
+  const pendingTasks = tasks.filter(task => task.status === 'PENDING'|| (task.status === 'DECLINED' && task.assigned_to !== user.id) );
+  console.log("kkk",pendingTasks)
   const inProgressTasks = tasks.filter(task => task.status === 'IN_PROGRESS');
   const completedTasks = tasks.filter(task => task.status === 'COMPLETED');
+  console.log("inpr",inProgressTasks)
+  console.log("tasks",tasks)
+  const calendarTasks = [...pendingTasks, ...inProgressTasks, ...completedTasks];
+  const markedDates = {};
+  const getDotColor = (task) => {
+    if (task.status === 'COMPLETED') return 'red';
+    if (task.status === 'IN_PROGRESS') return 'blue';
+    if (task.status === 'PENDING') return 'green'; // not assigned yet
+    return 'orange'; // fallback for other pending/declined cases
+  };
+
+  calendarTasks.forEach(task => {
+    const date = task.due_date.split('T')[0];
+    markedDates[date] = {
+      marked: true,
+      dotColor: getDotColor(task),
+    };
+  });
 
   if (loading || !garden) {
     return <ActivityIndicator style={{ flex: 1 }} size="large" color={COLORS.primary} />;
@@ -227,10 +247,21 @@ export default function GardenDetailScreen() {
         </View>
         )}
         {tab === 2 && (
-          <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-            <Ionicons name="calendar-outline" size={60} color={COLORS.primaryDark} style={{ opacity: 0.6 }} />
-            <Text style={styles.sectionTitle}>Garden Calendar</Text>
-            <Text style={styles.emptyText}>Calendar feature coming soon.</Text>
+          <View style={{ padding: 20 }}>
+            <Calendar
+              markedDates={markedDates}
+              markingType={'dot'}
+              onDayPress={(day) => {
+                console.log('Selected day:', day.dateString);
+                // Optional: show a modal or filtered task list here
+              }}
+              theme={{
+                calendarBackground: '#fff',
+                todayTextColor: COLORS.primary,
+                arrowColor: COLORS.primaryDark,
+                dotColor: COLORS.primaryDark,
+              }}
+            />
           </View>
         )}
       </View>
@@ -244,9 +275,9 @@ function TaskCard({ task, color }) {
     return (
       <View style={[taskCardStyles.card, { backgroundColor: color }]}>
         <Text style={taskCardStyles.title}>{task.title}</Text>
-        <Text style={taskCardStyles.caption}>Due: {new Date(task.due_date).toLocaleDateString()}</Text>
+        <Text style={taskCardStyles.caption}>Due: {task.due_date?.split('T')[0]}</Text>
         <View style={taskCardStyles.row}>
-          <Text style={taskCardStyles.caption}>{task.assignee || 'Unassigned'}</Text>
+          <Text style={taskCardStyles.caption}>{task.assigned_to_username || 'Unassigned'}</Text>
           <TouchableOpacity
             onPress={() => router.push({ pathname: '/tasks/task-detail', params: { taskId: task.id.toString() } })}
           >

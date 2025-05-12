@@ -26,10 +26,12 @@ export default function ProfileScreen() {
         router.replace('/auth/login');
         return;
       }
-      fetchProfile();
-    }, [token])
+  
+      if (!profile) {
+        fetchProfile();  // only fetch once unless manually invalidated
+      }
+    }, [token, profile])
   );
-
   const fetchProfile = async () => {
     setLoading(true);
     try {
@@ -55,6 +57,7 @@ export default function ProfileScreen() {
       const acceptedGardenIds = membershipsRes.data
         .filter(m => m.status === 'ACCEPTED' && m.username === profileRes.data.username)
         .map(m => m.garden);
+      
 
       const gardenDetails = await Promise.all(
         acceptedGardenIds.map(id =>
@@ -137,6 +140,8 @@ export default function ProfileScreen() {
             />
           </View>
         )}
+
+
         {tab === 1 && (
           <View>
             <Text style={styles.sectionTitle}>Followers</Text>
@@ -144,15 +149,19 @@ export default function ProfileScreen() {
               data={followers}
               keyExtractor={item => item.id.toString()}
               renderItem={({ item }) => (
-                <View style={styles.followerCard}>
+                <TouchableOpacity
+                  onPress={() => router.push(`/user/${item.id}`)}
+                  style={styles.followerCard}
+                >
                   <Ionicons name="person-outline" size={24} color={COLORS.primaryDark} />
                   <Text style={styles.followerName}>{item.username}</Text>
-                </View>
+                </TouchableOpacity>
               )}
               ListEmptyComponent={<Text style={styles.emptyText}>No followers yet.</Text>}
             />
           </View>
         )}
+
         {tab === 2 && (
           <View>
             <Text style={styles.sectionTitle}>Following</Text>
@@ -160,10 +169,13 @@ export default function ProfileScreen() {
               data={following}
               keyExtractor={item => item.id.toString()}
               renderItem={({ item }) => (
-                <View style={styles.followerCard}>
+                <TouchableOpacity
+                  onPress={() => router.push(`/user/${item.id}`)}
+                  style={styles.followerCard}
+                >
                   <Ionicons name="person-outline" size={24} color={COLORS.primaryDark} />
                   <Text style={styles.followerName}>{item.username}</Text>
-                </View>
+                </TouchableOpacity>
               )}
               ListEmptyComponent={<Text style={styles.emptyText}>Not following anyone yet.</Text>}
             />

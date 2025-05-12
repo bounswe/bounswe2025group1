@@ -37,6 +37,7 @@ export default function TaskDetailScreen() {
       setMembers(accepted.filter(m => m.role === 'WORKER'));
       setIsManager(accepted.some(m => m.username === user.username && m.role === 'MANAGER'&& m.status ==='ACCEPTED'));
       const workers = accepted.filter(m => m.role === 'WORKER');
+      
   
 
     } catch (err) {
@@ -79,6 +80,19 @@ export default function TaskDetailScreen() {
       Alert.alert('Error', `Failed to ${action} task.`);
     }
   };
+  const handleComplete = async () => {
+    try {
+     
+      await axios.post(`${API_URL}/tasks/${task.id}/complete/`, {}, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      Alert.alert('Success', 'Task marked as completed.');
+      fetchTask(); // refresh the data
+    } catch (err) {
+      console.error('Complete error:', err?.response?.data || err.message);
+      Alert.alert('Error', 'Could not complete the task.');
+    }
+  };
 
   if (!task) {
     return <Text style={styles.loading}>Loading task...</Text>;
@@ -119,7 +133,7 @@ export default function TaskDetailScreen() {
       <Text style={styles.value}>{task.updated_at?.split('T')[0]}</Text>
 
       {/* Assignment by Manager */}
-      {isManager && (
+      {(isManager && (!task.assigned_to_username || task.status === 'DECLINED')) &&(
         <>
           <Text style={styles.label}>Assign to Worker:</Text>
           
@@ -138,6 +152,12 @@ export default function TaskDetailScreen() {
             <Text style={styles.assignText}>Assign Task</Text>
           </TouchableOpacity>
         </>
+      )}
+      
+      {task.assigned_to === user.id && task.status === 'IN_PROGRESS' && (
+        <TouchableOpacity style={styles.completeBtn} onPress={handleComplete}>
+          <Text style={styles.completeText}>✓ Complete Task</Text>
+        </TouchableOpacity>
       )}
 
       {/* Accept / Decline by Assignee */}
@@ -168,4 +188,6 @@ const styles = StyleSheet.create({
   acceptBtn: { backgroundColor: 'green', padding: 10, borderRadius: 6, flex: 1, marginRight: 8 },
   declineBtn: { backgroundColor: 'red', padding: 10, borderRadius: 6, flex: 1 },
   btnText: { color: 'white', textAlign: 'center', fontWeight: 'bold' },
+  completeBtn: {backgroundColor: 'green', padding: 12, borderRadius: 8, marginTop: 12,},
+  completeText: {color: 'white',fontWeight: 'bold',textAlign: 'center',},
 });

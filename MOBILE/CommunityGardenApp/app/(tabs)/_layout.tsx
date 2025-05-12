@@ -51,10 +51,11 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="explore"
+          name="community"
           options={{
-            title: 'Explore',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+            title: 'Community',
+            tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size || 28} color={color} />
+        
           }}
         />
         <Tabs.Screen
@@ -71,7 +72,17 @@ export default function TabLayout() {
             tabBarIcon: ({ color, size }) => <Ionicons name="leaf-outline" size={size || 28} color={color} />,
           }}
         />
+        <Tabs.Screen
+          name="my-tasks"
+          options={{
+            title: 'My Tasks',
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="clipboard-outline" size={24} color={color} />
+            ),
+          }}
+        />
       </Tabs>
+      
     </AuthGate>
   );
 }
