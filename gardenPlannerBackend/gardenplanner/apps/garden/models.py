@@ -120,10 +120,17 @@ class Task(models.Model):
         ('COMPLETED', 'Completed'),
         ('CANCELLED', 'Cancelled'),
     ]
+
+    TASK_TYPE_CHOICES = [
+        ('HARVEST', 'Harvest'),
+        ('MAINTENANCE', 'Maintenance'),
+        ('CUSTOM', 'Custom'),
+    ]
     
     garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='tasks')
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
+    task_type = models.CharField(max_length=20, choices=TASK_TYPE_CHOICES, default='CUSTOM')
     custom_type = models.ForeignKey(CustomTaskType, on_delete=models.SET_NULL, related_name='tasks', null=True, blank=True)
     assigned_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks_assigned')
     assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks_received', null=True, blank=True)
