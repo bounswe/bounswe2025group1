@@ -40,4 +40,7 @@ urlpatterns = [
     
     # Forum endpoints with namespace
     path('forum/', include(forum_patterns)),
+    
+    # External API integrations
+    path('weather/', views.WeatherDataView.as_view(), name='weather'),
 ] 

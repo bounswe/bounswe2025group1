@@ -15,14 +15,12 @@ import GrassIcon from '@mui/icons-material/Grass';
 
 // Importing modular components
 import GardenCard from '../../components/GardenCard';
-import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
 import ForumPreview from '../../components/ForumPreview';
 
 const Home = () => {
   const [gardens, setGardens] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [weather, setWeather] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
@@ -32,16 +30,14 @@ const Home = () => {
     const fetchData = async () => {
       try {
         // Fetch data in parallel for better performance
-        const [gardensRes, tasksRes, weatherRes, postsRes] = await Promise.all([
+        const [gardensRes, tasksRes, postsRes] = await Promise.all([
           api.getGardens(),
           api.getTasks(),
-          api.getWeather(),
           api.getPosts()
         ]);
 
         setGardens(gardensRes.data);
         setTasks(tasksRes.data);
-        setWeather(weatherRes.data);
         setPosts(postsRes.data);
         setLoading(false);
       } catch (error) {
@@ -139,11 +135,6 @@ const Home = () => {
                 </Button>
               </Box>
             </Box>
-          </Grid>
-
-          {/* Weather Widget Component */}
-          <Grid size={{ xs: 12, md: 6 }}>
-            <WeatherWidget weatherData={weather} />
           </Grid>
 
           {/* Tasks List Component */}

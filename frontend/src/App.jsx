@@ -6,6 +6,7 @@ import './App.css';
 
 // Components
 import Navbar from './components/Navbar';
+import WeatherWidget from './components/WeatherWidget';
 
 // Pages
 import Home from './pages/home/Home';
@@ -130,6 +131,7 @@ function App() {
         <Router>
           <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
             <Navbar />
+            <WeatherWidget position="topRight" />
             <Box
               component="main"
               sx={{
