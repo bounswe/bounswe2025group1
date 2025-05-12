@@ -1,7 +1,7 @@
 import { Tabs, router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -47,38 +47,42 @@ export default function TabLayout() {
           name="index"
           options={{
             title: 'Home',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+            tabBarIcon: ({ color }) => <FontAwesome name="home" size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="community"
           options={{
             title: 'Community',
-            tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size || 28} color={color} />
-        
+            tabBarIcon: ({ color }) => <FontAwesome name="users" size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
             title: 'Profile',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.crop.circle" color={color} />,
+            tabBarIcon: ({ color }) => <FontAwesome name="user" size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="gardens"
           options={{
             title: 'Gardens',
-            tabBarIcon: ({ color, size }) => <Ionicons name="leaf-outline" size={size || 28} color={color} />,
+            tabBarIcon: ({ color }) => <FontAwesome name="leaf" size={24} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="forum"
+          options={{
+            title: 'Forum',
+            tabBarIcon: ({ color }) => <FontAwesome name="comments" size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="my-tasks"
           options={{
             title: 'My Tasks',
-            tabBarIcon: ({ color }) => (
-              <Ionicons name="clipboard-outline" size={24} color={color} />
-            ),
+            tabBarIcon: ({ color }) => <FontAwesome name="tasks" size={24} color={color} />,
           }}
         />
       </Tabs>
