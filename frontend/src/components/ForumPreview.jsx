@@ -14,6 +14,7 @@ import {
 import ForumIcon from '@mui/icons-material/Forum';
 import ChatIcon from '@mui/icons-material/Chat';
 import { useNavigate } from 'react-router-dom';
+import React from 'react';
 
 const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
                 >
                   <ListItemAvatar>
                     <Avatar sx={{ bgcolor: '#558b2f' }}>
-                      {post.author.charAt(0)}
+                      {post.author}
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText
@@ -57,7 +58,7 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
                           <Typography variant="caption" color="text.secondary">
-                            {post.author} • {formatDate(post.date)}
+                            {post.author} • {formatDate(post.created_at)}
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
                             <ChatIcon sx={{ fontSize: 14, mr: 0.5 }} />
