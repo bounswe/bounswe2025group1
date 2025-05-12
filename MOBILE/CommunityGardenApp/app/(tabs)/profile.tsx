@@ -100,6 +100,23 @@ export default function ProfileScreen() {
       </View>
     );
   }
+  const renderGarden = ({ item }: { item: any }) => (
+    <View style={styles.gardenCard}>
+      <View style={styles.row}>
+        <Text style={styles.gardenName}>{item.name}</Text>
+        <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: '/garden/[id]',
+              params: { id: item.id.toString() },
+            })
+          }
+        >
+          <Text style={styles.detailButtonText}>Go to Detail</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -130,12 +147,7 @@ export default function ProfileScreen() {
             <FlatList
               data={gardens}
               keyExtractor={(item, index) => item?.id?.toString() || `fallback-${index}`}
-              renderItem={({ item }) => (
-                <View style={styles.gardenCard}>
-                  <Text style={styles.gardenName}>{item.name}</Text>
-                  <Text style={styles.gardenDesc}>{item.description}</Text>
-                </View>
-              )}
+              renderItem={renderGarden} // <-- use your extracted function here
               ListEmptyComponent={<Text style={styles.emptyText}>No gardens yet.</Text>}
             />
           </View>
@@ -209,4 +221,6 @@ const styles = StyleSheet.create({
   followerCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 10, padding: 12, marginBottom: 10, elevation: 1 },
   followerName: { marginLeft: 10, fontSize: 15, color: COLORS.primaryDark },
   emptyText: { color: COLORS.text, fontSize: 14, textAlign: 'center', marginVertical: 8 },
+  detailButtonText: {fontSize: 16,color: COLORS.primary,fontWeight: '600',},
+  row: {flexDirection: 'row',justifyContent: 'space-between',alignItems: 'center',},
 });
