@@ -4,13 +4,28 @@ import { API_URL, COLORS } from '@/constants/Config';
 import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
+
+interface ForumPost {
+  id: number;
+  title: string;
+  content: string;
+  author: string;
+  created_at: string;
+}
+
+interface ForumComment {
+  id: number;
+  content: string;
+  author: string;
+  created_at: string;
+}
 
 export default function ForumPostScreen() {
   const { id } = useLocalSearchParams();
   const { token } = useAuth();
-  const [post, setPost] = useState(null);
-  const [comments, setComments] = useState([]);
+  const [post, setPost] = useState<ForumPost | null>(null);
+  const [comments, setComments] = useState<ForumComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
   const router = useRouter();
@@ -56,7 +71,7 @@ export default function ForumPostScreen() {
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
@@ -70,34 +85,45 @@ export default function ForumPostScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>{post.title}</Text>
-      <Text style={styles.author}>By {post.author} • {formatDate(post.created_at)}</Text>
-      <Text style={styles.content}>{post.content}</Text>
-      <Text style={styles.commentsHeader}>Comments</Text>
-      <FlatList
-        data={comments}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.commentCard}>
-            <Text style={styles.commentAuthor}>{item.author} • {formatDate(item.created_at)}</Text>
-            <Text style={styles.commentContent}>{item.content}</Text>
-          </View>
-        )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No comments yet.</Text>}
+    <>
+      <Stack.Screen
+        options={{
+          title: post?.title || 'Forum Post',
+          headerBackTitle: 'Back',
+          headerStyle: { backgroundColor: COLORS.primary },
+          headerTintColor: COLORS.white,
+          headerTitleStyle: { fontWeight: 'bold' },
+        }}
       />
-      <View style={styles.commentInputContainer}>
-        <TextInput
-          style={styles.commentInput}
-          placeholder="Add a comment..."
-          value={commentText}
-          onChangeText={setCommentText}
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.header}>{post?.title}</Text>
+        <Text style={styles.author}>By {post?.author} • {post ? formatDate(post.created_at) : ''}</Text>
+        <Text style={styles.content}>{post?.content}</Text>
+        <Text style={styles.commentsHeader}>Comments</Text>
+        <FlatList
+          data={comments}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.commentCard}>
+              <Text style={styles.commentAuthor}>{item.author} • {formatDate(item.created_at)}</Text>
+              <Text style={styles.commentContent}>{item.content}</Text>
+            </View>
+          )}
+          ListEmptyComponent={<Text style={styles.emptyText}>No comments yet.</Text>}
         />
-        <TouchableOpacity style={styles.commentButton} onPress={handleAddComment}>
-          <Text style={styles.commentButtonText}>Post</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+        <View style={styles.commentInputContainer}>
+          <TextInput
+            style={styles.commentInput}
+            placeholder="Add a comment..."
+            value={commentText}
+            onChangeText={setCommentText}
+          />
+          <TouchableOpacity style={styles.commentButton} onPress={handleAddComment}>
+            <Text style={styles.commentButtonText}>Post</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </>
   );
 }
 
