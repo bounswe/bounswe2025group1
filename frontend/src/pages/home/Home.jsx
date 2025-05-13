@@ -98,21 +98,16 @@ const Home = () => {
               overflowX: 'auto'
             }}
           >
-            <Typography variant="h6" gutterBottom>
-              Gardens
-            </Typography>
-            <Grid container spacing={2}>
+            <Box display="flex" justifyContent="center" gap={2}>
               {gardens.slice(0, 2).map((garden) => (
-                <Grid item xs={12} key={garden.id}>
-                  <Box sx={{ height: '100%', width: '100%' }} display="flex" justifyContent="center" ml={10} mr={10}>
-                    <GardenCard
-                      garden={{ ...garden, image: `/gardens/garden${garden.id % 5}.png` }}
-                      variant="compact"
-                    />
-                  </Box>
-                </Grid>
+                <Box key={garden.id} width="300px">
+                  <GardenCard
+                    garden={{ ...garden, image: `/gardens/garden${garden.id % 5}.png` }}
+                    variant="compact"
+                  />
+                </Box>
               ))}
-            </Grid>
+            </Box>
           </Paper>
         </Box>
 
