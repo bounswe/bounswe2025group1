@@ -52,7 +52,7 @@ const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true,
               </ListItemIcon>
               <ListItemText 
                 primary={task.title} 
-                secondary={`Due: ${task.deadline} • ${task.assignee || 'Unassigned'}`}
+                secondary={`Due: ${task.deadline}`}
               />
             </ListItem>
           ))}
