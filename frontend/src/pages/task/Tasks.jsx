@@ -27,8 +27,6 @@ const Tasks = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('Auth token is:', token);
-
     const fetchAll = async () => {
       try {
         const [gRes, wRes, pRes] = await Promise.all([
