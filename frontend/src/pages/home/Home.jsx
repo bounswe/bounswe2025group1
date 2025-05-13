@@ -19,30 +19,43 @@ import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
 import ForumPreview from '../../components/ForumPreview';
 
+const widgetHeight = 300; // Fixed height for the home page widgets
+
 const Home = () => {
   const [gardens, setGardens] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [weather, setWeather] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { currentUser } = useAuth();
+  const { currentUser, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch data in parallel for better performance
-        const [gardensRes, tasksRes, weatherRes, postsRes] = await Promise.all([
+        const [gardensRes, tasksRes, weatherRes] = await Promise.all([
           api.getGardens(),
           api.getTasks(),
-          api.getWeather(),
-          api.getPosts()
+          api.getWeather()
         ]);
+
+        // Fetch forum posts directly from API endpoint
+        const postsResponse = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, {
+          headers: {
+            'Authorization': token ? `Token ${token}` : undefined
+          }
+        });
+        
+        let postsData = [];
+        if (postsResponse.ok) {
+          postsData = await postsResponse.json();
+        }
 
         setGardens(gardensRes.data);
         setTasks(tasksRes.data);
         setWeather(weatherRes.data);
-        setPosts(postsRes.data);
+        setPosts(postsData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -51,7 +64,7 @@ const Home = () => {
     };
 
     fetchData();
-  }, []);
+  }, [token]);
 
   // Get pending tasks
   const pendingTasks = tasks.filter(task => task.status === 'Pending');
@@ -143,17 +156,17 @@ const Home = () => {
 
           {/* Weather Widget Component */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <WeatherWidget weatherData={weather} />
+            <WeatherWidget weatherData={weather} widgetHeight={widgetHeight} />
           </Grid>
 
           {/* Tasks List Component */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <TasksList tasks={pendingTasks} title="Pending Tasks" limit={5} />
+            <TasksList tasks={pendingTasks} title="Pending Tasks" limit={5} widgetHeight={widgetHeight} />
           </Grid>
 
           {/* Forum Preview Component */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <ForumPreview posts={posts} limit={2} />
+            <ForumPreview posts={posts} limit={2} widgetHeight={widgetHeight} />
           </Grid>
         </Grid>
       </Container>
