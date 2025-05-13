@@ -16,7 +16,7 @@ import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
 
 const Tasks = () => {
-  const { currentUser, token } = useAuth();
+  const { _, token } = useAuth();
   const navigate = useNavigate();
 
   const [tasks, setTasks] = useState([]);

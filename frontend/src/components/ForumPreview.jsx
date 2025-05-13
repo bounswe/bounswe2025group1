@@ -21,7 +21,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   const navigate = useNavigate();
-  const { currentUser, token } = useAuth();
+  const { _, token } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const displayPosts = posts.slice(0, limit);

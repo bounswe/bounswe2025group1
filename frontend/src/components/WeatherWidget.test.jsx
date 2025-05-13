@@ -81,7 +81,7 @@ describe('WeatherWidget Component', () => {
   });
 
   it('renders initial prompt state correctly', () => {
-    render(<WeatherWidget widgetHeight={300} />);
+    render(<WeatherWidget />);
     
     // Check for the share location button
     expect(screen.getByRole('button', { name: /share location/i })).toBeInTheDocument();
@@ -101,7 +101,7 @@ describe('WeatherWidget Component', () => {
 
     mockPermission.state = 'granted';
 
-    render(<WeatherWidget widgetHeight={300} />);
+    render(<WeatherWidget />);
     
     // Should show loading immediately
     await waitFor(() => {
@@ -114,7 +114,7 @@ describe('WeatherWidget Component', () => {
     // Simulate denied permission
     mockPermission.state = 'denied';
     
-    render(<WeatherWidget widgetHeight={300} />);
+    render(<WeatherWidget />);
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -128,7 +128,7 @@ describe('WeatherWidget Component', () => {
     mockPermission.state = 'granted';
     fetch.mockRejectedValueOnce(new Error('Network error'));
     
-    render(<WeatherWidget widgetHeight={300} />);
+    render(<WeatherWidget />);
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -145,7 +145,7 @@ describe('WeatherWidget Component', () => {
       statusText: 'Server Error'
     });
     
-    render(<WeatherWidget widgetHeight={300} />);
+    render(<WeatherWidget />);
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -165,7 +165,7 @@ describe('WeatherWidget Component', () => {
     // Mock permission as prompt to ensure we trigger the location request
     mockPermission.state = 'prompt';
     
-    render(<WeatherWidget widgetHeight={300} />);
+    render(<WeatherWidget />);
     
     // Click on share location button
     fireEvent.click(screen.getByRole('button', { name: /share location/i }));
@@ -181,7 +181,7 @@ describe('WeatherWidget Component', () => {
     // Setup successful permission and response
     mockPermission.state = 'granted';
     
-    render(<WeatherWidget widgetHeight={300} />);
+    render(<WeatherWidget />);
 
     // Wait for data to load and display
     await waitFor(() => {
@@ -226,7 +226,7 @@ describe('WeatherWidget Component', () => {
       });
     });
     
-    render(<WeatherWidget widgetHeight={300} />);
+    render(<WeatherWidget />);
     
     // Get and click the share location button
     const shareLocationBtn = screen.getByRole('button', { name: /share location/i });
@@ -245,7 +245,7 @@ describe('WeatherWidget Component', () => {
   it('tries to request weather data when location permission is granted', async () => {
     mockPermission.state = 'granted';
     
-    render(<WeatherWidget widgetHeight={300} />);
+    render(<WeatherWidget />);
     
     // Verify fetch was called with correct URL pattern
     await waitFor(() => {
@@ -258,7 +258,7 @@ describe('WeatherWidget Component', () => {
   it('shows proper weather details including temperature, humidity and wind', async () => {
     mockPermission.state = 'granted';
     
-    render(<WeatherWidget widgetHeight={300} />);
+    render(<WeatherWidget />);
     
     await waitFor(() => {
       expect(screen.getByText(/feels like: 23°C \| humidity: 65% \| wind: 12 km\/h/i)).toBeInTheDocument();
@@ -286,7 +286,7 @@ describe('WeatherWidget Component', () => {
     
     mockPermission.state = 'granted';
     
-    render(<WeatherWidget widgetHeight={300} />);
+    render(<WeatherWidget />);
     
     await waitFor(() => {
       expect(screen.getByText(/thunderstorm/i)).toBeInTheDocument();

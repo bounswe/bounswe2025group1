@@ -35,7 +35,6 @@ const TaskModal = ({
   onSubmit,
   onDelete,
   mode = 'create',
-  customTaskTypes = [],
   initialData = {}
 }) => {
   const [taskForm, setTaskForm] = useState({

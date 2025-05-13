@@ -41,7 +41,7 @@ const renderPage = () => render(
 
 describe('GardenList', () => {
   it('renders loading state', async () => {
-    global.fetch = vi.fn(() =>
+    window.fetch = vi.fn(() =>
       new Promise(resolve => setTimeout(() => resolve({
         ok: true,
         json: () => Promise.resolve([])
@@ -52,7 +52,7 @@ describe('GardenList', () => {
   });
 
   it('shows gardens and allows navigation', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    window.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve([
         { id: 1, name: 'My Garden', description: 'A lovely garden', location: 'Testland', members: 2, tasks: 3 }
@@ -68,7 +68,7 @@ describe('GardenList', () => {
   });
 
   it('opens modal on FAB click', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    window.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve([])
     });

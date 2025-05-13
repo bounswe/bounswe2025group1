@@ -33,7 +33,7 @@ const mockGardens = [
 
 describe('GardensPreview component', () => {
   beforeEach(() => {
-    global.fetch = vi.fn();
+    window.fetch = vi.fn();
     useAuth.mockReturnValue({
       token: 'mock-token',
       currentUser: { id: 1, username: 'testuser' }
@@ -41,7 +41,7 @@ describe('GardensPreview component', () => {
   });
 
   it('renders loading state initially', () => {
-    global.fetch.mockResolvedValueOnce({
+    window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ([])
     });
@@ -51,7 +51,7 @@ describe('GardensPreview component', () => {
   });
 
   it('renders gardens when data is loaded', async () => {
-    global.fetch.mockResolvedValueOnce({
+    window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockGardens
     });
@@ -66,7 +66,7 @@ describe('GardensPreview component', () => {
   });
 
   it('respects the limit prop', async () => {
-    global.fetch.mockResolvedValueOnce({
+    window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [...mockGardens, {
         id: 3,
@@ -88,7 +88,7 @@ describe('GardensPreview component', () => {
   });
 
   it('displays message when no gardens are available', async () => {
-    global.fetch.mockResolvedValueOnce({
+    window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => []
     });
@@ -106,7 +106,7 @@ describe('GardensPreview component', () => {
       currentUser: null
     });
 
-    global.fetch.mockResolvedValueOnce({
+    window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockGardens
     });
@@ -119,7 +119,7 @@ describe('GardensPreview component', () => {
   });
 
   it('handles error state gracefully', async () => {
-    global.fetch.mockRejectedValueOnce(new Error('Failed to fetch'));
+    window.fetch.mockRejectedValueOnce(new Error('Failed to fetch'));
     console.error = vi.fn(); // Silence console errors in test
 
     render(<GardensPreview />);

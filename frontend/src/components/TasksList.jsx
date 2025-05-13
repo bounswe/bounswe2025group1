@@ -11,10 +11,8 @@ import {
   Chip
 } from '@mui/material';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import { useNavigate } from 'react-router-dom';
 
-const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true }) => {
-  const navigate = useNavigate();
+const TasksList = ({ tasks = [], title = "Tasks", limit = 5}) => {
 
   // Filter tasks by status if needed
   const filteredTasks = tasks.slice(0, limit);
@@ -36,7 +34,7 @@ const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true 
       </Typography>
 
       {filteredTasks.length > 0 ? (
-        <List sx={{maxHeight: widgetHeight - 130, overflow: 'auto', flexGrow: 1}} dense>
+        <List sx={{overflow: 'auto', flexGrow: 1}} dense>
           {filteredTasks.map((task) => (
             <ListItem key={task.id} sx={{
               mb: 1,

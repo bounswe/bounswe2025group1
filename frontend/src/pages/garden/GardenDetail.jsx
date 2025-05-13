@@ -226,12 +226,6 @@ const GardenDetail = () => {
     setActiveTab(newValue);
   };
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setTaskForm(prev => ({ ...prev, [name]: value }));
-  };
-
-
   const handleEditChange = (e) => {
     const { name, value } = e.target;
     setEditForm((prev) => ({ ...prev, [name]: value }));
@@ -428,11 +422,6 @@ const GardenDetail = () => {
       </Container>
     );
   }
-
-  // Group tasks by status for display
-  const pendingTasks = tasks.filter(task => task.status === 'PENDING');
-  const inProgressTasks = tasks.filter(task => task.status === 'IN_PROGRESS');
-  const completedTasks = tasks.filter(task => task.status === 'COMPLETED');
 
   const handleTaskSubmit = async (formData) => {
 

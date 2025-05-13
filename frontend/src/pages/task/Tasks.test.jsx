@@ -5,7 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import Tasks from './Tasks';
 import AuthContext from '../../contexts/AuthContextUtils';
 
-global.fetch = vi.fn();
+window.fetch = vi.fn();
 
 const mockContext = {
   currentUser: { id: 1, username: 'testuser' },

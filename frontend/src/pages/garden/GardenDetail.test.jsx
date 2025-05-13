@@ -21,7 +21,7 @@ vi.mock('../../contexts/AuthContextUtils', () => ({
   useAuth: vi.fn(),
 }));
 
-global.fetch = vi.fn();
+window.fetch = vi.fn();
 
 const mockGarden = {
   id: 1,
