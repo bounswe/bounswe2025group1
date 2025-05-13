@@ -192,13 +192,20 @@ const GardenList = () => {
             />
           </Grid>
           <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {/* These would be functional filters in a complete implementation */}
-              <Chip label="All" color="primary" variant="outlined" onClick={() => { }} />
-              <Chip label="Nearby" variant="outlined" onClick={() => { }} />
-              <Chip label="Most Popular" variant="outlined" onClick={() => { }} />
-              <Chip label="Recently Added" variant="outlined" onClick={() => { }} />
-            </Box>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleOpenModal}
+              sx={{
+                backgroundColor: '#558b2f',
+                '&:hover': { backgroundColor: '#33691e' },
+                ml: 2,
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Add Garden
+            </Button>
           </Grid>
         </Grid>
       </Paper>

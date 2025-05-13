@@ -33,6 +33,7 @@ const GardensPreview = ({ limit = 2 }) => {
         }
 
         const data = await response.json();
+        console.log(data)
         setGardens(data);
         setLoading(false);
       } catch (error) {
@@ -86,8 +87,7 @@ const GardensPreview = ({ limit = 2 }) => {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        overflowX: 'auto',
-        ...sx
+        overflowX: 'auto'
       }}
     >
       <Typography variant="h6" gutterBottom>
