@@ -10,10 +10,10 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
-import GardenCard from '../../components/GardenCard';
 import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
 import ForumPreview from '../../components/ForumPreview';
+import GardensPreview from '../../components/GardensPreview';
 
 const Home = () => {
   const { currentUser } = useAuth();
@@ -50,30 +50,10 @@ const Home = () => {
             </Typography>
             <WeatherWidget />
           </Paper>
-          <Paper
-            elevation={1}
-            sx={{
-              p: 2,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflowX: 'auto'
-            }}
-          >
-            <Box display="flex" justifyContent="center" gap={2}>
-              {gardens.slice(0, 2).map((garden) => (
-                <Box key={garden.id} width="300px">
-                  <GardenCard
-                    garden={{ ...garden, image: `/gardens/garden${garden.id % 5}.png` }}
-                    variant="compact"
-                  />
-                </Box>
-              ))}
-            </Box>
-          </Paper>
+          <GardensPreview limit={2} />
         </Box>
 
-        <ForumPreview posts={posts} limit={2} sx={{ mt: 20 }} />
+        <ForumPreview limit={2} />
 
         {!currentUser && (
           <Paper elevation={1} sx={{ mt: 6, p: 4 }}>
