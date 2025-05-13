@@ -34,10 +34,7 @@ const Tasks = () => {
         });
         const taskData = await tRes.json();
 
-        setGardens(gRes.data || []);
         setTasks(taskData || []);
-        setWeather(wRes.data || null);
-        setPosts(pRes.data || []);
       } catch (e) {
         console.error('Failed to load data:', e);
       } finally {
@@ -81,32 +78,12 @@ const Tasks = () => {
           gap={2}
           sx={{ height: 300 }}
         >
-          <Paper elevation={1} sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h6" gutterBottom>
-              Weather Update
-            </Typography>
-            <WeatherWidget />
-          </Paper>
-          <Paper
-            elevation={1}
-            sx={{
-              p: 2,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
-          >
-            <Typography variant="h6" gutterBottom>
-              Pending Tasks
-            </Typography>
-            <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
-              <TasksList
-                tasks={pendingTasks}
-                title=""
-                limit={4}
-              />
-            </Box>
-          </Paper>
+          <WeatherWidget />
+          <TasksList
+            tasks={pendingTasks}
+            title="Pending Tasks"
+            limit={4}
+          />
         </Box>
         <Box mt={20}>
           <Typography variant="h4" sx={{ mt: 1, mb: 2, color: '#558b2f' }}>
