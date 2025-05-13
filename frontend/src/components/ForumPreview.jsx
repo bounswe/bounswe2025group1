@@ -15,33 +15,73 @@ import ForumIcon from '@mui/icons-material/Forum';
 import ChatIcon from '@mui/icons-material/Chat';
 import { useNavigate } from 'react-router-dom';
 import React from 'react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../contexts/AuthContextUtils';
+import CircularProgress from '@mui/material/CircularProgress';
 
-const ForumPreview = ({ posts = [], limit = 3, showViewAll = true, widgetHeight }) => {
+const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   const navigate = useNavigate();
+  const { currentUser, token } = useAuth();
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const displayPosts = posts.slice(0, limit);
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Unknown date';
-
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'Invalid date';
-
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric'
+    }).format(date);
   };
 
+  
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, {
+          headers: {
+            'Authorization': `Token ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch posts');
+        }
+        
+        const data = await response.json();
+        setPosts(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching forum posts:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [token]);
+
+  if (loading) {
+    return (
+          <Paper elevation={2} sx={{ p: 3, mb: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress color="success" size={40} />
+            <Typography variant="body2" sx={{ mt: 2 }}>Loading forum data...</Typography>
+          </Paper>
+        );
+  }
+
   return (
-    <Paper elevation={2} sx={{ p: 3, height: widgetHeight, display: 'flex', flexDirection: 'column' }}>
+    <Paper elevation={2} sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
         <ForumIcon sx={{ mr: 1 }} /> Community Forum
       </Typography>
-
+      
       {displayPosts.length > 0 ? (
         <>
-          <List sx={{ py: 0, overflow: 'auto', maxHeight: widgetHeight - 130, flexGrow: 1 }} dense>
+          <List sx={{ py: 0 }}>
             {displayPosts.map((post) => (
               <Box key={post.id}>
-                <ListItem
-                  alignItems="flex-start"
+                <ListItem 
+                  alignItems="flex-start" 
                   sx={{ px: 0, cursor: 'pointer' }}
                   onClick={() => navigate(`/forum/${post.id}`)}
                 >
@@ -75,13 +115,12 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true, widgetHeight 
             ))}
           </List>
           {showViewAll && (
-            <Box sx={{ mt: 'auto', pt: 2, display: 'flex', justifyContent: 'center' }}>
-              <Button
-                variant="outlined"
-                color="primary"
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+              <Button 
+                variant="outlined" 
+                color="primary" 
                 onClick={() => navigate('/forum')}
                 sx={{ color: '#2e7d32', borderColor: '#2e7d32' }}
-                fullWidth
               >
                 Explore Forum
               </Button>
@@ -90,20 +129,17 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true, widgetHeight 
         </>
       ) : (
         <>
-          <Typography variant="body2" paragraph sx={{ flexGrow: 1 }}>
+          <Typography variant="body2" paragraph>
             Join discussions, share gardening tips, and connect with fellow garden enthusiasts.
           </Typography>
-          <Box sx={{ mt: 'auto' }}>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => navigate('/forum')}
-              sx={{ color: '#2e7d32', borderColor: '#2e7d32' }}
-              fullWidth
-            >
-              Explore Forum
-            </Button>
-          </Box>
+          <Button 
+            variant="outlined" 
+            color="primary" 
+            onClick={() => navigate('/forum')}
+            sx={{ color: '#2e7d32', borderColor: '#2e7d32' }}
+          >
+            Explore Forum
+          </Button>
         </>
       )}
     </Paper>
