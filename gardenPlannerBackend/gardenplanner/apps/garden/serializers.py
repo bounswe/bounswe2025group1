@@ -122,10 +122,11 @@ class GardenMembershipSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     garden_name = serializers.CharField(source='garden.name', read_only=True)
     garden = serializers.PrimaryKeyRelatedField(queryset=Garden.objects.all(), required=True)
-    
+    user_id = serializers.IntegerField(source='user.id', read_only=True)  # ✅ ADD THIS LINE
+
     class Meta:
         model = GardenMembership
-        fields = ['id', 'garden', 'username', 'garden_name', 'role', 'status', 'joined_at', 'updated_at']
+        fields = ['id','user_id', 'garden', 'username', 'garden_name', 'role', 'status', 'joined_at', 'updated_at']
         read_only_fields = ['id', 'joined_at', 'updated_at']
         
     def validate(self, data):
@@ -151,11 +152,25 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['id', 'garden', 'garden_name', 'title', 'description', 
-                 'custom_type', 'custom_type_name', 
+                 'task_type', 'custom_type', 'custom_type_name', 
                  'assigned_by', 'assigned_by_username', 
                  'assigned_to', 'assigned_to_username', 
                  'status', 'due_date', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate(self, data):
+        task_type = data.get('task_type')
+        custom_type = data.get('custom_type')
+        
+        # If task_type is CUSTOM, custom_type should be provided
+        if task_type == 'CUSTOM' and not custom_type:
+            raise serializers.ValidationError({"custom_type": "Custom type is required when task type is CUSTOM"})
+        
+        # If task_type is not CUSTOM, custom_type should be None
+        if task_type in ['HARVEST', 'MAINTENANCE'] and custom_type:
+            data['custom_type'] = None
+        
+        return data
 
 class ForumPostSerializer(serializers.ModelSerializer):
     author_username = serializers.ReadOnlyField(source='author.username')

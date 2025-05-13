@@ -11,7 +11,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import api from '../../utils/api';
-
 import GardenCard from '../../components/GardenCard';
 import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';

@@ -6,7 +6,6 @@ import './App.css';
 
 // Components
 import Navbar from './components/Navbar';
-
 // Pages
 import Home from './pages/home/Home';
 import Login from './pages/auth/Login';
@@ -14,6 +13,7 @@ import Register from './pages/auth/Register';
 import GardenList from './pages/garden/GardenList';
 import GardenDetail from './pages/garden/GardenDetail';
 import ForumList from './pages/forum/ForumList';
+import ForumPost from './pages/forum/ForumPost';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Profile from './pages/profile/Profile';
@@ -153,6 +153,7 @@ function App() {
                 <Route path="/gardens/:gardenId" element={<GardenDetail />} />
                 <Route path='/tasks' element={<Tasks />} />
                 <Route path="/forum" element={<ForumList />} />
+                <Route path="/forum/:postId" element={<ForumPost />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
                 <Route path="/profile" element={<Profile />} />

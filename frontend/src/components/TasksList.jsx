@@ -13,14 +13,14 @@ import {
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { useNavigate } from 'react-router-dom';
 
-const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true }) => {
+const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true, widgetHeight }) => {
   const navigate = useNavigate();
 
   // Filter tasks by status if needed
   const filteredTasks = tasks.slice(0, limit);
 
   return (
-    <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+    <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <TaskAltIcon sx={{ mr: 1 }} /> {title}
@@ -34,9 +34,9 @@ const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true 
           />
         )}
       </Typography>
-      
+
       {filteredTasks.length > 0 ? (
-        <List dense>
+        <List sx={{maxHeight: widgetHeight - 130, overflow: 'auto', flexGrow: 1}} dense>
           {filteredTasks.map((task) => (
             <ListItem key={task.id} sx={{
               mb: 1,
@@ -58,7 +58,7 @@ const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true 
           ))}
         </List>
       ) : (
-        <Box sx={{ py: 2, textAlign: 'center' }}>
+        <Box sx={{ py: 2, textAlign: 'center', flexGrow: 1 }}>
           <Typography variant="body2" color="text.secondary">
             No tasks available.
           </Typography>
