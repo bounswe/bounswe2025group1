@@ -6,10 +6,19 @@ import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
+// Add ForumPost type
+interface ForumPost {
+  id: number;
+  title: string;
+  content: string;
+  author: string;
+  created_at: string;
+}
+
 export default function ForumListScreen() {
   const { token } = useAuth();
-  const [posts, setPosts] = useState([]);
-  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [posts, setPosts] = useState<ForumPost[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<ForumPost[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -32,13 +41,13 @@ export default function ForumListScreen() {
     fetchPosts();
   }, [token]);
 
-  const handleSearch = (text) => {
+  const handleSearch = (text: string) => {
     setSearchTerm(text);
     if (text === '') {
       setFilteredPosts(posts);
       return;
     }
-    const filtered = posts.filter(post => 
+    const filtered = posts.filter((post: ForumPost) => 
       post.title.toLowerCase().includes(text.toLowerCase()) || 
       post.content.toLowerCase().includes(text.toLowerCase()) || 
       (post.author && post.author.toString().toLowerCase().includes(text.toLowerCase()))
@@ -46,7 +55,7 @@ export default function ForumListScreen() {
     setFilteredPosts(filtered);
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
@@ -61,6 +70,12 @@ export default function ForumListScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <TouchableOpacity
+        style={styles.communityButton}
+        onPress={() => router.push({ pathname: '/community' })}
+      >
+        <Text style={styles.communityButtonText}>Go to Community</Text>
+      </TouchableOpacity>
       <Text style={styles.header}>Community Forum</Text>
       <TextInput
         style={styles.searchInput}
@@ -95,7 +110,20 @@ export default function ForumListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, flex: 1, backgroundColor: COLORS.background },
+  container: { padding: 8, flex: 1, backgroundColor: COLORS.background },
+  communityButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    marginBottom: 10,
+  },
+  communityButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
   header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
   searchInput: { height: 40, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, paddingHorizontal: 8, marginBottom: 16 },
   card: { backgroundColor: '#f0f4f8', padding: 12, borderRadius: 8, marginBottom: 12 },
