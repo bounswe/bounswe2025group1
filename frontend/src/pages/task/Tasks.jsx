@@ -11,7 +11,6 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
-import api from '../../utils/api';
 import CalendarTab from '../../components/CalendarTab';
 import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
@@ -20,21 +19,12 @@ const Tasks = () => {
   const { currentUser, token } = useAuth();
   const navigate = useNavigate();
 
-  const [gardens, setGardens] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [weather, setWeather] = useState(null);
-  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [gRes, wRes, pRes] = await Promise.all([
-          api.getGardens(),
-          api.getWeather(),
-          api.getPosts(),
-        ]);
-
         const tRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/`, {
           method: 'GET',
           headers: {
@@ -95,7 +85,7 @@ const Tasks = () => {
             <Typography variant="h6" gutterBottom>
               Weather Update
             </Typography>
-            <WeatherWidget weatherData={weather} />
+            <WeatherWidget />
           </Paper>
           <Paper
             elevation={1}

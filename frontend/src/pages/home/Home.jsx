@@ -10,52 +10,14 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
-import api from '../../utils/api';
 import GardenCard from '../../components/GardenCard';
 import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
 import ForumPreview from '../../components/ForumPreview';
 
 const Home = () => {
-  const [gardens, setGardens] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [weather, setWeather] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [gardensRes, tasksRes, weatherRes, postsRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL}/gardens/`).then(res => res.json()),
-          api.getTasks(),
-          api.getWeather(),
-          api.getPosts()
-        ]);
-
-        setGardens(gardensRes || []);
-        setTasks(tasksRes.data || []);
-        setWeather(weatherRes.data || null);
-        setPosts(postsRes.data || []);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress color="success" />
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
@@ -86,7 +48,7 @@ const Home = () => {
             <Typography variant="h6" gutterBottom>
               Weather Update
             </Typography>
-            <WeatherWidget weatherData={weather} />
+            <WeatherWidget />
           </Paper>
           <Paper
             elevation={1}

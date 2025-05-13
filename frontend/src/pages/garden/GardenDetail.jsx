@@ -37,7 +37,6 @@ import TaskModal from '../../components/TaskModal';
 import CalendarTab from '../../components/CalendarTab';
 import GardenModal from '../../components/GardenModal';
 import TaskBoard from '../../components/TaskBoard';
-import api from '../../utils/api';
 
 const GardenDetail = () => {
   const [garden, setGarden] = useState(null);
@@ -163,17 +162,23 @@ const GardenDetail = () => {
             'Content-Type': 'application/json',
             Authorization: `Token ${token}`
           }
-        });
-        const tasksData = await tasksRes.json();
+        });        const tasksData = await tasksRes.json();
         setTasks(tasksData);
 
-        // Fetch garden members using our API function
-        const membersData = await api.getGardenMembers(gardenId);
-        setMembers(membersData.data || []);
+        // Fetch garden members
+        const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/?garden=${gardenId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`
+          }
+        });
+        const membersData = await membersRes.json();
+        setMembers(membersData || []);
 
         // Check if current user is a member and their role
         if (currentUser) {
-          const userMember = membersData.data?.find(m => m.user && m.user.id === currentUser.id);
+          const userMember = membersData?.find(m => m.user && m.user.id === currentUser.id);
           setIsMember(!!userMember);
           setIsManager(userMember?.role === 'MANAGER');
           setUserMembership(userMember);
@@ -235,20 +240,39 @@ const GardenDetail = () => {
   const handleToggleEditPublic = () => {
     setEditForm((prev) => ({ ...prev, isPublic: !prev.isPublic }));
   };
-
   const handleJoinGarden = async () => {
     try {
       // Creates a membership request for the current user to join the garden
-      await api.joinGarden(parseInt(gardenId));
+      const joinRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`
+        },
+        body: JSON.stringify({
+          garden: parseInt(gardenId)
+        })
+      });
+      
+      if (!joinRes.ok) {
+        throw new Error('Failed to join garden');
+      }
       
       toast.success('Request to join garden sent!');
       
       // Refresh members list
-      const membersData = await api.getGardenMembers(gardenId);
-      setMembers(membersData.data || []);
+      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/?garden=${gardenId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`
+        }
+      });
+      const membersData = await membersRes.json();
+      setMembers(membersData || []);
       
       // Update user membership status
-      const userMember = membersData.data?.find(m => m.user && m.user.id === currentUser.id);
+      const userMember = membersData?.find(m => m.user && m.user.id === currentUser.id);
       setIsMember(!!userMember);
       setUserMembership(userMember);
     } catch (err) {
@@ -256,13 +280,22 @@ const GardenDetail = () => {
       toast.error('Failed to join garden');
     }
   };
-
   const handleLeaveGarden = async () => {
     if (!window.confirm('Are you sure you want to leave this garden?')) return;
     
     try {
       if (userMembership) {
-        await api.removeGardenMember(userMembership.id);
+        const leaveRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${userMembership.id}/`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`
+          }
+        });
+        
+        if (!leaveRes.ok) {
+          throw new Error('Failed to leave garden');
+        }
         
         toast.success('You have left the garden');
         
@@ -272,43 +305,83 @@ const GardenDetail = () => {
         setUserMembership(null);
         
         // Refresh members list
-        const membersData = await api.getGardenMembers(gardenId);
-        setMembers(membersData.data || []);
+        const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/?garden=${gardenId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`
+          }
+        });
+        const membersData = await membersRes.json();
+        setMembers(membersData || []);
       }
     } catch (err) {
       console.error('Leave garden error:', err);
       toast.error('Failed to leave garden');
     }
   };
-
   const handleRemoveMember = async (membershipId) => {
     if (!window.confirm('Are you sure you want to remove this member?')) return;
     
     try {
-      await api.removeGardenMember(membershipId);
+      const removeRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${membershipId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`
+        }
+      });
+      
+      if (!removeRes.ok) {
+        throw new Error('Failed to remove member');
+      }
       
       toast.success('Member removed from garden');
       
       // Refresh members list
-      const membersData = await api.getGardenMembers(gardenId);
-      setMembers(membersData.data || []);
+      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/?garden=${gardenId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`
+        }
+      });
+      const membersData = await membersRes.json();
+      setMembers(membersData || []);
     } catch (err) {
       console.error('Remove member error:', err);
       toast.error('Failed to remove member');
     }
   };
-
   const handleChangeMemberRole = async (membershipId, newRole) => {
     try {
-      await api.updateGardenMember(membershipId, {
-        role: newRole
+      const updateRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${membershipId}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`
+        },
+        body: JSON.stringify({
+          role: newRole
+        })
       });
+      
+      if (!updateRes.ok) {
+        throw new Error('Failed to update member role');
+      }
       
       toast.success('Member role updated');
       
       // Refresh members list
-      const membersData = await api.getGardenMembers(gardenId);
-      setMembers(membersData.data || []);
+      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/?garden=${gardenId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`
+        }
+      });
+      const membersData = await membersRes.json();
+      setMembers(membersData || []);
     } catch (err) {
       console.error('Change role error:', err);
       toast.error('Failed to update member role');
