@@ -89,7 +89,7 @@ const TaskBoard = ({ tasks, setTasks, onStatusUpdate, onTaskClick }) => {
                         >
                           <Typography variant="subtitle2">{task.title}</Typography>
                           <Typography variant="caption" color="text.secondary">
-                            Due: {task.deadline ? new Date(task.deadline).toLocaleDateString() : '—'}
+                            Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : '—'}
                           </Typography>
                           <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between' }}>
                             <Typography variant="caption">
