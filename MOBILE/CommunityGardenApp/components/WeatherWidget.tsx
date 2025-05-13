@@ -4,7 +4,7 @@ import * as Location from 'expo-location';
 import axios from 'axios';
 
 const WeatherWidget = ({ city }: { city: string }) => {
-  const [weather, setWeather] = useState(null);
+  const [weather, setWeather] = useState<any>(null);
   const [locationName, setLocationName] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -53,14 +53,21 @@ const WeatherWidget = ({ city }: { city: string }) => {
   }, [city]);
 
   if (loading) {
-    return <ActivityIndicator size="large" color="green" />;
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="green" />
+      </View>
+    );
   }
 
-  if (!weather?.current) return <Text>Weather data not available</Text>;
-
-  if (loading || !weather || !weather.current) {
-    return <ActivityIndicator size="large" color="green" />;
+  if (!weather?.current) {
+    return (
+      <View style={styles.container}>
+        <Text>Weather data not available</Text>
+      </View>
+    );
   }
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>🌤 Weather Update</Text>

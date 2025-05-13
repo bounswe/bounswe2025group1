@@ -31,24 +31,30 @@ export default function HomeScreen() {
 
   
   return (
-    <SafeAreaView style={styles.container}>
-      <WeatherWidget city={location || 'Istanbul'} />  {/* ✅ First, weather widget aligned to top-right */}
-
-      <ThemedView style={styles.welcomeContainer}>
-        <ThemedText type="title" style={styles.welcomeText}>
-          Welcome to the Garden Community App!
-        </ThemedText>
-        <ThemedText type="subtitle">
-          Connect, grow, and share with fellow gardeners 🌱
-        </ThemedText>
-      </ThemedView>
-
-      <Image
-        source={require('@/assets/images/communitygarden.png')}
-        style={styles.gardenImage}
-        resizeMode="contain"
-      />
-    </SafeAreaView>
+    
+      <SafeAreaView style={styles.container}>
+        {location ? (
+          <WeatherWidget city={location} />
+        ) : (
+          <Text style={{ marginBottom: 12 }}>Loading weather...</Text>
+        )}
+    
+        <ThemedView style={styles.welcomeContainer}>
+          <ThemedText type="title" style={styles.welcomeText}>
+            Welcome to the Garden Community App!
+          </ThemedText>
+          <ThemedText type="subtitle">
+            Connect, grow, and share with fellow gardeners 🌱
+          </ThemedText>
+        </ThemedView>
+    
+        <Image
+          source={require('@/assets/images/communitygarden.png')}
+          style={styles.gardenImage}
+          resizeMode="contain"
+        />
+      </SafeAreaView>
+    
   );
 }
 
