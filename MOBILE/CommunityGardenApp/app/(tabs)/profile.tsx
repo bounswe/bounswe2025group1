@@ -30,6 +30,8 @@ export default function ProfileScreen() {
       fetchProfile();  // always re-fetch to sync followers/following
     }, [token])
   );
+
+
   const fetchProfile = async () => {
     setLoading(true);
     try {
