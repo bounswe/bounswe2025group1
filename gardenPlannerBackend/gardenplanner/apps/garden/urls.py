@@ -37,6 +37,7 @@ urlpatterns = [
     path('profile/follow/', views.FollowView.as_view(), name='follow'),
     path('profile/followers/', views.FollowersListView.as_view(), name='followers'),
     path('profile/following/', views.FollowingListView.as_view(), name='following'),
+    path('profile/block/', views.BlockUnblockView.as_view(), name='block-unblock'),
     
     # Forum endpoints with namespace
     path('forum/', include(forum_patterns)),

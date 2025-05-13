@@ -31,6 +31,7 @@ class Profile(models.Model):
     location = models.CharField(max_length=255, blank=True, null=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='MEMBER')
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True)
+    blocked_users = models.ManyToManyField('self', symmetrical=False, related_name='blocked_by', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -49,6 +50,10 @@ class Profile(models.Model):
     def is_following(self, profile):
         """Check if this profile is following another profile"""
         return self.following.filter(pk=profile.pk).exists()
+    
+    def is_blocked(self, profile):
+        """Check if this profile has blocked another profile"""
+        return self.blocked_users.filter(pk=profile.pk).exists()
 
 
 # Signal to create/update a user's profile when the user is created/updated
