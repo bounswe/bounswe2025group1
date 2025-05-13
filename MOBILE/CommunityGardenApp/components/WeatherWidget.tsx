@@ -71,11 +71,11 @@ const WeatherWidget = ({ city }: { city: string }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>🌤 Weather Update</Text>
-      <Text style={styles.temp}>{Math.round(weather.current.temperature_2m)}°C</Text>
-      <Text>Feels like: {Math.round(weather.current.apparent_temperature)}°C</Text>
-      <Text>Humidity: {weather.current.relative_humidity_2m}%</Text>
-      <Text>Wind: {Math.round(weather.current.wind_speed_10m)} km/h</Text>
-      <Text style={styles.location}>📍 {locationName}</Text>
+      <Text style={styles.temp}>{`${Math.round(weather.current.temperature_2m)}°C`}</Text>
+      <Text>{`Feels like: ${Math.round(weather.current.apparent_temperature)}°C`}</Text>
+      <Text>{`Humidity: ${weather.current.relative_humidity_2m}%`}</Text>
+      <Text>{`Wind: ${Math.round(weather.current.wind_speed_10m)} km/h`}</Text>
+      <Text style={styles.location}>{`📍 ${locationName}`}</Text>
     </View>
   );
 };
