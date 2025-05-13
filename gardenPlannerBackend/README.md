@@ -47,3 +47,19 @@ gardenPlannerBackend/
 ## API Endpoints
 
 API endpoints will be documented here as they are developed. 
+
+## Task Types
+
+The system supports both predefined system task types and custom user-defined task types:
+
+### Predefined Task Types
+- **Harvest**: For scheduling and tracking harvest activities
+- **Maintenance**: For garden maintenance activities
+
+### Custom Task Types
+Users can create their own custom task types specific to their garden needs through the CustomTaskType model.
+
+When creating a task, specify one of the following:
+1. A predefined task type (HARVEST or MAINTENANCE)
+2. A custom task type (setting task_type to CUSTOM and providing a custom_type reference)
+

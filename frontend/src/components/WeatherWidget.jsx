@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import {
   Paper,
@@ -6,7 +7,9 @@ import {
   Divider,
   CircularProgress,
   IconButton,
-  Tooltip
+  Tooltip,
+   Button,
+  Alert
 } from '@mui/material';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -54,6 +57,54 @@ const WeatherWidget = ({ position = 'normal' }) => {
       >
         <CircularProgress color="success" size={30} />
         <Typography variant="body2" sx={{ mt: 1 }}>Loading weather data...</Typography>
+      </Paper>
+    );
+  }
+  
+  if (locationPermission === 'denied' || error) {
+    return (
+      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+          <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
+        </Typography>
+        <Alert severity="info" sx={{ mb: 2,  }}>
+          {error || 'Weather data requires location access'}
+        </Alert>
+        <Box sx={{ mt: 'auto' }}>
+          <Button 
+            variant="outlined" 
+            startIcon={<LocationOnIcon />}
+            onClick={requestLocationPermission}
+            color="primary"
+            fullWidth
+          >
+            Enable Location Access
+          </Button>
+        </Box>
+      </Paper>
+    );
+  }
+
+  if (locationPermission === 'prompt') {
+    return (
+      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 2,  }}>
+          Get local weather updates for your garden
+        </Typography>
+        <Box sx={{ mt: 'auto' }}>
+          <Button 
+            variant="outlined" 
+            startIcon={<LocationOnIcon />}
+            onClick={requestLocationPermission}
+            color="primary"
+            fullWidth
+          >
+            Share Location
+          </Button>
+        </Box>
       </Paper>
     );
   }
@@ -144,11 +195,10 @@ const WeatherWidget = ({ position = 'normal' }) => {
           <Typography variant="caption">{weather.location}</Typography>
         </Box>
       </Box>
-      
+ 
       <Typography variant="caption" sx={{ mb: 1, display: 'block' }}>
         Humidity: {weather.humidity}% | Wind: {weather.wind} m/s
-      </Typography>
-      
+      </Typography>    
       {!isTopRight && weatherData.forecast && (
         <>
           <Divider sx={{ my: 1 }} />

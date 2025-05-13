@@ -1,6 +1,7 @@
 import { Tabs, router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -50,10 +51,11 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="explore"
+          name="community"
           options={{
-            title: 'Explore',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+            title: 'Community',
+            tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size || 28} color={color} />
+        
           }}
         />
         <Tabs.Screen
@@ -63,7 +65,24 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.crop.circle" color={color} />,
           }}
         />
+        <Tabs.Screen
+          name="gardens"
+          options={{
+            title: 'Gardens',
+            tabBarIcon: ({ color, size }) => <Ionicons name="leaf-outline" size={size || 28} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="my-tasks"
+          options={{
+            title: 'My Tasks',
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="clipboard-outline" size={24} color={color} />
+            ),
+          }}
+        />
       </Tabs>
+      
     </AuthGate>
   );
 }

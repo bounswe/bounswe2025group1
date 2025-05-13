@@ -14,8 +14,9 @@ import {
 import ForumIcon from '@mui/icons-material/Forum';
 import ChatIcon from '@mui/icons-material/Chat';
 import { useNavigate } from 'react-router-dom';
+import React from 'react';
 
-const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
+const ForumPreview = ({ posts = [], limit = 3, showViewAll = true, widgetHeight }) => {
   const navigate = useNavigate();
   const displayPosts = posts.slice(0, limit);
 
@@ -28,14 +29,14 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
   };
 
   return (
-    <Paper elevation={2} sx={{ p: 3 }}>
+    <Paper elevation={2} sx={{ p: 3, height: widgetHeight, display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
         <ForumIcon sx={{ mr: 1 }} /> Community Forum
       </Typography>
       
       {displayPosts.length > 0 ? (
         <>
-          <List sx={{ py: 0 }}>
+          <List sx={{ py: 0, overflow: 'auto', maxHeight: widgetHeight - 130, flexGrow: 1 }} dense>
             {displayPosts.map((post) => (
               <Box key={post.id}>
                 <ListItem 
@@ -45,7 +46,7 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
                 >
                   <ListItemAvatar>
                     <Avatar sx={{ bgcolor: '#558b2f' }}>
-                      {post.author.charAt(0)}
+                      {post.author}
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText
@@ -57,7 +58,7 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
                           <Typography variant="caption" color="text.secondary">
-                            {post.author} • {formatDate(post.date)}
+                            {post.author} • {formatDate(post.created_at)}
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
                             <ChatIcon sx={{ fontSize: 14, mr: 0.5 }} />
@@ -73,12 +74,13 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
             ))}
           </List>
           {showViewAll && (
-            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{ mt: 'auto', pt: 2, display: 'flex', justifyContent: 'center' }}>
               <Button 
                 variant="outlined" 
                 color="primary" 
                 onClick={() => navigate('/forum')}
                 sx={{ color: '#2e7d32', borderColor: '#2e7d32' }}
+                fullWidth
               >
                 Explore Forum
               </Button>
@@ -87,17 +89,20 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
         </>
       ) : (
         <>
-          <Typography variant="body2" paragraph>
+          <Typography variant="body2" paragraph sx={{ flexGrow: 1 }}>
             Join discussions, share gardening tips, and connect with fellow garden enthusiasts.
           </Typography>
-          <Button 
-            variant="outlined" 
-            color="primary" 
-            onClick={() => navigate('/forum')}
-            sx={{ color: '#2e7d32', borderColor: '#2e7d32' }}
-          >
-            Explore Forum
-          </Button>
+          <Box sx={{ mt: 'auto' }}>
+            <Button 
+              variant="outlined" 
+              color="primary" 
+              onClick={() => navigate('/forum')}
+              sx={{ color: '#2e7d32', borderColor: '#2e7d32' }}
+              fullWidth
+            >
+              Explore Forum
+            </Button>
+          </Box>
         </>
       )}
     </Paper>
