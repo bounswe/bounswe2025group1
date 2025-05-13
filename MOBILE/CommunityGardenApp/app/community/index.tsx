@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { API_URL, COLORS } from '../../constants/Config';
+import { API_URL, COLORS } from '@/constants/Config';
 import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+
+// Add a type for community members
+interface CommunityMember {
+  user_id: number;
+  username: string;
+  status: string;
+}
+
 export default function CommunityScreen() {
   const { token, user } = useAuth();
-  const [members, setMembers] = useState([]);
+  const [members, setMembers] = useState<CommunityMember[]>([]);
   const [followingIds, setFollowingIds] = useState<number[]>([]);
   const router = useRouter();
 
@@ -32,8 +40,8 @@ export default function CommunityScreen() {
         });
 
         const acceptedGardenIds = membershipRes.data
-          .filter(m => m.status === 'ACCEPTED' && m.username === username)
-          .map(m => m.garden);
+          .filter((m: any) => m.status === 'ACCEPTED' && m.username === username)
+          .map((m: any) => m.garden);
 
         // Collect all unique users from those gardens
         const communitySet = new Map();
@@ -84,8 +92,8 @@ export default function CommunityScreen() {
       <Text style={styles.header}>Community Members</Text>
       <FlatList
         data={members}
-        keyExtractor={item => item.user_id.toString()}
-        renderItem={({ item }) => (
+        keyExtractor={(item: CommunityMember) => item.user_id.toString()}
+        renderItem={({ item }: { item: CommunityMember }) => (
             <TouchableOpacity
             style={styles.card}
             onPress={() => router.push(`/user/${item.user_id}`)}
@@ -113,7 +121,7 @@ export default function CommunityScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, flex: 1, backgroundColor: COLORS.background },
+  container: { paddingTop: -30,paddingHorizontal: 20, flex: 1, backgroundColor: COLORS.background },
   header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
   card: {
     backgroundColor: '#f0f4f8',

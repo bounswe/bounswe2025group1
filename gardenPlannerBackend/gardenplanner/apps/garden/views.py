@@ -492,6 +492,13 @@ class CommentListCreateView(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        forum_post = self.request.query_params.get('forum_post')
+        if forum_post is not None:
+            queryset = queryset.filter(forum_post_id=forum_post)
+        return queryset
+
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
