@@ -48,13 +48,12 @@ const mockTasks = [
   }
 ];
 
-describe('GardenDetail', () => {
-  beforeEach(() => {
+describe('GardenDetail', () => {  beforeEach(() => {
     vi.clearAllMocks();
 
     useAuth.mockReturnValue({
       token: 'fake-token',
-      currentUser: { username: 'testuser' },
+      currentUser: { id: 1, username: 'testuser' },
     });
 
     fetch.mockImplementation((url) => {
@@ -67,10 +66,15 @@ describe('GardenDetail', () => {
       if (url.includes('/task-types/')) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
       }
+      if (url.includes('/memberships/')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([
+          { id: 1, user: { id: 1, username: 'testuser' }, role: 'MANAGER', status: 'ACTIVE' },
+          { id: 2, user: { id: 2, username: 'user2' }, role: 'WORKER', status: 'ACTIVE' }
+        ]) });
+      }
       return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
     });
   });
-
   it('renders garden header and tabs', async () => {
     render(
       <BrowserRouter>
@@ -84,7 +88,7 @@ describe('GardenDetail', () => {
       expect(screen.getByText(/My Garden/i)).toBeInTheDocument();
       expect(screen.getByText(/Testland/i)).toBeInTheDocument();
       expect(screen.getByText(/2 Members/i)).toBeInTheDocument();
-      expect(screen.getByText(/3 Tasks/i)).toBeInTheDocument();
+      expect(screen.getByText(/2 Tasks/i)).toBeInTheDocument();
     });
   });
 

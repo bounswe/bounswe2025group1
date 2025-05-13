@@ -4,9 +4,7 @@ import {
   Container,
   Typography,
   Box,
-  Grid,
   Button,
-  Paper,
   CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +14,7 @@ import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
 
 const Tasks = () => {
-  const { _, token } = useAuth();
+  const { token } = useAuth();
   const navigate = useNavigate();
 
   const [tasks, setTasks] = useState([]);

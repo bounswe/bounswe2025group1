@@ -9,6 +9,18 @@ import { toast } from 'react-toastify';
 // Mock fetch
 window.fetch = vi.fn();
 
+// Mock ReCAPTCHA
+vi.mock('react-google-recaptcha', () => ({
+  __esModule: true,
+  default: function ReCAPTCHA(props) {
+    return (
+      <div data-testid="recaptcha-mock" onClick={() => props.onChange('test-token')}>
+        Mock ReCAPTCHA
+      </div>
+    );
+  },
+}));
+
 // Mock toastify
 vi.mock('react-toastify', async () => {
   const actual = await vi.importActual('react-toastify');
@@ -67,7 +79,6 @@ describe('Login page', () => {
     expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
   });
-
   it('calls login and shows success toast on submit', async () => {
     renderWithProviders();
     fireEvent.change(screen.getByLabelText(/username/i), {
@@ -76,13 +87,19 @@ describe('Login page', () => {
     fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: 'securepass' }
     });
+    
+    // Complete reCAPTCHA first
+    const recaptcha = screen.getByTestId('recaptcha-mock');
+    fireEvent.click(recaptcha);
+    
+    // Now submit the form
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     // Wait for the fetch and login to be called
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
         method: 'POST',
-        body: expect.any(String)
+        body: expect.stringContaining('captcha')
       }));
     });
     
@@ -91,9 +108,7 @@ describe('Login page', () => {
     });
     
     expect(toast.success).toHaveBeenCalled();
-  
   });
-
   it('shows error toast when login fails', async () => {
     // Setup a failed response
     fetch.mockResolvedValue({
@@ -108,6 +123,11 @@ describe('Login page', () => {
     fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: 'wrong' }
     });
+    
+    // Complete reCAPTCHA first
+    const recaptcha = screen.getByTestId('recaptcha-mock');
+    fireEvent.click(recaptcha);
+    
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {

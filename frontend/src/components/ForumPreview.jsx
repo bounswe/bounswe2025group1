@@ -12,7 +12,6 @@ import {
   Avatar
 } from '@mui/material';
 import ForumIcon from '@mui/icons-material/Forum';
-import ChatIcon from '@mui/icons-material/Chat';
 import { useNavigate } from 'react-router-dom';
 import React from 'react';
 import { useEffect, useState } from 'react';
@@ -21,7 +20,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   const navigate = useNavigate();
-  const { _, token } = useAuth();
+  const { token } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const displayPosts = posts.slice(0, limit);
