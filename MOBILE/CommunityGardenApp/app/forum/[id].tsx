@@ -29,6 +29,7 @@ export default function ForumPostScreen() {
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
   const router = useRouter();
+  const { user } = useAuth();
 
   const fetchPostAndComments = async () => {
     try {
@@ -76,6 +77,8 @@ export default function ForumPostScreen() {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
+
+  const isOwnProfile = post && post.author && user && post.author === user.username;
 
   if (loading) {
     return (

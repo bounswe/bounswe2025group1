@@ -20,7 +20,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import serializers
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import generics
 

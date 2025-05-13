@@ -18,6 +18,7 @@ export default function GardenDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { token, user } = useAuth();
+  const navigation = useNavigation();
 
   const [garden, setGarden] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -26,16 +27,22 @@ export default function GardenDetailScreen() {
   const [joining, setJoining] = useState(false);
   const [membershipStatus, setMembershipStatus] = useState(null);
   const [tab, setTab] = useState(0);
-  const navigation = useNavigation();
-
-
+  const [followingIds, setFollowingIds] = useState<number[]>([]);
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: 'Garden Detail' });
-  }, []);
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
+          <Text style={{ color: COLORS.primaryDark, fontWeight: 'bold' }}>Back</Text>
+        </TouchableOpacity>
+      ),
+      headerTitle: 'Garden Detail',
+    });
+  }, [navigation]);
 
   useEffect(() => {
     fetchGarden();
+    fetchFollowing();
   }, [id]);
 
   useFocusEffect(
@@ -97,6 +104,47 @@ export default function GardenDetailScreen() {
       console.error('Error fetching tasks:', error);
     }
   };
+  const fetchFollowing = async () => {
+    if (!token) return;
+    try {
+      const res = await axios.get(`${API_URL}/profile/following/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setFollowingIds(res.data.map((u: any) => u.id));
+    } catch (err) {
+      setFollowingIds([]);
+    }
+  };
+
+  const handleFollow = async (userId: number) => {
+    try {
+      await axios.post(
+        `${API_URL}/profile/follow/`,
+        { user_id: userId },
+        { headers: { Authorization: `Token ${token}` } }
+      );
+      setFollowingIds(prev => [...prev, userId]);
+    } catch (err) {
+      Alert.alert('Error', 'Could not follow user.');
+    }
+  };
+
+  const handleUnfollow = async (userId: number) => {
+    try {
+      console.log('Unfollowing user with ID:', userId);
+      await axios.delete(
+        `${API_URL}/profile/follow/`,
+        { 
+          data: { user_id: Number(userId) },
+          headers: { Authorization: `Token ${token}` } 
+        }
+      );
+      setFollowingIds(prev => prev.filter(id => id !== userId));
+    } catch (err) {
+      Alert.alert('Error', 'Could not unfollow user.');
+    }
+  };
+
   const handleJoin = async () => {
     try {
 
@@ -226,6 +274,19 @@ export default function GardenDetailScreen() {
                 <Text style={taskCardStyles.title}>Username: {item.username}</Text>
                 <Text>Role: {item.role}</Text>
                 <Text>Status: {item.status}</Text>
+
+                {/* Follow/Unfollow button for each member except self */}
+                {user && String(item.user_id) !== String(user.id) && (
+                  followingIds.includes(Number(item.user_id)) ? (
+                    <TouchableOpacity style={{ backgroundColor: '#eee', padding: 6, borderRadius: 4, marginTop: 8 }} onPress={() => handleUnfollow(Number(item.user_id))}>
+                      <Text style={{ color: '#d00', fontWeight: 'bold' }}>Unfollow</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity style={{ backgroundColor: COLORS.primary, padding: 6, borderRadius: 4, marginTop: 8 }} onPress={() => handleFollow(Number(item.user_id))}>
+                      <Text style={{ color: 'white', fontWeight: 'bold' }}>Follow</Text>
+                    </TouchableOpacity>
+                  )
+                )}
 
                 {/* Show buttons only if current user is manager AND item is pending */}
                 {userIsManager && item.status === 'PENDING' && (

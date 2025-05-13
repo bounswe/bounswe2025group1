@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_URL, COLORS } from '../../constants/Config';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
@@ -13,6 +13,7 @@ const TABS = ['Gardens', 'Followers', 'Following'];
 export default function ProfileScreen() {
   const { user, token, logout } = useAuth();
   const router = useRouter();
+  const navigation = useNavigation();
   const [profile, setProfile] = useState(null);
   const [gardens, setGardens] = useState([]);
   const [followers, setFollowers] = useState([]);
@@ -26,10 +27,22 @@ export default function ProfileScreen() {
         router.replace('/auth/login');
         return;
       }
-  
       fetchProfile();  // always re-fetch to sync followers/following
     }, [token])
   );
+
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 16 }}>
+          <Ionicons name="arrow-back" size={24} color={COLORS.primaryDark} />
+          <Text style={{ color: COLORS.primaryDark, fontWeight: 'bold', marginLeft: 4 }}>Back</Text>
+        </TouchableOpacity>
+      ),
+      headerTitle: 'Garden Detail',
+    });
+  }, [navigation]);
 
 
   const fetchProfile = async () => {
@@ -84,6 +97,22 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     await logout();
     router.replace('/auth/login');
+  };
+
+  const handleUnfollow = async (userId: number) => {
+    try {
+      console.log('Unfollowing user with ID:', userId);
+      await axios.delete(
+        `${API_URL}/profile/follow/`,
+        { 
+          data: { user_id: Number(userId) },
+          headers: { Authorization: `Token ${token}` } 
+        }
+      );
+      setFollowing(prev => prev.filter((u: any) => u.id !== userId));
+    } catch (err) {
+      alert('Error unfollowing user.');
+    }
   };
 
   if (loading) {
@@ -181,13 +210,21 @@ export default function ProfileScreen() {
               data={following}
               keyExtractor={item => item.id.toString()}
               renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => router.push(`/user/${item.id}`)}
-                  style={styles.followerCard}
-                >
-                  <Ionicons name="person-outline" size={24} color={COLORS.primaryDark} />
-                  <Text style={styles.followerName}>{item.username}</Text>
-                </TouchableOpacity>
+                <View style={styles.followerCard}>
+                  <TouchableOpacity
+                    onPress={() => router.push(`/user/${item.id}`)}
+                    style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+                  >
+                    <Ionicons name="person-outline" size={24} color={COLORS.primaryDark} />
+                    <Text style={styles.followerName}>{item.username}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.unfollowButton}
+                    onPress={() => handleUnfollow(item.id)}
+                  >
+                    <Text style={styles.unfollowButtonText}>Unfollow</Text>
+                  </TouchableOpacity>
+                </View>
               )}
               ListEmptyComponent={<Text style={styles.emptyText}>Not following anyone yet.</Text>}
             />
@@ -223,4 +260,15 @@ const styles = StyleSheet.create({
   emptyText: { color: COLORS.text, fontSize: 14, textAlign: 'center', marginVertical: 8 },
   detailButtonText: {fontSize: 16,color: COLORS.primary,fontWeight: '600',},
   row: {flexDirection: 'row',justifyContent: 'space-between',alignItems: 'center',},
+  unfollowButton: {
+    backgroundColor: '#eee',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginLeft: 10,
+  },
+  unfollowButtonText: {
+    color: '#d00',
+    fontWeight: 'bold',
+  },
 });

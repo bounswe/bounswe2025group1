@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,11 +7,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { API_URL, COLORS } from '../../constants/Config';
 
 export default function UserProfileScreen() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { id } = useLocalSearchParams();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -20,6 +21,12 @@ export default function UserProfileScreen() {
           headers: { Authorization: `Token ${token}` },
         });
         setUserData(res.data);
+
+        // Check if following
+        const followingRes = await axios.get(`${API_URL}/profile/following/`, {
+          headers: { Authorization: `Token ${token}` },
+        });
+        setIsFollowing(followingRes.data.some((u: any) => String(u.id) === String(id)));
       } catch (err) {
         setError('Failed to load user profile.');
       } finally {
@@ -29,6 +36,34 @@ export default function UserProfileScreen() {
 
     fetchProfile();
   }, [id]);
+
+  const handleFollow = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/profile/follow/`,
+        { user_id: id },
+        { headers: { Authorization: `Token ${token}` } }
+      );
+      setIsFollowing(true);
+    } catch (err) {
+      alert('Error following user.');
+    }
+  };
+
+  const handleUnfollow = async () => {
+    try {
+      await axios.delete(
+        `${API_URL}/profile/follow/`,
+        { 
+          data: { user_id: Number(id) },
+          headers: { Authorization: `Token ${token}` } 
+        }
+      );
+      setIsFollowing(false);
+    } catch (err) {
+      alert('Error unfollowing user.');
+    }
+  };
 
   if (loading) {
     return (
@@ -63,7 +98,23 @@ export default function UserProfileScreen() {
         <Text style={styles.label}>Location:</Text>
         <Text style={styles.value}>{userData.profile?.location || 'Unknown'}</Text>
 
-       
+        {/* Only show follow/unfollow if not own profile */}
+        {userData && user && String(userData.id) !== String(user.id) && (
+          isFollowing ? (
+            <View style={{ alignItems: 'center', marginTop: 16 }}>
+              <Text style={{ color: COLORS.primary, marginBottom: 8 }}>You are following this user.</Text>
+              <TouchableOpacity style={styles.unfollowButton} onPress={handleUnfollow}>
+                <Text style={styles.unfollowButtonText}>Unfollow</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={{ alignItems: 'center', marginTop: 16 }}>
+              <TouchableOpacity style={styles.followButton} onPress={handleFollow}>
+                <Text style={styles.followButtonText}>Follow</Text>
+              </TouchableOpacity>
+            </View>
+          )
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -76,4 +127,8 @@ const styles = StyleSheet.create({
   username: { fontSize: 24, fontWeight: 'bold', color: COLORS.primaryDark, marginBottom: 16 },
   label: { fontWeight: 'bold', marginTop: 12, color: COLORS.primary },
   value: { fontSize: 16, marginBottom: 8, color: COLORS.text },
+  followButton: { backgroundColor: COLORS.primary, padding: 10, borderRadius: 8, marginTop: 12 },
+  followButtonText: { color: 'white', fontWeight: 'bold' },
+  unfollowButton: { backgroundColor: '#eee', padding: 10, borderRadius: 8, marginTop: 12 },
+  unfollowButtonText: { color: '#d00', fontWeight: 'bold' },
 });
