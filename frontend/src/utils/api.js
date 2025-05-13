@@ -231,7 +231,13 @@ export const api = {
   unfollowUser: (id) => apiRequest(`/users/${id}/unfollow`, 'POST'),
   
   // Weather endpoints
-  getWeather: () => apiRequest('/weather'),
+  getWeather: (location) => {
+    if (USE_MOCK_DATA) {
+      return apiRequest('/weather');
+    }
+    const locationParam = location || 'Istanbul';
+    return apiRequest(`/weather?location=${encodeURIComponent(locationParam)}`);
+  },
 };
 
 export default api;

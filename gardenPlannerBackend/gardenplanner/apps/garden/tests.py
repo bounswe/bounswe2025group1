@@ -5,6 +5,7 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from garden.models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
+from unittest.mock import patch
 
 
 class ModelTests(TestCase):
@@ -633,3 +634,31 @@ class CommentTests(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Comment.objects.count(), 0)
+
+
+class WeatherDataViewTests(APITestCase):
+    @patch('garden.views.get_weather_data')
+    def test_weather_data_success(self, mock_get_weather_data):
+        # Mock the successful weather data response
+        mock_get_weather_data.return_value = {
+            "main": {"temp": 25},
+            "weather": [{"description": "clear sky"}],
+            "name": "Istanbul"
+        }
+
+        response = self.client.get(reverse('weather'), {'location': 'Istanbul'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('main', response.data)
+        self.assertEqual(response.data['name'], 'Istanbul')
+
+    @patch('garden.views.get_weather_data')
+    def test_weather_location_not_found(self, mock_get_weather_data):
+        mock_get_weather_data.return_value = {'error': 'Location not found'}
+        response = self.client.get(reverse('weather'), {'location': 'Atlantis'})
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data['error'], 'Location not found. Please check the city name or provide a more specific location.')
+
+    def test_weather_missing_location_param(self):
+        response = self.client.get(reverse('weather'))
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['error'], 'Location parameter is required')

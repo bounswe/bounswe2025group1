@@ -161,13 +161,10 @@ export default function GardenDetailScreen() {
     }
   };
 
-  console.log("ghjhk",tasks)
+  
   const pendingTasks = tasks.filter(task => task.status === 'PENDING'|| (task.status === 'DECLINED' && task.assigned_to !== user.id) );
-  console.log("kkk",pendingTasks)
   const inProgressTasks = tasks.filter(task => task.status === 'IN_PROGRESS');
   const completedTasks = tasks.filter(task => task.status === 'COMPLETED');
-  console.log("inpr",inProgressTasks)
-  console.log("tasks",tasks)
   const calendarTasks = [...pendingTasks, ...inProgressTasks, ...completedTasks];
   const markedDates = {};
   const getDotColor = (task) => {

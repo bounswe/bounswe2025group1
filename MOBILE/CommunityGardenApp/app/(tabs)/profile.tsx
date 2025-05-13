@@ -26,6 +26,9 @@ export default function ProfileScreen() {
         router.replace('/auth/login');
         return;
       }
+  
+      fetchProfile();  // always re-fetch to sync followers/following
+    }, [token])
       fetchProfile(); // always fetch profile when focused for auto-refresh
     }, [token])
   );

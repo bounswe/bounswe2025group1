@@ -78,7 +78,7 @@ export default function UserProfileScreen() {
       </SafeAreaView>
     );
   }
-  console.log("userdata",userData)
+  
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
