@@ -13,14 +13,14 @@ import {
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { useNavigate } from 'react-router-dom';
 
-const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true, widgetHeight }) => {
+const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true }) => {
   const navigate = useNavigate();
 
   // Filter tasks by status if needed
   const filteredTasks = tasks.slice(0, limit);
 
   return (
-    <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, display: 'flex', flexDirection: 'column' }}>
+    <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", display: 'flex', flexDirection: 'column', justifyContent: "center"}}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <TaskAltIcon sx={{ mr: 1 }} /> {title}

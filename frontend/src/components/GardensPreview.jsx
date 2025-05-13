@@ -3,7 +3,7 @@ import { Box, Paper, Typography, CircularProgress } from '@mui/material';
 import { useAuth } from '../contexts/AuthContextUtils';
 import GardenCard from './GardenCard';
 
-const GardensPreview = ({ limit = 2, sx = {} }) => {
+const GardensPreview = ({ limit = 2 }) => {
   const [gardens, setGardens] = useState([]);
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
@@ -51,8 +51,7 @@ const GardensPreview = ({ limit = 2, sx = {} }) => {
         height: '100%', 
         display: 'flex', 
         justifyContent: 'center', 
-        alignItems: 'center',
-        ...sx 
+        alignItems: 'center'
       }}>
         <CircularProgress color="success" />
       </Paper>
@@ -67,8 +66,7 @@ const GardensPreview = ({ limit = 2, sx = {} }) => {
         display: 'flex', 
         flexDirection: 'column', 
         justifyContent: 'center', 
-        alignItems: 'center',
-        ...sx 
+        alignItems: 'center'
       }}>
         <Typography variant="h6" gutterBottom>
           Gardens

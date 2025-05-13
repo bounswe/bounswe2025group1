@@ -6,7 +6,6 @@ import {
   Grid,
   Button,
   Paper,
-  CircularProgress,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
@@ -14,6 +13,8 @@ import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
 import ForumPreview from '../../components/ForumPreview';
 import GardensPreview from '../../components/GardensPreview';
+
+const WIDGET_HEIGHT = 350;
 
 const Home = () => {
   const { currentUser } = useAuth();
@@ -38,22 +39,20 @@ const Home = () => {
           )}
         </Paper>
 
-        <Box
-          display="grid"
-          gridTemplateColumns="1fr 2fr"
-          gap={2}
-          sx={{ height: 300, mb: 15 }}
-        >
-          <Paper elevation={1} sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h6" gutterBottom>
-              Weather Update
-            </Typography>
+        <Grid container spacing={4} sx={{ mb: 4 }}>
+          <Grid size={{xs: 12}} height={WIDGET_HEIGHT}>
+            <GardensPreview limit={2} />
+          </Grid>
+          <Grid size={{xs: 12, md: 4}} height={WIDGET_HEIGHT}>
+            <TasksList limit={3} />
+          </Grid>
+          <Grid size={{xs: 12, md: 4}} height={WIDGET_HEIGHT}>
+            <ForumPreview limit={2} />
+          </Grid>
+          <Grid size={{xs: 12, md: 4}} height={WIDGET_HEIGHT}>
             <WeatherWidget />
-          </Paper>
-          <GardensPreview limit={2} />
-        </Box>
-
-        <ForumPreview limit={2} />
+          </Grid>
+        </Grid>
 
         {!currentUser && (
           <Paper elevation={1} sx={{ mt: 6, p: 4 }}>

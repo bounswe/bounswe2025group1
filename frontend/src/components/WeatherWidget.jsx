@@ -12,7 +12,7 @@ import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import React from 'react';
 
-const WeatherWidget = ({widgetHeight}) => {
+const WeatherWidget = () => {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -159,7 +159,7 @@ const WeatherWidget = ({widgetHeight}) => {
 
   if (loading) {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
         <CircularProgress color="success" size={40} />
         <Typography variant="body2" sx={{ mt: 2 }}>Loading weather data...</Typography>
       </Paper>
@@ -168,7 +168,7 @@ const WeatherWidget = ({widgetHeight}) => {
   
   if (locationPermission === 'denied' || error) {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
           <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
         </Typography>
@@ -192,7 +192,7 @@ const WeatherWidget = ({widgetHeight}) => {
 
   if (locationPermission === 'prompt') {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
         </Typography>
@@ -216,7 +216,7 @@ const WeatherWidget = ({widgetHeight}) => {
 
   if (!weatherData) {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <Typography variant="body1" color="text.secondary">
           Weather data unavailable
         </Typography>
@@ -225,7 +225,7 @@ const WeatherWidget = ({widgetHeight}) => {
   }
 
   return (
-    <Paper elevation={2} sx={{ p: 3, mb: 4, height: widgetHeight, textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
+    <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
         <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
       </Typography>

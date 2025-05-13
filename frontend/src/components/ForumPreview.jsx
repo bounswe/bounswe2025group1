@@ -62,7 +62,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
 
   if (loading) {
     return (
-          <Paper elevation={2} sx={{ p: 3, mb: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+          <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
             <CircularProgress color="success" size={40} />
             <Typography variant="body2" sx={{ mt: 2 }}>Loading forum data...</Typography>
           </Paper>
@@ -70,7 +70,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   }
 
   return (
-    <Paper elevation={2} sx={{ p: 3 }}>
+    <Paper elevation={2} sx={{ p: 3, height: "100%" }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
         <ForumIcon sx={{ mr: 1 }} /> Community Forum
       </Typography>
@@ -101,10 +101,6 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
                           <Typography variant="caption" color="text.secondary">
                             {post.author} • {formatDate(post.created_at)}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-                            <ChatIcon sx={{ fontSize: 14, mr: 0.5 }} />
-                            <Typography variant="caption">{post.comments}</Typography>
-                          </Box>
                         </Box>
                       </>
                     }
