@@ -5,6 +5,7 @@ import {
   Typography,
   Box,
   Grid,
+  Button,
   Paper,
   CircularProgress
 } from '@mui/material';
@@ -26,6 +27,8 @@ const Tasks = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('Auth token is:', token);
+
     const fetchAll = async () => {
       try {
         const [gRes, wRes, pRes] = await Promise.all([
@@ -59,6 +62,18 @@ const Tasks = () => {
     }
   }, [token]);
 
+  if (!token) {
+    return (
+      <Box sx={{ height: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+          Please log in to see your tasks.
+        </Typography>
+        <Button variant="contained" color="primary" onClick={() => navigate('/auth/login')}>
+          Log In
+        </Button>
+      </Box>
+    );
+  }
   if (loading) {
     return (
       <Box sx={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -66,7 +81,7 @@ const Tasks = () => {
       </Box>
     );
   }
-
+  
   const pendingTasks = tasks.filter(t => t.status === 'PENDING');
 
   return (
