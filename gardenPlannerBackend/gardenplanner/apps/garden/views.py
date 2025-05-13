@@ -23,6 +23,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import generics
+from rest_framework.exceptions import PermissionDenied
 
 from .serializers import (
     RegisterSerializer, ProfileSerializer, LoginWithCaptchaSerializer, UserSerializer, ProfileUpdateSerializer,
@@ -552,7 +553,7 @@ class ForumPostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         obj = super().get_object()
         # Check if either user has blocked the other
         if self.request.user.profile.is_blocked(obj.author.profile) or obj.author.profile.is_blocked(self.request.user.profile):
-            raise PermissionError("You cannot access this post due to blocking restrictions.")
+            raise PermissionDenied("You are blocked from viewing this post.")
         return obj
 
     def update(self, request, *args, **kwargs):

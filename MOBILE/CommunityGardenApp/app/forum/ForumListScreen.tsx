@@ -12,6 +12,7 @@ interface ForumPost {
   title: string;
   content: string;
   author: string;
+  author_username: string;
   created_at: string;
 }
 
@@ -94,7 +95,7 @@ export default function ForumListScreen() {
           >
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.content}>{item.content.substring(0, 100)}...</Text>
-            <Text style={styles.author}>By {item.author} • {formatDate(item.created_at)}</Text>
+            <Text style={styles.author}>By {item.author_username} • {formatDate(item.created_at)}</Text>
           </TouchableOpacity>
         )}
         ListEmptyComponent={<Text style={styles.emptyText}>No posts found.</Text>}

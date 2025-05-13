@@ -20,14 +20,15 @@ export default function GardenDetailScreen() {
   const { token, user } = useAuth();
   const navigation = useNavigation();
 
-  const [garden, setGarden] = useState(null);
+  const [garden, setGarden] = useState<any>(null);
   const [tasks, setTasks] = useState([]);
-  const [members, setMembers] = useState([]);
+  const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [membershipStatus, setMembershipStatus] = useState(null);
   const [tab, setTab] = useState(0);
   const [followingIds, setFollowingIds] = useState<number[]>([]);
+  const [blockedIds, setBlockedIds] = useState<number[]>([]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -43,6 +44,7 @@ export default function GardenDetailScreen() {
   useEffect(() => {
     fetchGarden();
     fetchFollowing();
+    fetchBlocked();
   }, [id]);
 
   useFocusEffect(
@@ -73,7 +75,7 @@ export default function GardenDetailScreen() {
       const res = await axios.get(`${API_URL}/memberships/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      const existing = res.data.find(m => m.garden === parseInt(id) && m.username === user?.username);
+      const existing = res.data.find((m: any) => m.garden === parseInt(id as string) && m.username === user?.username);
       if (existing) setMembershipStatus(existing.status);
     } catch (err) {
       console.error('Membership status fetch error:', err);
@@ -86,9 +88,7 @@ export default function GardenDetailScreen() {
       const res = await axios.get(`${API_URL}/memberships/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      
-      const filtered = res.data.filter(m => m.garden === parseInt(id));
-
+      const filtered = res.data.filter((m: any) => m.garden === parseInt(id as string));
       setMembers(filtered);
     } catch (err) {
       console.error('Error fetching members:', err);
@@ -113,6 +113,17 @@ export default function GardenDetailScreen() {
       setFollowingIds(res.data.map((u: any) => u.id));
     } catch (err) {
       setFollowingIds([]);
+    }
+  };
+  const fetchBlocked = async () => {
+    if (!token) return;
+    try {
+      const res = await axios.get(`${API_URL}/profile/block/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setBlockedIds(res.data.map((u: any) => u.id));
+    } catch (err) {
+      setBlockedIds([]);
     }
   };
 
@@ -145,6 +156,41 @@ export default function GardenDetailScreen() {
     }
   };
 
+  const handleBlock = async (userId: number) => {
+    try {
+      await axios.post(
+        `${API_URL}/profile/block/`,
+        { user_id: userId },
+        { headers: { Authorization: `Token ${token}` } }
+      );
+      setBlockedIds(prev => [...prev, userId]);
+      setFollowingIds(prev => prev.filter(id => id !== userId)); // Unfollow when blocking
+      Alert.alert('Success', 'User has been blocked.');
+    } catch (err: any) {
+      if (err.response?.status === 400) {
+        Alert.alert('Error', 'You cannot block yourself.');
+      } else {
+        Alert.alert('Error', 'Error blocking user.');
+      }
+    }
+  };
+
+  const handleUnblock = async (userId: number) => {
+    try {
+      await axios.delete(
+        `${API_URL}/profile/block/`,
+        { 
+          data: { user_id: Number(userId) },
+          headers: { Authorization: `Token ${token}` } 
+        }
+      );
+      setBlockedIds(prev => prev.filter(id => id !== userId));
+      Alert.alert('Success', 'User has been unblocked.');
+    } catch (err) {
+      Alert.alert('Error', 'Error unblocking user.');
+    }
+  };
+
   const handleJoin = async () => {
     try {
 
@@ -171,19 +217,19 @@ export default function GardenDetailScreen() {
   };
 
   
-  const pendingTasks = tasks.filter(task => task.status === 'PENDING'|| (task.status === 'DECLINED' && task.assigned_to !== user.id) );
-  const inProgressTasks = tasks.filter(task => task.status === 'IN_PROGRESS');
-  const completedTasks = tasks.filter(task => task.status === 'COMPLETED');
+  const pendingTasks = tasks.filter((task: any) => task.status === 'PENDING'|| (task.status === 'DECLINED' && task.assigned_to !== user?.id) );
+  const inProgressTasks = tasks.filter((task: any) => task.status === 'IN_PROGRESS');
+  const completedTasks = tasks.filter((task: any) => task.status === 'COMPLETED');
   const calendarTasks = [...pendingTasks, ...inProgressTasks, ...completedTasks];
-  const markedDates = {};
-  const getDotColor = (task) => {
+  const markedDates: any = {};
+  const getDotColor = (task: any) => {
     if (task.status === 'COMPLETED') return 'red';
     if (task.status === 'IN_PROGRESS') return 'blue';
     if (task.status === 'PENDING') return 'green'; // not assigned yet
     return 'orange'; // fallback for other pending/declined cases
   };
 
-  calendarTasks.forEach(task => {
+  calendarTasks.forEach((task: any) => {
     const date = task.due_date.split('T')[0];
     markedDates[date] = {
       marked: true,
@@ -194,9 +240,9 @@ export default function GardenDetailScreen() {
   if (loading || !garden) {
     return <ActivityIndicator style={{ flex: 1 }} size="large" color={COLORS.primary} />;
   }
-  const userIsManager = members.some(m => m.username === user?.username && m.role === 'MANAGER' && m.status === 'ACCEPTED');
+  const userIsManager = members.some((m: any) => m.username === user?.username && m.role === 'MANAGER' && m.status === 'ACCEPTED');
   
-  const handleMembershipAccept = async (membershipId) => {
+  const handleMembershipAccept = async (membershipId: any) => {
     try {
       await axios.post(
         `${API_URL}/memberships/${membershipId}/accept/`,
@@ -205,7 +251,7 @@ export default function GardenDetailScreen() {
       );
       // Re-fetch the updated members list
       fetchMembers();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to accept member:', err?.response?.data || err);
       Alert.alert('Error', 'Could not accept membership.');
     }
@@ -213,15 +259,15 @@ export default function GardenDetailScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.headerCard}>
-        <Image source={{ uri: garden.image }} style={styles.headerImage} />
+        <Image source={{ uri: (garden as any).image }} style={styles.headerImage} />
         <View style={styles.headerContent}>
-          <Text style={styles.gardenName}>{garden.name}</Text>
+          <Text style={styles.gardenName}>{(garden as any).name}</Text>
           <View style={styles.chipRow}>
-            <View style={styles.chip}><Ionicons name="location-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{garden.location}</Text></View>
+            <View style={styles.chip}><Ionicons name="location-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{(garden as any).location}</Text></View>
             <View style={styles.chip}><Ionicons name="people-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{members.filter(m => m.status === 'ACCEPTED').length} Members</Text></View>
             <View style={styles.chip}><Ionicons name="list-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{tasks.length} Tasks</Text></View>
           </View>
-          <Text style={styles.gardenDesc}>{garden.description}</Text>
+          <Text style={styles.gardenDesc}>{(garden as any).description}</Text>
           {membershipStatus && <Text style={styles.status}>Membership Status: {membershipStatus}</Text>}
           {garden.is_public && !membershipStatus && (
             <TouchableOpacity style={styles.button} onPress={handleJoin} disabled={joining}>
@@ -268,31 +314,44 @@ export default function GardenDetailScreen() {
             <Text style={styles.sectionTitle}>Garden Members</Text>
             <FlatList
             data={members}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
+            keyExtractor={(item: any) => item.id.toString()}
+            renderItem={({ item }: { item: any }) => (
                 <View style={taskCardStyles.card}>
                 <Text style={taskCardStyles.title}>Username: {item.username}</Text>
                 <Text>Role: {item.role}</Text>
                 <Text>Status: {item.status}</Text>
 
-                {/* Follow/Unfollow button for each member except self */}
+                {/* Follow/Unfollow and Block/Unblock button for each member except self */}
                 {user && String(item.user_id) !== String(user.id) && (
-                  followingIds.includes(Number(item.user_id)) ? (
-                    <TouchableOpacity style={{ backgroundColor: '#eee', padding: 6, borderRadius: 4, marginTop: 8 }} onPress={() => handleUnfollow(Number(item.user_id))}>
-                      <Text style={{ color: '#d00', fontWeight: 'bold' }}>Unfollow</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity style={{ backgroundColor: COLORS.primary, padding: 6, borderRadius: 4, marginTop: 8 }} onPress={() => handleFollow(Number(item.user_id))}>
-                      <Text style={{ color: 'white', fontWeight: 'bold' }}>Follow</Text>
-                    </TouchableOpacity>
-                  )
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                    {blockedIds.includes(Number(item.user_id)) ? (
+                      <TouchableOpacity style={styles.unfollowButtonSmall} onPress={() => handleUnblock(Number(item.user_id))}>
+                        <Text style={styles.unfollowButtonTextSmall}>Unblock</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <>
+                        {followingIds.includes(Number(item.user_id)) ? (
+                          <TouchableOpacity style={styles.unfollowButtonSmall} onPress={() => handleUnfollow(Number(item.user_id))}>
+                            <Text style={styles.unfollowButtonTextSmall}>Unfollow</Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity style={styles.followButtonSmall} onPress={() => handleFollow(Number(item.user_id))}>
+                            <Text style={styles.followButtonTextSmall}>Follow</Text>
+                          </TouchableOpacity>
+                        )}
+                        <TouchableOpacity style={styles.blockIconButton} onPress={() => handleBlock(Number(item.user_id))}>
+                          <Text style={styles.blockIconText}>🚫</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </View>
                 )}
 
                 {/* Show buttons only if current user is manager AND item is pending */}
                 {userIsManager && item.status === 'PENDING' && (
                     <View style={{ flexDirection: 'row', marginTop: 8, gap: 10 }}>
                     <TouchableOpacity
-                        onPress={() => handleMembershipAccept(item.id, 'ACCEPTED')}
+                        onPress={() => handleMembershipAccept(item.id)}
                         style={{ backgroundColor: 'green', padding: 6, borderRadius: 4 }}
                     >
                         <Text style={{ color: 'white' }}>Accept</Text>
@@ -309,7 +368,7 @@ export default function GardenDetailScreen() {
             <Calendar
               markedDates={markedDates}
               markingType={'dot'}
-              onDayPress={(day) => {
+              onDayPress={(day: any) => {
                 console.log('Selected day:', day.dateString);
                 // Optional: show a modal or filtered task list here
               }}
@@ -327,24 +386,23 @@ export default function GardenDetailScreen() {
   );
 }
 
-function TaskCard({ task, color }) {
-    const router = useRouter();  // ← add this line inside TaskCard
-  
-    return (
-      <View style={[taskCardStyles.card, { backgroundColor: color }]}>
-        <Text style={taskCardStyles.title}>{task.title}</Text>
-        <Text style={taskCardStyles.caption}>Due: {task.due_date?.split('T')[0]}</Text>
-        <View style={taskCardStyles.row}>
-          <Text style={taskCardStyles.caption}>{task.assigned_to_username || 'Unassigned'}</Text>
-          <TouchableOpacity
-            onPress={() => router.push({ pathname: '/tasks/task-detail', params: { taskId: task.id.toString() } })}
-          >
-            <Text style={taskCardStyles.details}>Details</Text>
-          </TouchableOpacity>
-        </View>
+function TaskCard({ task, color }: { task: any; color: any }) {
+  const router = useRouter();
+  return (
+    <View style={[taskCardStyles.card, { backgroundColor: color }]}>
+      <Text style={taskCardStyles.title}>{task.title}</Text>
+      <Text style={taskCardStyles.caption}>Due: {task.due_date?.split('T')[0]}</Text>
+      <View style={taskCardStyles.row}>
+        <Text style={taskCardStyles.caption}>{task.assigned_to_username || 'Unassigned'}</Text>
+        <TouchableOpacity
+          onPress={() => router.push({ pathname: '/tasks/task-detail', params: { taskId: task.id.toString() } })}
+        >
+          <Text style={taskCardStyles.details}>Details</Text>
+        </TouchableOpacity>
       </View>
-    );
-  }
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -372,6 +430,46 @@ const styles = StyleSheet.create({
   errorText: { color: COLORS.error, fontSize: 18, marginBottom: 16 },
   backButton: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8 },
   backButtonText: { color: COLORS.white, fontWeight: 'bold' },
+  unfollowButtonSmall: {
+    backgroundColor: '#eee',
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  unfollowButtonTextSmall: {
+    color: '#d00',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  followButtonSmall: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  followButtonTextSmall: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  blockIconButton: {
+    backgroundColor: '#ffdddd',
+    padding: 8,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
+  },
+  blockIconText: {
+    fontSize: 18,
+    color: '#d00',
+    fontWeight: 'bold',
+  },
 });
 
 const taskCardStyles = StyleSheet.create({
