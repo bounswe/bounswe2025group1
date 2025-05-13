@@ -6,7 +6,6 @@ import './App.css';
 
 // Components
 import Navbar from './components/Navbar';
-
 // Pages
 import Home from './pages/home/Home';
 import Login from './pages/auth/Login';
