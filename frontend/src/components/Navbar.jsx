@@ -23,7 +23,6 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import HomeIcon from '@mui/icons-material/Home';
 import YardIcon from '@mui/icons-material/Yard';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -111,8 +110,6 @@ function Navbar() {
       (path !== '/' && location.pathname.startsWith(path));
   };
   
-  // Mock notification count - would come from a notifications context in a real app
-  const notificationCount = 3;
 
   return (
     <AppBar 
@@ -226,26 +223,8 @@ function Navbar() {
             ))}
           </Box>
 
-          {/* Notifications icon - only show when user is logged in */}
           {currentUser && (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Tooltip title="Notifications">
-                <IconButton 
-                  size="large"
-                  color="inherit" 
-                  onClick={() => navigate('/notifications')}
-                  sx={{ 
-                    mr: 2,
-                    '&:hover': { 
-                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    }
-                  }}
-                >
-                  <Badge badgeContent={notificationCount} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
-              </Tooltip>
 
               {/* Profile menu */}
               <Tooltip title="Open settings">
