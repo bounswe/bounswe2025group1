@@ -39,7 +39,7 @@ const Home = () => {
         </Paper>
 
         <Grid container spacing={4} sx={{ mb: 4 }}>
-          <Grid size={{xs: 12}} height={WIDGET_HEIGHT}>
+          <Grid size={{xs: 12}}>
             <GardensPreview limit={2} />
           </Grid>
           <Grid size={{xs: 12, md: 4}} height={WIDGET_HEIGHT}>

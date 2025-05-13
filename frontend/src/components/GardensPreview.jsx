@@ -33,7 +33,6 @@ const GardensPreview = ({ limit = 2 }) => {
         }
 
         const data = await response.json();
-        console.log(data)
         setGardens(data);
         setLoading(false);
       } catch (error) {
@@ -80,17 +79,8 @@ const GardensPreview = ({ limit = 2 }) => {
   }
 
   return (
-    <Paper
-      elevation={1}
-      sx={{
-        p: 2,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflowX: 'auto'
-      }}
-    >
-      <Typography variant="h6" gutterBottom>
+    <>
+      <Typography variant="h5" gutterBottom>
         {token ? 'My Gardens' : 'Featured Gardens'}
       </Typography>
       <Box display="flex" justifyContent="center" gap={2}>
@@ -103,7 +93,7 @@ const GardensPreview = ({ limit = 2 }) => {
           </Box>
         ))}
       </Box>
-    </Paper>
+    </>
   );
 };
 

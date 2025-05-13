@@ -531,7 +531,7 @@ const GardenDetail = () => {
       <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 8 }}>
-            <Typography variant="h4" gutterBottom sx={{ color: '#2e7d32', fontWeight: 'bold' }}>
+            <Typography variant="h4" gutterBottom sx={{ color: '#2e7d32', fontWeight: 'bold', textAlign: "start" }}>
               {garden.name}
             </Typography>
             <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
@@ -554,7 +554,7 @@ const GardenDetail = () => {
                 sx={{ bgcolor: '#e8f5e9' }}
               />
             </Box>
-            <Typography variant="body1" paragraph>
+            <Typography variant="body1" sx={{ textAlign: 'start' }}>
               {garden.description}
             </Typography>
           </Grid>
