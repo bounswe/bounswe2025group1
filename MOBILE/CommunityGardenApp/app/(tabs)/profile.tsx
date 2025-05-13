@@ -26,11 +26,8 @@ export default function ProfileScreen() {
         router.replace('/auth/login');
         return;
       }
-  
-      if (!profile) {
-        fetchProfile();  // only fetch once unless manually invalidated
-      }
-    }, [token, profile])
+      fetchProfile(); // always fetch profile when focused for auto-refresh
+    }, [token])
   );
   const fetchProfile = async () => {
     setLoading(true);
@@ -84,6 +81,20 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     await logout();
     router.replace('/auth/login');
+  };
+
+  const handleUnfollow = async (userId: number) => {
+    try {
+      console.log('Unfollowing user with ID:', userId);
+      await axios.post(
+        `${API_URL}/profile/unfollow/`,
+        { user_id: Number(userId) },
+        { headers: { Authorization: `Token ${token}` } }
+      );
+      setFollowing(prev => prev.filter((u: any) => u.id !== userId));
+    } catch (err) {
+      alert('Error unfollowing user.');
+    }
   };
 
   if (loading) {
@@ -181,13 +192,21 @@ export default function ProfileScreen() {
               data={following}
               keyExtractor={item => item.id.toString()}
               renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => router.push(`/user/${item.id}`)}
-                  style={styles.followerCard}
-                >
-                  <Ionicons name="person-outline" size={24} color={COLORS.primaryDark} />
-                  <Text style={styles.followerName}>{item.username}</Text>
-                </TouchableOpacity>
+                <View style={styles.followerCard}>
+                  <TouchableOpacity
+                    onPress={() => router.push(`/user/${item.id}`)}
+                    style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+                  >
+                    <Ionicons name="person-outline" size={24} color={COLORS.primaryDark} />
+                    <Text style={styles.followerName}>{item.username}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.unfollowButton}
+                    onPress={() => handleUnfollow(item.id)}
+                  >
+                    <Text style={styles.unfollowButtonText}>Unfollow</Text>
+                  </TouchableOpacity>
+                </View>
               )}
               ListEmptyComponent={<Text style={styles.emptyText}>Not following anyone yet.</Text>}
             />
@@ -223,4 +242,15 @@ const styles = StyleSheet.create({
   emptyText: { color: COLORS.text, fontSize: 14, textAlign: 'center', marginVertical: 8 },
   detailButtonText: {fontSize: 16,color: COLORS.primary,fontWeight: '600',},
   row: {flexDirection: 'row',justifyContent: 'space-between',alignItems: 'center',},
+  unfollowButton: {
+    backgroundColor: '#eee',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginLeft: 10,
+  },
+  unfollowButtonText: {
+    color: '#d00',
+    fontWeight: 'bold',
+  },
 });

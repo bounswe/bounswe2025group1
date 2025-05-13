@@ -29,6 +29,8 @@ export default function ForumPostScreen() {
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
   const router = useRouter();
+  const { user } = useAuth();
+  const [isFollowing, setIsFollowing] = useState(false);
 
   const fetchPostAndComments = async () => {
     try {
@@ -77,6 +79,8 @@ export default function ForumPostScreen() {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  const isOwnProfile = userData && userData.id && user && userData.id === user.id;
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -123,6 +127,22 @@ export default function ForumPostScreen() {
             <Text style={styles.commentButtonText}>Post</Text>
           </TouchableOpacity>
         </View>
+        {!isOwnProfile && (
+          isFollowing ? (
+            <View style={{ alignItems: 'center', marginTop: 16 }}>
+              <Text style={{ color: COLORS.primary, marginBottom: 8 }}>You are following this user.</Text>
+              <TouchableOpacity style={styles.unfollowButton} onPress={handleUnfollow}>
+                <Text style={styles.unfollowButtonText}>Unfollow</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={{ alignItems: 'center', marginTop: 16 }}>
+              <TouchableOpacity style={styles.followButton} onPress={handleFollow}>
+                <Text style={styles.followButtonText}>Follow</Text>
+              </TouchableOpacity>
+            </View>
+          )
+        )}
       </SafeAreaView>
     </>
   );
@@ -143,4 +163,8 @@ const styles = StyleSheet.create({
   commentButton: { backgroundColor: COLORS.primary, padding: 10, borderRadius: 8, justifyContent: 'center' },
   commentButtonText: { color: 'white', fontWeight: 'bold' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  unfollowButton: { backgroundColor: COLORS.primary, padding: 10, borderRadius: 8, justifyContent: 'center' },
+  unfollowButtonText: { color: 'white', fontWeight: 'bold' },
+  followButton: { backgroundColor: COLORS.primary, padding: 10, borderRadius: 8, justifyContent: 'center' },
+  followButtonText: { color: 'white', fontWeight: 'bold' },
 }); 
