@@ -5,6 +5,7 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from garden.models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
+from unittest.mock import patch
 
 
 class ModelTests(TestCase):
