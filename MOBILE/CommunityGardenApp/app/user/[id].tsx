@@ -52,10 +52,12 @@ export default function UserProfileScreen() {
 
   const handleUnfollow = async () => {
     try {
-      await axios.post(
-        `${API_URL}/profile/unfollow/`,
-        { user_id: id },
-        { headers: { Authorization: `Token ${token}` } }
+      await axios.delete(
+        `${API_URL}/profile/follow/`,
+        { 
+          data: { user_id: Number(id) },
+          headers: { Authorization: `Token ${token}` } 
+        }
       );
       setIsFollowing(false);
     } catch (err) {

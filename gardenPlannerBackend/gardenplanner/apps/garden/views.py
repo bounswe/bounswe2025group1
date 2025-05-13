@@ -551,22 +551,3 @@ class WeatherDataView(APIView):
             )
             
         return Response(weather_data)
-
-
-
-class UnfollowUserView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        """Unfollow a user (POST)"""
-        user_id = request.data.get('user_id')
-        if not user_id:
-            return Response({'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            user_to_unfollow = get_object_or_404(User, pk=user_id)
-            request.user.profile.unfollow(user_to_unfollow.profile)
-            return Response({"status": "success", "message": f"You have unfollowed {user_to_unfollow.username}"})
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

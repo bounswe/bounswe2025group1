@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_URL, COLORS } from '../../constants/Config';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
@@ -13,6 +13,7 @@ const TABS = ['Gardens', 'Followers', 'Following'];
 export default function ProfileScreen() {
   const { user, token, logout } = useAuth();
   const router = useRouter();
+  const navigation = useNavigation();
   const [profile, setProfile] = useState(null);
   const [gardens, setGardens] = useState([]);
   const [followers, setFollowers] = useState([]);
@@ -26,12 +27,22 @@ export default function ProfileScreen() {
         router.replace('/auth/login');
         return;
       }
-  
       fetchProfile();  // always re-fetch to sync followers/following
     }, [token])
-      fetchProfile(); // always fetch profile when focused for auto-refresh
-    }, [token])
   );
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 16 }}>
+          <Ionicons name="arrow-back" size={24} color={COLORS.primaryDark} />
+          <Text style={{ color: COLORS.primaryDark, fontWeight: 'bold', marginLeft: 4 }}>Back</Text>
+        </TouchableOpacity>
+      ),
+      headerTitle: 'Garden Detail',
+    });
+  }, [navigation]);
+
   const fetchProfile = async () => {
     setLoading(true);
     try {
@@ -89,10 +100,12 @@ export default function ProfileScreen() {
   const handleUnfollow = async (userId: number) => {
     try {
       console.log('Unfollowing user with ID:', userId);
-      await axios.post(
-        `${API_URL}/profile/unfollow/`,
-        { user_id: Number(userId) },
-        { headers: { Authorization: `Token ${token}` } }
+      await axios.delete(
+        `${API_URL}/profile/follow/`,
+        { 
+          data: { user_id: Number(userId) },
+          headers: { Authorization: `Token ${token}` } 
+        }
       );
       setFollowing(prev => prev.filter((u: any) => u.id !== userId));
     } catch (err) {

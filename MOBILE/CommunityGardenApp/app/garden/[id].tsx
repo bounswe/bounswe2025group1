@@ -18,6 +18,7 @@ export default function GardenDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { token, user } = useAuth();
+  const navigation = useNavigation();
 
   const [garden, setGarden] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -26,12 +27,18 @@ export default function GardenDetailScreen() {
   const [joining, setJoining] = useState(false);
   const [membershipStatus, setMembershipStatus] = useState(null);
   const [tab, setTab] = useState(0);
-  const navigation = useNavigation();
   const [followingIds, setFollowingIds] = useState<number[]>([]);
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: 'Garden Detail' });
-  }, []);
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
+          <Text style={{ color: COLORS.primaryDark, fontWeight: 'bold' }}>Back</Text>
+        </TouchableOpacity>
+      ),
+      headerTitle: 'Garden Detail',
+    });
+  }, [navigation]);
 
   useEffect(() => {
     fetchGarden();
@@ -125,10 +132,12 @@ export default function GardenDetailScreen() {
   const handleUnfollow = async (userId: number) => {
     try {
       console.log('Unfollowing user with ID:', userId);
-      await axios.post(
-        `${API_URL}/profile/unfollow/`,
-        { user_id: Number(userId) },
-        { headers: { Authorization: `Token ${token}` } }
+      await axios.delete(
+        `${API_URL}/profile/follow/`,
+        { 
+          data: { user_id: Number(userId) },
+          headers: { Authorization: `Token ${token}` } 
+        }
       );
       setFollowingIds(prev => prev.filter(id => id !== userId));
     } catch (err) {
