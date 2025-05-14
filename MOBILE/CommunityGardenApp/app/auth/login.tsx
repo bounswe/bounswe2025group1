@@ -115,8 +115,8 @@ export default function LoginScreen() {
 
               <Recaptcha
                 ref={recaptchaRef}
-                siteKey="6LdyUDQrAAAAANzE6KpzgKAGxziGm0cXK7jcLyFN"
-                baseUrl="http://localhost" // or your app’s deployed base URL
+                siteKey="6LeROzorAAAAACC44mV_hc77HI8uri9RE4f5vHiz"
+                baseUrl="http://localhost"
                 size="normal"
                 onVerify={handleVerify}
                 onExpire={() => setError('Captcha expired. Please try again.')}

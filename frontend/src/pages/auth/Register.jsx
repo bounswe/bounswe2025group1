@@ -180,7 +180,7 @@ const Register = () => {
               </Box>
               <Box sx={{  display: 'flex', justifyContent: 'center', mt: 2 }}>
                 <ReCAPTCHA
-                  sitekey="6Lef7SArAAAAAKfDLZdY__Sf-mcujkc1YnXp0fu3"
+                  sitekey="6LeROzorAAAAACC44mV_hc77HI8uri9RE4f5vHiz"
                   onChange={(token) => setCaptchaToken(token)}
                 />
               </Box>

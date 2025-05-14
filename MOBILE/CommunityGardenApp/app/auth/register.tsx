@@ -149,8 +149,8 @@ export default function RegisterScreen() {
               {/* reCAPTCHA Component */}
               <Recaptcha
                 ref={recaptchaRef}
-                siteKey="6LdyUDQrAAAAANzE6KpzgKAGxziGm0cXK7jcLyFN" // replace with your actual reCAPTCHA site key
-                baseUrl="http://localhost" // or your deployed app URL
+                siteKey="6LeROzorAAAAACC44mV_hc77HI8uri9RE4f5vHiz"
+                baseUrl="http://localhost"
                 size="normal"
                 onVerify={handleVerify}
                 onExpire={() => setError('Captcha expired. Please try again.')}
