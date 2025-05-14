@@ -37,7 +37,6 @@ from .permissions import (
 )
 from .utils import get_weather_data
 
-
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -310,13 +309,12 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         action = getattr(self, 'action', None)
-        print(f"[get_queryset] Action: {action}, User: {user.username}")
+        
 
 
-        if action in ['retrieve', 'assign_task', 'accept_task', 'decline_task', 'complete_task']:
+        if action in ['retrieve', 'assign_task', 'accept_task', 'decline_task', 'complete_task','self_assign_task']:
             memberships = GardenMembership.objects.filter(user=user, status='ACCEPTED')
             garden_ids = memberships.values_list('garden_id', flat=True)
-            print(f"[get_queryset] Garden IDs for user {user.username}: {garden_ids}")
             return Task.objects.filter(garden_id__in=garden_ids)
 
         garden_id = self.request.query_params.get('garden')
@@ -324,21 +322,17 @@ class TaskViewSet(viewsets.ModelViewSet):
             return Task.objects.none()
 
         garden_id = int(garden_id)
-        print(f"Requested garden ID: {garden_id}, user: {user.username}")
 
         if user.profile.role == 'ADMIN':
             return Task.objects.filter(garden_id=garden_id)
 
         membership = GardenMembership.objects.filter(user=user, garden_id=garden_id, status='ACCEPTED').first()
         if not membership:
-            print(f"User {user.username} is not a member of garden {garden_id}")
             return Task.objects.none()
 
         if membership.role == 'MANAGER':
-            print(f"User {user.username} is a MANAGER in garden {garden_id}")
             return Task.objects.filter(garden_id=garden_id)
 
-        print(f"User {user.username} is a WORKER in garden {garden_id}")
         return Task.objects.filter(
             (models.Q(assigned_to=user) | models.Q(assigned_to=None)|models.Q(status='DECLINED')) &
             models.Q(garden_id=garden_id)
@@ -426,7 +420,6 @@ class TaskViewSet(viewsets.ModelViewSet):
     def assign_task(self, request, pk=None):
         """Assign a user to a task (manager only)"""
         task = self.get_object()
-        print(f"[Assign Task] Fetched Task: {task.title} (ID: {task.id})")
 
         # Only garden managers or system admins can assign
         membership = GardenMembership.objects.filter(
@@ -435,20 +428,15 @@ class TaskViewSet(viewsets.ModelViewSet):
             role='MANAGER',
             status='ACCEPTED'
         ).first()
-        print(f"[Assign Task] Request by user: {request.user.username}")
-        print(f"[Assign Task] Task ID: {task.id}, Garden: {task.garden.name}")
-        print(f"[Assign Task] Manager Membership: {membership}")
+
         if not (membership or request.user.profile.role == 'ADMIN'):
             return Response({"error": "You do not have permission to assign this task."},
                             status=status.HTTP_403_FORBIDDEN)
 
         user_id = request.data.get("user_id")
-        print(f"[Assign Task] user_id: {user_id} (type: {type(user_id)})")
         if not user_id:
             return Response({"error": "user_id is required"}, status=400)
-        print(f"Available user IDs: {list(User.objects.values_list('id', flat=True))}")
         assigned_user = get_object_or_404(User, id=user_id)
-        print(f"[Assign Task] Assigned user: {assigned_user.username} (ID: {assigned_user.id})")
         # Optional: Check if the assigned user is part of the garden
         if not GardenMembership.objects.filter(user=assigned_user, garden=task.garden, status='ACCEPTED').exists():
             return Response({"error": "User is not a member of this garden."}, status=400)
@@ -456,6 +444,41 @@ class TaskViewSet(viewsets.ModelViewSet):
         task.assigned_to = assigned_user
         task.status = 'PENDING'  # optionally reset status
         task.save()
+        return Response(TaskSerializer(task).data)
+
+    @action(detail=True, methods=['post'], url_path='self-assign')
+    def self_assign_task(self, request, pk=None):
+        """Allow a member to self-assign an unassigned or declined task"""
+        task = self.get_object()
+        user = request.user
+
+        if task.assigned_to is not None and task.assigned_to != user:
+            return Response(
+                {"error": "This task is already assigned to someone else."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if task.status not in ['PENDING', 'DECLINED']:
+            return Response(
+                {"error": f"Task cannot be self-assigned because it has status: {task.status}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if the user is a valid member of the garden
+        is_member = GardenMembership.objects.filter(
+            user=user,
+            garden=task.garden,
+            status='ACCEPTED'
+        ).exists()
+
+        if not is_member:
+            return Response({"error": "You are not a member of this garden."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        task.assigned_to = user
+        task.status = 'IN_PROGRESS'  # 🚀 Directly move to active work
+        task.save()
+
         return Response(TaskSerializer(task).data)
 
 class ForumPostListCreateView(generics.ListCreateAPIView):
@@ -521,7 +544,6 @@ class CommentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             return Response({"detail": "You do not have permission to delete this comment."},
                             status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
-
 
 @method_decorator(cache_page(60 * 5), name='get')
 class WeatherDataView(APIView):

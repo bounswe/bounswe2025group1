@@ -15,6 +15,7 @@ export default function TaskDetailScreen() {
   const [members, setMembers] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState('');
   const [isManager, setIsManager] = useState(false);
+  const [isMember, setIsMember] = useState(false);
 
   useEffect(() => {
     fetchTask();
@@ -36,7 +37,9 @@ export default function TaskDetailScreen() {
       const accepted = memberRes.data.filter(m => m.status === 'ACCEPTED' && m.garden === gardenId);
       setMembers(accepted.filter(m => m.role === 'WORKER'));
       setIsManager(accepted.some(m => m.username === user.username && m.role === 'MANAGER'&& m.status ==='ACCEPTED'));
-      const workers = accepted.filter(m => m.role === 'WORKER');
+      setIsMember(accepted.some(m => m.username === user.username));
+      
+      
       
   
 
@@ -91,6 +94,22 @@ export default function TaskDetailScreen() {
     } catch (err) {
       console.error('Complete error:', err?.response?.data || err.message);
       Alert.alert('Error', 'Could not complete the task.');
+    }
+  };
+
+  const handleSelfAssign = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/tasks/${task.id}/self-assign/`,
+        {},
+        { headers: { Authorization: `Token ${token}` } }
+      );
+      Alert.alert("Success", "You have been assigned to this task.");
+      // Optionally: refresh task state or navigate back
+      fetchTask(); 
+    } catch (err) {
+      console.error(err?.response?.data || err);
+      Alert.alert("Error", "Could not assign task to yourself.");
     }
   };
 
@@ -168,6 +187,15 @@ export default function TaskDetailScreen() {
           </TouchableOpacity>
           <TouchableOpacity style={styles.declineBtn} onPress={() => handleAction('decline')}>
             <Text style={styles.btnText}>Decline</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* self assign */}
+      {(task.status === 'PENDING' || task.status === 'DECLINED') && isMember && !isManager && task.assigned_to != user.id &&(
+        <View style={styles.actionRow}>
+          <TouchableOpacity style={styles.acceptBtn} onPress={handleSelfAssign}>
+            <Text style={styles.btnText}>Self Assign</Text>
           </TouchableOpacity>
         </View>
       )}
