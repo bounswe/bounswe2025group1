@@ -27,7 +27,8 @@ from rest_framework import generics
 from .serializers import (
     RegisterSerializer, ProfileSerializer, LoginWithCaptchaSerializer, UserSerializer, ProfileUpdateSerializer,
     FollowSerializer, GardenSerializer, GardenMembershipSerializer,
-    CustomTaskTypeSerializer, TaskSerializer, ForumPostSerializer, CommentSerializer
+    CustomTaskTypeSerializer, TaskSerializer, ForumPostSerializer, CommentSerializer,
+    UserGardenSerializer
 )
 from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
 from .permissions import (
@@ -244,12 +245,11 @@ class GardenViewSet(viewsets.ModelViewSet):
 
 class GardenMembershipViewSet(viewsets.ModelViewSet):
     queryset = GardenMembership.objects.all()
-    queryset = GardenMembership.objects.all()
     serializer_class = GardenMembershipSerializer
 
 
     def get_permissions(self):
-        if self.action in ['create']:
+        if self.action in ['create', 'my_gardens']:
             permission_classes = [IsAuthenticated]
         elif self.action in ['update', 'partial_update', 'destroy']:
             permission_classes = [IsGardenManager | IsSystemAdministrator]
@@ -272,6 +272,22 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
         membership.status = 'ACCEPTED'
         membership.save()
         return Response({'status': 'Membership accepted'})
+        
+    @action(detail=False, methods=['get'], url_path='my-gardens')
+    def my_gardens(self, request):
+        """Get list of gardens that the current user is a member of"""
+        # Get all accepted memberships of the current user
+        memberships = GardenMembership.objects.filter(
+            user=request.user,
+            status='ACCEPTED'
+        ).select_related('garden')
+        
+        # Extract the gardens from the memberships
+        gardens = [membership.garden for membership in memberships]
+        
+        # Serialize the gardens with user role information
+        serializer = UserGardenSerializer(gardens, many=True, context={'request': request})
+        return Response(serializer.data)
 
 
 class CustomTaskTypeViewSet(viewsets.ModelViewSet):
