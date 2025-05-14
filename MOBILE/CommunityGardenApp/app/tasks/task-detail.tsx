@@ -192,7 +192,7 @@ export default function TaskDetailScreen() {
       )}
 
       {/* self assign */}
-      {(task.status === 'PENDING' || task.status === 'DECLINED') && isMember && (
+      {(task.status === 'PENDING' || task.status === 'DECLINED') && isMember && !isManager && task.assigned_to != user.id &&(
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.acceptBtn} onPress={handleSelfAssign}>
             <Text style={styles.btnText}>Self Assign</Text>
