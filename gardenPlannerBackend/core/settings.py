@@ -36,7 +36,7 @@ OPENWEATHERMAP_API_KEY = os.getenv('OPENWEATHERMAP_API_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -74,7 +74,7 @@ MIDDLEWARE = [
 CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    "http://164.92.202.177:5173",
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -107,7 +107,7 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', 'gardenplanner'),
         'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'HOST': os.getenv('DB_HOST', '164.92.202.177'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
