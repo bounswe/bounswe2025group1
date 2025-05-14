@@ -45,8 +45,6 @@ const GardenDetail = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [openTaskModal, setOpenTaskModal] = useState(false);
-  const [openInviteModal, setOpenInviteModal] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
   const handleOpenTaskModal = () => setOpenTaskModal(true);
   const handleCloseTaskModal = () => setOpenTaskModal(false);
   const { currentUser } = useAuth();
@@ -409,21 +407,6 @@ const GardenDetail = () => {
     }
   };
 
-  const handleInviteMember = async () => {
-    try {
-      // Backend expects user by ID, not email, so we'd need to:
-      // 1. Find user ID by email
-      // 2. Then create membership
-      // For now, let's just show a notification that this is not implemented
-      toast.info('Email invitation not currently supported. Users must join using the Join Garden button.');
-      setOpenInviteModal(false);
-      setInviteEmail('');
-    } catch (err) {
-      console.error('Invite member error:', err);
-      toast.error('Failed to send invitation');
-    }
-  };
-
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -682,20 +665,6 @@ const GardenDetail = () => {
         {/* Members Tab */}
         {activeTab === 1 && (
           <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" sx={{ color: '#558b2f' }}>Garden Members</Typography>
-              {isManager && (
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={() => setOpenInviteModal(true)}
-                  sx={{ backgroundColor: '#558b2f' }}
-                >
-                  Invite Members
-                </Button>
-              )}
-            </Box>
-
             <List>
               {members.map((member) => (
                 <Paper key={member.id} elevation={1} sx={{ mb: 2 }}>
@@ -792,30 +761,7 @@ const GardenDetail = () => {
         mode="edit"
       />
 
-      {/* Invite Member Modal */}
-      <Dialog open={openInviteModal} onClose={() => setOpenInviteModal(false)}>
-        <DialogTitle>Invite New Member</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Email Address"
-            type="email"
-            fullWidth
-            variant="outlined"
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenInviteModal(false)}>Cancel</Button>
-          <Button onClick={handleInviteMember} variant="contained" color="primary">
-            Send Invitation
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-    </Container>
+     </Container>
   );
 };
 
