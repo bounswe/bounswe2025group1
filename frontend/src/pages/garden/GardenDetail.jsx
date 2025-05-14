@@ -375,6 +375,40 @@ const GardenDetail = () => {
     }
   };
 
+  const handleAcceptMember = async (membershipId) => {
+    try {
+      const acceptRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${membershipId}/accept/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`
+        },
+        body: JSON.stringify({})
+      });
+      
+      if (!acceptRes.ok) {
+        throw new Error('Failed to accept member');
+      }
+      
+      toast.success('Member accepted');
+      
+      // Refresh members list
+      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`
+        }
+      });
+      const allMembersData = await membersRes.json();
+      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
+      setMembers(filteredMembersData || []);
+    } catch (err) {
+      console.error('Accept member error:', err);
+      toast.error('Failed to accept member');
+    }
+  };
+
   const handleInviteMember = async () => {
     try {
       // Backend expects user by ID, not email, so we'd need to:
@@ -674,18 +708,29 @@ const GardenDetail = () => {
                     <ListItemText
                       primary={member.username || `User ${member.id || 'Unknown'}`}
                       secondary={`Role: ${member.role} • Status: ${member.status}`}
-                    />
-                    {isManager && member.id !== userMembership?.id && (
+                    />                    {isManager && member.id !== userMembership?.id && (
                       <>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="primary"
-                          onClick={() => handleChangeMemberRole(member.id, member.role === 'MANAGER' ? 'WORKER' : 'MANAGER')}
-                          sx={{ mr: 1 }}
-                        >
-                          {member.role === 'MANAGER' ? 'Demote' : 'Promote'}
-                        </Button>
+                        {member.status === 'PENDING' ? (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="success"
+                            onClick={() => handleAcceptMember(member.id)}
+                            sx={{ mr: 1 }}
+                          >
+                            Accept
+                          </Button>
+                        ) : (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            onClick={() => handleChangeMemberRole(member.id, member.role === 'MANAGER' ? 'WORKER' : 'MANAGER')}
+                            sx={{ mr: 1 }}
+                          >
+                            {member.role === 'MANAGER' ? 'Demote' : 'Promote'}
+                          </Button>
+                        )}
                         <Button
                           size="small"
                           variant="outlined"
