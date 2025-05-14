@@ -23,7 +23,6 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import HomeIcon from '@mui/icons-material/Home';
 import YardIcon from '@mui/icons-material/Yard';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -111,11 +110,9 @@ function Navbar() {
       (path !== '/' && location.pathname.startsWith(path));
   };
   
-  // Mock notification count - would come from a notifications context in a real app
-  const notificationCount = 3;
 
-  return (
-    <AppBar 
+  return (    
+  <AppBar 
       position="sticky" 
       sx={{ 
         backgroundColor: '#558b2f', 
@@ -125,6 +122,7 @@ function Navbar() {
         transition: 'box-shadow 0.3s ease',
         boxShadow: scrolled ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
         backgroundImage: 'linear-gradient(to right, #558b2f, #33691e)',
+        borderRadius: '0px',
       }}
     >
       <Container maxWidth={false} disableGutters sx={{ width: '100%' }}>
@@ -226,26 +224,8 @@ function Navbar() {
             ))}
           </Box>
 
-          {/* Notifications icon - only show when user is logged in */}
           {currentUser && (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Tooltip title="Notifications">
-                <IconButton 
-                  size="large"
-                  color="inherit" 
-                  onClick={() => navigate('/notifications')}
-                  sx={{ 
-                    mr: 2,
-                    '&:hover': { 
-                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    }
-                  }}
-                >
-                  <Badge badgeContent={notificationCount} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
-              </Tooltip>
 
               {/* Profile menu */}
               <Tooltip title="Open settings">

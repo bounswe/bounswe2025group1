@@ -1,3 +1,4 @@
+import React from 'react';
 import { 
   Card, 
   CardContent, 
@@ -70,12 +71,6 @@ const GardenCard = ({ garden, variant = 'default' }) => {
           <LocationOnIcon fontSize="small" color="action" sx={{ mr: 1 }} />
           <Typography variant="body2" color="text.secondary">
             {garden.location}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <GroupIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-          <Typography variant="body2" color="text.secondary">
-            {garden.members} members {garden.tasks && `• ${garden.tasks} tasks`}
           </Typography>
         </Box>
       </CardContent>

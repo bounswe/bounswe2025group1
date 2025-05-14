@@ -280,7 +280,6 @@ describe('ForumPost Component', () => {
     // Should navigate back to forum list
     expect(mockNavigate).toHaveBeenCalledWith('/forum');
   });
-
   test('adds a new comment when comment dialog is submitted', async () => {
     render(<ForumPost />);
     
@@ -296,8 +295,8 @@ describe('ForumPost Component', () => {
     const commentDialog = screen.getByTestId('comment-create-dialog');
     fireEvent.click(commentDialog); // Simulate comment creation
     
-    // New comment should be added to the list
-    expect(screen.getAllByText(/comment/i)).toHaveLength(3); // Two original comments + new one
+    // New comment should be added to the list - check specifically for the actual comment content
+    expect(screen.getByText('New comment')).toBeInTheDocument(); 
   });
 
   test('shows error state when post fetch fails', async () => {

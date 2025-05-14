@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import {
   Container,
   Typography,
@@ -6,56 +5,19 @@ import {
   Grid,
   Button,
   Paper,
-  CircularProgress,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
-import api from '../../utils/api';
-import GardenCard from '../../components/GardenCard';
 import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
 import ForumPreview from '../../components/ForumPreview';
+import GardensPreview from '../../components/GardensPreview';
+
+const WIDGET_HEIGHT = 350;
 
 const Home = () => {
-  const [gardens, setGardens] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [weather, setWeather] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [gardensRes, tasksRes, weatherRes, postsRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL}/gardens/`).then(res => res.json()),
-          api.getTasks(),
-          api.getWeather(),
-          api.getPosts()
-        ]);
-
-        setGardens(gardensRes || []);
-        setTasks(tasksRes.data || []);
-        setWeather(weatherRes.data || null);
-        setPosts(postsRes.data || []);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress color="success" />
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
@@ -76,47 +38,20 @@ const Home = () => {
           )}
         </Paper>
 
-        <Box
-          display="grid"
-          gridTemplateColumns="1fr 2fr"
-          gap={2}
-          sx={{ height: 300, mb: 15 }}
-        >
-          <Paper elevation={1} sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h6" gutterBottom>
-              Weather Update
-            </Typography>
-            <WeatherWidget/>
-          </Paper>
-          <Paper
-            elevation={1}
-            sx={{
-              p: 2,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflowX: 'auto'
-            }}
-          >
-            <Typography variant="h6" gutterBottom>
-              Gardens
-            </Typography>
-            <Grid container spacing={2}>
-              {gardens.slice(0, 2).map((garden) => (
-                <Grid item xs={12} key={garden.id}>
-                  <Box sx={{ height: '100%', width: '100%' }} display="flex" justifyContent="center" ml={10} mr={10}>
-                    <GardenCard
-                      garden={{ ...garden, image: `/gardens/garden${garden.id % 5}.png` }}
-                      variant="compact"
-                    />
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </Paper>
-        </Box>
-
-        <ForumPreview posts={posts} limit={2} sx={{ mt: 20 }} />
+        <Grid container spacing={4} sx={{ mb: 4 }}>
+          <Grid size={{xs: 12}}>
+            <GardensPreview limit={2} />
+          </Grid>
+          <Grid size={{xs: 12, md: 4}} height={WIDGET_HEIGHT}>
+            <TasksList limit={3} />
+          </Grid>
+          <Grid size={{xs: 12, md: 4}} height={WIDGET_HEIGHT}>
+            <ForumPreview limit={2} />
+          </Grid>
+          <Grid size={{xs: 12, md: 4}} height={WIDGET_HEIGHT}>
+            <WeatherWidget />
+          </Grid>
+        </Grid>
 
         {!currentUser && (
           <Paper elevation={1} sx={{ mt: 6, p: 4 }}>
