@@ -93,7 +93,7 @@ const TaskBoard = ({ tasks, setTasks, onStatusUpdate, onTaskClick }) => {
                           </Typography>
                           <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between' }}>
                             <Typography variant="caption">
-                              {task.assignee || 'Unassigned'}
+                              {task.assigned_to_username || 'Unassigned'}
                             </Typography>
                             <Button
                               size="small"

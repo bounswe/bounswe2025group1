@@ -60,31 +60,31 @@ const GardenDetail = () => {
   const [isMember, setIsMember] = useState(false);
   const [isManager, setIsManager] = useState(false);
   const [userMembership, setUserMembership] = useState(null);
-
   const handleTaskChipClick = (task) => {
-    setSelectedTask(task);
+    // Format the task data to ensure consistent structure for the modal
+    const formattedTask = {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status || 'PENDING',
+      due_date: task.due_date,
+      assigned_to: task.assigned_to,
+      custom_type: task.custom_type ? String(task.custom_type) : null,
+      garden: task.garden
+    };
+    console.log('Task selected for edit:', formattedTask);
+    setSelectedTask(formattedTask);
     setEditTaskModalOpen(true);
   };
-
   const handleTaskUpdate = async (updatedTask) => {
-    try {
-      const payload = {
-        title: updatedTask.title,
-        description: updatedTask.description,
-        status: updatedTask.status?.toUpperCase() || 'PENDING',
-        due_date: new Date(updatedTask.deadline).toISOString(),
-        assigned_to: updatedTask.assignees?.[0] || null,
-        custom_type: updatedTask.custom_type ? parseInt(updatedTask.custom_type) : null,
-        garden: parseInt(gardenId)
-      };
-
+    try {      
       const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Token ${token}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(updatedTask)
       });
 
       if (!response.ok) {
@@ -153,13 +153,14 @@ const GardenDetail = () => {
         const gardenData = await gardenRes.json();
         setGarden(gardenData);
 
-        const tasksRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/`, {
+        const tasksRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/?garden=${gardenId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Token ${token}`
           }
-        });        const tasksData = await tasksRes.json();
+        });
+        const tasksData = await tasksRes.json();
         setTasks(tasksData);
 
         // Fetch all memberships and filter by garden ID on the frontend
@@ -414,7 +415,6 @@ const GardenDetail = () => {
       </Container>
     );
   }
-
   const handleTaskSubmit = async (formData) => {
 
     if (!token) {
@@ -422,24 +422,14 @@ const GardenDetail = () => {
       return;
     }
 
-    const payload = {
-      title: formData.title,
-      description: formData.description,
-      status: formData.status?.toUpperCase() || 'PENDING',
-      due_date: new Date(formData.deadline).toISOString(),
-      garden: parseInt(gardenId),
-      assigned_to: formData.assignees?.[0] || null,
-      custom_type: formData.custom_type ? parseInt(formData.custom_type) : null
-    };
-
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/?garden=${gardenId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Token ${token}`
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(formData),
       });
 
       const text = await response.text();
@@ -734,6 +724,7 @@ const GardenDetail = () => {
         onClose={handleCloseTaskModal}
         onSubmit={handleTaskSubmit}
         initialData={taskForm}
+        gardenId={gardenId}
       />
       <GardenModal
         open={openGardenEditModal}
@@ -752,6 +743,7 @@ const GardenDetail = () => {
         onDelete={handleTaskDelete}
         initialData={selectedTask}
         customTaskTypes={customTaskTypes}
+        gardenId={gardenId}
         mode="edit"
       />
 
