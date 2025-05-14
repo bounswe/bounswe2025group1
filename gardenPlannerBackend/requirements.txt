@@ -1,0 +1,13 @@
+asgiref==3.8.1
+Django==4.2.20
+django-cors-headers==4.7.0
+djangorestframework==3.16.0
+djangorestframework_simplejwt==5.5.0
+PyJWT==2.9.0
+python-dotenv==1.1.0
+sqlparse==0.5.3
+typing_extensions==4.13.2
+Pillow==10.3.0
+requests==2.32.3
+django-cors-headers==4.7.0
+psycopg2-binary==2.9.9
