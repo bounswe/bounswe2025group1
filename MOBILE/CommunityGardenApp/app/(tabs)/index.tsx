@@ -1,74 +1,80 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import { Image, StyleSheet, View ,Text} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import WeatherWidget from '@/components/WeatherWidget';
+import { useAuth } from '../../contexts/AuthContext';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { API_URL } from '@/constants/Config';
+
+
+
 
 export default function HomeScreen() {
+  const [location, setLocation] = useState<string | null>(null);
+  const { user, token } = useAuth()
+  useEffect(() => {
+    const fetchCurrentProfile = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/profile/`, {
+          headers: { Authorization: `Token ${token}` },
+        });
+        setLocation(res.data?.profile?.location || res.data?.location || null);
+      } catch (err) {
+        console.error('Failed to load profile location');
+      }
+    };
+  
+    if (token) fetchCurrentProfile();
+  }, [token]);
+
+  
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
+    
+      <SafeAreaView style={styles.container}>
+        {location ? (
+          <WeatherWidget city={location} />
+        ) : (
+          <Text style={{ marginBottom: 12 }}>Loading weather...</Text>
+        )}
+    
+        <ThemedView style={styles.welcomeContainer}>
+          <ThemedText type="title" style={styles.welcomeText}>
+            Welcome to the Garden Community App!
+          </ThemedText>
+          <ThemedText type="subtitle">
+            Connect, grow, and share with fellow gardeners 🌱
+          </ThemedText>
+        </ThemedView>
+    
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+          source={require('@/assets/images/communitygarden.png')}
+          style={styles.gardenImage}
+          resizeMode="contain"
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      </SafeAreaView>
+    
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: '#F7FBE9',
+    padding: 20,
+  },
+  welcomeContainer: {
+    marginTop: 16,
+    marginBottom: 20,
     alignItems: 'center',
-    gap: 8,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: '#F7FBE9',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  welcomeText: {textAlign: 'center',marginBottom: 8,},
+  gardenImage: {
+    width: '100%',
+    height: 300,
   },
 });

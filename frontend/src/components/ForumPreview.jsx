@@ -12,11 +12,17 @@ import {
   Avatar
 } from '@mui/material';
 import ForumIcon from '@mui/icons-material/Forum';
-import ChatIcon from '@mui/icons-material/Chat';
 import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../contexts/AuthContextUtils';
+import CircularProgress from '@mui/material/CircularProgress';
 
-const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
+const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   const navigate = useNavigate();
+  const { token } = useAuth();
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const displayPosts = posts.slice(0, limit);
 
   const formatDate = (dateString) => {
@@ -27,8 +33,43 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
     }).format(date);
   };
 
+  
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, {
+          headers: {
+            'Authorization': `Token ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch posts');
+        }
+        
+        const data = await response.json();
+        setPosts(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching forum posts:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [token]);
+
+  if (loading) {
+    return (
+          <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress color="success" size={40} />
+            <Typography variant="body2" sx={{ mt: 2 }}>Loading forum data...</Typography>
+          </Paper>
+        );
+  }
+
   return (
-    <Paper elevation={2} sx={{ p: 3 }}>
+    <Paper elevation={2} sx={{ p: 3, height: "100%" }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
         <ForumIcon sx={{ mr: 1 }} /> Community Forum
       </Typography>
@@ -45,7 +86,7 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
                 >
                   <ListItemAvatar>
                     <Avatar sx={{ bgcolor: '#558b2f' }}>
-                      {post.author.charAt(0)}
+                      {post.author}
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText
@@ -57,12 +98,8 @@ const ForumPreview = ({ posts = [], limit = 3, showViewAll = true }) => {
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
                           <Typography variant="caption" color="text.secondary">
-                            {post.author} • {formatDate(post.date)}
+                            {post.author} • {formatDate(post.created_at)}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-                            <ChatIcon sx={{ fontSize: 14, mr: 0.5 }} />
-                            <Typography variant="caption">{post.comments}</Typography>
-                          </Box>
                         </Box>
                       </>
                     }

@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Paper,
   Typography,
@@ -10,16 +11,14 @@ import {
   Chip
 } from '@mui/material';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import { useNavigate } from 'react-router-dom';
 
-const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true }) => {
-  const navigate = useNavigate();
+const TasksList = ({ tasks = [], title = "Tasks", limit = 5}) => {
 
   // Filter tasks by status if needed
   const filteredTasks = tasks.slice(0, limit);
 
   return (
-    <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+    <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", display: 'flex', flexDirection: 'column', justifyContent: "center"}}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <TaskAltIcon sx={{ mr: 1 }} /> {title}
@@ -33,9 +32,9 @@ const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true 
           />
         )}
       </Typography>
-      
+
       {filteredTasks.length > 0 ? (
-        <List dense>
+        <List sx={{overflow: 'auto', flexGrow: 1}} dense>
           {filteredTasks.map((task) => (
             <ListItem key={task.id} sx={{
               mb: 1,
@@ -51,28 +50,21 @@ const TasksList = ({ tasks = [], title = "Tasks", limit = 5, showViewAll = true 
               </ListItemIcon>
               <ListItemText 
                 primary={task.title} 
-                secondary={`Due: ${task.deadline} • ${task.assignee || 'Unassigned'}`}
+                secondary={`Due: ${new Date(task.due_date).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}`}
               />
             </ListItem>
           ))}
         </List>
       ) : (
-        <Box sx={{ py: 2, textAlign: 'center' }}>
+        <Box sx={{ py: 2, textAlign: 'center', flexGrow: 1 }}>
           <Typography variant="body2" color="text.secondary">
             No tasks available.
           </Typography>
         </Box>
-      )}
-      
-      {showViewAll && tasks.length > 0 && (
-        <Button 
-          variant="text" 
-          color="primary" 
-          onClick={() => navigate('/tasks')}
-          sx={{ mt: 1, color: '#2e7d32' }}
-        >
-          {tasks.length > limit ? `View All (${tasks.length})` : 'Manage Tasks'}
-        </Button>
       )}
     </Paper>
   );
