@@ -33,7 +33,6 @@ export default function UserProfileScreen() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        console.log('Fetching user profile...');
         let userId: string | number = id;
         if (Array.isArray(id)) {
           userId = id[0]; // fallback to first if array
@@ -48,14 +47,11 @@ export default function UserProfileScreen() {
           headers: { Authorization: `Token ${token}` },
         });
         setUserData(res.data);
-        console.log('User profile:', res.data);
 
         // Fetch user's gardens via memberships
-        console.log('Fetching memberships...');
         const membershipsRes = await axios.get(`${API_URL}/memberships/`, {
           headers: { Authorization: `Token ${token}` },
         });
-        console.log('Memberships:', membershipsRes.data);
         const userMemberships = membershipsRes.data.filter((m: any) => m.user_id === Number(userId) && m.status === 'ACCEPTED');
         const gardenIds = userMemberships.map((m: any) => m.garden);
         const gardenDetails = await Promise.all(
