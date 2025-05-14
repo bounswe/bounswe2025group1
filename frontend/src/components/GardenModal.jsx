@@ -31,10 +31,7 @@ const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, ha
         >
           <Typography variant="h6" gutterBottom>
             {mode === 'edit' ? 'Edit Garden' : 'Create New Garden'}
-          </Typography>
-
-
-          <TextField
+          </Typography>          <TextField
             label="Garden Name"
             name="name"
             fullWidth
@@ -42,15 +39,6 @@ const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, ha
             value={form.name}
             onChange={handleChange}
             required
-          />
-
-          <TextField
-            label="Type"
-            name="type"
-            fullWidth
-            margin="normal"
-            value={form.type}
-            onChange={handleChange}
           />
 
           <TextField
@@ -69,19 +57,8 @@ const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, ha
             name="location"
             fullWidth
             margin="normal"
-            value={form.location}
-            onChange={handleChange}
+            value={form.location}            onChange={handleChange}
             required
-          />
-
-          <TextField
-            label="Size (m²)"
-            name="size"
-            type="number"
-            fullWidth
-            margin="normal"
-            value={form.size}
-            onChange={handleChange}
           />
 
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>

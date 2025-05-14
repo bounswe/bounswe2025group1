@@ -130,13 +130,10 @@ const GardenDetail = () => {
     maintenance_type: '',
     custom_type: '',
   });
-
   const [editForm, setEditForm] = useState({
     name: '',
     description: '',
     location: '',
-    type: '',
-    size: '',
     isPublic: false,
   });
 
@@ -181,14 +178,10 @@ const GardenDetail = () => {
           setIsMember(!!userMember);
           setIsManager(userMember?.role === 'MANAGER');
           setUserMembership(userMember);
-        }
-
-        setEditForm({
+        }        setEditForm({
           name: gardenData.name || '',
           description: gardenData.description || '',
           location: gardenData.location || '',
-          type: gardenData.type || '',
-          size: gardenData.size || '',
           isPublic: gardenData.is_public || false,
         });
         setLoading(false);
@@ -438,8 +431,6 @@ const GardenDetail = () => {
       assigned_to: formData.assignees?.[0] || null,
       custom_type: formData.custom_type ? parseInt(formData.custom_type) : null
     };
-
-
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/`, {
