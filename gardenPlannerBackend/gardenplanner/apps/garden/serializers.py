@@ -106,11 +106,18 @@ class LoginWithCaptchaSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
-    
+    gardens = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
-        read_only_fields = ['id', 'profile']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile', 'gardens']
+        read_only_fields = ['id', 'profile', 'gardens']
+
+    def get_gardens(self, obj):
+        from .models import GardenMembership
+        memberships = GardenMembership.objects.filter(user=obj, status='ACCEPTED')
+        gardens = [membership.garden for membership in memberships]
+        return GardenSerializer(gardens, many=True).data
 
 class GardenSerializer(serializers.ModelSerializer):
     class Meta:

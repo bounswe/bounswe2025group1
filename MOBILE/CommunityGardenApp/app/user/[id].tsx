@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_URL, COLORS } from '../../constants/Config';
 
+// @ts-nocheck
+
 export default function UserProfileScreen() {
   const { token, user } = useAuth();
   const { id } = useLocalSearchParams();
@@ -14,27 +16,69 @@ export default function UserProfileScreen() {
   const [error, setError] = useState('');
   const [isFollowing, setIsFollowing] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [gardens, setGardens] = useState<any[]>([]);
+
+  const checkBlocking = async (userId: string | number) => {
+    try {
+      const response = await axios.get(`${API_URL}/profile/block/?user_id=${userId}`, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error checking blocking status:', error);
+      return { can_interact: true }; // Default to allowing if check fails
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(`${API_URL}/profile/${id}/`, {
+        console.log('Fetching user profile...');
+        let userId: string | number = id;
+        if (Array.isArray(id)) {
+          userId = id[0]; // fallback to first if array
+        }
+        const blockStatus = await checkBlocking(userId);
+        if (!blockStatus.can_interact) {
+          setError("You cannot view this profile due to blocking restrictions.");
+          setLoading(false);
+          return;
+        }
+        const res = await axios.get(`${API_URL}/profile/${userId}/`, {
           headers: { Authorization: `Token ${token}` },
         });
         setUserData(res.data);
+        console.log('User profile:', res.data);
+
+        // Fetch user's gardens via memberships
+        console.log('Fetching memberships...');
+        const membershipsRes = await axios.get(`${API_URL}/memberships/`, {
+          headers: { Authorization: `Token ${token}` },
+        });
+        console.log('Memberships:', membershipsRes.data);
+        const userMemberships = membershipsRes.data.filter((m: any) => m.user_id === Number(userId) && m.status === 'ACCEPTED');
+        const gardenIds = userMemberships.map((m: any) => m.garden);
+        const gardenDetails = await Promise.all(
+          gardenIds.map((gid: any) =>
+            axios.get(`${API_URL}/gardens/${gid}/`, { headers: { Authorization: `Token ${token}` } }).then(res => res.data)
+          )
+        );
+        setGardens(gardenDetails);
 
         // Check if following
         const followingRes = await axios.get(`${API_URL}/profile/following/`, {
           headers: { Authorization: `Token ${token}` },
         });
-        setIsFollowing(followingRes.data.some((u: any) => String(u.id) === String(id)));
+        setIsFollowing(followingRes.data.some((u: any) => String(u.id) === String(userId)));
 
         // Check if blocked
-        const blockedRes = await axios.get(`${API_URL}/profile/block/`, {
-          headers: { Authorization: `Token ${token}` },
-        });
-        setIsBlocked(blockedRes.data.some((u: any) => String(u.id) === String(id)));
+        // REMOVE THIS BLOCK (it causes a 400 error)
+        // const blockedRes = await axios.get(`${API_URL}/profile/block/`, {
+        //   headers: { Authorization: `Token ${token}` },
+        // });
+        // setIsBlocked(blockedRes.data.some((u: any) => String(u.id) === String(id)));
       } catch (err: any) {
+        console.error('Profile fetch error:', err, err?.response?.data);
         if (err.response?.status === 403) {
           setError('You cannot view this profile due to blocking restrictions.');
         } else {
@@ -137,17 +181,23 @@ export default function UserProfileScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.username}>@{userData.username}</Text>
 
-        <Text style={styles.label}>First Name:</Text>
-        <Text style={styles.value}>{userData.first_name || 'N/A'}</Text>
-
-        <Text style={styles.label}>Last Name:</Text>
-        <Text style={styles.value}>{userData.last_name || 'N/A'}</Text>
+        <Text style={styles.label}>Name:</Text>
+        <Text style={styles.value}>{userData.first_name || ''} {userData.last_name || ''}</Text>
 
         <Text style={styles.label}>Email:</Text>
         <Text style={styles.value}>{userData.email || 'Hidden'}</Text>
 
         <Text style={styles.label}>Location:</Text>
         <Text style={styles.value}>{userData.profile?.location || 'Unknown'}</Text>
+
+        <Text style={styles.label}>Gardens:</Text>
+        {gardens && gardens.length > 0 ? (
+          gardens.map((garden: any) => (
+            <Text key={garden.id} style={styles.value}>{garden.name}</Text>
+          ))
+        ) : (
+          <Text style={styles.value}>No gardens</Text>
+        )}
 
         {/* Only show follow/unfollow and block/unblock if not own profile */}
         {userData && user && String(userData.id) !== String(user.id) && (
@@ -160,15 +210,10 @@ export default function UserProfileScreen() {
                 {isFollowing ? 'Unfollow' : 'Follow'}
               </Text>
             </TouchableOpacity>
-            {isBlocked ? (
-              <TouchableOpacity style={styles.blockIconButton} onPress={handleUnblock}>
-                <Text style={styles.blockIconText}>🚫</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={styles.blockIconButton} onPress={handleBlock}>
-                <Text style={styles.blockIconText}>🚫</Text>
-              </TouchableOpacity>
-            )}
+            {/* Only show block/unblock if not own profile, and use checkBlocking result for UI if needed */}
+            <TouchableOpacity style={styles.blockIconButton} onPress={isBlocked ? handleUnblock : handleBlock}>
+              <Text style={styles.blockIconText}>🚫</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>

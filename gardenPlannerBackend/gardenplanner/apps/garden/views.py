@@ -176,6 +176,27 @@ class FollowingListView(APIView):
 class BlockUnblockView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        """Check if current user is blocked by another user or vice versa"""
+        user_id = request.query_params.get('user_id')
+        if not user_id:
+            return Response({"error": "user_id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            target_user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Check if either user has blocked the other
+        is_blocked_by_me = request.user.profile.is_blocked(target_user.profile)
+        is_blocked_by_them = target_user.profile.is_blocked(request.user.profile)
+        
+        return Response({
+            "is_blocked_by_me": is_blocked_by_me,
+            "is_blocked_by_them": is_blocked_by_them,
+            "can_interact": not (is_blocked_by_me or is_blocked_by_them)
+        })
+
     def post(self, request):
         """Block a user"""
         serializer = FollowSerializer(data=request.data)
