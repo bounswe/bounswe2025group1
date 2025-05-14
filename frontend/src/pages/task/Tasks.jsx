@@ -110,7 +110,6 @@ const Tasks = () => {
   
   const pendingTasks = tasks.filter(t => t.status === 'PENDING');
   const inProgressTasks = tasks.filter(t => t.status === 'IN_PROGRESS');
-  const completedTasks = tasks.filter(t => t.status === 'COMPLETED');
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: 3 }}>

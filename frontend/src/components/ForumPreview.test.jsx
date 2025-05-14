@@ -64,7 +64,7 @@ describe('ForumPreview Component', () => {
     });
     
     // Mock fetch for API calls
-    global.fetch = vi.fn().mockResolvedValue({
+    window.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => mockPosts
     });
@@ -101,7 +101,7 @@ describe('ForumPreview Component', () => {
   });
   test('displays a message when there are no posts', async () => {
     // Mock the fetch to return empty array
-    global.fetch = vi.fn().mockResolvedValue({
+    window.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => []
     });

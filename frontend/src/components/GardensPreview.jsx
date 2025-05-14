@@ -6,7 +6,7 @@ import GardenCard from './GardenCard';
 const GardensPreview = ({ limit = 2 }) => {
   const [gardens, setGardens] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { token, user } = useAuth();
+  const { token } = useAuth();
 
   useEffect(() => {
     const fetchGardens = async () => {
