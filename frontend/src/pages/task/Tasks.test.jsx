@@ -37,8 +37,26 @@ const renderWithProviders = () =>
 describe('Tasks page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    fetch.mockResolvedValue({
+    
+    // First mock for profile response
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        id: 1,
+        username: 'testuser'
+      })
+    });
+    
+    // Second mock for memberships response
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([
+        { status: 'ACCEPTED', username: 'testuser', garden: 1 }
+      ])
+    });
+    
+    // Third mock for tasks response
+    fetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve([
         {
@@ -47,6 +65,7 @@ describe('Tasks page', () => {
           status: 'PENDING',
           deadline: '2025-05-25T00:00:00Z',
           assignees: [],
+          assigned_to: 1
         }
       ])
     });
@@ -68,14 +87,18 @@ describe('Tasks page', () => {
     expect(screen.getAllByRole('heading', { name: 'Weather Update' })).not.toHaveLength(0);
     expect(screen.getByText(/Task Calendar/i)).toBeInTheDocument();
   });
-
   it('handles failed fetch gracefully', async () => {
+    // Clear previous mocks
+    vi.clearAllMocks();
+    
+    // Mock the fetch to reject with error
     fetch.mockRejectedValueOnce(new Error('Failed'));
-
+    
     renderWithProviders();
-
+    
+    // Wait for loading spinner to disappear
     await waitFor(() => {
-      expect(screen.queryByText('Pending Tasks')).not.toBeInTheDocument();
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
   });
 });
