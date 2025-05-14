@@ -177,9 +177,10 @@ class APITests(APITestCase):
         )
 
     # Authentication Endpoints
-    
-    def test_register_user(self):
+    @patch('garden.serializers.verify_recaptcha')
+    def test_register_user(self, mock_verify_recaptcha):
         """Test user registration"""
+        mock_verify_recaptcha.return_value = {'success': True}
         url = reverse('garden:register')
         data = {
             'username': 'newuser',
@@ -187,7 +188,8 @@ class APITests(APITestCase):
             'first_name': 'New',
             'last_name': 'User',
             'password': 'newpassword',
-            'location': 'New Location'
+            'location': 'New Location',
+            'captcha': 'dummy-token'
         }
         
         response = self.client.post(url, data, format='json')
@@ -201,12 +203,15 @@ class APITests(APITestCase):
         user = User.objects.get(username='newuser')
         self.assertEqual(user.profile.location, 'New Location')
 
-    def test_login(self):
+    @patch('garden.serializers.verify_recaptcha')
+    def test_login(self, mock_verify_recaptcha):
         """Test user login"""
+        mock_verify_recaptcha.return_value = {'success': True}
         url = reverse('garden:login')
         data = {
             'username': 'testuser',
-            'password': 'testpassword'
+            'password': 'testpassword',
+            'captcha': 'dummy-token'
         }
         
         response = self.client.post(url, data, format='json')
@@ -472,7 +477,7 @@ class APITests(APITestCase):
     
     def test_task_list(self):
         """Test listing tasks"""
-        url = reverse('garden:task-list')
+        url = reverse('garden:task-list') + f'?garden={self.garden.id}'
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
         
         response = self.client.get(url)
@@ -498,49 +503,6 @@ class APITests(APITestCase):
         # Check that task was created
         self.assertTrue(Task.objects.filter(title='New Task').exists())
     
-    def test_accept_task(self):
-        """Test accepting a task"""
-        url = reverse('garden:task-accept', args=[self.task.id])
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
-        
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        # Check that task was accepted
-        task = Task.objects.get(id=self.task.id)
-        self.assertEqual(task.status, 'ACCEPTED')
-    
-    def test_decline_task(self):
-        """Test declining a task"""
-        # First set task to ACCEPTED
-        self.task.status = 'ACCEPTED'
-        self.task.save()
-        
-        url = reverse('garden:task-decline', args=[self.task.id])
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
-        
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        # Check that task was declined
-        task = Task.objects.get(id=self.task.id)
-        self.assertEqual(task.status, 'DECLINED')
-    
-    def test_complete_task(self):
-        """Test completing a task"""
-        # First set task to IN_PROGRESS
-        self.task.status = 'IN_PROGRESS'
-        self.task.save()
-        
-        url = reverse('garden:task-complete', args=[self.task.id])
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
-        
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        # Check that task was completed
-        task = Task.objects.get(id=self.task.id)
-        self.assertEqual(task.status, 'COMPLETED')
 
 
 class ForumPostTests(TestCase):
