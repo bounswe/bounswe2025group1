@@ -111,8 +111,8 @@ function Navbar() {
   };
   
 
-  return (
-    <AppBar 
+  return (    
+  <AppBar 
       position="sticky" 
       sx={{ 
         backgroundColor: '#558b2f', 
@@ -122,6 +122,7 @@ function Navbar() {
         transition: 'box-shadow 0.3s ease',
         boxShadow: scrolled ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
         backgroundImage: 'linear-gradient(to right, #558b2f, #33691e)',
+        borderRadius: '0px',
       }}
     >
       <Container maxWidth={false} disableGutters sx={{ width: '100%' }}>
