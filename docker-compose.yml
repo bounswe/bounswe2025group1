@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    env_file:
+      - ./frontend/.env
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:15
+    ports:
+      - "5433:5432" # Expose PostgreSQL on port 5433 since 5432 is used by PostgreSQL in the host
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=gardenplanner
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./gardenPlannerBackend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./gardenPlannerBackend:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    env_file:
+      - ./gardenPlannerBackend/.env
+    environment:
+      - DEBUG=True
+      - DB_NAME=gardenplanner
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+    command: >
+      sh -c "python manage.py migrate && 
+             python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  static_volume:
+  media_volume:
+  postgres_data:
