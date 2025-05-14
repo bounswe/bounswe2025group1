@@ -177,9 +177,10 @@ class APITests(APITestCase):
         )
 
     # Authentication Endpoints
-    
-    def test_register_user(self):
+    @patch('garden.serializers.verify_recaptcha')
+    def test_register_user(self, mock_verify_recaptcha):
         """Test user registration"""
+        mock_verify_recaptcha.return_value = {'success': True}
         url = reverse('garden:register')
         data = {
             'username': 'newuser',
@@ -187,7 +188,8 @@ class APITests(APITestCase):
             'first_name': 'New',
             'last_name': 'User',
             'password': 'newpassword',
-            'location': 'New Location'
+            'location': 'New Location',
+            'captcha': 'dummy-token'
         }
         
         response = self.client.post(url, data, format='json')
@@ -201,12 +203,15 @@ class APITests(APITestCase):
         user = User.objects.get(username='newuser')
         self.assertEqual(user.profile.location, 'New Location')
 
-    def test_login(self):
+    @patch('garden.serializers.verify_recaptcha')
+    def test_login(self, mock_verify_recaptcha):
         """Test user login"""
+        mock_verify_recaptcha.return_value = {'success': True}
         url = reverse('garden:login')
         data = {
             'username': 'testuser',
-            'password': 'testpassword'
+            'password': 'testpassword',
+            'captcha': 'dummy-token'
         }
         
         response = self.client.post(url, data, format='json')
