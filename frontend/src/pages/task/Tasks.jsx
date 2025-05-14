@@ -19,20 +19,63 @@ const Tasks = () => {
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    const fetchAll = async () => {
+    const fetchTasksFromGardens = async () => {
       try {
-        const tRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/`, {
+        // Step 1: Get the user's profile to get ID
+        const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Token ${token}`
           }
         });
-        const taskData = await tRes.json();
+        const profileData = await profileRes.json();
+        const userId = profileData.id;
+        const username = profileData.username;
+        
+        // Step 2: Get all memberships to find accepted gardens
+        const membershipsRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`
+          }
+        });
+        const membershipsData = await membershipsRes.json();
+        
+        // Filter to get only gardens where the user has been accepted
+        const acceptedGardenIds = membershipsData
+          .filter(m => m.status === 'ACCEPTED' && m.username === username)
+          .map(m => m.garden);
 
-        setTasks(taskData || []);
+        // Step 3: Fetch tasks for each garden and compile all user's tasks
+        const userTasks = [];
+        
+        for (const gardenId of acceptedGardenIds) {
+          try {
+            const gardenTasksRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/?garden=${gardenId}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`
+              }
+            });
+            
+            const gardenTasksData = await gardenTasksRes.json();
+            
+            // Add tasks that are assigned to the current user
+            const userAssignedTasks = gardenTasksData.filter(
+              task => task.assigned_to === userId
+            );
+            
+            userTasks.push(...userAssignedTasks);
+          } catch (error) {
+            console.warn(`Failed to fetch tasks for garden ${gardenId}:`, error);
+          }
+        }
+        
+        setTasks(userTasks);
       } catch (e) {
         console.error('Failed to load data:', e);
       } finally {
@@ -41,7 +84,7 @@ const Tasks = () => {
     };
 
     if (token) {
-      fetchAll();
+      fetchTasksFromGardens();
     }
   }, [token]);
 
@@ -66,7 +109,8 @@ const Tasks = () => {
   }
   
   const pendingTasks = tasks.filter(t => t.status === 'PENDING');
-
+  const inProgressTasks = tasks.filter(t => t.status === 'IN_PROGRESS');
+  const completedTasks = tasks.filter(t => t.status === 'COMPLETED');
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: 3 }}>
@@ -77,11 +121,23 @@ const Tasks = () => {
           sx={{ height: 300 }}
         >
           <WeatherWidget />
-          <TasksList
-            tasks={pendingTasks}
-            title="Pending Tasks"
-            limit={4}
-          />
+          <Box>
+            {pendingTasks.length > 0 && (
+              <TasksList
+                tasks={pendingTasks}
+                title="Pending Tasks"
+                limit={3}
+              />
+            )}
+            {inProgressTasks.length > 0 && (
+              <TasksList
+                tasks={inProgressTasks}
+                title="In Progress Tasks"
+                limit={3}
+                sx={{ mt: pendingTasks.length > 0 ? 3 : 0 }}
+              />
+            )}
+          </Box>
         </Box>
         <Box mt={20}>
           <Typography variant="h4" sx={{ mt: 1, mb: 2, color: '#558b2f' }}>

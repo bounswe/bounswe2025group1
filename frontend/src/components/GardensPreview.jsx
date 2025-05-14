@@ -6,34 +6,82 @@ import GardenCard from './GardenCard';
 const GardensPreview = ({ limit = 2 }) => {
   const [gardens, setGardens] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   useEffect(() => {
     const fetchGardens = async () => {
       try {
-        const url = token 
-          ? `${import.meta.env.VITE_API_URL}/memberships/my-gardens/`
-          : `${import.meta.env.VITE_API_URL}/gardens/`;
-        
-        const headers = {
-          'Content-Type': 'application/json',
-        };
-
         if (token) {
-          headers['Authorization'] = `Token ${token}`;
+          // First get user profile to get the username
+          const profileResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Token ${token}`
+            }
+          });
+
+          if (!profileResponse.ok) {
+            throw new Error('Failed to fetch profile');
+          }
+
+          const profileData = await profileResponse.json();
+          
+          // Then get all memberships
+          const membershipsResponse = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Token ${token}`
+            }
+          });
+
+          if (!membershipsResponse.ok) {
+            throw new Error('Failed to fetch memberships');
+          }
+
+          const membershipsData = await membershipsResponse.json();
+          
+          // Filter memberships where status is ACCEPTED and username matches
+          const acceptedGardenIds = membershipsData
+            .filter(m => m.status === 'ACCEPTED' && m.username === profileData.username)
+            .map(m => m.garden);
+          
+          // Fetch each garden by ID
+          const gardensData = [];
+          for (const gardenId of acceptedGardenIds) {
+            const gardenResponse = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${token}`
+              }
+            });
+            
+            if (gardenResponse.ok) {
+              const gardenData = await gardenResponse.json();
+              gardensData.push(gardenData);
+            }
+          }
+          
+          setGardens(gardensData);
+        } else {
+          // For non-authenticated users, fetch public gardens
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/gardens/`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch gardens');
+          }
+
+          const data = await response.json();
+          setGardens(data);
         }
-
-        const response = await fetch(url, {
-          method: 'GET',
-          headers
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch gardens');
-        }
-
-        const data = await response.json();
-        setGardens(data);
+        
         setLoading(false);
       } catch (error) {
         console.error('Error fetching gardens:', error);

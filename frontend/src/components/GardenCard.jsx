@@ -73,12 +73,6 @@ const GardenCard = ({ garden, variant = 'default' }) => {
             {garden.location}
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <GroupIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-          <Typography variant="body2" color="text.secondary">
-            {garden.members} members {garden.tasks && `• ${garden.tasks} tasks`}
-          </Typography>
-        </Box>
       </CardContent>
       <Box sx={{ p: 2, pt: 0 }}>
         <Button 

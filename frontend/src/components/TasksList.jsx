@@ -50,7 +50,11 @@ const TasksList = ({ tasks = [], title = "Tasks", limit = 5}) => {
               </ListItemIcon>
               <ListItemText 
                 primary={task.title} 
-                secondary={`Due: ${task.deadline}`}
+                secondary={`Due: ${new Date(task.due_date).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}`}
               />
             </ListItem>
           ))}
