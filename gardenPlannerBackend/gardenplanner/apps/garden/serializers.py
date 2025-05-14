@@ -195,3 +195,23 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'created_at']
         read_only_fields = ['id', 'author', 'author_username', 'created_at']
+        
+        
+class UserGardenSerializer(serializers.ModelSerializer):
+    user_role = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Garden
+        fields = ['id', 'name', 'description', 'location', 'is_public', 'user_role', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def get_user_role(self, obj):
+        # This assumes that the request context contains the user
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            try:
+                membership = GardenMembership.objects.get(user=request.user, garden=obj)
+                return membership.role
+            except GardenMembership.DoesNotExist:
+                return None
+        return None
