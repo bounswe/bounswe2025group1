@@ -165,20 +165,19 @@ const GardenDetail = () => {
         });        const tasksData = await tasksRes.json();
         setTasks(tasksData);
 
-        // Fetch garden members
-        const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/?garden=${gardenId}`, {
+        // Fetch all memberships and filter by garden ID on the frontend
+        const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Token ${token}`
           }
         });
-        const membersData = await membersRes.json();
-        setMembers(membersData || []);
-
-        // Check if current user is a member and their role
+        const allMembersData = await membersRes.json();
+        const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
+        setMembers(filteredMembersData || []);        // Check if current user is a member and their role
         if (currentUser) {
-          const userMember = membersData?.find(m => m.user && m.user.id === currentUser.id);
+          const userMember = filteredMembersData?.find(m => m.username === currentUser.username);
           setIsMember(!!userMember);
           setIsManager(userMember?.role === 'MANAGER');
           setUserMembership(userMember);
@@ -234,6 +233,7 @@ const GardenDetail = () => {
   const handleToggleEditPublic = () => {
     setEditForm((prev) => ({ ...prev, isPublic: !prev.isPublic }));
   };
+
   const handleJoinGarden = async () => {
     try {
       // Creates a membership request for the current user to join the garden
@@ -251,22 +251,21 @@ const GardenDetail = () => {
       if (!joinRes.ok) {
         throw new Error('Failed to join garden');
       }
-      
-      toast.success('Request to join garden sent!');
+        toast.success('Request to join garden sent!');
       
       // Refresh members list
-      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/?garden=${gardenId}`, {
+      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Token ${token}`
         }
       });
-      const membersData = await membersRes.json();
-      setMembers(membersData || []);
-      
-      // Update user membership status
-      const userMember = membersData?.find(m => m.user && m.user.id === currentUser.id);
+      const allMembersData = await membersRes.json();
+      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
+      setMembers(filteredMembersData || []);
+        // Update user membership status
+      const userMember = filteredMembersData?.find(m => m.username === currentUser.username);
       setIsMember(!!userMember);
       setUserMembership(userMember);
     } catch (err) {
@@ -292,22 +291,22 @@ const GardenDetail = () => {
         }
         
         toast.success('You have left the garden');
-        
-        // Update state
+          // Update state
         setIsMember(false);
         setIsManager(false);
         setUserMembership(null);
         
         // Refresh members list
-        const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/?garden=${gardenId}`, {
+        const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Token ${token}`
           }
         });
-        const membersData = await membersRes.json();
-        setMembers(membersData || []);
+        const allMembersData = await membersRes.json();
+        const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
+        setMembers(filteredMembersData || []);
       }
     } catch (err) {
       console.error('Leave garden error:', err);
@@ -329,19 +328,19 @@ const GardenDetail = () => {
       if (!removeRes.ok) {
         throw new Error('Failed to remove member');
       }
-      
-      toast.success('Member removed from garden');
+        toast.success('Member removed from garden');
       
       // Refresh members list
-      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/?garden=${gardenId}`, {
+      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Token ${token}`
         }
       });
-      const membersData = await membersRes.json();
-      setMembers(membersData || []);
+      const allMembersData = await membersRes.json();
+      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
+      setMembers(filteredMembersData || []);
     } catch (err) {
       console.error('Remove member error:', err);
       toast.error('Failed to remove member');
@@ -363,19 +362,19 @@ const GardenDetail = () => {
       if (!updateRes.ok) {
         throw new Error('Failed to update member role');
       }
-      
-      toast.success('Member role updated');
+        toast.success('Member role updated');
       
       // Refresh members list
-      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/?garden=${gardenId}`, {
+      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Token ${token}`
         }
       });
-      const membersData = await membersRes.json();
-      setMembers(membersData || []);
+      const allMembersData = await membersRes.json();
+      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
+      setMembers(filteredMembersData || []);
     } catch (err) {
       console.error('Change role error:', err);
       toast.error('Failed to update member role');
@@ -557,18 +556,27 @@ const GardenDetail = () => {
             <Typography variant="body1" sx={{ textAlign: 'start' }}>
               {garden.description}
             </Typography>
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+          </Grid>          <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
             {currentUser ? (
               isMember ? (
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={handleLeaveGarden}
-                  sx={{ mr: 1 }}
-                >
-                  Leave Garden
-                </Button>
+                userMembership?.status === 'PENDING' ? (
+                  <Button
+                    variant="outlined"
+                    disabled
+                    sx={{ mr: 1 }}
+                  >
+                    Request Pending
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={handleLeaveGarden}
+                    sx={{ mr: 1 }}
+                  >
+                    Leave Garden
+                  </Button>
+                )
               ) : (
                 <Button
                   variant="contained"
@@ -683,7 +691,7 @@ const GardenDetail = () => {
                       </Avatar>
                     </ListItemAvatar>
                     <ListItemText
-                      primary={member.user?.username || `User ${member.user?.id || 'Unknown'}`}
+                      primary={member.username || `User ${member.id || 'Unknown'}`}
                       secondary={`Role: ${member.role} • Status: ${member.status}`}
                     />
                     {isManager && member.id !== userMembership?.id && (
