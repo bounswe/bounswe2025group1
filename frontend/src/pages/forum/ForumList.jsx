@@ -80,7 +80,7 @@ const ForumList = () => {
     const filtered = posts.filter(post => 
       post.title.toLowerCase().includes(value) || 
       post.content.toLowerCase().includes(value) || 
-      (post.author && post.author.toString().toLowerCase().includes(value))
+      (post.author_username && post.author_username.toString().toLowerCase().includes(value))
     );
     
     setFilteredPosts(filtered);
@@ -195,13 +195,13 @@ const ForumList = () => {
                 <Grid size={12}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>                      <Avatar sx={{ bgcolor: '#558b2f', width: 32, height: 32, mr: 1 }}>
-                        {post.author && post.author.toString().charAt(0)}
+                        {post.author_username && post.author_username.charAt(0)}
                       </Avatar>
                       <Typography variant="subtitle2" color="text.secondary">
                         <Box component="span" sx={{ cursor: 'pointer' }} onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/profile/${post.author}`);
-                        }}>User {post.author}</Box> • {formatDate(post.created_at)}
+                        }}>{post.author_username}</Box> • {formatDate(post.created_at)}
                       </Typography>
                     </Box>
                   </Box>

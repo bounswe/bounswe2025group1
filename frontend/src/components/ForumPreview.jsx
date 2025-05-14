@@ -86,7 +86,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
                 >
                   <ListItemAvatar>
                     <Avatar sx={{ bgcolor: '#558b2f' }}>
-                      {post.author}
+                      {post.author_username}
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText
@@ -98,7 +98,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
                           <Typography variant="caption" color="text.secondary">
-                            {post.author} • {formatDate(post.created_at)}
+                            {post.author_username} • {formatDate(post.created_at)}
                           </Typography>
                         </Box>
                       </>
