@@ -9,10 +9,11 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 export default function ForumPostScreen() {
   const { postId } = useLocalSearchParams();
   const { token } = useAuth();
-  const [post, setPost] = useState(null);
-  const [comments, setComments] = useState([]);
+  const [post, setPost] = useState<any>(null);
+  const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
+  const [blockedError, setBlockedError] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -29,8 +30,19 @@ export default function ForumPostScreen() {
         });
         setComments(commentsResponse.data);
         setLoading(false);
-      } catch (error) {
-        console.error('Error fetching post data:', error);
+      } catch (error: any) {
+        if (error.response && error.response.status === 403) {
+          setBlockedError(true);
+          router.back();
+          return;
+        } else if (error.response && error.response.status === 500) {
+          setBlockedError(true);
+          router.back();
+          return;
+        } else {
+          Alert.alert('Error', 'Error fetching post data.');
+          return;
+        }
         setLoading(false);
       }
     };
@@ -56,18 +68,20 @@ export default function ForumPostScreen() {
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: any) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-  if (loading) {
+  if (loading || blockedError) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
+
+  if (!post) return null;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -77,8 +91,8 @@ export default function ForumPostScreen() {
       <Text style={styles.commentsHeader}>Comments</Text>
       <FlatList
         data={comments}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => (
+        keyExtractor={(item: any) => item.id.toString()}
+        renderItem={({ item }: { item: any }) => (
           <View style={styles.commentCard}>
             <Text style={styles.commentAuthor}>{item.author} • {formatDate(item.created_at)}</Text>
             <Text style={styles.commentContent}>{item.content}</Text>

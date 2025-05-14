@@ -45,8 +45,8 @@ export default function ForumPostScreen() {
       setComments(commentsResponse.data);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching post data:', error);
       setLoading(false);
+      Alert.alert('Error', 'You are blocked');
     }
   };
 

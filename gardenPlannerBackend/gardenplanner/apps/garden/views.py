@@ -23,6 +23,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import generics
+from rest_framework.exceptions import PermissionDenied
 
 from .serializers import (
     RegisterSerializer, ProfileSerializer, LoginWithCaptchaSerializer, UserSerializer, ProfileUpdateSerializer,
@@ -101,6 +102,14 @@ class UserProfileView(APIView):
     def get(self, request, user_id):
         """Get another user's profile"""
         user = get_object_or_404(User, id=user_id)
+        
+        # Check if either user has blocked the other
+        if request.user.profile.is_blocked(user.profile) or user.profile.is_blocked(request.user.profile):
+            return Response(
+                {"error": "You cannot view this profile due to blocking restrictions."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
@@ -113,6 +122,14 @@ class FollowView(APIView):
         serializer = FollowSerializer(data=request.data)
         if serializer.is_valid():
             user_to_follow = get_object_or_404(User, pk=serializer.validated_data['user_id'])
+            
+            # Check if either user has blocked the other
+            if request.user.profile.is_blocked(user_to_follow.profile) or user_to_follow.profile.is_blocked(request.user.profile):
+                return Response(
+                    {"error": "You cannot follow this user due to blocking restrictions."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
             request.user.profile.follow(user_to_follow.profile)
             return Response({"status": "success", "message": f"You are now following {user_to_follow.username}"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -122,6 +139,14 @@ class FollowView(APIView):
         serializer = FollowSerializer(data=request.data)
         if serializer.is_valid():
             user_to_unfollow = get_object_or_404(User, pk=serializer.validated_data['user_id'])
+            
+            # Check if either user has blocked the other
+            if request.user.profile.is_blocked(user_to_unfollow.profile) or user_to_unfollow.profile.is_blocked(request.user.profile):
+                return Response(
+                    {"error": "You cannot unfollow this user due to blocking restrictions."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
             request.user.profile.unfollow(user_to_unfollow.profile)
             return Response({"status": "success", "message": f"You have unfollowed {user_to_unfollow.username}"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -145,6 +170,72 @@ class FollowingListView(APIView):
         following = request.user.profile.following.all()
         serializer = ProfileSerializer(following, many=True)
         return Response(serializer.data)
+
+
+class BlockUnblockView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Check if current user is blocked by another user or vice versa"""
+        user_id = request.query_params.get('user_id')
+        if not user_id:
+            return Response({"error": "user_id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            target_user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Check if either user has blocked the other
+        is_blocked_by_me = request.user.profile.is_blocked(target_user.profile)
+        is_blocked_by_them = target_user.profile.is_blocked(request.user.profile)
+        
+        return Response({
+            "is_blocked_by_me": is_blocked_by_me,
+            "is_blocked_by_them": is_blocked_by_them,
+            "can_interact": not (is_blocked_by_me or is_blocked_by_them)
+        })
+
+    def post(self, request):
+        """Block a user"""
+        serializer = FollowSerializer(data=request.data)
+        if serializer.is_valid():
+            user_to_block = get_object_or_404(User, pk=serializer.validated_data['user_id'])
+            
+            # Prevent blocking yourself
+            if user_to_block == request.user:
+                return Response(
+                    {"error": "You cannot block yourself"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Add to blocked users
+            request.user.profile.blocked_users.add(user_to_block.profile)
+            
+            # If following, unfollow them
+            if user_to_block.profile in request.user.profile.following.all():
+                request.user.profile.unfollow(user_to_block.profile)
+            
+            return Response({
+                "status": "success",
+                "message": f"You have blocked {user_to_block.username}"
+            })
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        """Unblock a user"""
+        serializer = FollowSerializer(data=request.data)
+        if serializer.is_valid():
+            user_to_unblock = get_object_or_404(User, pk=serializer.validated_data['user_id'])
+            
+            # Remove from blocked users
+            request.user.profile.blocked_users.remove(user_to_unblock.profile)
+            
+            return Response({
+                "status": "success",
+                "message": f"You have unblocked {user_to_unblock.username}"
+            })
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PasswordResetAPIView(APIView):
@@ -486,6 +577,13 @@ class ForumPostListCreateView(generics.ListCreateAPIView):
     serializer_class = ForumPostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Filter out posts from blocked users
+        blocked_profiles = self.request.user.profile.blocked_users.all()
+        blocked_users = User.objects.filter(profile__in=blocked_profiles)
+        return queryset.exclude(author__in=blocked_users)
+
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
@@ -494,6 +592,13 @@ class ForumPostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ForumPost.objects.all()
     serializer_class = ForumPostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_object(self):
+        obj = super().get_object()
+        # Check if either user has blocked the other
+        if self.request.user.profile.is_blocked(obj.author.profile) or obj.author.profile.is_blocked(self.request.user.profile):
+            raise PermissionDenied("You are blocked from viewing this post.")
+        return obj
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -520,9 +625,16 @@ class CommentListCreateView(generics.ListCreateAPIView):
         forum_post = self.request.query_params.get('forum_post')
         if forum_post is not None:
             queryset = queryset.filter(forum_post_id=forum_post)
-        return queryset
+        # Filter out comments from blocked users
+        blocked_profiles = self.request.user.profile.blocked_users.all()
+        blocked_users = User.objects.filter(profile__in=blocked_profiles)
+        return queryset.exclude(author__in=blocked_users)
 
     def perform_create(self, serializer):
+        # Check if the post author has blocked the current user
+        forum_post = serializer.validated_data['forum_post']
+        if forum_post.author.profile.is_blocked(self.request.user.profile):
+            raise PermissionError("You cannot comment on this post due to blocking restrictions.")
         serializer.save(author=self.request.user)
 
 
@@ -530,6 +642,13 @@ class CommentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_object(self):
+        obj = super().get_object()
+        # Check if either user has blocked the other
+        if self.request.user.profile.is_blocked(obj.author.profile) or obj.author.profile.is_blocked(self.request.user.profile):
+            raise PermissionError("You cannot access this comment due to blocking restrictions.")
+        return obj
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
