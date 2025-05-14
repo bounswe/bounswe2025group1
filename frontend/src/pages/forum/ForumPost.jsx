@@ -299,7 +299,7 @@ const ForumPost = () => {
             </Box>
             
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>              <Avatar sx={{ bgcolor: '#558b2f', width: 40, height: 40, mr: 1 }}>
-                {post.author && post.author.toString().charAt(0)}
+                {post.author_username && post.author_username.charAt(0)}
               </Avatar>
               <Box>
                 <Typography 
@@ -307,7 +307,7 @@ const ForumPost = () => {
                   sx={{ cursor: 'pointer' }}
                   onClick={() => navigate(`/profile/${post.author}`)}
                 >
-                  User {post.author}
+                  {post.author_username}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Posted on {formatDate(post.created_at)}
@@ -353,7 +353,7 @@ const ForumPost = () => {
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
                 <Avatar sx={{ bgcolor: '#8bc34a', width: 32, height: 32, mr: 2 }}>
-                  {comment.author && comment.author.toString().charAt(0)}
+                  {comment.author_username && comment.author_username.charAt(0)}
                 </Avatar>
                 <Box sx={{ width: '100%' }}>                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                     <Typography 
@@ -361,7 +361,7 @@ const ForumPost = () => {
                       sx={{ cursor: 'pointer' }}
                       onClick={() => navigate(`/profile/${comment.author}`)}
                     >
-                      User {comment.author}
+                      {comment.author_username}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {formatDate(comment.created_at)}
