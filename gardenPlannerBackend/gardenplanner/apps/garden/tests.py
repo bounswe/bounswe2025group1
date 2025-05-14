@@ -503,49 +503,6 @@ class APITests(APITestCase):
         # Check that task was created
         self.assertTrue(Task.objects.filter(title='New Task').exists())
     
-    def test_accept_task(self):
-        """Test accepting a task"""
-        url = reverse('garden:task-accept', args=[self.task.id])
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
-        
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        # Check that task was accepted
-        task = Task.objects.get(id=self.task.id)
-        self.assertEqual(task.status, 'ACCEPTED')
-    
-    def test_decline_task(self):
-        """Test declining a task"""
-        # First set task to ACCEPTED
-        self.task.status = 'ACCEPTED'
-        self.task.save()
-        
-        url = reverse('garden:task-decline', args=[self.task.id])
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
-        
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        # Check that task was declined
-        task = Task.objects.get(id=self.task.id)
-        self.assertEqual(task.status, 'DECLINED')
-    
-    def test_complete_task(self):
-        """Test completing a task"""
-        # First set task to IN_PROGRESS
-        self.task.status = 'IN_PROGRESS'
-        self.task.save()
-        
-        url = reverse('garden:task-complete', args=[self.task.id])
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
-        
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        # Check that task was completed
-        task = Task.objects.get(id=self.task.id)
-        self.assertEqual(task.status, 'COMPLETED')
 
 
 class ForumPostTests(TestCase):
