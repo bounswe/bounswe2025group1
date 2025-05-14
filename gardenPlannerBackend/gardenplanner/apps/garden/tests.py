@@ -477,7 +477,7 @@ class APITests(APITestCase):
     
     def test_task_list(self):
         """Test listing tasks"""
-        url = reverse('garden:task-list')
+        url = reverse('garden:task-list') + f'?garden={self.garden.id}'
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
         
         response = self.client.get(url)
