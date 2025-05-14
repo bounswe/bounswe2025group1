@@ -31,6 +31,7 @@ export default function ProfileScreen() {
     }, [token])
   );
 
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerLeft: () => (
@@ -42,6 +43,7 @@ export default function ProfileScreen() {
       headerTitle: 'Garden Detail',
     });
   }, [navigation]);
+
 
   const fetchProfile = async () => {
     setLoading(true);

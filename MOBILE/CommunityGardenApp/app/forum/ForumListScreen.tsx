@@ -111,7 +111,7 @@ export default function ForumListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 8, flex: 1, backgroundColor: COLORS.background },
+  container: { paddingTop: -45, paddingHorizontal:14 ,flex: 1, backgroundColor: COLORS.background },
   communityButton: {
     backgroundColor: COLORS.primary,
     paddingHorizontal: 12,
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   content: { fontSize: 14, marginVertical: 4 },
   author: { fontSize: 12, color: '#666' },
   emptyText: { textAlign: 'center', marginTop: 20 },
-  createButton: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 16 },
+  createButton: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, alignItems: 'center', marginHorizontal: 16,marginBottom:30 },
   createButtonText: { color: 'white', fontWeight: 'bold' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 }); 
