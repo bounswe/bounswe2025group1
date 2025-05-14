@@ -33,8 +33,7 @@ const Profile = () => {
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
-
-  const isOwnProfile = !userId;
+  const [isOwnProfile, setIsOwnProfile] = useState(!userId);
 
   // Fetch profile data
   useEffect(() => {
@@ -65,7 +64,11 @@ const Profile = () => {
         }
 
         const data = await response.json();
-        console.log(data)
+        if (data.username === currentUser.username && !isOwnProfile) {
+          setIsOwnProfile(true);
+          navigate('/profile');
+        }
+        
         setProfile(data);
         setEditedProfile({
           username: data.username,

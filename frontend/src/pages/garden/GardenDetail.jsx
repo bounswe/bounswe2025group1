@@ -673,9 +673,10 @@ const GardenDetail = () => {
                       <Avatar>
                         <AccountCircleIcon />
                       </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={member.username || `User ${member.id || 'Unknown'}`}
+                    </ListItemAvatar>                    <ListItemText
+                      primary={<Typography variant="body1" sx={{ cursor: 'pointer' }} onClick={() => navigate(`/profile/${member.user_id}`)}>
+                        {member.username || `User ${member.id || 'Unknown'}`}
+                      </Typography>}
                       secondary={`Role: ${member.role} • Status: ${member.status}`}
                     />                    {isManager && member.id !== userMembership?.id && (
                       <>

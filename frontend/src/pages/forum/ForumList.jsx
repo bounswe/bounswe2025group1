@@ -194,12 +194,14 @@ const ForumList = () => {
               <Grid container spacing={2}>
                 <Grid size={12}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Avatar sx={{ bgcolor: '#558b2f', width: 32, height: 32, mr: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>                      <Avatar sx={{ bgcolor: '#558b2f', width: 32, height: 32, mr: 1 }}>
                         {post.author && post.author.toString().charAt(0)}
                       </Avatar>
                       <Typography variant="subtitle2" color="text.secondary">
-                        User {post.author} • {formatDate(post.created_at)}
+                        <Box component="span" sx={{ cursor: 'pointer' }} onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/profile/${post.author}`);
+                        }}>User {post.author}</Box> • {formatDate(post.created_at)}
                       </Typography>
                     </Box>
                   </Box>
