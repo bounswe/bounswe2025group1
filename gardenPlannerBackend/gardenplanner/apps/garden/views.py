@@ -1,7 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
-from django.db import models
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -11,18 +10,25 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.views import View
+from django.db import models
 
+from rest_framework import (
+    viewsets, status, permissions, filters, serializers, generics
+)
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import viewsets, status, permissions, filters
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.serializers import AuthTokenSerializer
-from rest_framework import serializers
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework import generics
+from rest_framework.permissions import (
+    AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+)
+from rest_framework.decorators import (
+    action, api_view, permission_classes
+)
 from rest_framework.exceptions import PermissionDenied
 
 from .serializers import (
@@ -31,13 +37,18 @@ from .serializers import (
     CustomTaskTypeSerializer, TaskSerializer, ForumPostSerializer, CommentSerializer,
     UserGardenSerializer
 )
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
+from .models import (
+    Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
+)
 from .permissions import (
     IsSystemAdministrator, IsModerator, IsMember,
     IsGardenManager, IsGardenMember, IsGardenPublic,
     IsTaskAssignee
 )
 from .utils import get_weather_data
+
+import requests
+
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
