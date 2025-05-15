@@ -708,3 +708,20 @@ class WeatherDataView(APIView):
             )
             
         return Response(weather_data)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PlantSearchView(View):
+    def get(self, request):
+        query = request.GET.get('q')
+        if not query:
+            return JsonResponse({'error': 'No search query provided.'}, status=400)
+
+        api_token = settings.TREFLE_API_TOKEN
+        url = f"https://trefle.io/api/v1/plants/search?token={api_token}&q={query}"
+
+        try:
+            response = requests.get(url)
+            data = response.json()
+            return JsonResponse(data, safe=False)
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
