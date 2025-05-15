@@ -32,6 +32,7 @@ sys.path.insert(0, APPS_DIR)
 SECRET_KEY = os.getenv('SECRET_KEY')
 RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')
 OPENWEATHERMAP_API_KEY = os.getenv('OPENWEATHERMAP_API_KEY')
+TREFLE_API_TOKEN = os.getenv('TREFLE_API_TOKEN')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
