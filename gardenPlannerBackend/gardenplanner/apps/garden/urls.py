@@ -44,4 +44,6 @@ urlpatterns = [
     
     # External API integrations
     path('weather/', views.WeatherDataView.as_view(), name='weather'),
+
+    path('plant-search/', views.PlantSearchView.as_view(), name='plant-search'),
 ] 
