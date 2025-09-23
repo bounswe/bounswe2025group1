@@ -1,0 +1,85 @@
+name: "💡 Feature Request"
+description: Create a new issue for a new feature request
+title: "[REQUEST] - <title>"
+labels: ["enhancement"]
+body:
+  - type: input
+    id: start_date
+    attributes:
+      label: "📅 Start Date"
+      description: Start of development
+      placeholder: "month/day/year"
+    validations:
+      required: false
+
+  - type: textarea
+    id: implementation_pr
+    attributes:
+      label: "Implementation PR"
+      description: Pull request used
+      placeholder: "#Pull Request ID"
+    validations:
+      required: false
+
+  - type: textarea
+    id: reference_issues
+    attributes:
+      label: "Reference Issues"
+      description: Common issues
+      placeholder: "#Issues IDs"
+    validations:
+      required: false
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: "📄 Summary"
+      description: Provide a brief explanation of the feature
+      placeholder: Describe in a few lines your feature request
+    validations:
+      required: true
+
+  - type: textarea
+    id: basic_example
+    attributes:
+      label: "Basic Example"
+      description: Indicate here some basic examples of your feature.
+      placeholder: A few specific words about your feature request.
+    validations:
+      required: true
+
+  - type: textarea
+    id: drawbacks
+    attributes:
+      label: "❗ Drawbacks"
+      description: What are the drawbacks/impacts of your feature request ?
+      placeholder: Identify the drawbacks and impacts while being neutral on your feature request
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: "Additional Notes"
+      description: Add any other context or information that might be helpful for the feature request.
+      placeholder: Any additional information that could assist...
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "Acceptance Criteria"
+      description: What are the acceptance criteria for this issue?
+      placeholder: Describe the conditions that must be met for this issue to be considered resolved.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reviewers
+    attributes:
+      label: "Reviewers"
+      description: Who should review this issue?
+      placeholder: Mention the GitHub usernames of the people who should review this issue.
+    validations:
+      required: false
