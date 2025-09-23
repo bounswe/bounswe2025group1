@@ -1,0 +1,31 @@
+name: "❓ Questions"
+description: Submit a question related to the project.
+title: "[QUESTION] - <title>"
+labels: ["question"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: "❔ Question"
+      description: Provide your question clearly and concisely.
+      placeholder: "What is the expected deadline for task XYZ?"
+    validations:
+      required: true
+
+  - type: input
+    id: related_topic
+    attributes:
+      label: "Related Topic"
+      description: Specify the related topic, feature, or meeting (if applicable).
+      placeholder: "e.g., Team Meeting #2 or Feature XYZ"
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: "Additional Notes"
+      description: Provide any additional context or information that might help in answering your question.
+      placeholder: Any additional information that could assist in answering your question...
+    validations:
+      required: false

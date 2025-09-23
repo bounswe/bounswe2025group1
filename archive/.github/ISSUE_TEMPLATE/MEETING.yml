@@ -1,0 +1,53 @@
+name: "📅 Meeting"
+description: Schedule and document a team meeting.
+title: "[MEETING] - <title>"
+labels: ["meeting"]
+body:
+  - type: input
+    id: date
+    attributes:
+      label: "📅 Date"
+      description: Enter the date of the meeting.
+      placeholder: "dd/mm/yyyy"
+    validations:
+      required: true
+
+  - type: input
+    id: time
+    attributes:
+      label: "⏰ Time"
+      description: Enter the time of the meeting.
+      placeholder: "e.g., 21:00"
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: "📍 Location"
+      description: Specify where the meeting will take place (e.g., Google Meet link).
+      placeholder: "e.g., https://meet.google.com/xyz"
+    validations:
+      required: true
+
+  - type: textarea
+    id: agenda
+    attributes:
+      label: "Agenda"
+      description: Provide the agenda for the meeting, including topics and action items.
+      placeholder: |
+        - Overview of the work done last week
+        - Team project selection
+        - Decide on the following actions:
+          - Write draft of the requirements
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: "Additional Notes"
+      description: Add any extra information or context for the meeting.
+      placeholder: "Optional additional notes..."
+    validations:
+      required: false

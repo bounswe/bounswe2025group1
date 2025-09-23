@@ -1,0 +1,76 @@
+name: "📚 Documentation Improvement"
+description: Suggest improvements or report issues in the documentation.
+title: "[DOCS] - <title>"
+labels: ["documentation"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "📖 Description"
+      description: Provide a clear and detailed description of the documentation issue or improvement suggestion.
+      placeholder: Short and explicit description of the documentation issue...
+    validations:
+      required: true
+
+  - type: input
+    id: related_url
+    attributes:
+      label: "🔗 Related Documentation URL"
+      description: Provide the URL of the documentation page that needs improvement, if applicable.
+      placeholder: ex. https://example.com/docs/feature
+    validations:
+      required: false
+
+  - type: textarea
+    id: current_state
+    attributes:
+      label: "Current State of Documentation"
+      description: Describe the current state of the documentation, including any issues or unclear areas.
+      placeholder: The documentation for XYZ feature lacks examples...
+    validations:
+      required: true
+
+  - type: textarea
+    id: improvement_suggestion
+    attributes:
+      label: "Suggested Improvement"
+      description: Describe your suggested changes to the documentation, including specific suggestions.
+      placeholder: Add code examples showing how to use XYZ feature...
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: "Examples"
+      description: Provide examples or code snippets that could be added to the documentation.
+      placeholder: Example code snippets or usage examples...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: "Additional Notes"
+      description: Add any other context or information that might be helpful for improving the documentation.
+      placeholder: Any additional information that could assist in making the documentation better...
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "Acceptance Criteria"
+      description: What are the acceptance criteria for this issue?
+      placeholder: Describe the conditions that must be met for this issue to be considered resolved.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reviewers
+    attributes:
+      label: "Reviewers"
+      description: Who should review this issue?
+      placeholder: Mention the GitHub usernames of the people who should review this issue.
+    validations:
+      required: false
