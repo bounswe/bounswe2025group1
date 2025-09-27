@@ -46,16 +46,16 @@ body:
       description: Indicate here some basic examples of your feature.
       placeholder: A few specific words about your feature request.
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: drawbacks
     attributes:
       label: "❗ Drawbacks"
-      description: What are the drawbacks/impacts of your feature request ?
-      placeholder: Identify the drawbacks and impacts while being neutral on your feature request
+      description: What are the drawbacks/impacts of your feature request?
+      placeholder: Identify potential drawbacks and impacts.
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: additional_notes
@@ -71,15 +71,4 @@ body:
     attributes:
       label: "Acceptance Criteria"
       description: What are the acceptance criteria for this issue?
-      placeholder: Describe the conditions that must be met for this issue to be considered resolved.
-    validations:
-      required: true
-
-  - type: textarea
-    id: reviewers
-    attributes:
-      label: "Reviewers"
-      description: Who should review this issue?
-      placeholder: Mention the GitHub usernames of the people who should review this issue.
-    validations:
-      required: false
+      placeholder: Describe the conditions that must be
