@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
-from .models import Notification, NotificationCategory, Task, Profile
+from .models import Notification, NotificationCategory, Task, Profile, Comment
 
 @receiver(post_save, sender=Task)
 def task_update_notification(sender, instance, created, **kwargs):
@@ -11,15 +11,17 @@ def task_update_notification(sender, instance, created, **kwargs):
     # Skip if the assigned user has disabled notifications
     if not instance.assigned_to.profile.receives_notifications:
         return
-
-    # Notification for a newly assigned task
+    
     if created:
         message = f"You have been assigned a new task: '{instance.title}'."
-        Notification.objects.create(
-            recipient=instance.assigned_to,
-            message=message,
-            category=NotificationCategory.TASK,
-        )
+    else:
+        message = f"Task updated: '{instance.title}' status is now '{instance.get_status_display()}'."
+
+    Notification.objects.create(
+        recipient=instance.assigned_to,
+        message=message,
+        category=NotificationCategory.TASK,
+    )
 
 @receiver(m2m_changed, sender=Profile.following.through)
 def new_follower_notification(sender, instance, action, pk_set, **kwargs):
@@ -42,3 +44,29 @@ def new_follower_notification(sender, instance, action, pk_set, **kwargs):
             message=message,
             category=NotificationCategory.SOCIAL,
         )
+
+@receiver(post_save, sender=Comment)
+def new_comment_notification(sender, instance, created, **kwargs):
+    """
+    Sends a notification to a post author when a new comment is made.
+    """
+    # Run for new comments
+    if not created:
+        return
+
+    post_author = instance.forum_post.author
+    comment_author = instance.author
+
+    if post_author == comment_author:
+        return
+
+    if not post_author.profile.receives_notifications:
+        return
+
+    message = f"{comment_author.username} commented on your post: '{instance.forum_post.title}'."
+    Notification.objects.create(
+        recipient=post_author,
+        message=message,
+        category=NotificationCategory.FORUM,
+    )
+
