@@ -22,12 +22,16 @@ export default function ForumListScreen() {
   const [filteredPosts, setFilteredPosts] = useState<ForumPost[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showFollowingOnly, setShowFollowingOnly] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get(`${API_URL}/forum/`, {
+        const url = showFollowingOnly
+          ? `${API_URL}/forum/?following=true`
+          : `${API_URL}/forum/`;
+        const response = await axios.get(url, {
           headers: { Authorization: `Token ${token}` },
         });
         setPosts(response.data);
@@ -40,7 +44,7 @@ export default function ForumListScreen() {
     };
 
     fetchPosts();
-  }, [token]);
+  }, [token, showFollowingOnly]);
 
   const handleSearch = (text: string) => {
     setSearchTerm(text);
@@ -78,6 +82,26 @@ export default function ForumListScreen() {
         <Text style={styles.communityButtonText}>Go to Community</Text>
       </TouchableOpacity>
       <Text style={styles.header}>Community Forum</Text>
+
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[styles.filterButton, !showFollowingOnly && styles.filterButtonActive]}
+          onPress={() => setShowFollowingOnly(false)}
+        >
+          <Text style={[styles.filterButtonText, !showFollowingOnly && styles.filterButtonTextActive]}>
+            All Posts
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, showFollowingOnly && styles.filterButtonActive]}
+          onPress={() => setShowFollowingOnly(true)}
+        >
+          <Text style={[styles.filterButtonText, showFollowingOnly && styles.filterButtonTextActive]}>
+            Following
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <TextInput
         style={styles.searchInput}
         placeholder="Search posts..."
@@ -126,6 +150,32 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
+  filterContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    gap: 8,
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    backgroundColor: 'white',
+    alignItems: 'center',
+  },
+  filterButtonActive: {
+    backgroundColor: COLORS.primary,
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  filterButtonTextActive: {
+    color: 'white',
+  },
   searchInput: { height: 40, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, paddingHorizontal: 8, marginBottom: 16 },
   card: { backgroundColor: '#f0f4f8', padding: 12, borderRadius: 8, marginBottom: 12 },
   title: { fontSize: 18, fontWeight: 'bold' },
