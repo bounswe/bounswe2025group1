@@ -48,12 +48,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (username: string, password: string,captcha: string) => {
+  const login = async (username: string, password: string) => {
     try {
       const response = await axios.post(`${API_URL}/login/`, {
         username,
         password,
-        captcha,
       });
 
       const { token: newToken, user_id, username: responseUsername } = response.data;
