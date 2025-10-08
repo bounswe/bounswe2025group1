@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 // Add ForumPost type
 interface ForumPost {
@@ -17,6 +18,7 @@ interface ForumPost {
 }
 
 export default function ForumListScreen() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<ForumPost[]>([]);
@@ -79,9 +81,9 @@ export default function ForumListScreen() {
         style={styles.communityButton}
         onPress={() => router.push({ pathname: '/community' })}
       >
-        <Text style={styles.communityButtonText}>Go to Community</Text>
+        <Text style={styles.communityButtonText}>{t('forum.goToCommunity')}</Text>
       </TouchableOpacity>
-      <Text style={styles.header}>Community Forum</Text>
+      <Text style={styles.header}>{t('forum.title')}</Text>
 
       <View style={styles.filterContainer}>
         <TouchableOpacity
@@ -89,7 +91,7 @@ export default function ForumListScreen() {
           onPress={() => setShowFollowingOnly(false)}
         >
           <Text style={[styles.filterButtonText, !showFollowingOnly && styles.filterButtonTextActive]}>
-            All Posts
+            {t('forum.filter.allPosts')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -97,14 +99,14 @@ export default function ForumListScreen() {
           onPress={() => setShowFollowingOnly(true)}
         >
           <Text style={[styles.filterButtonText, showFollowingOnly && styles.filterButtonTextActive]}>
-            Following
+            {t('forum.filter.following')}
           </Text>
         </TouchableOpacity>
       </View>
 
       <TextInput
         style={styles.searchInput}
-        placeholder="Search posts..."
+        placeholder={t('forum.searchPlaceholder')}
         value={searchTerm}
         onChangeText={handleSearch}
       />
@@ -119,16 +121,16 @@ export default function ForumListScreen() {
           >
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.content}>{item.content.substring(0, 100)}...</Text>
-            <Text style={styles.author}>By {item.author_username} • {formatDate(item.created_at)}</Text>
+            <Text style={styles.author}>{t('forum.post.by')} {item.author_username} • {formatDate(item.created_at)}</Text>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No posts found.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>{t('forum.noPosts')}</Text>}
       />
       <TouchableOpacity
         style={styles.createButton}
         onPress={() => router.push('/forum/create')}
       >
-        <Text style={styles.createButtonText}>Create Post</Text>
+        <Text style={styles.createButtonText}>{t('forum.createPost')}</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

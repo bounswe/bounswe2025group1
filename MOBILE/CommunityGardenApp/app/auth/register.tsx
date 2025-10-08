@@ -15,9 +15,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { COLORS } from '../../constants/Config';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     username: '', email: '', password: '', confirmPassword: '',
     first_name: '', last_name: '', location: '',
@@ -28,20 +30,20 @@ export default function RegisterScreen() {
 
   const validateForm = () => {
     if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError('Please fill in all required fields');
+      setError(t('auth.register.errors.fillRequired'));
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.register.errors.passwordMismatch'));
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid email address');
+      setError(t('auth.register.errors.invalidEmail'));
       return false;
     }
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long');
+      setError(t('auth.register.errors.passwordTooShort'));
       return false;
     }
     return true;
@@ -63,7 +65,7 @@ export default function RegisterScreen() {
       });
       router.replace('/(tabs)');
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      setError(t('auth.register.errors.registrationFailed'));
     } finally {
       setLoading(false);
     }
@@ -82,7 +84,7 @@ export default function RegisterScreen() {
           <View style={styles.content}>
             <View style={styles.header}>
               <Text style={styles.emoji}>🌱</Text>
-              <Text style={styles.title}>Join the Garden Community</Text>
+              <Text style={styles.title}>{t('auth.register.title')}</Text>
             </View>
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -90,11 +92,11 @@ export default function RegisterScreen() {
             <View style={styles.form}>
               {/* Your input fields */}
               {[
-                { placeholder: 'First Name', icon: 'person-outline', key: 'first_name', cap: 'words' },
-                { placeholder: 'Last Name', icon: 'person-outline', key: 'last_name', cap: 'words' },
-                { placeholder: 'Username', icon: 'at-outline', key: 'username', cap: 'none' },
-                { placeholder: 'Email Address', icon: 'mail-outline', key: 'email', cap: 'none', type: 'email-address' },
-                { placeholder: 'Location', icon: 'location-outline', key: 'location', cap: 'words' },
+                { placeholder: t('auth.register.firstName'), icon: 'person-outline', key: 'first_name', cap: 'words' },
+                { placeholder: t('auth.register.lastName'), icon: 'person-outline', key: 'last_name', cap: 'words' },
+                { placeholder: t('auth.register.username'), icon: 'at-outline', key: 'username', cap: 'none' },
+                { placeholder: t('auth.register.email'), icon: 'mail-outline', key: 'email', cap: 'none', type: 'email-address' },
+                { placeholder: t('auth.register.location'), icon: 'location-outline', key: 'location', cap: 'words' },
               ].map(field => (
                 <View key={field.key} style={styles.inputContainer}>
                   <Ionicons name={field.icon} size={20} color={COLORS.text} style={styles.inputIcon} />
@@ -115,7 +117,7 @@ export default function RegisterScreen() {
                   <Ionicons name="lock-closed-outline" size={20} color={COLORS.text} style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholder={key === 'password' ? 'Password' : 'Confirm Password'}
+                    placeholder={key === 'password' ? t('auth.register.password') : t('auth.register.confirmPassword')}
                     value={formData[key]}
                     onChangeText={(text) => setFormData({ ...formData, [key]: text })}
                     secureTextEntry
@@ -136,14 +138,14 @@ export default function RegisterScreen() {
                 {loading ? (
                   <ActivityIndicator color={COLORS.white} />
                 ) : (
-                  <Text style={styles.buttonText}>Sign Up</Text>
+                  <Text style={styles.buttonText}>{t('auth.register.signUp')}</Text>
                 )}
               </TouchableOpacity>
 
               <View style={styles.loginContainer}>
-                <Text style={styles.loginText}>Already have an account? </Text>
+                <Text style={styles.loginText}>{t('auth.register.haveAccount')}</Text>
                 <TouchableOpacity onPress={() => router.push('/auth/login')}>
-                  <Text style={styles.loginLink}>Sign in</Text>
+                  <Text style={styles.loginLink}>{t('auth.register.signIn')}</Text>
                 </TouchableOpacity>
               </View>
             </View>

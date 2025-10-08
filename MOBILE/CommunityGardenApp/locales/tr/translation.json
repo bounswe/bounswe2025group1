@@ -1,0 +1,93 @@
+{
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Hata",
+    "success": "Başarılı",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "create": "Oluştur",
+    "search": "Ara",
+    "filter": "Filtrele",
+    "submit": "Gönder",
+    "confirm": "Onayla"
+  },
+  "auth": {
+    "login": {
+      "title": "Bahçe Planlayıcı'ya Giriş Yap",
+      "username": "Kullanıcı Adı",
+      "password": "Şifre",
+      "forgotPassword": "Şifremi unuttum?",
+      "signIn": "Giriş Yap",
+      "noAccount": "Hesabınız yok mu? ",
+      "signUp": "Kaydol",
+      "errors": {
+        "fillAllFields": "Lütfen tüm alanları doldurun",
+        "invalidCredentials": "Geçersiz kullanıcı adı veya şifre"
+      }
+    },
+    "register": {
+      "title": "Bahçe Topluluğuna Katıl",
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "username": "Kullanıcı Adı",
+      "email": "E-posta Adresi",
+      "location": "Konum",
+      "password": "Şifre",
+      "confirmPassword": "Şifreyi Onayla",
+      "signUp": "Kaydol",
+      "haveAccount": "Zaten hesabınız var mı? ",
+      "signIn": "Giriş yap",
+      "errors": {
+        "fillRequired": "Lütfen tüm gerekli alanları doldurun",
+        "passwordMismatch": "Şifreler eşleşmiyor",
+        "invalidEmail": "Lütfen geçerli bir e-posta adresi girin",
+        "passwordTooShort": "Şifre en az 8 karakter olmalıdır",
+        "registrationFailed": "Kayıt başarısız. Lütfen tekrar deneyin."
+      }
+    }
+  },
+  "forum": {
+    "title": "Topluluk Forumu",
+    "searchPlaceholder": "Gönderi ara...",
+    "filter": {
+      "allPosts": "Tüm Gönderiler",
+      "following": "Takip Edilenler"
+    },
+    "createPost": "Gönderi Oluştur",
+    "noPosts": "Gönderi bulunamadı.",
+    "goToCommunity": "Topluluğa Git",
+    "post": {
+      "by": "Yazan",
+      "comments": "Yorumlar",
+      "noComments": "Henüz yorum yok.",
+      "addComment": "Yorum ekle...",
+      "postComment": "Gönder"
+    },
+    "errors": {
+      "commentEmpty": "Yorum boş olamaz",
+      "commentFailed": "Yorum eklenemedi",
+      "fetchFailed": "Forum gönderileri alınırken hata oluştu"
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "edit": "Profili Düzenle",
+    "followers": "Takipçiler",
+    "following": "Takip Edilenler",
+    "logout": "Çıkış Yap"
+  },
+  "garden": {
+    "title": "Bahçelerim",
+    "createGarden": "Bahçe Oluştur",
+    "noGardens": "Bahçe bulunamadı.",
+    "viewDetails": "Detayları Gör"
+  },
+  "tabs": {
+    "home": "Ana Sayfa",
+    "gardens": "Bahçeler",
+    "forum": "Forum",
+    "profile": "Profil"
+  }
+}
