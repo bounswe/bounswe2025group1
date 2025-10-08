@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 // Add ForumPost type
 interface ForumPost {
@@ -17,17 +18,22 @@ interface ForumPost {
 }
 
 export default function ForumListScreen() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<ForumPost[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showFollowingOnly, setShowFollowingOnly] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get(`${API_URL}/forum/`, {
+        const url = showFollowingOnly
+          ? `${API_URL}/forum/?following=true`
+          : `${API_URL}/forum/`;
+        const response = await axios.get(url, {
           headers: { Authorization: `Token ${token}` },
         });
         setPosts(response.data);
@@ -40,7 +46,7 @@ export default function ForumListScreen() {
     };
 
     fetchPosts();
-  }, [token]);
+  }, [token, showFollowingOnly]);
 
   const handleSearch = (text: string) => {
     setSearchTerm(text);
@@ -75,12 +81,32 @@ export default function ForumListScreen() {
         style={styles.communityButton}
         onPress={() => router.push({ pathname: '/community' })}
       >
-        <Text style={styles.communityButtonText}>Go to Community</Text>
+        <Text style={styles.communityButtonText}>{t('forum.goToCommunity')}</Text>
       </TouchableOpacity>
-      <Text style={styles.header}>Community Forum</Text>
+      <Text style={styles.header}>{t('forum.title')}</Text>
+
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[styles.filterButton, !showFollowingOnly && styles.filterButtonActive]}
+          onPress={() => setShowFollowingOnly(false)}
+        >
+          <Text style={[styles.filterButtonText, !showFollowingOnly && styles.filterButtonTextActive]}>
+            {t('forum.filter.allPosts')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, showFollowingOnly && styles.filterButtonActive]}
+          onPress={() => setShowFollowingOnly(true)}
+        >
+          <Text style={[styles.filterButtonText, showFollowingOnly && styles.filterButtonTextActive]}>
+            {t('forum.filter.following')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <TextInput
         style={styles.searchInput}
-        placeholder="Search posts..."
+        placeholder={t('forum.searchPlaceholder')}
         value={searchTerm}
         onChangeText={handleSearch}
       />
@@ -95,16 +121,16 @@ export default function ForumListScreen() {
           >
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.content}>{item.content.substring(0, 100)}...</Text>
-            <Text style={styles.author}>By {item.author_username} • {formatDate(item.created_at)}</Text>
+            <Text style={styles.author}>{t('forum.post.by')} {item.author_username} • {formatDate(item.created_at)}</Text>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No posts found.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>{t('forum.noPosts')}</Text>}
       />
       <TouchableOpacity
         style={styles.createButton}
         onPress={() => router.push('/forum/create')}
       >
-        <Text style={styles.createButtonText}>Create Post</Text>
+        <Text style={styles.createButtonText}>{t('forum.createPost')}</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -126,6 +152,32 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
+  filterContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    gap: 8,
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    backgroundColor: 'white',
+    alignItems: 'center',
+  },
+  filterButtonActive: {
+    backgroundColor: COLORS.primary,
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  filterButtonTextActive: {
+    color: 'white',
+  },
   searchInput: { height: 40, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, paddingHorizontal: 8, marginBottom: 16 },
   card: { backgroundColor: '#f0f4f8', padding: 12, borderRadius: 8, marginBottom: 12 },
   title: { fontSize: 18, fontWeight: 'bold' },

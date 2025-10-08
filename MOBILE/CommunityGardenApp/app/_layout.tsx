@@ -3,6 +3,7 @@ import { AuthProvider } from '../contexts/AuthContext';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { COLORS } from '../constants/Config';
+import '../i18n';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

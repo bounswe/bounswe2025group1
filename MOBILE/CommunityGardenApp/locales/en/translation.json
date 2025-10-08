@@ -1,0 +1,93 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "submit": "Submit",
+    "confirm": "Confirm"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to Garden Planner",
+      "username": "Username",
+      "password": "Password",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign In",
+      "noAccount": "Don't have an account? ",
+      "signUp": "Sign up",
+      "errors": {
+        "fillAllFields": "Please fill in all fields",
+        "invalidCredentials": "Invalid username or password"
+      }
+    },
+    "register": {
+      "title": "Join the Garden Community",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "username": "Username",
+      "email": "Email Address",
+      "location": "Location",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "signUp": "Sign Up",
+      "haveAccount": "Already have an account? ",
+      "signIn": "Sign in",
+      "errors": {
+        "fillRequired": "Please fill in all required fields",
+        "passwordMismatch": "Passwords do not match",
+        "invalidEmail": "Please enter a valid email address",
+        "passwordTooShort": "Password must be at least 8 characters long",
+        "registrationFailed": "Registration failed. Please try again."
+      }
+    }
+  },
+  "forum": {
+    "title": "Community Forum",
+    "searchPlaceholder": "Search posts...",
+    "filter": {
+      "allPosts": "All Posts",
+      "following": "Following"
+    },
+    "createPost": "Create Post",
+    "noPosts": "No posts found.",
+    "goToCommunity": "Go to Community",
+    "post": {
+      "by": "By",
+      "comments": "Comments",
+      "noComments": "No comments yet.",
+      "addComment": "Add a comment...",
+      "postComment": "Post"
+    },
+    "errors": {
+      "commentEmpty": "Comment cannot be empty",
+      "commentFailed": "Failed to add comment",
+      "fetchFailed": "Error fetching forum posts"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "edit": "Edit Profile",
+    "followers": "Followers",
+    "following": "Following",
+    "logout": "Logout"
+  },
+  "garden": {
+    "title": "My Gardens",
+    "createGarden": "Create Garden",
+    "noGardens": "No gardens found.",
+    "viewDetails": "View Details"
+  },
+  "tabs": {
+    "home": "Home",
+    "gardens": "Gardens",
+    "forum": "Forum",
+    "profile": "Profile"
+  }
+}

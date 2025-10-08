@@ -5,8 +5,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 export default function ForumPostScreen() {
+  const { t } = useTranslation();
   const { postId } = useLocalSearchParams();
   const { token } = useAuth();
   const [post, setPost] = useState<any>(null);
@@ -40,7 +42,7 @@ export default function ForumPostScreen() {
           router.back();
           return;
         } else {
-          Alert.alert('Error', 'Error fetching post data.');
+          Alert.alert(t('common.error'), t('forum.errors.fetchFailed'));
           return;
         }
         setLoading(false);
@@ -52,7 +54,7 @@ export default function ForumPostScreen() {
 
   const handleAddComment = async () => {
     if (!commentText.trim()) {
-      Alert.alert('Error', 'Comment cannot be empty');
+      Alert.alert(t('common.error'), t('forum.errors.commentEmpty'));
       return;
     }
     try {
@@ -64,7 +66,7 @@ export default function ForumPostScreen() {
       setComments([...comments, response.data]);
       setCommentText('');
     } catch (error) {
-      Alert.alert('Error', 'Failed to add comment');
+      Alert.alert(t('common.error'), t('forum.errors.commentFailed'));
     }
   };
 
@@ -86,9 +88,9 @@ export default function ForumPostScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>{post.title}</Text>
-      <Text style={styles.author}>By {post.author} • {formatDate(post.created_at)}</Text>
+      <Text style={styles.author}>{t('forum.post.by')} {post.author} • {formatDate(post.created_at)}</Text>
       <Text style={styles.content}>{post.content}</Text>
-      <Text style={styles.commentsHeader}>Comments</Text>
+      <Text style={styles.commentsHeader}>{t('forum.post.comments')}</Text>
       <FlatList
         data={comments}
         keyExtractor={(item: any) => item.id.toString()}
@@ -98,17 +100,17 @@ export default function ForumPostScreen() {
             <Text style={styles.commentContent}>{item.content}</Text>
           </View>
         )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No comments yet.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>{t('forum.post.noComments')}</Text>}
       />
       <View style={styles.commentInputContainer}>
         <TextInput
           style={styles.commentInput}
-          placeholder="Add a comment..."
+          placeholder={t('forum.post.addComment')}
           value={commentText}
           onChangeText={setCommentText}
         />
         <TouchableOpacity style={styles.commentButton} onPress={handleAddComment}>
-          <Text style={styles.commentButtonText}>Post</Text>
+          <Text style={styles.commentButtonText}>{t('forum.post.postComment')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
