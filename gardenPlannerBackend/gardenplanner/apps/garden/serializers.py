@@ -27,37 +27,17 @@ class FollowSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
 
 
-def verify_recaptcha(token):
-    url = 'https://www.google.com/recaptcha/api/siteverify'
-    data = {
-        'secret': settings.RECAPTCHA_SECRET_KEY,
-        'response': token,
-    }
-    response = requests.post(url, data=data)
-    return response.json()
     
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     location = serializers.CharField(required=False, allow_blank=True)
     profile_picture = serializers.ImageField(required=False)
-    captcha = serializers.CharField(write_only=True)
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'location', 'profile_picture', 'captcha']
-
-   
-    def validate(self, data):
-        captcha_token = data.pop('captcha', None)
-        result = verify_recaptcha(captcha_token)
-
-        if not result.get('success'):
-            raise serializers.ValidationError({'captcha': 'Invalid captcha. Try again.'})
-
-        return data
+        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'location', 'profile_picture']
 
     def create(self, validated_data):
-        validated_data.pop('captcha', None)
         location = validated_data.pop('location', None)
         profile_picture = validated_data.pop('profile_picture', None)
 
@@ -79,17 +59,11 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return user
 
-class LoginWithCaptchaSerializer(serializers.Serializer):
+class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(trim_whitespace=False)
-    captcha = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        captcha_token = attrs.get('captcha')
-        result = verify_recaptcha(captcha_token)
-        if not result.get('success'):
-            raise serializers.ValidationError({'recaptcha': 'Invalid captcha. Please try again.'})
-
         username = attrs.get('username')
         password = attrs.get('password')
 

@@ -9,17 +9,6 @@ import { toast } from 'react-toastify';
 // Mock fetch
 window.fetch = vi.fn();
 
-// Mock ReCAPTCHA
-vi.mock('react-google-recaptcha', () => ({
-  __esModule: true,
-  default: function ReCAPTCHA(props) {
-    return (
-      <div data-testid="recaptcha-mock" onClick={() => props.onChange('test-token')}>
-        Mock ReCAPTCHA
-      </div>
-    );
-  },
-}));
 
 // Mock toastify
 vi.mock('react-toastify', async () => {
@@ -88,18 +77,14 @@ describe('Login page', () => {
       target: { value: 'securepass' }
     });
     
-    // Complete reCAPTCHA first
-    const recaptcha = screen.getByTestId('recaptcha-mock');
-    fireEvent.click(recaptcha);
-    
-    // Now submit the form
+    // Submit the form
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     // Wait for the fetch and login to be called
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
         method: 'POST',
-        body: expect.stringContaining('captcha')
+        body: expect.stringContaining('username')
       }));
     });
     
@@ -123,10 +108,6 @@ describe('Login page', () => {
     fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: 'wrong' }
     });
-    
-    // Complete reCAPTCHA first
-    const recaptcha = screen.getByTestId('recaptcha-mock');
-    fireEvent.click(recaptcha);
     
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 

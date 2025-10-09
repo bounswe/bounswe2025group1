@@ -15,25 +15,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { COLORS } from '../../constants/Config';
 import { useRef } from 'react';
-import Recaptcha from 'react-native-recaptcha-that-works';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [captchaToken, setCaptchaToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login } = useAuth();
-  const recaptchaRef = useRef(null);
 
-  const handleVerify = (token: string) => {
-    setCaptchaToken(token);
-    handleLogin(token);
-  };
-
-  const handleLogin = async (verifiedToken: string) => {
+  const handleLogin = async () => {
     if (!username || !password) {
       setError('Please fill in all fields');
       return;
@@ -43,7 +35,7 @@ export default function LoginScreen() {
     setError('');
 
     try {
-      await login(username, password, verifiedToken);
+      await login(username, password);
       router.replace('/(tabs)');
     } catch (err) {
       setError('Invalid username or password');
@@ -103,7 +95,7 @@ export default function LoginScreen() {
 
               <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={() => recaptchaRef.current?.open()}
+                onPress={handleLogin}
                 disabled={loading}
               >
                 {loading ? (
@@ -112,15 +104,6 @@ export default function LoginScreen() {
                   <Text style={styles.buttonText}>Sign In</Text>
                 )}
               </TouchableOpacity>
-
-              <Recaptcha
-                ref={recaptchaRef}
-                siteKey="6LeROzorAAAAACC44mV_hc77HI8uri9RE4f5vHiz"
-                baseUrl="http://164.92.202.177"
-                size="normal"
-                onVerify={handleVerify}
-                onExpire={() => setError('Captcha expired. Please try again.')}
-              />
               <View style={styles.registerContainer}>
                 <Text style={styles.registerText}>Don't have an account? </Text>
                 <TouchableOpacity onPress={() => router.push('/auth/register')}>
