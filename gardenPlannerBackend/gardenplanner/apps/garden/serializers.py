@@ -23,11 +23,11 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ['profile_picture', 'location']
 
+
 class FollowSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
 
 
-    
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     location = serializers.CharField(required=False, allow_blank=True)
@@ -64,6 +64,7 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(trim_whitespace=False)
 
     def validate(self, attrs):
+
         username = attrs.get('username')
         password = attrs.get('password')
 

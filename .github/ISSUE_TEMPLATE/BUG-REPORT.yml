@@ -16,7 +16,7 @@ body:
     id: reprod
     attributes:
       label: "🪜 Reproduction steps"
-      description: Please enter an explicit description of your issue
+      description: Steps to reproduce the issue
       value: |
         1. Go to '...'
         2. Click on '....'
@@ -27,21 +27,29 @@ body:
       required: true
 
   - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "✅ Acceptance Criteria"
+      description: What conditions must be met for this issue to be considered resolved?
+      placeholder: Describe the success conditions...
+    validations:
+      required: true
+
+  # Optional fields
+  - type: textarea
     id: screenshot
     attributes:
       label: "📸 Screenshots"
       description: If applicable, add screenshots to help explain your problem.
-      value: |
-        ![DESCRIPTION](LINK.png)
-      render: bash
+      placeholder: ![DESCRIPTION](LINK.png)
     validations:
       required: false
 
   - type: textarea
     id: logs
     attributes:
-      label: "Logs"
-      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      label: "📝 Logs"
+      description: Please paste any relevant log output.
       render: bash
     validations:
       required: false
@@ -49,8 +57,8 @@ body:
   - type: dropdown
     id: browsers
     attributes:
-      label: "Browsers"
-      description: What browsers are you seeing the problem on ?
+      label: "🌐 Browsers"
+      description: On which browsers does the problem occur?
       multiple: true
       options:
         - Firefox
@@ -64,8 +72,8 @@ body:
   - type: dropdown
     id: os
     attributes:
-      label: "OS"
-      description: What is the impacted environment ?
+      label: "💻 OS"
+      description: What environment is affected?
       multiple: true
       options:
         - Windows
@@ -75,19 +83,10 @@ body:
       required: false
 
   - type: textarea
-    id: acceptance-criteria
-    attributes:
-      label: "Acceptance Criteria"
-      description: What are the acceptance criteria for this issue?
-      placeholder: Describe the conditions that must be met for this issue to be considered resolved.
-    validations:
-      required: true
-
-  - type: textarea
     id: reviewers
     attributes:
-      label: "Reviewers"
+      label: "👀 Reviewers"
       description: Who should review this issue?
-      placeholder: Mention the GitHub usernames of the people who should review this issue.
+      placeholder: Mention GitHub usernames
     validations:
       required: false
