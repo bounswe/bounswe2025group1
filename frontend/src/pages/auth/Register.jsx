@@ -13,7 +13,6 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
-import ReCAPTCHA from 'react-google-recaptcha';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -26,7 +25,6 @@ const Register = () => {
     agreeTerms: false,
     location: ''
   });
-  const [captchaToken, setCaptchaToken] = useState('');
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -39,7 +37,7 @@ const Register = () => {
   const isLongEnough = formData.password.length >= 8;
   const passwordsMatch = formData.password === formData.confirmPassword;
   const validEmail = emailRegex.test(formData.email);
-  const allValid = hasUpper && hasLower && hasNumber && hasSpecial && isLongEnough && passwordsMatch && validEmail && formData.agreeTerms && captchaToken;
+  const allValid = hasUpper && hasLower && hasNumber && hasSpecial && isLongEnough && passwordsMatch && validEmail && formData.agreeTerms;
 
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target;
@@ -71,7 +69,6 @@ const Register = () => {
           last_name: formData.lastName,
           password: formData.password,
           location: formData.location || 'Istanbul',
-          captcha: captchaToken,
         }),
       });
 
@@ -176,12 +173,6 @@ const Register = () => {
                     <Checkbox name="agreeTerms" color="primary" checked={formData.agreeTerms} onChange={handleChange} />
                   }
                   label="I agree to the terms and conditions"
-                />
-              </Box>
-              <Box sx={{  display: 'flex', justifyContent: 'center', mt: 2 }}>
-                <ReCAPTCHA
-                  sitekey="6LeROzorAAAAACC44mV_hc77HI8uri9RE4f5vHiz"
-                  onChange={(token) => setCaptchaToken(token)}
                 />
               </Box>
 

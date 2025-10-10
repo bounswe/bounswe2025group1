@@ -39,15 +39,6 @@ vi.mock('react-toastify', async () => {
     };
 });
 
-// Mock ReCAPTCHA
-vi.mock('react-google-recaptcha', () => ({
-    __esModule: true,
-    default: ({ onChange }) => {
-        // Simulate verification immediately
-        onChange('mock-token');
-        return <div data-testid="mock-recaptcha" />;
-    }
-}));
 
 const renderPage = () =>
     render(
