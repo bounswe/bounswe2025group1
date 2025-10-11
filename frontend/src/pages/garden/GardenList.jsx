@@ -15,13 +15,9 @@ import {
   Chip,
   Paper,
   Divider,
-  Fab
+  Fab,
 } from '@mui/material';
-import {
-  Modal,
-  Fade,
-  Backdrop,
-} from '@mui/material';
+import { Modal, Fade, Backdrop } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -45,7 +41,6 @@ const GardenList = () => {
   const handleCloseModal = () => setOpenModal(false);
   const { token } = useAuth();
 
-
   const [form, setForm] = useState({
     type: '',
     name: '',
@@ -62,7 +57,7 @@ const GardenList = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-          }
+          },
         });
         const data = await response.json();
         setGardens(data);
@@ -81,10 +76,11 @@ const GardenList = () => {
     const value = event.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = gardens.filter(garden =>
-      garden.name.toLowerCase().includes(value) ||
-      garden.description.toLowerCase().includes(value) ||
-      garden.location.toLowerCase().includes(value)
+    const filtered = gardens.filter(
+      (garden) =>
+        garden.name.toLowerCase().includes(value) ||
+        garden.description.toLowerCase().includes(value) ||
+        garden.location.toLowerCase().includes(value)
     );
 
     setFilteredGardens(filtered);
@@ -92,12 +88,11 @@ const GardenList = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -107,7 +102,7 @@ const GardenList = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify({
           name: form.name,
@@ -128,8 +123,8 @@ const GardenList = () => {
         theme: 'colored',
       });
 
-      setGardens(prev => [...prev, data]);
-      setFilteredGardens(prev => [...prev, data]);
+      setGardens((prev) => [...prev, data]);
+      setFilteredGardens((prev) => [...prev, data]);
 
       setForm({
         type: '',
@@ -148,7 +143,6 @@ const GardenList = () => {
       console.error(error);
     }
   };
-
 
   if (loading) {
     return (
@@ -191,7 +185,10 @@ const GardenList = () => {
               size="small"
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+          <Grid
+            size={{ xs: 12, md: 6 }}
+            sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}
+          >
             <Button
               variant="contained"
               color="primary"
@@ -201,7 +198,7 @@ const GardenList = () => {
                 backgroundColor: '#558b2f',
                 '&:hover': { backgroundColor: '#33691e' },
                 ml: 2,
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
               }}
             >
               Add Garden
@@ -223,8 +220,8 @@ const GardenList = () => {
                   transition: 'transform 0.2s, box-shadow 0.2s',
                   '&:hover': {
                     transform: 'translateY(-5px)',
-                    boxShadow: 6
-                  }
+                    boxShadow: 6,
+                  },
                 }}
               >
                 <CardMedia
@@ -289,9 +286,9 @@ const GardenList = () => {
             backgroundColor: '#558b2f',
             '&:hover': {
               backgroundColor: '#33691e',
-            }
+            },
           }}
-          onClick={handleOpenModal}  // <-- update here
+          onClick={handleOpenModal} // <-- update here
         >
           <AddIcon />
         </Fab>
@@ -301,14 +298,9 @@ const GardenList = () => {
         onClose={handleCloseModal}
         form={form}
         handleChange={handleChange}
-        handleTogglePublic={() =>
-          setForm(prev => ({ ...prev, isPublic: !prev.isPublic }))
-        }
+        handleTogglePublic={() => setForm((prev) => ({ ...prev, isPublic: !prev.isPublic }))}
         handleSubmit={handleSubmit}
       />
-
-
-
     </Container>
   );
 };

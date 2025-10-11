@@ -9,7 +9,7 @@ import {
   Link,
   Paper,
   Avatar,
-  InputAdornment
+  InputAdornment,
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
@@ -140,13 +140,19 @@ const Login = () => {
                   color: '#fff',
                   '&:hover': {
                     background: 'linear-gradient(90deg, #7cb342 0%, #33691e 100%)',
-                  }
+                  },
                 }}
               >
                 Sign In
               </Button>
               <Box sx={{ mt: 3, textAlign: 'center' }}>
-                <Link href="/auth/forgot-password" variant="body2" underline="hover" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                <Link
+                  href="/auth/forgot-password"
+                  variant="body2"
+                  underline="hover"
+                  color="text.secondary"
+                  sx={{ display: 'block', mb: 1 }}
+                >
                   Forgot password?
                 </Link>
                 <Typography variant="body2" color="text.secondary">

@@ -1,8 +1,19 @@
 import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Container, Box, Typography, Avatar, Button, Tabs, Tab, Paper,
-  Grid, CircularProgress, Divider, TextField, IconButton
+  Container,
+  Box,
+  Typography,
+  Avatar,
+  Button,
+  Tabs,
+  Tab,
+  Paper,
+  Grid,
+  CircularProgress,
+  Divider,
+  TextField,
+  IconButton,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -46,7 +57,7 @@ const Profile = () => {
       try {
         setLoading(true);
         let endpoint;
-        
+
         if (isOwnProfile) {
           endpoint = `${import.meta.env.VITE_API_URL}/profile/`;
         } else {
@@ -55,8 +66,8 @@ const Profile = () => {
 
         const response = await fetch(endpoint, {
           headers: {
-            'Authorization': `Token ${token}`
-          }
+            Authorization: `Token ${token}`,
+          },
         });
 
         if (!response.ok) {
@@ -68,7 +79,7 @@ const Profile = () => {
           setIsOwnProfile(true);
           navigate('/profile');
         }
-        
+
         setProfile(data);
         setEditedProfile({
           username: data.username,
@@ -78,26 +89,32 @@ const Profile = () => {
 
         // Check if current user is following this profile
         if (!isOwnProfile && currentUser) {
-          const followingResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/following/`, {
-            headers: {
-              'Authorization': `Token ${token}`
+          const followingResponse = await fetch(
+            `${import.meta.env.VITE_API_URL}/profile/following/`,
+            {
+              headers: {
+                Authorization: `Token ${token}`,
+              },
             }
-          });
-          
+          );
+
           if (followingResponse.ok) {
             const followingData = await followingResponse.json();
-            setIsFollowing(followingData.some(user => user.id.toString() === userId));
+            setIsFollowing(followingData.some((user) => user.id.toString() === userId));
           }
         }
 
         // Fetch user's gardens
         try {
-          const gardensResponse = await fetch(`${import.meta.env.VITE_API_URL}/gardens/user/${userId || currentUser.id}/`, {
-            headers: {
-              'Authorization': `Token ${token}`
+          const gardensResponse = await fetch(
+            `${import.meta.env.VITE_API_URL}/gardens/user/${userId || currentUser.id}/`,
+            {
+              headers: {
+                Authorization: `Token ${token}`,
+              },
             }
-          });
-          
+          );
+
           if (gardensResponse.ok) {
             const gardensData = await gardensResponse.json();
             setGardens(gardensData);
@@ -123,17 +140,23 @@ const Profile = () => {
       if (!token || !profile) return;
 
       try {
-        const followersResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/followers/`, {
-          headers: {
-            'Authorization': `Token ${token}`
+        const followersResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/profile/followers/`,
+          {
+            headers: {
+              Authorization: `Token ${token}`,
+            },
           }
-        });
+        );
 
-        const followingResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/following/`, {
-          headers: {
-            'Authorization': `Token ${token}`
+        const followingResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/profile/following/`,
+          {
+            headers: {
+              Authorization: `Token ${token}`,
+            },
           }
-        });
+        );
 
         if (followersResponse.ok && followingResponse.ok) {
           const followersData = await followersResponse.json();
@@ -169,9 +192,9 @@ const Profile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditedProfile(prev => ({
+    setEditedProfile((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -185,7 +208,7 @@ const Profile = () => {
       formData.append('username', editedProfile.username);
       formData.append('email', editedProfile.email);
       formData.append('location', editedProfile.location);
-      
+
       if (selectedFile) {
         formData.append('profile_picture', selectedFile);
       }
@@ -193,9 +216,9 @@ const Profile = () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Token ${token}`
+          Authorization: `Token ${token}`,
         },
-        body: formData
+        body: formData,
       });
 
       if (!response.ok) {
@@ -207,9 +230,9 @@ const Profile = () => {
         ...profile,
         username: updatedProfile.username,
         email: updatedProfile.email,
-        profile: updatedProfile.profile
+        profile: updatedProfile.profile,
       });
-      
+
       setIsEditing(false);
       toast.success('Profile updated successfully');
     } catch (err) {
@@ -220,14 +243,14 @@ const Profile = () => {
   const handleFollowToggle = async () => {
     try {
       const method = isFollowing ? 'DELETE' : 'POST';
-      
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/follow/`, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
+          Authorization: `Token ${token}`,
         },
-        body: JSON.stringify({ user_id: userId })
+        body: JSON.stringify({ user_id: userId }),
       });
 
       if (!response.ok) {
@@ -236,14 +259,14 @@ const Profile = () => {
 
       setIsFollowing(!isFollowing);
       toast.success(`Successfully ${isFollowing ? 'unfollowed' : 'followed'} user`);
-      
+
       // Update followers list
       const followersResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/followers/`, {
         headers: {
-          'Authorization': `Token ${token}`
-        }
+          Authorization: `Token ${token}`,
+        },
       });
-      
+
       if (followersResponse.ok) {
         const followersData = await followersResponse.json();
         setFollowers(followersData);
@@ -284,9 +307,7 @@ const Profile = () => {
     return (
       <Container>
         <Box my={4} textAlign="center">
-          <Typography variant="h5">
-            User not found
-          </Typography>
+          <Typography variant="h5">User not found</Typography>
           <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => navigate('/')}>
             Go Home
           </Button>
@@ -299,32 +320,35 @@ const Profile = () => {
     <Container maxWidth="lg">
       <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Grid
+            size={{ xs: 12, md: 4 }}
+            sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          >
             <Avatar
               src={profile.profile?.profile_picture || '/default-avatar.png'}
               alt={profile.username}
               sx={{ width: 150, height: 150, mb: 2 }}
             />
-            
+
             {isEditing && (
               <Button variant="outlined" component="label" sx={{ mb: 2 }}>
                 Change Picture
                 <input type="file" hidden accept="image/*" onChange={handleFileChange} />
               </Button>
             )}
-            
+
             <Typography variant="h5" sx={{ mb: 1 }}>
               {profile.username}
             </Typography>
-            
+
             <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
               {profile.profile?.location || 'No location set'}
             </Typography>
-            
+
             {!isOwnProfile && (
               <Button
-                variant={isFollowing ? "outlined" : "contained"}
-                color={isFollowing ? "error" : "primary"}
+                variant={isFollowing ? 'outlined' : 'contained'}
+                color={isFollowing ? 'error' : 'primary'}
                 startIcon={isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
                 onClick={handleFollowToggle}
                 sx={{ mb: 2 }}
@@ -332,7 +356,7 @@ const Profile = () => {
                 {isFollowing ? 'Unfollow' : 'Follow'}
               </Button>
             )}
-            
+
             {isOwnProfile && !isEditing && (
               <Button
                 variant="outlined"
@@ -343,26 +367,18 @@ const Profile = () => {
                 Edit Profile
               </Button>
             )}
-            
+
             {isEditing && (
               <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<SaveIcon />}
-                  onClick={handleSaveProfile}
-                >
+                <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSaveProfile}>
                   Save
                 </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<CancelIcon />}
-                  onClick={handleCancelEdit}
-                >
+                <Button variant="outlined" startIcon={<CancelIcon />} onClick={handleCancelEdit}>
                   Cancel
                 </Button>
               </Box>
             )}
-            
+
             <Box sx={{ width: '100%', mt: 2 }}>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 6 }}>
@@ -380,7 +396,7 @@ const Profile = () => {
               </Grid>
             </Box>
           </Grid>
-          
+
           <Grid size={{ xs: 12, md: 8 }}>
             {isEditing ? (
               <Box component="form" sx={{ mt: 1 }}>
@@ -419,40 +435,54 @@ const Profile = () => {
                     <Tab label="Following" id="tab-2" />
                   </Tabs>
                 </Box>
-                
+
                 {/* Gardens Tab */}
                 <Box role="tabpanel" hidden={tabValue !== 0} id="tabpanel-0" sx={{ py: 2 }}>
                   {tabValue === 0 && (
                     <>
                       {gardens.length > 0 ? (
                         <Grid container spacing={2}>
-                          {gardens.map(garden => (
+                          {gardens.map((garden) => (
                             <Grid size={{ xs: 12, sm: 6 }} key={garden.id}>
                               <GardenCard garden={garden} />
                             </Grid>
                           ))}
                         </Grid>
                       ) : (
-                        <Typography variant="body1" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+                        <Typography
+                          variant="body1"
+                          color="text.secondary"
+                          sx={{ py: 3, textAlign: 'center' }}
+                        >
                           No gardens yet.
                         </Typography>
                       )}
                     </>
                   )}
                 </Box>
-                
+
                 {/* Followers Tab */}
                 <Box role="tabpanel" hidden={tabValue !== 1} id="tabpanel-1" sx={{ py: 2 }}>
                   {tabValue === 1 && (
                     <>
                       {followers && followers.length > 0 ? (
                         <Grid container spacing={2}>
-                          {followers.map(follower => (
+                          {followers.map((follower) => (
                             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={follower.user_id}>
-                              <Paper elevation={1} sx={{ p: 2, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                              <Paper
+                                elevation={1}
+                                sx={{
+                                  p: 2,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'pointer',
+                                }}
                                 onClick={() => navigateToUserProfile(follower.user_id)}
                               >
-                                <Avatar src={follower.profile_picture || '/default-avatar.png'} sx={{ mr: 2 }} />
+                                <Avatar
+                                  src={follower.profile_picture || '/default-avatar.png'}
+                                  sx={{ mr: 2 }}
+                                />
                                 <Box>
                                   <Typography variant="subtitle1">{follower.username}</Typography>
                                   <Typography variant="body2" color="text.secondary">
@@ -464,28 +494,44 @@ const Profile = () => {
                           ))}
                         </Grid>
                       ) : (
-                        <Typography variant="body1" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+                        <Typography
+                          variant="body1"
+                          color="text.secondary"
+                          sx={{ py: 3, textAlign: 'center' }}
+                        >
                           No followers yet.
                         </Typography>
                       )}
                     </>
                   )}
                 </Box>
-                
+
                 {/* Following Tab */}
                 <Box role="tabpanel" hidden={tabValue !== 2} id="tabpanel-2" sx={{ py: 2 }}>
                   {tabValue === 2 && (
                     <>
                       {following && following.length > 0 ? (
                         <Grid container spacing={2}>
-                          {following.map(followedUser => (
+                          {following.map((followedUser) => (
                             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={followedUser.user_id}>
-                              <Paper elevation={1} sx={{ p: 2, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                              <Paper
+                                elevation={1}
+                                sx={{
+                                  p: 2,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  cursor: 'pointer',
+                                }}
                                 onClick={() => navigateToUserProfile(followedUser.user_id)}
                               >
-                                <Avatar src={followedUser.profile_picture || '/default-avatar.png'} sx={{ mr: 2 }} />
+                                <Avatar
+                                  src={followedUser.profile_picture || '/default-avatar.png'}
+                                  sx={{ mr: 2 }}
+                                />
                                 <Box>
-                                  <Typography variant="subtitle1">{followedUser.username}</Typography>
+                                  <Typography variant="subtitle1">
+                                    {followedUser.username}
+                                  </Typography>
                                   <Typography variant="body2" color="text.secondary">
                                     {followedUser.location || 'No location'}
                                   </Typography>
@@ -495,7 +541,11 @@ const Profile = () => {
                           ))}
                         </Grid>
                       ) : (
-                        <Typography variant="body1" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+                        <Typography
+                          variant="body1"
+                          color="text.secondary"
+                          sx={{ py: 3, textAlign: 'center' }}
+                        >
                           Not following anyone yet.
                         </Typography>
                       )}

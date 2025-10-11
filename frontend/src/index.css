@@ -40,7 +40,9 @@ html {
   padding: 0;
 }
 
-*, *:before, *:after {
+*,
+*:before,
+*:after {
   box-sizing: inherit;
 }
 
@@ -107,7 +109,6 @@ button:focus-visible {
   border-left-color: #f6c371 !important;
   background: #ffe4b9 !important;
 }
-
 
 @media (prefers-color-scheme: light) {
   :root {

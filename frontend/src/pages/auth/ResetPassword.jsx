@@ -1,7 +1,19 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import {
-  Container, Box, Typography, TextField, Button, Paper, Avatar, InputAdornment, Link, List, ListItem, ListItemIcon, ListItemText
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Avatar,
+  InputAdornment,
+  Link,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import LockIcon from '@mui/icons-material/Lock';
@@ -10,7 +22,6 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -177,12 +188,11 @@ const ResetPassword = () => {
                     '&.Mui-disabled': {
                       background: '#cfd8dc', // optional gray disabled state
                       color: '#666',
-                    }
+                    },
                   }}
                 >
                   Reset Password
                 </Button>
-
               </Box>
             )}
             <Box sx={{ textAlign: 'center', mt: 2 }}>

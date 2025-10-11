@@ -7,15 +7,14 @@ import { BrowserRouter } from 'react-router-dom';
 vi.mock('../../contexts/AuthContextUtils', () => ({
   useAuth: () => ({
     token: 'mock-token',
-    currentUser: { id: 1, username: 'testuser' }
-  })
+    currentUser: { id: 1, username: 'testuser' },
+  }),
 }));
 
 vi.mock('../../components/GardenModal', () => ({
   __esModule: true,
-  default: ({ open }) => open ? <div data-testid="mock-garden-modal">Modal Open</div> : null
+  default: ({ open }) => (open ? <div data-testid="mock-garden-modal">Modal Open</div> : null),
 }));
-
 
 vi.mock('react-toastify', async () => {
   const actual = await vi.importActual('react-toastify');
@@ -23,9 +22,9 @@ vi.mock('react-toastify', async () => {
     ...actual,
     toast: {
       success: vi.fn(),
-      error: vi.fn()
+      error: vi.fn(),
     },
-    ToastContainer: () => <div data-testid="mock-toast-container" />
+    ToastContainer: () => <div data-testid="mock-toast-container" />,
   };
 });
 
@@ -33,19 +32,27 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-const renderPage = () => render(
-  <BrowserRouter>
-    <GardenList />
-  </BrowserRouter>
-);
+const renderPage = () =>
+  render(
+    <BrowserRouter>
+      <GardenList />
+    </BrowserRouter>
+  );
 
 describe('GardenList', () => {
   it('renders loading state', async () => {
-    window.fetch = vi.fn(() =>
-      new Promise(resolve => setTimeout(() => resolve({
-        ok: true,
-        json: () => Promise.resolve([])
-      }), 100))
+    window.fetch = vi.fn(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                ok: true,
+                json: () => Promise.resolve([]),
+              }),
+            100
+          )
+        )
     );
     renderPage();
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
@@ -54,9 +61,17 @@ describe('GardenList', () => {
   it('shows gardens and allows navigation', async () => {
     window.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve([
-        { id: 1, name: 'My Garden', description: 'A lovely garden', location: 'Testland', members: 2, tasks: 3 }
-      ])
+      json: () =>
+        Promise.resolve([
+          {
+            id: 1,
+            name: 'My Garden',
+            description: 'A lovely garden',
+            location: 'Testland',
+            members: 2,
+            tasks: 3,
+          },
+        ]),
     });
 
     renderPage();
@@ -70,7 +85,7 @@ describe('GardenList', () => {
   it('opens modal on FAB click', async () => {
     window.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve([])
+      json: () => Promise.resolve([]),
     });
 
     renderPage();

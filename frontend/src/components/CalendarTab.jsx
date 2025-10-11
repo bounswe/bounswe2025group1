@@ -38,7 +38,7 @@ const CalendarTab = ({ tasks, onTaskClick, onEmptyDayClick }) => {
   const days = generateCalendarGrid();
 
   const getTasksForDay = (date) => {
-    return tasks.filter(task => dayjs(task.due_date).isSame(date, 'day'));
+    return tasks.filter((task) => dayjs(task.due_date).isSame(date, 'day'));
   };
 
   const getChipColor = (task) => {
@@ -68,11 +68,18 @@ const CalendarTab = ({ tasks, onTaskClick, onEmptyDayClick }) => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Button onClick={() => setCurrentMonth(prev => prev.subtract(1, 'month'))} variant="outlined">&lt;</Button>
+        <Button
+          onClick={() => setCurrentMonth((prev) => prev.subtract(1, 'month'))}
+          variant="outlined"
+        >
+          &lt;
+        </Button>
         <Typography variant="h5" sx={{ color: '#2e7d32', fontWeight: 'bold' }}>
           {currentMonth.format('MMMM YYYY')}
         </Typography>
-        <Button onClick={() => setCurrentMonth(prev => prev.add(1, 'month'))} variant="outlined">&gt;</Button>
+        <Button onClick={() => setCurrentMonth((prev) => prev.add(1, 'month'))} variant="outlined">
+          &gt;
+        </Button>
       </Box>
 
       {/* Day headers */}
@@ -81,16 +88,11 @@ const CalendarTab = ({ tasks, onTaskClick, onEmptyDayClick }) => {
           display: 'grid',
           gridTemplateColumns: 'repeat(7, 1fr)',
           gap: 1,
-          mb: 1
+          mb: 1,
         }}
       >
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-          <Typography
-            key={day}
-            variant="subtitle2"
-            align="center"
-            fontWeight="bold"
-          >
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+          <Typography key={day} variant="subtitle2" align="center" fontWeight="bold">
             {day}
           </Typography>
         ))}
@@ -101,7 +103,7 @@ const CalendarTab = ({ tasks, onTaskClick, onEmptyDayClick }) => {
         sx={{
           display: 'grid',
           gridTemplateColumns: 'repeat(7, 1fr)',
-          gap: 1
+          gap: 1,
         }}
       >
         {days.map((date) => {
@@ -120,8 +122,8 @@ const CalendarTab = ({ tasks, onTaskClick, onEmptyDayClick }) => {
                 flexDirection: 'column',
                 cursor: tasksForDay.length === 0 ? 'pointer' : 'default',
                 '&:hover': {
-                  backgroundColor: tasksForDay.length === 0 ? '#f1f8e9' : undefined
-                }
+                  backgroundColor: tasksForDay.length === 0 ? '#f1f8e9' : undefined,
+                },
               }}
               onClick={() => {
                 if (tasksForDay.length === 0 && onEmptyDayClick) {

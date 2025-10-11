@@ -8,7 +8,7 @@ import {
   Paper,
   Avatar,
   InputAdornment,
-  Link
+  Link,
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import LockResetIcon from '@mui/icons-material/LockReset';
@@ -43,7 +43,7 @@ const ForgotPassword = () => {
 
       setSubmitted(true);
       toast.info('Reset link has been sent if such an email exists.', {
-        position: 'top-right'
+        position: 'top-right',
       });
     } catch (err) {
       toast.error(err.message, { position: 'top-right' });
@@ -60,7 +60,7 @@ const ForgotPassword = () => {
         minHeight: '80vh',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
       }}
     >
       <Box>
@@ -90,12 +90,7 @@ const ForgotPassword = () => {
               Enter your email and we'll send you a link to reset your password if it exists.
             </Typography>
             {error && (
-              <Typography
-                color="error"
-                role="alert"
-                data-testid="error-message"
-                sx={{ mt: 2 }}
-              >
+              <Typography color="error" role="alert" data-testid="error-message" sx={{ mt: 2 }}>
                 {error}
               </Typography>
             )}
@@ -131,7 +126,7 @@ const ForgotPassword = () => {
                     color: '#fff',
                     '&:hover': {
                       background: 'linear-gradient(90deg, #7cb342 0%, #33691e 100%)',
-                    }
+                    },
                   }}
                   startIcon={<LockResetIcon />}
                 >
@@ -151,7 +146,7 @@ const ForgotPassword = () => {
                   '&:hover': {
                     backgroundColor: '#f1f8e9',
                     borderColor: '#558b2f',
-                  }
+                  },
                 }}
               >
                 ← Back to Login

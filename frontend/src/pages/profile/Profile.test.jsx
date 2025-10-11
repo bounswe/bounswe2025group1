@@ -6,9 +6,8 @@ import Profile from './Profile';
 import AuthContext from '../../contexts/AuthContextUtils';
 import React from 'react';
 
-
 vi.mock('../../components/GardenCard', () => ({
-  default: ({ garden }) => <div>Garden: {garden.name}</div>
+  default: ({ garden }) => <div>Garden: {garden.name}</div>,
 }));
 
 const mockNavigate = vi.fn();
@@ -69,7 +68,7 @@ describe('Profile Component', () => {
       json: async () => ({
         username: 'johndoe',
         email: 'john@example.com',
-        profile: { location: 'Earth' }
+        profile: { location: 'Earth' },
       }),
     });
 
@@ -87,7 +86,7 @@ describe('Profile Component', () => {
       json: async () => ({
         username: 'johndoe',
         email: 'john@example.com',
-        profile: { location: 'Earth' }
+        profile: { location: 'Earth' },
       }),
     });
 
@@ -109,7 +108,7 @@ describe('Profile Component', () => {
       json: async () => ({
         username: 'johndoe',
         email: 'john@example.com',
-        profile: { location: 'Earth' }
+        profile: { location: 'Earth' },
       }),
     });
 
@@ -134,7 +133,7 @@ describe('Profile Component', () => {
         json: async () => ({
           username: 'johndoe',
           email: 'john@example.com',
-          profile: { location: 'Earth' }
+          profile: { location: 'Earth' },
         }),
       })
       .mockResolvedValueOnce({
@@ -156,7 +155,7 @@ describe('Profile Component', () => {
         json: async () => ({
           username: 'johndoe',
           email: 'john@example.com',
-          profile: { location: 'Earth' }
+          profile: { location: 'Earth' },
         }),
       })
       .mockResolvedValueOnce({

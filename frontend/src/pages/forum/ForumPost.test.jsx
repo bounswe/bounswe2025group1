@@ -19,17 +19,22 @@ vi.mock('react-toastify', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
-  }
+  },
 }));
 
 vi.mock('../../components/CommentCreateDialog', () => ({
   default: ({ onCommentCreated }) => (
-    <div data-testid="comment-create-dialog" onClick={() => onCommentCreated({
-      id: 'comment-1',
-      content: 'New comment',
-      author: 'user1',
-      created_at: '2025-05-05T12:00:00Z',
-    })}>
+    <div
+      data-testid="comment-create-dialog"
+      onClick={() =>
+        onCommentCreated({
+          id: 'comment-1',
+          content: 'New comment',
+          author: 'user1',
+          created_at: '2025-05-05T12:00:00Z',
+        })
+      }
+    >
       Mock Comment Create Dialog
     </div>
   ),
@@ -67,24 +72,24 @@ describe('ForumPost Component', () => {
     vi.clearAllMocks();
     useNavigate.mockReturnValue(mockNavigate);
     useParams.mockReturnValue({ postId: '1' });
-    
+
     // Default mock return values
     useAuth.mockReturnValue({
       currentUser: { id: 'user1' },
-      token: 'mock-token'
+      token: 'mock-token',
     });
-    
+
     // Mock successful fetch responses
     fetch.mockImplementation((url) => {
       if (url.includes('/forum/1/')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve(mockPost)
+          json: () => Promise.resolve(mockPost),
         });
       } else if (url.includes('/forum/comments/')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve(mockComments)
+          json: () => Promise.resolve(mockComments),
         });
       }
       return Promise.reject(new Error('Not found'));
@@ -98,7 +103,7 @@ describe('ForumPost Component', () => {
 
   test('renders post and comments after loading', async () => {
     render(<ForumPost />);
-    
+
     await waitFor(() => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
@@ -106,7 +111,7 @@ describe('ForumPost Component', () => {
     // Post content should be visible
     expect(screen.getByText('Test Post')).toBeInTheDocument();
     expect(screen.getByText('This is a test post content')).toBeInTheDocument();
-    
+
     // Comments should be visible
     expect(screen.getByText('First comment')).toBeInTheDocument();
     expect(screen.getByText('Second comment')).toBeInTheDocument();
@@ -118,29 +123,29 @@ describe('ForumPost Component', () => {
       if (url.includes('/forum/1/')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve(mockPost)
+          json: () => Promise.resolve(mockPost),
         });
       } else if (url.includes('/forum/comments/')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve([])
+          json: () => Promise.resolve([]),
         });
       }
       return Promise.reject(new Error('Not found'));
     });
 
     render(<ForumPost />);
-    
+
     await waitFor(() => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
-    
+
     expect(screen.getByText('No comments yet')).toBeInTheDocument();
   });
 
   test('enables edit mode when Edit button is clicked', async () => {
     render(<ForumPost />);
-    
+
     await waitFor(() => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
@@ -148,7 +153,7 @@ describe('ForumPost Component', () => {
     // Find and click edit button
     const editButton = screen.getByTestId('EditIcon').closest('button');
     fireEvent.click(editButton);
-    
+
     // Form fields should be visible in edit mode
     expect(screen.getByLabelText('Title')).toBeInTheDocument();
     expect(screen.getByLabelText('Content')).toBeInTheDocument();
@@ -160,28 +165,29 @@ describe('ForumPost Component', () => {
       if (url.includes('/forum/1/') && options?.method === 'PUT') {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            ...mockPost,
-            title: 'Updated Title',
-            content: 'Updated content'
-          })
+          json: () =>
+            Promise.resolve({
+              ...mockPost,
+              title: 'Updated Title',
+              content: 'Updated content',
+            }),
         });
       } else if (url.includes('/forum/1/')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve(mockPost)
+          json: () => Promise.resolve(mockPost),
         });
       } else if (url.includes('/forum/comments/')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve(mockComments)
+          json: () => Promise.resolve(mockComments),
         });
       }
       return Promise.reject(new Error('Not found'));
     });
 
     render(<ForumPost />);
-    
+
     await waitFor(() => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
@@ -189,18 +195,18 @@ describe('ForumPost Component', () => {
     // Enter edit mode
     const editButton = screen.getByTestId('EditIcon').closest('button');
     fireEvent.click(editButton);
-    
+
     // Update form fields
     const titleInput = screen.getByLabelText('Title');
     const contentInput = screen.getByLabelText('Content');
-    
+
     fireEvent.change(titleInput, { target: { value: 'Updated Title' } });
     fireEvent.change(contentInput, { target: { value: 'Updated content' } });
-    
+
     // Submit the form
     const saveButton = screen.getByText('Save Changes');
     fireEvent.click(saveButton);
-    
+
     // Should make PUT request
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
@@ -209,8 +215,8 @@ describe('ForumPost Component', () => {
           method: 'PUT',
           body: JSON.stringify({
             title: 'Updated Title',
-            content: 'Updated content'
-          })
+            content: 'Updated content',
+          }),
         })
       );
     });
@@ -218,7 +224,7 @@ describe('ForumPost Component', () => {
 
   test('shows delete confirmation dialog when Delete button is clicked', async () => {
     render(<ForumPost />);
-    
+
     await waitFor(() => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
@@ -226,10 +232,12 @@ describe('ForumPost Component', () => {
     // Find and click delete button
     const deleteButton = screen.getByTestId('DeleteIcon').closest('button');
     fireEvent.click(deleteButton);
-    
+
     // Confirmation dialog should appear
     expect(screen.getByText('Delete Post')).toBeInTheDocument();
-    expect(screen.getByText('Are you sure you want to delete this post? This action cannot be undone.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Are you sure you want to delete this post? This action cannot be undone.')
+    ).toBeInTheDocument();
   });
 
   test('handles post deletion correctly', async () => {
@@ -237,24 +245,24 @@ describe('ForumPost Component', () => {
       if (url.includes('/forum/1/') && options?.method === 'DELETE') {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({})
+          json: () => Promise.resolve({}),
         });
       } else if (url.includes('/forum/1/')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve(mockPost)
+          json: () => Promise.resolve(mockPost),
         });
       } else if (url.includes('/forum/comments/')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve(mockComments)
+          json: () => Promise.resolve(mockComments),
         });
       }
       return Promise.reject(new Error('Not found'));
     });
 
     render(<ForumPost />);
-    
+
     await waitFor(() => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
@@ -262,27 +270,27 @@ describe('ForumPost Component', () => {
     // Open delete dialog
     const deleteButton = screen.getByTestId('DeleteIcon').closest('button');
     fireEvent.click(deleteButton);
-    
+
     // Confirm deletion
     const confirmDeleteButton = screen.getByText('Delete');
     fireEvent.click(confirmDeleteButton);
-    
+
     // Should make DELETE request
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('/forum/1/'),
         expect.objectContaining({
-          method: 'DELETE'
+          method: 'DELETE',
         })
       );
     });
-    
+
     // Should navigate back to forum list
     expect(mockNavigate).toHaveBeenCalledWith('/forum');
   });
   test('adds a new comment when comment dialog is submitted', async () => {
     render(<ForumPost />);
-    
+
     await waitFor(() => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
@@ -290,13 +298,13 @@ describe('ForumPost Component', () => {
     // Open comment dialog
     const addCommentButton = screen.getByText('Add Comment');
     fireEvent.click(addCommentButton);
-    
+
     // Mock dialog component should be rendered
     const commentDialog = screen.getByTestId('comment-create-dialog');
     fireEvent.click(commentDialog); // Simulate comment creation
-    
+
     // New comment should be added to the list - check specifically for the actual comment content
-    expect(screen.getByText('New comment')).toBeInTheDocument(); 
+    expect(screen.getByText('New comment')).toBeInTheDocument();
   });
 
   test('shows error state when post fetch fails', async () => {
@@ -305,25 +313,25 @@ describe('ForumPost Component', () => {
       if (url.includes('/forum/1/')) {
         return Promise.resolve({
           ok: false,
-          status: 404
+          status: 404,
         });
       }
       return Promise.reject(new Error('Not found'));
     });
-    
+
     render(<ForumPost />);
-    
+
     await waitFor(() => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
-    
+
     // Error message should be displayed
     expect(screen.getByText(/failed to load the post/i)).toBeInTheDocument();
   });
 
   test('navigates back to forum list when Back button is clicked', async () => {
     render(<ForumPost />);
-    
+
     await waitFor(() => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
@@ -331,7 +339,7 @@ describe('ForumPost Component', () => {
     // Click on back button
     const backButton = screen.getByText('Back to Forums');
     fireEvent.click(backButton);
-    
+
     expect(mockNavigate).toHaveBeenCalledWith('/forum');
   });
 });

@@ -17,8 +17,8 @@ const GardensPreview = ({ limit = 2 }) => {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Token ${token}`
-            }
+              Authorization: `Token ${token}`,
+            },
           });
 
           if (!profileResponse.ok) {
@@ -26,14 +26,14 @@ const GardensPreview = ({ limit = 2 }) => {
           }
 
           const profileData = await profileResponse.json();
-          
+
           // Then get all memberships
           const membershipsResponse = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Token ${token}`
-            }
+              Authorization: `Token ${token}`,
+            },
           });
 
           if (!membershipsResponse.ok) {
@@ -41,29 +41,32 @@ const GardensPreview = ({ limit = 2 }) => {
           }
 
           const membershipsData = await membershipsResponse.json();
-          
+
           // Filter memberships where status is ACCEPTED and username matches
           const acceptedGardenIds = membershipsData
-            .filter(m => m.status === 'ACCEPTED' && m.username === profileData.username)
-            .map(m => m.garden);
-          
+            .filter((m) => m.status === 'ACCEPTED' && m.username === profileData.username)
+            .map((m) => m.garden);
+
           // Fetch each garden by ID
           const gardensData = [];
           for (const gardenId of acceptedGardenIds) {
-            const gardenResponse = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Token ${token}`
+            const gardenResponse = await fetch(
+              `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`,
+              {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Token ${token}`,
+                },
               }
-            });
-            
+            );
+
             if (gardenResponse.ok) {
               const gardenData = await gardenResponse.json();
               gardensData.push(gardenData);
             }
           }
-          
+
           setGardens(gardensData);
         } else {
           // For non-authenticated users, fetch public gardens
@@ -71,7 +74,7 @@ const GardensPreview = ({ limit = 2 }) => {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-            }
+            },
           });
 
           if (!response.ok) {
@@ -81,7 +84,7 @@ const GardensPreview = ({ limit = 2 }) => {
           const data = await response.json();
           setGardens(data);
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching gardens:', error);
@@ -94,13 +97,16 @@ const GardensPreview = ({ limit = 2 }) => {
 
   if (loading) {
     return (
-      <Paper elevation={1} sx={{ 
-        p: 2, 
-        height: '100%', 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center'
-      }}>
+      <Paper
+        elevation={1}
+        sx={{
+          p: 2,
+          height: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <CircularProgress color="success" />
       </Paper>
     );
@@ -108,14 +114,17 @@ const GardensPreview = ({ limit = 2 }) => {
 
   if (gardens.length === 0) {
     return (
-      <Paper elevation={1} sx={{ 
-        p: 2, 
-        height: '100%', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        alignItems: 'center'
-      }}>
+      <Paper
+        elevation={1}
+        sx={{
+          p: 2,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <Typography variant="h6" gutterBottom>
           Gardens
         </Typography>

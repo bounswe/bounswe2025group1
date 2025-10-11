@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { 
-  Dialog, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
   TextField,
   Button,
   Alert,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import SendIcon from '@mui/icons-material/Send';
@@ -27,43 +27,43 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
       setError('Comment cannot be empty');
       return;
     }
-    
+
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/comments/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify({
           forum_post: postId,
-          content: content
-        })
+          content: content,
+        }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to post comment');
       }
-      
+
       const data = await response.json();
-      
+
       // Reset form
       setContent('');
       setLoading(false);
-      
+
       // Show success toast notification
       toast.success('Comment posted successfully!');
-      
+
       // Call the callback function with the new comment data
       onCommentCreated(data);
     } catch (error) {
       console.error('Error posting comment:', error);
       setError('Failed to post your comment. Please try again.');
       setLoading(false);
-      
+
       // Show error toast notification
       toast.error('Failed to post comment. Please try again.');
     }
@@ -76,27 +76,22 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={handleClose}
-      fullWidth
-      maxWidth="md"
-    >
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}>
         <AddCommentIcon sx={{ mr: 1 }} /> Add a Comment
       </DialogTitle>
-      
+
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
-        
+
         <DialogContentText sx={{ mb: 2, textAlign: 'left' }}>
           Share your thoughts about this post.
         </DialogContentText>
-        
+
         <TextField
           autoFocus
           margin="dense"
@@ -110,21 +105,21 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
           required
         />
       </DialogContent>
-      
+
       <DialogActions sx={{ p: 3 }}>
         <Button onClick={handleClose} variant="outlined">
           Cancel
         </Button>
-        <Button 
+        <Button
           onClick={handleSubmit}
           variant="contained"
           disabled={!content.trim() || loading}
           endIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
-          sx={{ 
-            bgcolor: '#558b2f', 
-            '&:hover': { 
-              bgcolor: '#33691e' 
-            }
+          sx={{
+            bgcolor: '#558b2f',
+            '&:hover': {
+              bgcolor: '#33691e',
+            },
           }}
         >
           {loading ? 'Posting...' : 'Post Comment'}

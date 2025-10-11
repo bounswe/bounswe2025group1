@@ -6,7 +6,6 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     const storedToken = localStorage.getItem('token');
@@ -17,7 +16,6 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-
   const login = (userData, jwtToken) => {
     setCurrentUser(userData);
     setToken(jwtToken);
@@ -25,7 +23,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('token', jwtToken);
     return true;
   };
-
 
   const register = (userData, jwtToken) => {
     setCurrentUser(userData);
@@ -35,23 +32,22 @@ export const AuthProvider = ({ children }) => {
     return true;
   };
 
-
   const logout = async () => {
     try {
-      const token = localStorage.getItem('token'); 
-  
+      const token = localStorage.getItem('token');
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/logout/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
-        }
+          Authorization: `Token ${token}`,
+        },
       });
-  
+
       if (!response.ok) {
         throw new Error('Logout failed');
       }
-  
+
       localStorage.removeItem('token'); // clear token
       setCurrentUser(null);
       setToken(null);
@@ -61,7 +57,7 @@ export const AuthProvider = ({ children }) => {
       return false;
     }
   };
-  
+
   const value = {
     currentUser,
     token,
@@ -71,11 +67,7 @@ export const AuthProvider = ({ children }) => {
     logout,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 };
 
 export default AuthProvider;

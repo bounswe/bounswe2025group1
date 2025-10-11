@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Modal, Fade, Backdrop, Box, Typography, TextField, MenuItem, Button, FormControl,
-  InputLabel, Select, OutlinedInput, CircularProgress
+  Modal,
+  Fade,
+  Backdrop,
+  Box,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  OutlinedInput,
+  CircularProgress,
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -15,7 +26,7 @@ const TaskModal = ({
   onDelete,
   mode = 'create',
   initialData = {},
-  gardenId // Current garden ID for creating tasks
+  gardenId, // Current garden ID for creating tasks
 }) => {
   // Initialize with default empty values
   const [taskForm, setTaskForm] = useState({
@@ -25,13 +36,13 @@ const TaskModal = ({
     assigned_to: null,
     custom_type: null,
     garden: parseInt(gardenId),
-    ...initialData
+    ...initialData,
   });
 
   // States for data from API
   const [gardenMembers, setGardenMembers] = useState([]);
   const [customTaskTypes, setCustomTaskTypes] = useState([]);
-  
+
   // Loading states
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [loadingTaskTypes, setLoadingTaskTypes] = useState(false);
@@ -48,7 +59,7 @@ const TaskModal = ({
 
   // NOTE: fetch helpers moved into the useEffect below to avoid changing the
   // useEffect dependency array on every render (fixes react-hooks/exhaustive-deps).
-  
+
   // Fetch data when component mounts or when gardenId changes
   useEffect(() => {
     if (!gardenId) return;
@@ -61,8 +72,8 @@ const TaskModal = ({
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Token ${token}`
-          }
+            Authorization: `Token ${token}`,
+          },
         });
 
         if (!response.ok) {
@@ -71,8 +82,8 @@ const TaskModal = ({
 
         const data = await response.json();
         const members = data
-          .filter(member => member.garden === parseInt(gardenId) && member.status === 'ACCEPTED')
-          .map(member => ({ id: member.user_id, name: member.username }));
+          .filter((member) => member.garden === parseInt(gardenId) && member.status === 'ACCEPTED')
+          .map((member) => ({ id: member.user_id, name: member.username }));
         setGardenMembers(members);
       } catch (error) {
         console.error('Error fetching garden members:', error);
@@ -85,20 +96,27 @@ const TaskModal = ({
       setLoadingTaskTypes(true);
       try {
         const token = getToken();
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${token}`
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Token ${token}`,
+            },
           }
-        });
+        );
 
         if (!response.ok) {
           throw new Error('Failed to fetch custom task types');
         }
 
         const data = await response.json();
-        const taskTypes = data.map(type => ({ id: type.id, name: type.name, description: type.description }));
+        const taskTypes = data.map((type) => ({
+          id: type.id,
+          name: type.name,
+          description: type.description,
+        }));
         setCustomTaskTypes(taskTypes);
       } catch (error) {
         console.error('Error fetching custom task types:', error);
@@ -113,11 +131,11 @@ const TaskModal = ({
   // Update the form state whenever initialData changes
   useEffect(() => {
     // Update taskForm with initialData while preserving existing values
-    setTaskForm(prev => ({
+    setTaskForm((prev) => ({
       ...prev,
-      ...initialData
+      ...initialData,
     }));
-    
+
     // Update the deadline state if due_date exists
     if (initialData?.due_date) {
       setDeadline(dayjs(initialData.due_date));
@@ -126,12 +144,12 @@ const TaskModal = ({
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setTaskForm(prev => ({ ...prev, [name]: value }));
+    setTaskForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAssigneeChange = (event) => {
     const { value } = event.target;
-    setTaskForm(prev => ({ ...prev, assigned_to: value }));
+    setTaskForm((prev) => ({ ...prev, assigned_to: value }));
   };
 
   // Create a new custom task type
@@ -144,38 +162,42 @@ const TaskModal = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify({
           garden: gardenId,
           name: newTaskTypeName,
-          description: newTaskTypeDescription || `Tasks related to ${newTaskTypeName}`
-        })
+          description: newTaskTypeDescription || `Tasks related to ${newTaskTypeName}`,
+        }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create custom task type');
       }
-      
+
       const data = await response.json();
-      
+
       // Add the new task type to the list
-      setCustomTaskTypes(prev => [...prev, {
-        id: data.id,
-        name: data.name,
-        description: data.description
-      }]);
-      
+      setCustomTaskTypes((prev) => [
+        ...prev,
+        {
+          id: data.id,
+          name: data.name,
+          description: data.description,
+        },
+      ]);
+
       // Return the ID to set it as the selected value
       return data.id;
     } catch (error) {
       console.error('Error creating custom task type:', error);
       return null;
     }
-  };  const handleSubmit = async (e) => {
+  };
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const updatedForm = { ...taskForm };
-    
+
     // Ensure deadline is a valid dayjs object before calling toISOString
     if (deadline && dayjs(deadline).isValid()) {
       const formattedDeadline = deadline.toISOString();
@@ -183,7 +205,7 @@ const TaskModal = ({
     } else {
       updatedForm.due_date = dayjs().toISOString();
     }
-    
+
     console.log('Form values before submission:', updatedForm);
 
     // If we have a new task type to create
@@ -194,32 +216,75 @@ const TaskModal = ({
       } else {
         updatedForm.custom_type = null;
       }
-    }    // Final form should match the API requirements
+    } // Final form should match the API requirements
     const finalForm = {
       id: updatedForm.id, // Preserve ID for edit mode
       garden: parseInt(gardenId),
       title: updatedForm.title,
       description: updatedForm.description,
       status: updatedForm.status || 'PENDING',
-      assigned_to: updatedForm.assigned_to === 'Not Assigned' ? null : updatedForm.assigned_to || null,
+      assigned_to:
+        updatedForm.assigned_to === 'Not Assigned' ? null : updatedForm.assigned_to || null,
       due_date: updatedForm.due_date,
-      custom_type: updatedForm.custom_type === 'new' ? null : 
-                   updatedForm.custom_type === 'No Type' ? null : 
-                   updatedForm.custom_type
+      custom_type:
+        updatedForm.custom_type === 'new'
+          ? null
+          : updatedForm.custom_type === 'No Type'
+          ? null
+          : updatedForm.custom_type,
     };
-    
+
     onSubmit(finalForm);
     onClose();
   };
 
   return (
-    <Modal open={open} onClose={onClose} closeAfterTransition BackdropComponent={Backdrop} BackdropProps={{ timeout: 500 }}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      closeAfterTransition
+      BackdropComponent={Backdrop}
+      BackdropProps={{ timeout: 500 }}
+    >
       <Fade in={open}>
-        <Box component="form" onSubmit={handleSubmit} sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 500, bgcolor: 'background.paper', borderRadius: 2, boxShadow: 24, p: 4 }}>
-          <Typography variant="h6" gutterBottom>{mode === 'edit' ? 'Edit Task' : 'Add Task'}</Typography>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 500,
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            {mode === 'edit' ? 'Edit Task' : 'Add Task'}
+          </Typography>
 
-          <TextField label="Title" name="title" fullWidth margin="normal" value={taskForm.title} onChange={handleFormChange} required />
-          <TextField label="Description" name="description" fullWidth margin="normal" multiline rows={3} value={taskForm.description} onChange={handleFormChange} />
+          <TextField
+            label="Title"
+            name="title"
+            fullWidth
+            margin="normal"
+            value={taskForm.title}
+            onChange={handleFormChange}
+            required
+          />
+          <TextField
+            label="Description"
+            name="description"
+            fullWidth
+            margin="normal"
+            multiline
+            rows={3}
+            value={taskForm.description}
+            onChange={handleFormChange}
+          />
 
           <FormControl fullWidth margin="normal">
             <InputLabel>Status</InputLabel>
@@ -242,7 +307,12 @@ const TaskModal = ({
                 value={deadline}
                 onChange={(newValue) => setDeadline(newValue)}
                 slotProps={{
-                  textField: { fullWidth: true, variant: 'outlined', margin: 'normal', size: 'medium' }
+                  textField: {
+                    fullWidth: true,
+                    variant: 'outlined',
+                    margin: 'normal',
+                    size: 'medium',
+                  },
                 }}
               />
             </Box>
@@ -300,18 +370,18 @@ const TaskModal = ({
 
           {taskForm.custom_type === 'new' && (
             <Box sx={{ mt: 2 }}>
-              <TextField 
-                label="New Task Type Name" 
-                fullWidth 
-                margin="normal" 
+              <TextField
+                label="New Task Type Name"
+                fullWidth
+                margin="normal"
                 value={newTaskTypeName}
                 onChange={(e) => setNewTaskTypeName(e.target.value)}
-                required 
+                required
               />
-              <TextField 
-                label="Description (optional)" 
-                fullWidth 
-                margin="normal" 
+              <TextField
+                label="Description (optional)"
+                fullWidth
+                margin="normal"
                 value={newTaskTypeDescription}
                 onChange={(e) => setNewTaskTypeDescription(e.target.value)}
               />

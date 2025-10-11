@@ -23,7 +23,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
@@ -68,21 +68,21 @@ const GardenDetail = () => {
       due_date: task.due_date,
       assigned_to: task.assigned_to,
       custom_type: task.custom_type ? String(task.custom_type) : null,
-      garden: task.garden
+      garden: task.garden,
     };
     console.log('Task selected for edit:', formattedTask);
     setSelectedTask(formattedTask);
     setEditTaskModalOpen(true);
   };
   const handleTaskUpdate = async (updatedTask) => {
-    try {      
+    try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
+          Authorization: `Token ${token}`,
         },
-        body: JSON.stringify(updatedTask)
+        body: JSON.stringify(updatedTask),
       });
 
       if (!response.ok) {
@@ -92,7 +92,7 @@ const GardenDetail = () => {
       }
 
       const updated = await response.json();
-      setTasks(prev => prev.map(t => (t.id === updated.id ? updated : t)));
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
       toast.success('Task updated!');
       setEditTaskModalOpen(false);
     } catch (err) {
@@ -101,15 +101,14 @@ const GardenDetail = () => {
     }
   };
 
-
   const handleTaskDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this task?')) return;
     try {
       await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
         method: 'DELETE',
-        headers: { Authorization: `Token ${token}` }
+        headers: { Authorization: `Token ${token}` },
       });
-      setTasks(prev => prev.filter(t => t.id !== selectedTask.id));
+      setTasks((prev) => prev.filter((t) => t.id !== selectedTask.id));
       toast.success('Task deleted');
       setEditTaskModalOpen(false);
     } catch {
@@ -146,8 +145,8 @@ const GardenDetail = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Token ${token}`
-          }
+            Authorization: `Token ${token}`,
+          },
         });
         const gardenData = await gardenRes.json();
         setGarden(gardenData);
@@ -156,8 +155,8 @@ const GardenDetail = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Token ${token}`
-          }
+            Authorization: `Token ${token}`,
+          },
         });
         const tasksData = await tasksRes.json();
         setTasks(tasksData);
@@ -167,18 +166,21 @@ const GardenDetail = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Token ${token}`
-          }
+            Authorization: `Token ${token}`,
+          },
         });
         const allMembersData = await membersRes.json();
-        const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
-        setMembers(filteredMembersData || []);        // Check if current user is a member and their role
+        const filteredMembersData = allMembersData.filter(
+          (member) => member.garden === parseInt(gardenId)
+        );
+        setMembers(filteredMembersData || []); // Check if current user is a member and their role
         if (currentUser) {
-          const userMember = filteredMembersData?.find(m => m.username === currentUser.username);
+          const userMember = filteredMembersData?.find((m) => m.username === currentUser.username);
           setIsMember(!!userMember);
           setIsManager(userMember?.role === 'MANAGER');
           setUserMembership(userMember);
-        }        setEditForm({
+        }
+        setEditForm({
           name: gardenData.name || '',
           description: gardenData.description || '',
           location: gardenData.location || '',
@@ -194,13 +196,15 @@ const GardenDetail = () => {
     fetchGardenData();
   }, [gardenId, currentUser, token]);
 
-
   useEffect(() => {
     const fetchCustomTaskTypes = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`, {
-          headers: { Authorization: `Token ${token}` }
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`,
+          {
+            headers: { Authorization: `Token ${token}` },
+          }
+        );
         const data = await response.json();
         setCustomTaskTypes(data);
       } catch (err) {
@@ -213,7 +217,6 @@ const GardenDetail = () => {
       fetchCustomTaskTypes();
     }
   }, [token, gardenId]);
-
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -235,31 +238,33 @@ const GardenDetail = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify({
-          garden: parseInt(gardenId)
-        })
+          garden: parseInt(gardenId),
+        }),
       });
-      
+
       if (!joinRes.ok) {
         throw new Error('Failed to join garden');
       }
-        toast.success('Request to join garden sent!');
-      
+      toast.success('Request to join garden sent!');
+
       // Refresh members list
       const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        }
+          Authorization: `Token ${token}`,
+        },
       });
       const allMembersData = await membersRes.json();
-      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
+      const filteredMembersData = allMembersData.filter(
+        (member) => member.garden === parseInt(gardenId)
+      );
       setMembers(filteredMembersData || []);
-        // Update user membership status
-      const userMember = filteredMembersData?.find(m => m.username === currentUser.username);
+      // Update user membership status
+      const userMember = filteredMembersData?.find((m) => m.username === currentUser.username);
       setIsMember(!!userMember);
       setUserMembership(userMember);
     } catch (err) {
@@ -269,37 +274,42 @@ const GardenDetail = () => {
   };
   const handleLeaveGarden = async () => {
     if (!window.confirm('Are you sure you want to leave this garden?')) return;
-    
+
     try {
       if (userMembership) {
-        const leaveRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${userMembership.id}/`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`
+        const leaveRes = await fetch(
+          `${import.meta.env.VITE_API_URL}/memberships/${userMembership.id}/`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Token ${token}`,
+            },
           }
-        });
-        
+        );
+
         if (!leaveRes.ok) {
           throw new Error('Failed to leave garden');
         }
-        
+
         toast.success('You have left the garden');
-          // Update state
+        // Update state
         setIsMember(false);
         setIsManager(false);
         setUserMembership(null);
-        
+
         // Refresh members list
         const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Token ${token}`
-          }
+            Authorization: `Token ${token}`,
+          },
         });
         const allMembersData = await membersRes.json();
-        const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
+        const filteredMembersData = allMembersData.filter(
+          (member) => member.garden === parseInt(gardenId)
+        );
         setMembers(filteredMembersData || []);
       }
     } catch (err) {
@@ -309,31 +319,36 @@ const GardenDetail = () => {
   };
   const handleRemoveMember = async (membershipId) => {
     if (!window.confirm('Are you sure you want to remove this member?')) return;
-    
+
     try {
-      const removeRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${membershipId}/`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
+      const removeRes = await fetch(
+        `${import.meta.env.VITE_API_URL}/memberships/${membershipId}/`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+          },
         }
-      });
-      
+      );
+
       if (!removeRes.ok) {
         throw new Error('Failed to remove member');
       }
-        toast.success('Member removed from garden');
-      
+      toast.success('Member removed from garden');
+
       // Refresh members list
       const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        }
+          Authorization: `Token ${token}`,
+        },
       });
       const allMembersData = await membersRes.json();
-      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
+      const filteredMembersData = allMembersData.filter(
+        (member) => member.garden === parseInt(gardenId)
+      );
       setMembers(filteredMembersData || []);
     } catch (err) {
       console.error('Remove member error:', err);
@@ -342,32 +357,37 @@ const GardenDetail = () => {
   };
   const handleChangeMemberRole = async (membershipId, newRole) => {
     try {
-      const updateRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${membershipId}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        },
-        body: JSON.stringify({
-          role: newRole
-        })
-      });
-      
+      const updateRes = await fetch(
+        `${import.meta.env.VITE_API_URL}/memberships/${membershipId}/`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+          },
+          body: JSON.stringify({
+            role: newRole,
+          }),
+        }
+      );
+
       if (!updateRes.ok) {
         throw new Error('Failed to update member role');
       }
-        toast.success('Member role updated');
-      
+      toast.success('Member role updated');
+
       // Refresh members list
       const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        }
+          Authorization: `Token ${token}`,
+        },
       });
       const allMembersData = await membersRes.json();
-      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
+      const filteredMembersData = allMembersData.filter(
+        (member) => member.garden === parseInt(gardenId)
+      );
       setMembers(filteredMembersData || []);
     } catch (err) {
       console.error('Change role error:', err);
@@ -377,31 +397,36 @@ const GardenDetail = () => {
 
   const handleAcceptMember = async (membershipId) => {
     try {
-      const acceptRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${membershipId}/accept/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        },
-        body: JSON.stringify({})
-      });
-      
+      const acceptRes = await fetch(
+        `${import.meta.env.VITE_API_URL}/memberships/${membershipId}/accept/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+          },
+          body: JSON.stringify({}),
+        }
+      );
+
       if (!acceptRes.ok) {
         throw new Error('Failed to accept member');
       }
-      
+
       toast.success('Member accepted');
-      
+
       // Refresh members list
       const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        }
+          Authorization: `Token ${token}`,
+        },
       });
       const allMembersData = await membersRes.json();
-      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
+      const filteredMembersData = allMembersData.filter(
+        (member) => member.garden === parseInt(gardenId)
+      );
       setMembers(filteredMembersData || []);
     } catch (err) {
       console.error('Accept member error:', err);
@@ -435,9 +460,8 @@ const GardenDetail = () => {
     );
   }
   const handleTaskSubmit = async (formData) => {
-
     if (!token) {
-      toast.error("You must be logged in to create a task.");
+      toast.error('You must be logged in to create a task.');
       return;
     }
 
@@ -446,7 +470,7 @@ const GardenDetail = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -464,7 +488,7 @@ const GardenDetail = () => {
         return;
       }
 
-      setTasks(prev => [...prev, data]);
+      setTasks((prev) => [...prev, data]);
       toast.success('Task created!');
       handleCloseTaskModal();
     } catch (err) {
@@ -511,8 +535,8 @@ const GardenDetail = () => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        }
+          Authorization: `Token ${token}`,
+        },
       });
 
       if (res.status === 204) {
@@ -533,7 +557,11 @@ const GardenDetail = () => {
       <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 8 }}>
-            <Typography variant="h4" gutterBottom sx={{ color: '#2e7d32', fontWeight: 'bold', textAlign: "start" }}>
+            <Typography
+              variant="h4"
+              gutterBottom
+              sx={{ color: '#2e7d32', fontWeight: 'bold', textAlign: 'start' }}
+            >
               {garden.name}
             </Typography>
             <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
@@ -559,15 +587,15 @@ const GardenDetail = () => {
             <Typography variant="body1" sx={{ textAlign: 'start' }}>
               {garden.description}
             </Typography>
-          </Grid>          <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+          </Grid>{' '}
+          <Grid
+            size={{ xs: 12, md: 4 }}
+            sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}
+          >
             {currentUser ? (
               isMember ? (
                 userMembership?.status === 'PENDING' ? (
-                  <Button
-                    variant="outlined"
-                    disabled
-                    sx={{ mr: 1 }}
-                  >
+                  <Button variant="outlined" disabled sx={{ mr: 1 }}>
                     Request Pending
                   </Button>
                 ) : (
@@ -620,7 +648,7 @@ const GardenDetail = () => {
           variant="fullWidth"
           sx={{
             '.MuiTabs-indicator': { backgroundColor: '#558b2f' },
-            '.Mui-selected': { color: '#558b2f' }
+            '.Mui-selected': { color: '#558b2f' },
           }}
         >
           <Tab label="Tasks" />
@@ -634,8 +662,12 @@ const GardenDetail = () => {
         {/* Tasks Tab */}
         {activeTab === 0 && (
           <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" sx={{ color: '#558b2f' }}>Garden Tasks</Typography>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}
+            >
+              <Typography variant="h6" sx={{ color: '#558b2f' }}>
+                Garden Tasks
+              </Typography>
               {isMember && (
                 <Button
                   variant="contained"
@@ -656,15 +688,13 @@ const GardenDetail = () => {
                   method: 'PATCH',
                   headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Token ${token}`
+                    Authorization: `Token ${token}`,
                   },
-                  body: JSON.stringify({ status: newStatus })
+                  body: JSON.stringify({ status: newStatus }),
                 });
               }}
             />
           </Box>
-
-
         )}
 
         {/* Members Tab */}
@@ -678,12 +708,20 @@ const GardenDetail = () => {
                       <Avatar>
                         <AccountCircleIcon />
                       </Avatar>
-                    </ListItemAvatar>                    <ListItemText
-                      primary={<Typography variant="body1" sx={{ cursor: 'pointer' }} onClick={() => navigate(`/profile/${member.user_id}`)}>
-                        {member.username || `User ${member.id || 'Unknown'}`}
-                      </Typography>}
+                    </ListItemAvatar>{' '}
+                    <ListItemText
+                      primary={
+                        <Typography
+                          variant="body1"
+                          sx={{ cursor: 'pointer' }}
+                          onClick={() => navigate(`/profile/${member.user_id}`)}
+                        >
+                          {member.username || `User ${member.id || 'Unknown'}`}
+                        </Typography>
+                      }
                       secondary={`Role: ${member.role} • Status: ${member.status}`}
-                    />                    {isManager && member.id !== userMembership?.id && (
+                    />{' '}
+                    {isManager && member.id !== userMembership?.id && (
                       <>
                         {member.status === 'PENDING' ? (
                           <Button
@@ -700,7 +738,12 @@ const GardenDetail = () => {
                             size="small"
                             variant="outlined"
                             color="primary"
-                            onClick={() => handleChangeMemberRole(member.id, member.role === 'MANAGER' ? 'WORKER' : 'MANAGER')}
+                            onClick={() =>
+                              handleChangeMemberRole(
+                                member.id,
+                                member.role === 'MANAGER' ? 'WORKER' : 'MANAGER'
+                              )
+                            }
                             sx={{ mr: 1 }}
                           >
                             {member.role === 'MANAGER' ? 'Demote' : 'Promote'}
@@ -720,7 +763,11 @@ const GardenDetail = () => {
                 </Paper>
               ))}
               {members.length === 0 && (
-                <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 3 }}>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ textAlign: 'center', mt: 3 }}
+                >
                   No members found
                 </Typography>
               )}
@@ -730,13 +777,17 @@ const GardenDetail = () => {
 
         {/* Calendar Tab */}
         {activeTab === 2 && (
-          <CalendarTab tasks={tasks} onTaskClick={handleTaskChipClick} onEmptyDayClick={(date) => {
-            setTaskForm((prev) => ({
-              ...prev,
-              deadline: date.toISOString()
-            }));
-            setOpenTaskModal(true);
-          }} />
+          <CalendarTab
+            tasks={tasks}
+            onTaskClick={handleTaskChipClick}
+            onEmptyDayClick={(date) => {
+              setTaskForm((prev) => ({
+                ...prev,
+                deadline: date.toISOString(),
+              }));
+              setOpenTaskModal(true);
+            }}
+          />
         )}
       </Box>
       <TaskModal
@@ -766,8 +817,7 @@ const GardenDetail = () => {
         gardenId={gardenId}
         mode="edit"
       />
-
-     </Container>
+    </Container>
   );
 };
 
