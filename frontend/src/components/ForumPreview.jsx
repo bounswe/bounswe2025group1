@@ -1,4 +1,3 @@
-/* global Intl */
 import {
   Paper,
   Typography,

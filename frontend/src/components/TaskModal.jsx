@@ -46,78 +46,67 @@ const TaskModal = ({
   // Get token from localStorage
   const getToken = () => localStorage.getItem('token');
 
-  // Fetch garden members (users who can be assigned to tasks)
-  const fetchGardenMembers = async () => {
-    if (!gardenId) return;
-    
-    setLoadingMembers(true);
-    try {
-      const token = getToken();
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch garden members');
-      }
-      
-      const data = await response.json();
-      // Filter members for this garden and transform to the format we need
-      const members = data
-        .filter(member => member.garden === parseInt(gardenId) && member.status === 'ACCEPTED')
-        .map(member => ({
-          id: member.user_id,
-          name: member.username
-        }));
-      setGardenMembers(members);
-    } catch (error) {
-      console.error('Error fetching garden members:', error);
-    } finally {
-      setLoadingMembers(false);
-    }
-  };
-
-  // Fetch custom task types for this garden
-  const fetchCustomTaskTypes = async () => {
-    if (!gardenId) return;
-    
-    setLoadingTaskTypes(true);
-    try {
-      const token = getToken();
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch custom task types');
-      }
-      
-      const data = await response.json();
-      // Map response to the format we need
-      const taskTypes = data.map(type => ({
-        id: type.id,
-        name: type.name,
-        description: type.description
-      }));
-      
-      setCustomTaskTypes(taskTypes);
-    } catch (error) {
-      console.error('Error fetching custom task types:', error);
-    } finally {
-      setLoadingTaskTypes(false);
-    }
-  };
+  // NOTE: fetch helpers moved into the useEffect below to avoid changing the
+  // useEffect dependency array on every render (fixes react-hooks/exhaustive-deps).
   
-  // Fetch data when component mounts
+  // Fetch data when component mounts or when gardenId changes
   useEffect(() => {
+    if (!gardenId) return;
+
+    const fetchGardenMembers = async () => {
+      setLoadingMembers(true);
+      try {
+        const token = getToken();
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch garden members');
+        }
+
+        const data = await response.json();
+        const members = data
+          .filter(member => member.garden === parseInt(gardenId) && member.status === 'ACCEPTED')
+          .map(member => ({ id: member.user_id, name: member.username }));
+        setGardenMembers(members);
+      } catch (error) {
+        console.error('Error fetching garden members:', error);
+      } finally {
+        setLoadingMembers(false);
+      }
+    };
+
+    const fetchCustomTaskTypes = async () => {
+      setLoadingTaskTypes(true);
+      try {
+        const token = getToken();
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch custom task types');
+        }
+
+        const data = await response.json();
+        const taskTypes = data.map(type => ({ id: type.id, name: type.name, description: type.description }));
+        setCustomTaskTypes(taskTypes);
+      } catch (error) {
+        console.error('Error fetching custom task types:', error);
+      } finally {
+        setLoadingTaskTypes(false);
+      }
+    };
+
     fetchGardenMembers();
     fetchCustomTaskTypes();
   }, [gardenId]);

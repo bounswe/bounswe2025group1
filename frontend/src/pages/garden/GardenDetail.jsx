@@ -96,6 +96,7 @@ const GardenDetail = () => {
       toast.success('Task updated!');
       setEditTaskModalOpen(false);
     } catch (err) {
+      console.error('Error updating task:', err);
       toast.error('Could not update task.');
     }
   };
@@ -203,6 +204,7 @@ const GardenDetail = () => {
         const data = await response.json();
         setCustomTaskTypes(data);
       } catch (err) {
+        console.error('Error fetching custom task types:', err);
         toast.error('Could not load custom task types');
       }
     };
@@ -466,6 +468,7 @@ const GardenDetail = () => {
       toast.success('Task created!');
       handleCloseTaskModal();
     } catch (err) {
+      console.error('Error creating task:', err);
       toast.error('Something went wrong while creating the task.');
     }
   };
@@ -495,7 +498,8 @@ const GardenDetail = () => {
       toast.success('Garden updated!');
       handleCloseGardenEditModal();
     } catch (err) {
-      //toast.error('Error updating garden');
+      console.error('Error updating garden:', err);
+      toast.error('Error updating garden');
     }
   };
 
@@ -518,6 +522,7 @@ const GardenDetail = () => {
         throw new Error('Failed to delete');
       }
     } catch (err) {
+      console.error('Error deleting garden:', err);
       toast.error('Could not delete garden.');
     }
   };

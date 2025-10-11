@@ -1,4 +1,3 @@
-/* global Intl */
 import { useState, useEffect } from 'react';
 import { 
   Container, 
