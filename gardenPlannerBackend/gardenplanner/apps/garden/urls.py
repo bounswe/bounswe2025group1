@@ -11,6 +11,7 @@ router.register(r'gardens', views.GardenViewSet, basename='garden')
 router.register(r'memberships', views.GardenMembershipViewSet, basename='membership')
 router.register(r'task-types', views.CustomTaskTypeViewSet, basename='task-type')
 router.register(r'tasks', views.TaskViewSet, basename='task')
+router.register(r'notifications', views.NotificationViewSet, basename='notification')
 
 # Create forum-specific URL patterns
 forum_patterns = [
