@@ -11,9 +11,7 @@ import {
   Paper,
   Grid,
   CircularProgress,
-  Divider,
   TextField,
-  IconButton,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -58,22 +56,16 @@ const Profile = () => {
 
       try {
         setLoading(true);
-        let endpoint;
 
-        if (isOwnProfile) {
-          endpoint = `${import.meta.env.VITE_API_URL}/profile/`;
-        } else {
-          endpoint = `${import.meta.env.VITE_API_URL}/profile/${userId}/`;
-        }
-
-        const response = await fetch(endpoint, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/${userId}/`, {
           headers: {
             Authorization: `Token ${token}`,
           },
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch profile data');
+          toast.error('Failed to load profile');
+          return;
         }
 
         const data = await response.json();
@@ -90,8 +82,8 @@ const Profile = () => {
 
         // Check if current user is following this profile
         if (!isOwnProfile && user) {
-          const followersResponse = await fetch(
-            `${import.meta.env.VITE_API_URL}/user/${userId}/followers/`,
+          const isFollowingResponse = await fetch(
+            `${import.meta.env.VITE_API_URL}/user/${userId}/is-following/`,
             {
               headers: {
                 Authorization: `Token ${token}`,
@@ -99,46 +91,42 @@ const Profile = () => {
             }
           );
 
-          if (followersResponse.ok) {
-            const followingData = await followersResponse.json();
-            setIsFollowing(followingData.some((u) => u.id.toString() === user.user_id.toString()));
+          if (isFollowingResponse.ok) {
+            const followingData = await isFollowingResponse.json();
+            setIsFollowing(followingData.is_following);
           }
         }
 
-        // Fetch user's gardens
-        try {
-          const gardensResponse = await fetch(
-            `${import.meta.env.VITE_API_URL}/gardens/user/${userId || user.user_id}/`,
-            {
-              headers: {
-                Authorization: `Token ${token}`,
-              },
-            }
-          );
-
-          if (gardensResponse.ok) {
-            const gardensData = await gardensResponse.json();
-            setGardens(gardensData);
-          }
-        } catch (gardenError) {
-          console.error('Error fetching gardens:', gardenError);
-        }
-
-        setLoading(false);
       } catch (err) {
         setError(err.message);
-        setLoading(false);
         toast.error('Error loading profile');
       }
     };
 
-    fetchProfileData();
-  }, [token, userId, user, navigate, isOwnProfile]);
+    const fetchUserGardens = async () => {
+      if (!token) return;
+      // Fetch user's gardens
+      try {
+        const gardensResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/user/${userId || user.user_id}/gardens/`,
+          {
+            headers: {
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
 
-  // Fetch followers and following lists
-  useEffect(() => {
+        if (gardensResponse.ok) {
+          const gardensData = await gardensResponse.json();
+          setGardens(gardensData);
+        }
+      } catch (gardenError) {
+        console.error('Error fetching gardens:', gardenError);
+      }
+    };
+
     const fetchRelationships = async () => {
-      if (!token || !profile) return;
+      if (!token) return;
 
       try {
         const followersResponse = await fetch(
@@ -150,7 +138,7 @@ const Profile = () => {
           }
         );
 
-        const followingResponse = await fetch(
+      const followingResponse = await fetch(
           `${import.meta.env.VITE_API_URL}/user/${userId}/following/`,
           {
             headers: {
@@ -170,16 +158,15 @@ const Profile = () => {
       }
     };
 
-    fetchRelationships();
-  }, [token, profile]);
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
+    const fetchAllData = async () => {
+      await fetchProfileData();
+      await fetchUserGardens();
+      await fetchRelationships();
+      setLoading(false);
+    }
+    
+    fetchAllData();
+  }, [token, userId, user, navigate, isOwnProfile]);
 
   const handleCancelEdit = () => {
     setIsEditing(false);
@@ -197,10 +184,6 @@ const Profile = () => {
       ...prev,
       [name]: value,
     }));
-  };
-
-  const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
   };
 
   const handleSaveProfile = async () => {
@@ -223,7 +206,8 @@ const Profile = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update profile');
+        toast.error('Failed to update profile');
+        return;
       }
 
       const updatedProfile = await response.json();
@@ -255,7 +239,8 @@ const Profile = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to ${isFollowing ? 'unfollow' : 'follow'} user`);
+        toast.error('Failed to update follow status');
+        return;
       }
 
       setIsFollowing(!isFollowing);
@@ -275,10 +260,6 @@ const Profile = () => {
     } catch (err) {
       toast.error(err.message);
     }
-  };
-
-  const navigateToUserProfile = (userId) => {
-    navigate(`/profile/${userId}`);
   };
 
   if (loading) {
@@ -334,7 +315,7 @@ const Profile = () => {
             {isEditing && (
               <Button variant="outlined" component="label" sx={{ mb: 2 }}>
                 Change Picture
-                <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                <input type="file" hidden accept="image/*" onChange={(e) => setSelectedFile(e.target.files[0])} />
               </Button>
             )}
 
@@ -362,7 +343,7 @@ const Profile = () => {
               <Button
                 variant="outlined"
                 startIcon={<EditIcon />}
-                onClick={handleEditClick}
+                onClick={() => setIsEditing(true)}
                 sx={{ mb: 2 }}
               >
                 Edit Profile
@@ -430,7 +411,7 @@ const Profile = () => {
             ) : (
               <Box>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                  <Tabs value={tabValue} onChange={handleTabChange}>
+                  <Tabs value={tabValue} onChange={(e, val) => setTabValue(val)} aria-label="profile tabs">
                     <Tab label="Gardens" id="tab-0" />
                     <Tab label="Followers" id="tab-1" />
                     <Tab label="Following" id="tab-2" />
@@ -478,7 +459,7 @@ const Profile = () => {
                                   alignItems: 'center',
                                   cursor: 'pointer',
                                 }}
-                                onClick={() => navigateToUserProfile(follower.id)}
+                                onClick={() => navigate(`/profile/${follower.id}`)}
                               >
                                 <Avatar
                                   src={follower.profile_picture || '/default-avatar.png'}
@@ -523,7 +504,7 @@ const Profile = () => {
                                   alignItems: 'center',
                                   cursor: 'pointer',
                                 }}
-                                onClick={() => navigateToUserProfile(followedUser.id)}
+                                onClick={() => navigate(`/profile/${followedUser.id}`)}
                               >
                                 <Avatar
                                   src={followedUser.profile_picture || '/default-avatar.png'}
