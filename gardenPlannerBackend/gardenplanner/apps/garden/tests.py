@@ -618,3 +618,75 @@ class WeatherDataViewTests(APITestCase):
         response = self.client.get(reverse('weather'))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'], 'Location parameter is required')
+
+
+class UserRelationAndGardensTests(APITestCase):
+    """Tests for user-related views: gardens, followers, following and is-following."""
+
+    def setUp(self):
+        self.client = APIClient()
+        # create users
+        self.user = User.objects.create_user(username='user1', password='pass')
+        self.user2 = User.objects.create_user(username='user2', password='pass')
+        self.user3 = User.objects.create_user(username='user3', password='pass')
+
+        # authenticate as user1 by default when needed
+        self.token = Token.objects.create(user=self.user)
+
+        # Create a garden and membership for user2
+        self.garden = Garden.objects.create(name='G1', description='d', location='L', is_public=True)
+        GardenMembership.objects.create(user=self.user2, garden=self.garden, role='MANAGER', status='ACCEPTED')
+
+    def test_user_gardens_view(self):
+        """GET /user/<id>/gardens/ should return gardens for the target user."""
+        url = reverse('garden:user-gardens', args=[self.user2.id])
+        # authenticate as user1
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsInstance(resp.data, list)
+        self.assertEqual(len(resp.data), 1)
+        self.assertEqual(resp.data[0]['name'], 'G1')
+
+    def test_user_followers_and_following_views(self):
+        """Test /user/<id>/followers/ and /user/<id>/following/ endpoints."""
+        # make user2 follow user1
+        self.user2.profile.follow(self.user.profile)
+
+        # authenticate as user1
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        # followers of user1 should include user2
+        followers_url = reverse('garden:user-followers', args=[self.user.id])
+        resp = self.client.get(followers_url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data), 1)
+        self.assertEqual(resp.data[0]['username'], 'user2')
+
+        # following of user2 should include user1
+        following_url = reverse('garden:user-following', args=[self.user2.id])
+        # authenticate as user1 (still)
+        resp2 = self.client.get(following_url)
+        self.assertEqual(resp2.status_code, 200)
+        # since we are viewing user2's following list, it should contain user1
+        self.assertEqual(len(resp2.data), 1)
+        self.assertEqual(resp2.data[0]['username'], 'user1')
+
+    def test_user_is_following_view(self):
+        """Test /user/<id>/is-following/ returns the correct boolean."""
+        url = reverse('garden:user-is-following', args=[self.user2.id])
+
+        # authenticate as user1
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        # initially user1 is not following user2
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('is_following', resp.data)
+        self.assertFalse(resp.data['is_following'])
+
+        # now make user1 follow user2 and check again
+        self.user.profile.follow(self.user2.profile)
+        resp2 = self.client.get(url)
+        self.assertEqual(resp2.status_code, 200)
+        self.assertTrue(resp2.data['is_following'])
