@@ -44,6 +44,7 @@ urlpatterns = [
     path('user/<int:user_id>/followers/', views.UserFollowersView.as_view(), name='user-followers'),
     path('user/<int:user_id>/following/', views.UserFollowingView.as_view(), name='user-following'),
     path('user/<int:user_id>/is-following/', views.UserIsFollowingView.as_view(), name='user-is-following'),
+    path('user/<int:user_id>/tasks/', views.UserTasksView.as_view(), name='user-tasks'),
     # Forum endpoints with namespace
     path('forum/', include(forum_patterns)),
     

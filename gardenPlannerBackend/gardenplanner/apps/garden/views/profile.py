@@ -2,14 +2,15 @@
 
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from ..models import GardenMembership
+from ..models import GardenMembership, Task
 from ..serializers import (
-    ProfileSerializer, UserSerializer, ProfileUpdateSerializer, FollowSerializer, UserGardenSerializer
+    ProfileSerializer, UserSerializer, ProfileUpdateSerializer, FollowSerializer, UserGardenSerializer, TaskSerializer
 )
 
 
@@ -73,6 +74,8 @@ class UserGardensView(APIView):
         # Serialize the gardens with user role information
         serializer = UserGardenSerializer(gardens, many=True, context={'request': request})
         return Response(serializer.data)
+    
+
 
 
 
@@ -147,6 +150,52 @@ class UserFollowersView(APIView):
 
         followers = target_user.profile.followers.all()
         serializer = ProfileSerializer(followers, many=True)
+        return Response(serializer.data)
+
+
+class UserTasksView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id):
+        """Get tasks related to a specific user (assigned to or assigned by).
+
+        Visibility rules:
+        - Deny if either user has blocked the other.
+        - System admins can see all tasks.
+        - Otherwise only include tasks whose garden is public or where the requesting
+          user has an accepted membership in the task's garden.
+        """
+        user = get_object_or_404(User, id=user_id)
+
+        # Check if either user has blocked the other
+        if request.user.profile.is_blocked(user.profile) or user.profile.is_blocked(request.user.profile):
+            return Response(
+                {"error": "You cannot view this user's tasks due to blocking restrictions."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Tasks either assigned to or assigned by the target user
+        tasks_qs = Task.objects.filter(Q(assigned_to=user) | Q(assigned_by=user)).select_related(
+            'garden', 'assigned_by', 'assigned_to', 'custom_type'
+        )
+
+        visible_tasks = []
+        for task in tasks_qs:
+            # Admins see everything
+            if request.user.profile.role == 'ADMIN':
+                visible_tasks.append(task)
+                continue
+
+            # Public gardens are visible
+            if task.garden and getattr(task.garden, 'is_public', False):
+                visible_tasks.append(task)
+                continue
+
+            # Otherwise user must be an accepted member of the garden
+            if GardenMembership.objects.filter(user=request.user, garden=task.garden, status='ACCEPTED').exists():
+                visible_tasks.append(task)
+
+        serializer = TaskSerializer(visible_tasks, many=True)
         return Response(serializer.data)
 
 
