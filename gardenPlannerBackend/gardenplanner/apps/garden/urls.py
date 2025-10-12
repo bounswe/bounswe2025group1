@@ -38,6 +38,9 @@ urlpatterns = [
     path('profile/followers/', views.FollowersListView.as_view(), name='followers'),
     path('profile/following/', views.FollowingListView.as_view(), name='following'),
     path('profile/block/', views.BlockUnblockView.as_view(), name='block-unblock'),
+    # Public endpoints to view arbitrary user's followers/following
+    path('user/<int:user_id>/followers/', views.UserFollowersView.as_view(), name='user-followers'),
+    path('user/<int:user_id>/following/', views.UserFollowingView.as_view(), name='user-following'),
     
     # Forum endpoints with namespace
     path('forum/', include(forum_patterns)),
