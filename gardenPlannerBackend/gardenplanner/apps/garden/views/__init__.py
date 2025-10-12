@@ -16,11 +16,13 @@ from .userauth import (
 from .profile import (
     ProfileView,
     UserProfileView,
+    UserGardensView,
     FollowView,
     FollowersListView,
     FollowingListView,
     UserFollowersView,
     UserFollowingView,
+    UserIsFollowingView,
     BlockUnblockView
 )
 from .garden import (
@@ -49,11 +51,13 @@ __all__ = [
     # Profile Views
     "ProfileView",
     "UserProfileView",
+    "UserGardensView",
     "FollowView",
     "FollowersListView",
     "FollowingListView",
     "UserFollowersView",
     "UserFollowingView",
+    "UserIsFollowingView",
     "BlockUnblockView",
     # Garden Views
     "GardenViewSet",

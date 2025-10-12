@@ -7,8 +7,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
+from ..models import GardenMembership
 from ..serializers import (
-    ProfileSerializer, UserSerializer, ProfileUpdateSerializer, FollowSerializer,
+    ProfileSerializer, UserSerializer, ProfileUpdateSerializer, FollowSerializer, UserGardenSerializer
 )
 
 
@@ -45,6 +46,34 @@ class UserProfileView(APIView):
             
         serializer = UserSerializer(user)
         return Response(serializer.data)
+    
+
+class UserGardensView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id):
+        """Get gardens of a specific user"""
+        user = get_object_or_404(User, id=user_id)
+        
+        # Check if either user has blocked the other
+        if request.user.profile.is_blocked(user.profile) or user.profile.is_blocked(request.user.profile):
+            return Response(
+                {"error": "You cannot view this user's gardens due to blocking restrictions."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        memberships = GardenMembership.objects.filter(
+            user=user,
+            status='ACCEPTED'
+        ).select_related('garden')
+        
+        # Extract the gardens from the memberships
+        gardens = [membership.garden for membership in memberships]
+        
+        # Serialize the gardens with user role information
+        serializer = UserGardenSerializer(gardens, many=True, context={'request': request})
+        return Response(serializer.data)
+
 
 
 class FollowView(APIView):
@@ -136,6 +165,26 @@ class UserFollowingView(APIView):
         following = target_user.profile.following.all()
         serializer = ProfileSerializer(following, many=True)
         return Response(serializer.data)
+    
+class UserIsFollowingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id):
+        """Check if current user is following another user"""
+        if not user_id:
+            return Response({"error": "user_id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            target_user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Check if either user has blocked the other
+        if request.user.profile.is_blocked(target_user.profile) or target_user.profile.is_blocked(request.user.profile):
+            return Response({"error": "You cannot check following status due to blocking restrictions."}, status=status.HTTP_403_FORBIDDEN)
+        
+        is_following = request.user.profile.is_following(target_user.profile)
+        return Response({"is_following": is_following})
 
 class BlockUnblockView(APIView):
     permission_classes = [IsAuthenticated]
