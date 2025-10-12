@@ -58,22 +58,39 @@ const GardenDetail = () => {
   const [isMember, setIsMember] = useState(false);
   const [isManager, setIsManager] = useState(false);
   const [userMembership, setUserMembership] = useState(null);
-  const handleTaskChipClick = (task) => {
+  const [taskForm, setTaskForm] = useState({
+    type: 'Custom',
+    title: '',
+    description: '',
+    deadline: '',
+    status: 'Pending',
+    assignment_status: 'Unassigned',
+    assignees: [],
+    harvest_amounts: {},
+    maintenance_type: '',
+    custom_type: '',
+  });
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    location: '',
+    isPublic: false,
+  });
+
+  const { gardenId } = useParams();
+  const navigate = useNavigate();
+
+    const handleTaskChipClick = (task) => {
     // Format the task data to ensure consistent structure for the modal
-    const formattedTask = {
-      id: task.id,
-      title: task.title,
-      description: task.description,
+    console.log('Task selected for edit:', task);
+    setSelectedTask({
       status: task.status || 'PENDING',
-      due_date: task.due_date,
-      assigned_to: task.assigned_to,
-      custom_type: task.custom_type ? String(task.custom_type) : null,
-      garden: task.garden,
-    };
-    console.log('Task selected for edit:', formattedTask);
-    setSelectedTask(formattedTask);
+      custom_type: task.custom_type ? task.custom_type?.toString() : null,
+      ...task
+    });
     setEditTaskModalOpen(true);
   };
+
   const handleTaskUpdate = async (updatedTask) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
@@ -88,7 +105,7 @@ const GardenDetail = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Update failed:', errorText);
-        throw new Error('Update failed');
+        toast.error('Update failed');
       }
 
       const updated = await response.json();
@@ -115,28 +132,6 @@ const GardenDetail = () => {
       toast.error('Failed to delete task');
     }
   };
-
-  const [taskForm, setTaskForm] = useState({
-    type: 'Custom',
-    title: '',
-    description: '',
-    deadline: '',
-    status: 'Pending',
-    assignment_status: 'Unassigned',
-    assignees: [],
-    harvest_amounts: {},
-    maintenance_type: '',
-    custom_type: '',
-  });
-  const [editForm, setEditForm] = useState({
-    name: '',
-    description: '',
-    location: '',
-    isPublic: false,
-  });
-
-  const { gardenId } = useParams();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchGardenData = async () => {
@@ -246,7 +241,7 @@ const GardenDetail = () => {
       });
 
       if (!joinRes.ok) {
-        throw new Error('Failed to join garden');
+        toast.error('Failed to join garden');
       }
       toast.success('Request to join garden sent!');
 
@@ -289,7 +284,7 @@ const GardenDetail = () => {
         );
 
         if (!leaveRes.ok) {
-          throw new Error('Failed to leave garden');
+          toast.error('Failed to leave garden');
         }
 
         toast.success('You have left the garden');
@@ -333,7 +328,7 @@ const GardenDetail = () => {
       );
 
       if (!removeRes.ok) {
-        throw new Error('Failed to remove member');
+        toast.error('Failed to remove member');
       }
       toast.success('Member removed from garden');
 
@@ -372,7 +367,7 @@ const GardenDetail = () => {
       );
 
       if (!updateRes.ok) {
-        throw new Error('Failed to update member role');
+        toast.error('Failed to update member role');
       }
       toast.success('Member role updated');
 
@@ -410,7 +405,7 @@ const GardenDetail = () => {
       );
 
       if (!acceptRes.ok) {
-        throw new Error('Failed to accept member');
+        toast.error('Failed to accept member');
       }
 
       toast.success('Member accepted');
@@ -515,7 +510,7 @@ const GardenDetail = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Update failed');
+      if (!response.ok) toast.error('Update failed');
 
       const updatedGarden = await response.json();
       setGarden(updatedGarden);
@@ -543,7 +538,7 @@ const GardenDetail = () => {
         toast.success('Garden deleted');
         navigate('/gardens');
       } else {
-        throw new Error('Failed to delete');
+        toast.error('Failed to delete');
       }
     } catch (err) {
       console.error('Error deleting garden:', err);

@@ -113,7 +113,7 @@ const GardenList = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Garden creation failed');
+        toast.error('Garden creation failed');
       }
 
       const data = await response.json();

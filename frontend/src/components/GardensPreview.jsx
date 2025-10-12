@@ -22,7 +22,7 @@ const GardensPreview = ({ limit = 2 }) => {
           });
 
           if (!profileResponse.ok) {
-            throw new Error('Failed to fetch profile');
+            toast.error('Failed to fetch profile');
           }
 
           const profileData = await profileResponse.json();
@@ -37,7 +37,7 @@ const GardensPreview = ({ limit = 2 }) => {
           });
 
           if (!membershipsResponse.ok) {
-            throw new Error('Failed to fetch memberships');
+            toast.error('Failed to fetch memberships');
           }
 
           const membershipsData = await membershipsResponse.json();
@@ -78,7 +78,7 @@ const GardensPreview = ({ limit = 2 }) => {
           });
 
           if (!response.ok) {
-            throw new Error('Failed to fetch gardens');
+            toast.error('Failed to fetch gardens');
           }
 
           const data = await response.json();

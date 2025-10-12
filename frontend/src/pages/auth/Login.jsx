@@ -38,7 +38,7 @@ const Login = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Login failed');
+        toast.error('Login failed');
       }
 
       const data = await response.json();

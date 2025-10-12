@@ -38,7 +38,7 @@ const ForgotPassword = () => {
 
       if (!response.ok) {
         const resData = await response.json();
-        throw new Error(resData.detail || 'Failed to send reset link.');
+        toast.error(resData.detail || 'Failed to send reset link.');
       }
 
       setSubmitted(true);

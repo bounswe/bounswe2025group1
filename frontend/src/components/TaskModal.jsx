@@ -77,7 +77,7 @@ const TaskModal = ({
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch garden members');
+          toast.error('Failed to fetch garden members');
         }
 
         const data = await response.json();
@@ -108,7 +108,7 @@ const TaskModal = ({
         );
 
         if (!response.ok) {
-          throw new Error('Failed to fetch custom task types');
+          toast.error('Failed to fetch custom task types');
         }
 
         const data = await response.json();
@@ -172,7 +172,7 @@ const TaskModal = ({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create custom task type');
+        toast.error('Failed to create custom task type');
       }
 
       const data = await response.json();

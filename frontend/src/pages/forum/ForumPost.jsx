@@ -62,7 +62,7 @@ const ForumPost = () => {
         });
 
         if (!postResponse.ok) {
-          throw new Error('Failed to fetch post');
+          toast.error('Failed to fetch post');
         }
 
         const postData = await postResponse.json();
@@ -125,7 +125,7 @@ const ForumPost = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update post');
+        toast.error('Failed to update post');
       }
 
       const data = await response.json();
@@ -153,7 +153,7 @@ const ForumPost = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete post');
+        toast.error('Failed to delete post');
       }
 
       // Show success toast notification

@@ -94,7 +94,7 @@ const Register = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Registration failed');
+      if (!response.ok) toast.error('Registration failed');
 
       const data = await response.json();
       register(data);
