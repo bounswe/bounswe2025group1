@@ -1,29 +1,14 @@
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
 import { Box, Typography, Paper, Chip, Button } from '@mui/material';
+import { bgForStatus, iconColorForStatus } from '../utils/taskUtils';
 import isoWeek from 'dayjs/plugin/isoWeek';
 dayjs.extend(isoWeek);
 
-const CalendarTab = ({ tasks, onTaskClick, onEmptyDayClick }) => {
+const CalendarTab = ({ tasks, handleTaskClick, onEmptyDayClick }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const startOfMonth = currentMonth.startOf('month').startOf('week');
   const endOfMonth = currentMonth.endOf('month').endOf('week');
-
-  const pastelChipColors = [
-    '#f3e5f5', // purple
-    '#e8f5e9', // green
-    '#fff3e0', // orange
-    '#f1f8e9', // mint
-    '#ede7f6', // lavender
-    '#f9fbe7', // lemon
-    '#e0f7fa', // aqua
-  ];
-
-  const getColorForTask = (key) => {
-    const str = typeof key === 'string' ? key : key?.toString();
-    const hash = [...str].reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return pastelChipColors[hash % pastelChipColors.length];
-  };
 
   const generateCalendarGrid = () => {
     const days = [];
@@ -41,32 +26,8 @@ const CalendarTab = ({ tasks, onTaskClick, onEmptyDayClick }) => {
     return tasks.filter((task) => dayjs(task.due_date).isSame(date, 'day'));
   };
 
-  const getChipColor = (task) => {
-    const title = task.title?.toLowerCase() || '';
-
-    if (title.includes('water')) return '#e0f7fa'; // aqua
-    if (title.includes('harvest')) return '#e8f5e9'; // green
-    if (title.includes('prune')) return '#fff3e0'; // peach
-    if (title.includes('fertiliz')) return '#f1f8e9'; // mint
-    if (title.includes('pest') || title.includes('bug')) return '#fce4ec'; // rose
-    if (title.includes('maintain')) return '#ede7f6'; // lavender
-
-    return getColorForTask(task.id || task.title); //random fallback color
-  };
-
-  const getChipEmoji = (task) => {
-    const title = task.title.toLowerCase();
-    if (title.includes('water')) return '💧';
-    if (title.includes('harvest')) return '🌿';
-    if (title.includes('prune')) return '✂️';
-    if (title.includes('fertiliz')) return '🧪';
-    if (title.includes('pest') || title.includes('bug')) return '🐛';
-    if (title.includes('maintain')) return '🔧';
-    return '🗂️';
-  };
-
   return (
-    <Box>
+    <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Button
           onClick={() => setCurrentMonth((prev) => prev.subtract(1, 'month'))}
@@ -138,12 +99,12 @@ const CalendarTab = ({ tasks, onTaskClick, onEmptyDayClick }) => {
                 {tasksForDay.map((task) => (
                   <Chip
                     key={task.id}
-                    label={`${getChipEmoji(task)} ${task.title}`}
+                    label={task.title}
                     size="small"
-                    sx={{ maxWidth: '100%', bgcolor: getChipColor(task), cursor: 'pointer' }}
+                    sx={{ maxWidth: '100%', bgcolor: bgForStatus(task.status), cursor: 'pointer' }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      onTaskClick(task);
+                      handleTaskClick(task);
                     }}
                   />
                 ))}
@@ -152,7 +113,7 @@ const CalendarTab = ({ tasks, onTaskClick, onEmptyDayClick }) => {
           );
         })}
       </Box>
-    </Box>
+    </>
   );
 };
 

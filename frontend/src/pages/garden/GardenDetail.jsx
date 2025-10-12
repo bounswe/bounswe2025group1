@@ -45,10 +45,7 @@ const GardenDetail = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [openTaskModal, setOpenTaskModal] = useState(false);
-  const handleOpenTaskModal = () => setOpenTaskModal(true);
-  const handleCloseTaskModal = () => setOpenTaskModal(false);
-  const { user } = useAuth();
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const [openGardenEditModal, setOpenGardenEditModal] = useState(false);
   const handleOpenGardenEditModal = () => setOpenGardenEditModal(true);
   const handleCloseGardenEditModal = () => setOpenGardenEditModal(false);
@@ -236,19 +233,6 @@ const GardenDetail = () => {
     } catch {
       toast.error('Failed to delete task');
     }
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-  };
-
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleToggleEditPublic = () => {
-    setEditForm((prev) => ({ ...prev, isPublic: !prev.isPublic }));
   };
 
   const handleJoinGarden = async () => {
@@ -449,7 +433,7 @@ const GardenDetail = () => {
 
       setTasks((prev) => [...prev, data]);
       toast.success('Task created!');
-      handleCloseTaskModal();
+      setOpenTaskModal(false);
     } catch (err) {
       console.error('Error creating task:', err);
       toast.error('Something went wrong while creating the task.');
@@ -603,7 +587,7 @@ const GardenDetail = () => {
       <Box sx={{ width: '100%', mb: 3 }}>
         <Tabs
           value={activeTab}
-          onChange={handleTabChange}
+          onChange={(event, newValue) => setActiveTab(newValue)}
           variant="fullWidth"
           sx={{
             '.MuiTabs-indicator': { backgroundColor: '#558b2f' },
@@ -630,7 +614,9 @@ const GardenDetail = () => {
               {isMember && (
                 <Button
                   variant="contained"
-                  onClick={handleOpenTaskModal}
+                  onClick={() => {
+                    setOpenTaskModal(true);
+                  }}
                   sx={{ backgroundColor: '#558b2f' }}
                 >
                   Add Task
@@ -742,7 +728,7 @@ const GardenDetail = () => {
       </Box>
       <TaskModal
         open={openTaskModal}
-        onClose={handleCloseTaskModal}
+        onClose={() => setOpenTaskModal(false)}
         onSubmit={handleTaskSubmit}
         initialData={taskForm}
         gardenId={gardenId}
@@ -751,8 +737,8 @@ const GardenDetail = () => {
         open={openGardenEditModal}
         onClose={handleCloseGardenEditModal}
         form={editForm}
-        handleChange={handleEditChange}
-        handleTogglePublic={handleToggleEditPublic}
+        handleChange={(e) => setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
+        handleTogglePublic={() => setEditForm((prev) => ({ ...prev, isPublic: !prev.isPublic }))}
         handleSubmit={handleGardenSubmit}
         handleDelete={handleDeleteGarden}
         mode="edit"
@@ -763,7 +749,6 @@ const GardenDetail = () => {
         onSubmit={handleTaskUpdate}
         onDelete={handleTaskDelete}
         initialData={selectedTask}
-        customTaskTypes={customTaskTypes}
         gardenId={gardenId}
         mode="edit"
       />

@@ -158,7 +158,7 @@ const WeatherWidget = () => {
         sx={{
           p: 3,
           mb: 4,
-          height: '100%',
+          height: 300,
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
@@ -181,7 +181,7 @@ const WeatherWidget = () => {
         sx={{
           p: 3,
           mb: 4,
-          height: '100%',
+          height: 300,
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
@@ -215,7 +215,7 @@ const WeatherWidget = () => {
         sx={{
           p: 3,
           mb: 4,
-          height: '100%',
+          height: 300,
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
@@ -253,7 +253,7 @@ const WeatherWidget = () => {
         sx={{
           p: 3,
           mb: 4,
-          height: '100%',
+          height: 300,
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
@@ -273,7 +273,7 @@ const WeatherWidget = () => {
       sx={{
         p: 3,
         mb: 4,
-        height: '100%',
+        height: 300,
         textAlign: 'center',
         display: 'flex',
         flexDirection: 'column',

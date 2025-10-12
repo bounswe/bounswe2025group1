@@ -2,11 +2,9 @@ import { Container, Typography, Box, Grid, Button, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import WeatherWidget from '../../components/WeatherWidget';
-import TasksList from '../../components/TasksList';
 import ForumPreview from '../../components/ForumPreview';
 import GardensPreview from '../../components/GardensPreview';
-
-const WIDGET_HEIGHT = 350;
+import TaskWidget from '../../components/TaskWidget';
 
 const Home = () => {
   const { user } = useAuth();
@@ -46,13 +44,13 @@ const Home = () => {
           <Grid size={{ xs: 12 }}>
             <GardensPreview limit={2} />
           </Grid>
-          <Grid size={{ xs: 12, md: 4 }} height={WIDGET_HEIGHT}>
-            <TasksList limit={3} />
+          <Grid size={{ xs: 12, md: 4 }}>
+            <TaskWidget />
           </Grid>
-          <Grid size={{ xs: 12, md: 4 }} height={WIDGET_HEIGHT}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <ForumPreview limit={2} />
           </Grid>
-          <Grid size={{ xs: 12, md: 4 }} height={WIDGET_HEIGHT}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <WeatherWidget />
           </Grid>
         </Grid>

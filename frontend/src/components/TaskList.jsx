@@ -11,18 +11,16 @@ import {
   Chip,
 } from '@mui/material';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import { bgForStatus, iconColorForStatus } from '../utils/taskUtils';
 
-const TasksList = ({ tasks = [], title = 'Tasks', limit = 5 }) => {
-  // Filter tasks by status if needed
-  const filteredTasks = tasks.slice(0, limit);
-
+const TaskList = ({ tasks = [], title = 'Tasks', handleTaskClick }) => {
   return (
     <Paper
       elevation={2}
       sx={{
         p: 3,
         mb: 4,
-        height: '100%',
+        height: 300,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -46,32 +44,21 @@ const TasksList = ({ tasks = [], title = 'Tasks', limit = 5 }) => {
         )}
       </Typography>
 
-      {filteredTasks.length > 0 ? (
-        <List sx={{ overflow: 'auto', flexGrow: 1 }} dense>
-          {filteredTasks.map((task) => (
+      {tasks.length > 0 ? (
+        <List className="nice-scroll" sx={{ overflowY: 'auto', flexGrow: 1, pr: 1 }} dense>
+          {tasks.map((task) => (
             <ListItem
               key={task.id}
               sx={{
                 mb: 1,
                 borderRadius: 1,
-                bgcolor:
-                  task.status === 'Pending'
-                    ? '#fff9c4'
-                    : task.status === 'In Progress'
-                    ? '#e3f2fd'
-                    : '#e8f5e9',
+                cursor: handleTaskClick ? 'pointer' : 'default',
+                bgcolor: bgForStatus(task.status),
               }}
+              onClick={() => handleTaskClick(task)}
             >
               <ListItemIcon>
-                <TaskAltIcon
-                  color={
-                    task.status === 'Pending'
-                      ? 'warning'
-                      : task.status === 'In Progress'
-                      ? 'primary'
-                      : 'success'
-                  }
-                />
+                <TaskAltIcon sx={{ color: iconColorForStatus(task.status) }} />
               </ListItemIcon>
               <ListItemText
                 primary={task.title}
@@ -95,4 +82,4 @@ const TasksList = ({ tasks = [], title = 'Tasks', limit = 5 }) => {
   );
 };
 
-export default TasksList;
+export default TaskList;

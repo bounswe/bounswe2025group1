@@ -394,14 +394,14 @@ const TaskModal = ({
           )}
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
-            <Button type="submit" variant="contained" sx={{ backgroundColor: '#558b2f' }}>
-              {mode === 'edit' ? 'Save Changes' : 'Create Task'}
-            </Button>
             {mode === 'edit' && (
               <Button variant="contained" color="error" onClick={onDelete}>
                 Delete Task
               </Button>
             )}
+            <Button type="submit" variant="contained" sx={{ backgroundColor: '#558b2f' }}>
+              {mode === 'edit' ? 'Save Changes' : 'Create Task'}
+            </Button>
           </Box>
         </Box>
       </Fade>

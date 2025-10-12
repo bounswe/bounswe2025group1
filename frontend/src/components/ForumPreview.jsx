@@ -66,7 +66,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
         sx={{
           p: 3,
           mb: 4,
-          height: '100%',
+          height: 300,
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
@@ -83,7 +83,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   }
 
   return (
-    <Paper elevation={2} sx={{ p: 3, height: '100%' }}>
+    <Paper elevation={2} sx={{ p: 3, height: 300 }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
         <ForumIcon sx={{ mr: 1 }} /> Community Forum
       </Typography>

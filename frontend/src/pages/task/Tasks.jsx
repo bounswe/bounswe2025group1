@@ -4,8 +4,10 @@ import { Container, Typography, Box, Button, CircularProgress } from '@mui/mater
 import { useNavigate } from 'react-router-dom';
 import CalendarTab from '../../components/CalendarTab';
 import WeatherWidget from '../../components/WeatherWidget';
-import TasksList from '../../components/TasksList';
+import TaskList from '../../components/TaskList';
+import TaskModal from '../../components/TaskModal';
 import { useAuth } from '../../contexts/AuthContextUtils';
+import { toast } from 'react-toastify';
 
 const Tasks = () => {
   const { user, token } = useAuth();
@@ -13,64 +15,85 @@ const Tasks = () => {
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
+    setTaskModalOpen(true);
+  };
+
+  const handleTaskUpdate = async (updatedTask) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${updatedTask.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(updatedTask),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Update failed:', errorText);
+        toast.error('Update failed');
+      }
+
+      const updated = await response.json();
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      toast.success('Task updated!');
+      setTaskModalOpen(false);
+    } catch (err) {
+      console.error('Error updating task:', err);
+      toast.error('Could not update task.');
+    }
+  };
+
+  const handleTaskDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
+        method: 'DELETE',
+        headers: { Authorization: `Token ${token}` },
+      });
+      setTasks((prev) => prev.filter((t) => t.id !== selectedTask.id));
+      toast.success('Task deleted');
+      setTaskModalOpen(false);
+    } catch {
+      toast.error('Failed to delete task');
+    }
+  };
+
   useEffect(() => {
-    const fetchTasksFromGardens = async () => {
+    const fetchTasks = async () => {
+      setLoading(true);
       try {
-        const membershipsRes = await fetch(
-          `${import.meta.env.VITE_API_URL}/user/${user.user_id}/gardens/`,
+        const tasksResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/user/${user.user_id}/tasks/`,
           {
-            method: 'GET',
             headers: {
-              'Content-Type': 'application/json',
               Authorization: `Token ${token}`,
             },
           }
         );
-        const membershipsData = await membershipsRes.json();
 
-        // Filter to get only gardens where the user has been accepted
-        const acceptedGardenIds = membershipsData
-          .filter((m) => m.status === 'ACCEPTED')
-          .map((m) => m.garden);
-
-        const userTasks = [];
-
-        for (const gardenId of acceptedGardenIds) {
-          try {
-            const gardenTasksRes = await fetch(
-              `${import.meta.env.VITE_API_URL}/tasks/?garden=${gardenId}`,
-              {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Token ${token}`,
-                },
-              }
-            );
-
-            const gardenTasksData = await gardenTasksRes.json();
-
-            // Add tasks that are assigned to the current user
-            const userAssignedTasks = gardenTasksData.filter(
-              (task) => task.assigned_to === user.user_id
-            );
-
-            userTasks.push(...userAssignedTasks);
-          } catch (error) {
-            console.warn(`Failed to fetch tasks for garden ${gardenId}:`, error);
-          }
+        if (tasksResponse.ok) {
+          const tasksData = await tasksResponse.json();
+          setTasks(tasksData);
+        } else {
+          console.error('Failed to fetch tasks');
+          toast.error('Failed to fetch tasks');
         }
-
-        setTasks(userTasks);
-      } catch (e) {
-        console.error('Failed to load data:', e);
-      } finally {
-        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+        toast.error('Error fetching tasks');
       }
+      setLoading(false);
     };
 
     if (token) {
-      fetchTasksFromGardens();
+      fetchTasks();
     }
   }, [token, user]);
 
@@ -94,6 +117,7 @@ const Tasks = () => {
       </Box>
     );
   }
+
   if (loading) {
     return (
       <Box sx={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -102,36 +126,33 @@ const Tasks = () => {
     );
   }
 
-  const pendingTasks = tasks.filter((t) => t.status === 'PENDING');
-  const inProgressTasks = tasks.filter((t) => t.status === 'IN_PROGRESS');
   return (
-    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: 3 }}>
-        <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2} sx={{ height: 300 }}>
-          <WeatherWidget />
-          <Box>
-            {pendingTasks.length > 0 && (
-              <TasksList tasks={pendingTasks} title="Pending Tasks" limit={3} />
-            )}
-            {inProgressTasks.length > 0 && (
-              <TasksList
-                tasks={inProgressTasks}
-                title="In Progress Tasks"
-                limit={3}
-                sx={{ mt: pendingTasks.length > 0 ? 3 : 0 }}
-              />
-            )}
+    <>
+      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: 3 }}>
+          <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+            <WeatherWidget />
+            <TaskList tasks={tasks} handleTaskClick={handleTaskClick} />
           </Box>
-        </Box>
-        <Box mt={20}>
-          <Typography variant="h4" sx={{ mt: 1, mb: 2, color: '#558b2f' }}>
-            Task Calendar
-          </Typography>
-
-          <CalendarTab tasks={tasks} />
-        </Box>
-      </Container>
-    </Box>
+          <Box>
+            <Typography variant="h4" sx={{ mt: 1, mb: 2, color: '#558b2f' }}>
+              Task Calendar
+            </Typography>
+            <CalendarTab tasks={tasks} handleTaskClick={handleTaskClick} />
+          </Box>
+        </Container>
+      </Box>
+      <TaskModal
+        open={taskModalOpen}
+        onClose={() => setTaskModalOpen(false)}
+        onSubmit={handleTaskUpdate}
+        onDelete={handleTaskDelete}
+        initialData={selectedTask}
+        gardenId={selectedTask ? selectedTask.garden : null}
+        mode="edit"
+      />
+      ;
+    </>
   );
 };
 
