@@ -19,6 +19,8 @@ from .profile import (
     FollowView,
     FollowersListView,
     FollowingListView,
+    UserFollowersView,
+    UserFollowingView,
     BlockUnblockView
 )
 from .garden import (
@@ -50,6 +52,8 @@ __all__ = [
     "FollowView",
     "FollowersListView",
     "FollowingListView",
+    "UserFollowersView",
+    "UserFollowingView",
     "BlockUnblockView",
     # Garden Views
     "GardenViewSet",
