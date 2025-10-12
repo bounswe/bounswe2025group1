@@ -5,12 +5,9 @@ import {
   Typography,
   Box,
   Grid,
-  Card,
-  CardContent,
   Button,
   Tabs,
   Tab,
-  Divider,
   Chip,
   Avatar,
   List,
@@ -19,11 +16,6 @@ import {
   ListItemAvatar,
   CircularProgress,
   Paper,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
@@ -49,7 +41,6 @@ const GardenDetail = () => {
   const [openGardenEditModal, setOpenGardenEditModal] = useState(false);
   const handleOpenGardenEditModal = () => setOpenGardenEditModal(true);
   const handleCloseGardenEditModal = () => setOpenGardenEditModal(false);
-  const [customTaskTypes, setCustomTaskTypes] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
   const [isMember, setIsMember] = useState(false);
@@ -79,6 +70,7 @@ const GardenDetail = () => {
 
   useEffect(() => {
     const fetchGardenData = async () => {
+      setLoading(true);
       try {
         const gardenRes = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
           method: 'GET',
@@ -124,38 +116,14 @@ const GardenDetail = () => {
           location: gardenData.location || '',
           isPublic: gardenData.is_public || false,
         });
-        setLoading(false);
       } catch (error) {
         console.error('Error fetching garden data:', error);
-        setLoading(false);
       }
-    };
-
-    const fetchCustomTaskTypes = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`,
-          {
-            headers: { Authorization: `Token ${token}` },
-          }
-        );
-        const data = await response.json();
-        setCustomTaskTypes(data);
-      } catch (err) {
-        console.error('Error fetching custom task types:', err);
-        toast.error('Could not load custom task types');
-      }
-    };
-
-    const fetchAllData = async () => {
-      setLoading(true);
-      await fetchGardenData();
-      await fetchCustomTaskTypes();
       setLoading(false);
     };
 
     if (gardenId && token) {
-      fetchAllData();
+      fetchGardenData();
     }
   }, [gardenId, user, token]);
 
@@ -439,6 +407,58 @@ const GardenDetail = () => {
       toast.error('Something went wrong while creating the task.');
     }
   };
+
+   const handleAcceptTask = async (task) => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/accept/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+          },
+          body: JSON.stringify(task),
+        });
+  
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Accept failed:', errorText);
+          toast.error('Accept failed');
+        }
+  
+        const updated = await response.json();
+        setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+        toast.success('Task accepted!');
+      } catch (err) {
+        console.error('Error accepting task:', err);
+        toast.error('Could not accept task.');
+      }
+    };
+  
+    const handleDeclineTask = async (task) => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/decline/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+          },
+          body: JSON.stringify(task),
+        });
+  
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Decline failed:', errorText);
+          toast.error('Decline failed');
+        }
+  
+        const updated = await response.json();
+        setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+        toast.success('Task declined!');
+      } catch (err) {
+        console.error('Error declining task:', err);
+        toast.error('Could not decline task.');
+      }
+    };
 
   const handleGardenSubmit = async (e) => {
     e.preventDefault();
@@ -748,7 +768,9 @@ const GardenDetail = () => {
         onClose={() => setEditTaskModalOpen(false)}
         onSubmit={handleTaskUpdate}
         onDelete={handleTaskDelete}
-        initialData={selectedTask}
+        handleAcceptTask={handleAcceptTask}
+        handleDeclineTask={handleDeclineTask}
+        task={selectedTask}
         gardenId={gardenId}
         mode="edit"
       />

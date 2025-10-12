@@ -20,16 +20,20 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useAuth } from '../contexts/AuthContextUtils';
 
 const TaskModal = ({
   open,
   onClose,
   onSubmit,
   onDelete,
+  handleAcceptTask,
+  handleDeclineTask,
   mode = 'create',
-  initialData = {},
+  task,
   gardenId, // Current garden ID for creating tasks
 }) => {
+  const {user, token} = useAuth();
   // Initialize with default empty values
   const [taskForm, setTaskForm] = useState({
     title: '',
@@ -38,7 +42,7 @@ const TaskModal = ({
     assigned_to: null,
     custom_type: null,
     garden: parseInt(gardenId),
-    ...initialData,
+    ...(task || {})
   });
 
   // States for data from API
@@ -50,14 +54,11 @@ const TaskModal = ({
   const [loadingTaskTypes, setLoadingTaskTypes] = useState(false);
 
   const [deadline, setDeadline] = useState(
-    initialData?.due_date ? dayjs(initialData.due_date) : dayjs()
+    task?.due_date ? dayjs(task.due_date) : dayjs()
   );
 
   const [newTaskTypeName, setNewTaskTypeName] = useState('');
   const [newTaskTypeDescription, setNewTaskTypeDescription] = useState('');
-
-  // Get token from localStorage
-  const getToken = () => localStorage.getItem('token');
 
   // NOTE: fetch helpers moved into the useEffect below to avoid changing the
   // useEffect dependency array on every render (fixes react-hooks/exhaustive-deps).
@@ -69,7 +70,6 @@ const TaskModal = ({
     const fetchGardenMembers = async () => {
       setLoadingMembers(true);
       try {
-        const token = getToken();
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/members/`,
           {
@@ -100,7 +100,6 @@ const TaskModal = ({
     const fetchCustomTaskTypes = async () => {
       setLoadingTaskTypes(true);
       try {
-        const token = getToken();
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`,
           {
@@ -132,20 +131,16 @@ const TaskModal = ({
 
     fetchGardenMembers();
     fetchCustomTaskTypes();
-  }, [gardenId]);
-  // Update the form state whenever initialData changes
+  }, [gardenId, token]);
+
+  // Update the form state whenever task changes
   useEffect(() => {
-    // Update taskForm with initialData while preserving existing values
     setTaskForm((prev) => ({
       ...prev,
-      ...initialData,
+      ...(task || {})
     }));
-
-    // Update the deadline state if due_date exists
-    if (initialData?.due_date) {
-      setDeadline(dayjs(initialData.due_date));
-    }
-  }, [initialData]);
+    setDeadline(task?.due_date ? dayjs(task.due_date) : dayjs());
+  }, [task]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -162,7 +157,6 @@ const TaskModal = ({
     if (!newTaskTypeName || !gardenId) return null;
 
     try {
-      const token = getToken();
       const response = await fetch(`${import.meta.env.VITE_API_URL}/task-types/`, {
         method: 'POST',
         headers: {
@@ -199,6 +193,7 @@ const TaskModal = ({
       return null;
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const updatedForm = { ...taskForm };
@@ -394,6 +389,28 @@ const TaskModal = ({
           )}
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
+            {user && task?.assigned_to === user.user_id && task?.status === 'PENDING' && (
+              <>
+                <Button
+                  variant="outlined"
+                  color="success"
+                  onClick={() => {
+                    handleAcceptTask(task);
+                  }}
+                >
+                  Accept Task
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => {
+                    handleDeclineTask(task);
+                  }}
+                >
+                  Decline Task
+                </Button>
+              </>
+            )}
             {mode === 'edit' && (
               <Button variant="contained" color="error" onClick={onDelete}>
                 Delete Task

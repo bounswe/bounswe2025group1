@@ -1,17 +1,14 @@
 import React from 'react';
 import { Box, Typography, Paper, Button } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { bgForStatus, iconColorForStatus } from '../utils/taskUtils';
 
-const STATUS_ORDER = ['PENDING', 'IN_PROGRESS', 'COMPLETED'];
+const STATUS_ORDER = ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'DECLINED'];
 const STATUS_LABELS = {
   PENDING: 'Pending',
   IN_PROGRESS: 'In Progress',
   COMPLETED: 'Completed',
-};
-const STATUS_COLORS = {
-  PENDING: '#bbdefb',
-  IN_PROGRESS: '#ffe0b2',
-  COMPLETED: '#c8e6c9',
+  DECLINED: 'Declined',
 };
 
 const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
@@ -41,7 +38,7 @@ const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
                   flex: 1,
                   minHeight: 500,
                   p: 2,
-                  borderTop: `6px solid ${STATUS_COLORS[status]}`,
+                  borderTop: `8px solid ${iconColorForStatus(status)}`,
                   borderRadius: 2,
                   backgroundColor: '#fafafa',
                 }}
@@ -63,14 +60,7 @@ const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
                             p: 1.5,
                             mb: 1.2,
                             borderRadius: 2,
-                            backgroundColor: task.status === 'COMPLETED' ? '#f5f5f5' : '#ffffff',
-                            opacity: task.status === 'COMPLETED' ? 0.85 : 1,
-                            color: task.status === 'COMPLETED' ? 'rgba(0,0,0,0.5)' : '',
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
-                            transition: 'all 0.2s ease',
-                            '&:hover': {
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            },
+                            backgroundColor: bgForStatus(task.status),
                           }}
                         >
                           <Typography variant="subtitle2">{task.title}</Typography>
@@ -85,7 +75,7 @@ const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
                             <Button
                               size="small"
                               onClick={() => onTaskClick?.(task)}
-                              sx={{ color: '#558b2f', p: 0, minWidth: 'auto' }}
+                              sx={{ color: 'text.secondary', minWidth: 'auto' }}
                             >
                               Details
                             </Button>

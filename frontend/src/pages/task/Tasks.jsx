@@ -65,6 +65,58 @@ const Tasks = () => {
     }
   };
 
+  const handleAcceptTask = async (task) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/accept/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(task),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Accept failed:', errorText);
+        toast.error('Accept failed');
+      }
+
+      const updated = await response.json();
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      toast.success('Task accepted!');
+    } catch (err) {
+      console.error('Error accepting task:', err);
+      toast.error('Could not accept task.');
+    }
+  };
+
+  const handleDeclineTask = async (task) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/decline/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(task),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Decline failed:', errorText);
+        toast.error('Decline failed');
+      }
+
+      const updated = await response.json();
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      toast.success('Task declined!');
+    } catch (err) {
+      console.error('Error declining task:', err);
+      toast.error('Could not decline task.');
+    }
+  };
+
   useEffect(() => {
     const fetchTasks = async () => {
       setLoading(true);
@@ -132,7 +184,7 @@ const Tasks = () => {
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: 3 }}>
           <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
             <WeatherWidget />
-            <TaskList tasks={tasks} handleTaskClick={handleTaskClick} />
+            <TaskList tasks={tasks} handleTaskClick={handleTaskClick} handleAcceptTask={handleAcceptTask} handleDeclineTask={handleDeclineTask} />
           </Box>
           <Box>
             <Typography variant="h4" sx={{ mt: 1, mb: 2, color: '#558b2f' }}>
@@ -147,7 +199,9 @@ const Tasks = () => {
         onClose={() => setTaskModalOpen(false)}
         onSubmit={handleTaskUpdate}
         onDelete={handleTaskDelete}
-        initialData={selectedTask}
+        handleAcceptTask={handleAcceptTask}
+        handleDeclineTask={handleDeclineTask}
+        task={selectedTask}
         gardenId={selectedTask ? selectedTask.garden : null}
         mode="edit"
       />

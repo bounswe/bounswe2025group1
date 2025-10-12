@@ -7,13 +7,18 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Button,
   Chip,
 } from '@mui/material';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { bgForStatus, iconColorForStatus } from '../utils/taskUtils';
+import { useAuth } from '../contexts/AuthContextUtils';
 
-const TaskList = ({ tasks = [], title = 'Tasks', handleTaskClick }) => {
+const TaskList = ({ tasks = [], title = 'Tasks', handleTaskClick, handleAcceptTask, handleDeclineTask }) => {
+  const {user} = useAuth();
+
+  console.log(tasks);
+  console.log(user);
+
   return (
     <Paper
       elevation={2}
@@ -68,6 +73,30 @@ const TaskList = ({ tasks = [], title = 'Tasks', handleTaskClick }) => {
                   day: 'numeric',
                 })}`}
               />
+              {user && task.assigned_to === user.user_id && task.status === 'PENDING' && (
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Chip
+                    label="Accept"
+                    size="small"
+                    color="success"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAcceptTask(task);
+                    }}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                  <Chip
+                    label="Decline"
+                    size="small"
+                    color="error"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeclineTask(task);
+                    }}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                </Box>
+              )}
             </ListItem>
           ))}
         </List>

@@ -1,4 +1,4 @@
-import { blue, green, orange } from '@mui/material/colors';
+import { blue, green, orange, red } from '@mui/material/colors';
 
 const bgForStatus = (status) => {
   switch (status) {
@@ -8,6 +8,8 @@ const bgForStatus = (status) => {
       return blue[100];
     case 'COMPLETED':
       return green[100];
+    case 'DECLINED':
+      return red[100];
     default:
       return blue[100];
   }
@@ -21,6 +23,8 @@ const iconColorForStatus = (status) => {
       return blue[700];
     case 'COMPLETED':
       return green[700];
+    case 'DECLINED':
+      return red[700];
     default:
       return blue[700];
   }
