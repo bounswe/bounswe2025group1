@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import AuthContext from './AuthContextUtils';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

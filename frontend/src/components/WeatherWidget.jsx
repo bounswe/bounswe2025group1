@@ -3,6 +3,8 @@ import { Paper, Typography, Box, Divider, CircularProgress, Button, Alert } from
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import React from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const WeatherWidget = () => {
   const [weatherData, setWeatherData] = useState(null);

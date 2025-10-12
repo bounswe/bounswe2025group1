@@ -2,13 +2,13 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContextUtils';
 import CalendarTab from '../../components/CalendarTab';
 import WeatherWidget from '../../components/WeatherWidget';
 import TasksList from '../../components/TasksList';
+import { useAuth } from '../../contexts/AuthContextUtils';
 
 const Tasks = () => {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
 
   const [tasks, setTasks] = useState([]);
@@ -16,34 +16,23 @@ const Tasks = () => {
   useEffect(() => {
     const fetchTasksFromGardens = async () => {
       try {
-        // Step 1: Get the user's profile to get ID
-        const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`,
-          },
-        });
-        const profileData = await profileRes.json();
-        const userId = profileData.id;
-        const username = profileData.username;
-
-        // Step 2: Get all memberships to find accepted gardens
-        const membershipsRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`,
-          },
-        });
+        const membershipsRes = await fetch(
+          `${import.meta.env.VITE_API_URL}/user/${user.user_id}/gardens/`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
         const membershipsData = await membershipsRes.json();
 
         // Filter to get only gardens where the user has been accepted
         const acceptedGardenIds = membershipsData
-          .filter((m) => m.status === 'ACCEPTED' && m.username === username)
+          .filter((m) => m.status === 'ACCEPTED')
           .map((m) => m.garden);
 
-        // Step 3: Fetch tasks for each garden and compile all user's tasks
         const userTasks = [];
 
         for (const gardenId of acceptedGardenIds) {
@@ -62,7 +51,9 @@ const Tasks = () => {
             const gardenTasksData = await gardenTasksRes.json();
 
             // Add tasks that are assigned to the current user
-            const userAssignedTasks = gardenTasksData.filter((task) => task.assigned_to === userId);
+            const userAssignedTasks = gardenTasksData.filter(
+              (task) => task.assigned_to === user.user_id
+            );
 
             userTasks.push(...userAssignedTasks);
           } catch (error) {
@@ -81,7 +72,7 @@ const Tasks = () => {
     if (token) {
       fetchTasksFromGardens();
     }
-  }, [token]);
+  }, [token, user]);
 
   if (!token) {
     return (

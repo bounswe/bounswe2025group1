@@ -26,9 +26,7 @@ const Home = () => {
           }}
         >
           <Typography variant="h4" gutterBottom>
-            {user
-              ? `Welcome, ${user.username}!`
-              : 'Welcome to Community Garden Planner!'}
+            {user ? `Welcome, ${user.username}!` : 'Welcome to Community Garden Planner!'}
           </Typography>
           <Typography variant="body1" paragraph>
             Connect with local gardeners, manage tasks, track your garden, and grow together 🌱

@@ -26,6 +26,8 @@ import { useAuth } from '../../contexts/AuthContextUtils';
 import ForumCreateDialog from '../../components/ForumCreateDialog';
 import CommentCreateDialog from '../../components/CommentCreateDialog';
 import React from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ForumList = () => {
   const [posts, setPosts] = useState([]);

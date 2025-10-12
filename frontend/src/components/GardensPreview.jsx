@@ -1,40 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Paper, Typography, CircularProgress } from '@mui/material';
-import { useAuth } from '../contexts/AuthContextUtils';
 import GardenCard from './GardenCard';
+import { useAuth } from '../contexts/AuthContextUtils';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const GardensPreview = ({ limit = 2 }) => {
   const [gardens, setGardens] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { token } = useAuth();
+  const { user, token } = useAuth();
 
   useEffect(() => {
     const fetchGardens = async () => {
       try {
         if (token) {
-          // First get user profile to get the username
-          const profileResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Token ${token}`,
-            },
-          });
-
-          if (!profileResponse.ok) {
-            toast.error('Failed to fetch profile');
-          }
-
-          const profileData = await profileResponse.json();
-
           // Then get all memberships
-          const membershipsResponse = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Token ${token}`,
-            },
-          });
+          const membershipsResponse = await fetch(
+            `${import.meta.env.VITE_API_URL}/user/${user.user_id}/gardens`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`,
+              },
+            }
+          );
 
           if (!membershipsResponse.ok) {
             toast.error('Failed to fetch memberships');
@@ -44,7 +34,7 @@ const GardensPreview = ({ limit = 2 }) => {
 
           // Filter memberships where status is ACCEPTED and username matches
           const acceptedGardenIds = membershipsData
-            .filter((m) => m.status === 'ACCEPTED' && m.username === profileData.username)
+            .filter((m) => m.status === 'ACCEPTED')
             .map((m) => m.garden);
 
           // Fetch each garden by ID
@@ -93,7 +83,7 @@ const GardensPreview = ({ limit = 2 }) => {
     };
 
     fetchGardens();
-  }, [token]);
+  }, [token, user]);
 
   if (loading) {
     return (

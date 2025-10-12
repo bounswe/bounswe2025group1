@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -19,13 +19,14 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import { toast } from 'react-toastify';
-import AuthContext from '../../contexts/AuthContextUtils';
+import 'react-toastify/dist/ReactToastify.css';
+import { useAuth } from '../../contexts/AuthContextUtils';
 import GardenCard from '../../components/GardenCard';
 import React from 'react';
 
 const Profile = () => {
   let { userId } = useParams();
-  const { user, token } = useContext(AuthContext);
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -96,7 +97,6 @@ const Profile = () => {
             setIsFollowing(followingData.is_following);
           }
         }
-
       } catch (err) {
         setError(err.message);
         toast.error('Error loading profile');
@@ -138,7 +138,7 @@ const Profile = () => {
           }
         );
 
-      const followingResponse = await fetch(
+        const followingResponse = await fetch(
           `${import.meta.env.VITE_API_URL}/user/${userId}/following/`,
           {
             headers: {
@@ -163,8 +163,8 @@ const Profile = () => {
       await fetchUserGardens();
       await fetchRelationships();
       setLoading(false);
-    }
-    
+    };
+
     fetchAllData();
   }, [token, userId, user, navigate, isOwnProfile]);
 
@@ -247,11 +247,14 @@ const Profile = () => {
       toast.success(`Successfully ${isFollowing ? 'unfollowed' : 'followed'} user`);
 
       // Update followers list
-      const followersResponse = await fetch(`${import.meta.env.VITE_API_URL}/user/${userId}/followers/`, {
-        headers: {
-          Authorization: `Token ${token}`,
-        },
-      });
+      const followersResponse = await fetch(
+        `${import.meta.env.VITE_API_URL}/user/${userId}/followers/`,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
 
       if (followersResponse.ok) {
         const followersData = await followersResponse.json();
@@ -315,7 +318,12 @@ const Profile = () => {
             {isEditing && (
               <Button variant="outlined" component="label" sx={{ mb: 2 }}>
                 Change Picture
-                <input type="file" hidden accept="image/*" onChange={(e) => setSelectedFile(e.target.files[0])} />
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                />
               </Button>
             )}
 
@@ -411,7 +419,11 @@ const Profile = () => {
             ) : (
               <Box>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                  <Tabs value={tabValue} onChange={(e, val) => setTabValue(val)} aria-label="profile tabs">
+                  <Tabs
+                    value={tabValue}
+                    onChange={(e, val) => setTabValue(val)}
+                    aria-label="profile tabs"
+                  >
                     <Tab label="Gardens" id="tab-0" />
                     <Tab label="Followers" id="tab-1" />
                     <Tab label="Following" id="tab-2" />

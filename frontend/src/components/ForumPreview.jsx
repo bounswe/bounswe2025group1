@@ -16,6 +16,8 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContextUtils';
 import CircularProgress from '@mui/material/CircularProgress';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   const navigate = useNavigate();
@@ -90,7 +92,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
         <>
           <List sx={{ py: 0 }}>
             {displayPosts.map((post) => (
-              <Box key={post.id}>
+              <React.Fragment key={post.id}>
                 <ListItem
                   alignItems="flex-start"
                   sx={{ px: 0, cursor: 'pointer' }}
@@ -110,8 +112,11 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
                         <Typography component="span" variant="body2" color="text.primary" noWrap>
                           {post.content.substring(0, 60)}...
                         </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                          <Typography variant="caption" color="text.secondary">
+                        <Box
+                          component="span"
+                          sx={{ display: 'inline-flex', alignItems: 'center', mt: 0.5 }}
+                        >
+                          <Typography variant="caption" color="text.secondary" component="span">
                             {post.author_username} • {formatDate(post.created_at)}
                           </Typography>
                         </Box>
@@ -120,7 +125,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
                   />
                 </ListItem>
                 <Divider variant="inset" component="li" />
-              </Box>
+              </React.Fragment>
             ))}
           </List>
           {showViewAll && (
