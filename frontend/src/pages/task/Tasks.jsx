@@ -184,7 +184,12 @@ const Tasks = () => {
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: 3 }}>
           <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
             <WeatherWidget />
-            <TaskList tasks={tasks} handleTaskClick={handleTaskClick} handleAcceptTask={handleAcceptTask} handleDeclineTask={handleDeclineTask} />
+            <TaskList
+              tasks={tasks}
+              handleTaskClick={handleTaskClick}
+              handleAcceptTask={handleAcceptTask}
+              handleDeclineTask={handleDeclineTask}
+            />
           </Box>
           <Box>
             <Typography variant="h4" sx={{ mt: 1, mb: 2, color: '#558b2f' }}>

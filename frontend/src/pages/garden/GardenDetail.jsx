@@ -408,57 +408,57 @@ const GardenDetail = () => {
     }
   };
 
-   const handleAcceptTask = async (task) => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/accept/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`,
-          },
-          body: JSON.stringify(task),
-        });
-  
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Accept failed:', errorText);
-          toast.error('Accept failed');
-        }
-  
-        const updated = await response.json();
-        setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-        toast.success('Task accepted!');
-      } catch (err) {
-        console.error('Error accepting task:', err);
-        toast.error('Could not accept task.');
+  const handleAcceptTask = async (task) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/accept/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(task),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Accept failed:', errorText);
+        toast.error('Accept failed');
       }
-    };
-  
-    const handleDeclineTask = async (task) => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/decline/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`,
-          },
-          body: JSON.stringify(task),
-        });
-  
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Decline failed:', errorText);
-          toast.error('Decline failed');
-        }
-  
-        const updated = await response.json();
-        setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-        toast.success('Task declined!');
-      } catch (err) {
-        console.error('Error declining task:', err);
-        toast.error('Could not decline task.');
+
+      const updated = await response.json();
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      toast.success('Task accepted!');
+    } catch (err) {
+      console.error('Error accepting task:', err);
+      toast.error('Could not accept task.');
+    }
+  };
+
+  const handleDeclineTask = async (task) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/decline/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(task),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Decline failed:', errorText);
+        toast.error('Decline failed');
       }
-    };
+
+      const updated = await response.json();
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      toast.success('Task declined!');
+    } catch (err) {
+      console.error('Error declining task:', err);
+      toast.error('Could not decline task.');
+    }
+  };
 
   const handleGardenSubmit = async (e) => {
     e.preventDefault();

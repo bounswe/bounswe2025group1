@@ -13,8 +13,14 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { bgForStatus, iconColorForStatus } from '../utils/taskUtils';
 import { useAuth } from '../contexts/AuthContextUtils';
 
-const TaskList = ({ tasks = [], title = 'Tasks', handleTaskClick, handleAcceptTask, handleDeclineTask }) => {
-  const {user} = useAuth();
+const TaskList = ({
+  tasks = [],
+  title = 'Tasks',
+  handleTaskClick,
+  handleAcceptTask,
+  handleDeclineTask,
+}) => {
+  const { user } = useAuth();
 
   console.log(tasks);
   console.log(user);

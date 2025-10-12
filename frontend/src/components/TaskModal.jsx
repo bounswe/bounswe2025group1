@@ -33,7 +33,7 @@ const TaskModal = ({
   task,
   gardenId, // Current garden ID for creating tasks
 }) => {
-  const {user, token} = useAuth();
+  const { user, token } = useAuth();
   // Initialize with default empty values
   const [taskForm, setTaskForm] = useState({
     title: '',
@@ -42,7 +42,7 @@ const TaskModal = ({
     assigned_to: null,
     custom_type: null,
     garden: parseInt(gardenId),
-    ...(task || {})
+    ...(task || {}),
   });
 
   // States for data from API
@@ -53,9 +53,7 @@ const TaskModal = ({
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [loadingTaskTypes, setLoadingTaskTypes] = useState(false);
 
-  const [deadline, setDeadline] = useState(
-    task?.due_date ? dayjs(task.due_date) : dayjs()
-  );
+  const [deadline, setDeadline] = useState(task?.due_date ? dayjs(task.due_date) : dayjs());
 
   const [newTaskTypeName, setNewTaskTypeName] = useState('');
   const [newTaskTypeDescription, setNewTaskTypeDescription] = useState('');
@@ -137,7 +135,7 @@ const TaskModal = ({
   useEffect(() => {
     setTaskForm((prev) => ({
       ...prev,
-      ...(task || {})
+      ...(task || {}),
     }));
     setDeadline(task?.due_date ? dayjs(task.due_date) : dayjs());
   }, [task]);

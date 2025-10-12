@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
 import { Box, Typography, Paper, Chip, Button } from '@mui/material';
-import { bgForStatus, iconColorForStatus } from '../utils/taskUtils';
+import { bgForStatus } from '../utils/taskUtils';
 import isoWeek from 'dayjs/plugin/isoWeek';
 dayjs.extend(isoWeek);
 
