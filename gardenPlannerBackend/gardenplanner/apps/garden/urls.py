@@ -23,6 +23,8 @@ forum_patterns = [
 urlpatterns = [
     # Include router URLs
     path('', include(router.urls)),
+    # Explicit update route for tasks to handle PUT at tasks/<pk>
+    path('tasks/<int:pk>', views.TaskUpdateView.as_view(), name='task-update'),
     
     # Authentication endpoints
     path('register/', views.RegisterView.as_view(), name='register'),

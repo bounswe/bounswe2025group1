@@ -31,7 +31,8 @@ from .garden import (
 )
 from .task import (
     CustomTaskTypeViewSet,
-    TaskViewSet
+    TaskViewSet,
+    TaskUpdateView
 )
 from .weatherdata import WeatherDataView
 
@@ -65,6 +66,7 @@ __all__ = [
     # Task Views
     "CustomTaskTypeViewSet",
     "TaskViewSet",
+    "TaskUpdateView",
     # Other Views
     "WeatherDataView",
 ]
