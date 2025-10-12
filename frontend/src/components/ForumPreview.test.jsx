@@ -60,7 +60,7 @@ describe('ForumPreview Component', () => {
     // Mock the useAuth hook to return a token
     useAuth.mockReturnValue({
       token: 'mock-token',
-      currentUser: { id: 1, username: 'testuser' },
+      user: { id: 1, username: 'testuser' },
     });
 
     // Mock fetch for API calls

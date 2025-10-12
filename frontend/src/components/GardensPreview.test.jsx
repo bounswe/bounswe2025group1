@@ -37,7 +37,7 @@ describe('GardensPreview component', () => {
     vi.resetAllMocks();
     useAuth.mockReturnValue({
       token: 'mock-token',
-      currentUser: { id: 1, username: 'testuser' },
+      user: { id: 1, username: 'testuser' },
     });
   });
 
@@ -160,7 +160,7 @@ describe('GardensPreview component', () => {
   it('handles public gardens for non-logged in users', async () => {
     useAuth.mockReturnValue({
       token: null,
-      currentUser: null,
+      user: null,
     });
 
     // Mock public gardens response

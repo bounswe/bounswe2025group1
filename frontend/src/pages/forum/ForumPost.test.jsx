@@ -75,7 +75,7 @@ describe('ForumPost Component', () => {
 
     // Default mock return values
     useAuth.mockReturnValue({
-      currentUser: { id: 'user1' },
+      user: { id: 'user1' },
       token: 'mock-token',
     });
 

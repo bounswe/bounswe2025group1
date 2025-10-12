@@ -45,7 +45,7 @@ const ForumPost = () => {
   // Comment dialog state
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
 
-  const { currentUser, token } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -284,7 +284,7 @@ const ForumPost = () => {
               >
                 {post.title}
               </Typography>
-              {post.author === currentUser?.id && (
+              {post.author === user?.id && (
                 <Box>
                   <IconButton
                     onClick={() => setEditMode(true)}
@@ -327,7 +327,7 @@ const ForumPost = () => {
             </Typography>
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-              {currentUser && (
+              {user && (
                 <Button
                   variant="outlined"
                   startIcon={<AddCommentIcon />}
@@ -405,7 +405,7 @@ const ForumPost = () => {
       )}
 
       {/* Add Comment Floating Action Button (for logged in users) */}
-      {currentUser && (
+      {user && (
         <Tooltip title="Add comment" arrow placement="left">
           <Fab
             color="primary"

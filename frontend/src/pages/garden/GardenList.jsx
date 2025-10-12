@@ -34,7 +34,7 @@ const GardenList = () => {
   const [filteredGardens, setFilteredGardens] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [openModal, setOpenModal] = useState(false);
   const handleOpenModal = () => setOpenModal(true);
@@ -275,7 +275,7 @@ const GardenList = () => {
       </Grid>
 
       {/* Create Garden Button (for logged in users) */}
-      {currentUser && (
+      {user && (
         <Fab
           color="primary"
           aria-label="create garden"

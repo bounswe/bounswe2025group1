@@ -8,7 +8,7 @@ import AuthContext from '../../contexts/AuthContextUtils';
 window.fetch = vi.fn();
 
 const mockContext = {
-  currentUser: { id: 1, username: 'testuser' },
+  user: { id: 1, username: 'testuser' },
   token: 'fake-token',
   login: vi.fn(),
   register: vi.fn(),

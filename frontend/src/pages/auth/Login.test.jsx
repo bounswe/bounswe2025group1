@@ -38,7 +38,7 @@ const mockContext = {
   login: mockLogin,
   register: vi.fn(),
   logout: vi.fn(),
-  currentUser: null,
+  user: null,
   loading: false,
 };
 

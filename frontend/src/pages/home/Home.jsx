@@ -9,7 +9,7 @@ import GardensPreview from '../../components/GardensPreview';
 const WIDGET_HEIGHT = 350;
 
 const Home = () => {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -26,14 +26,14 @@ const Home = () => {
           }}
         >
           <Typography variant="h4" gutterBottom>
-            {currentUser
-              ? `Welcome, ${currentUser.username}!`
+            {user
+              ? `Welcome, ${user.username}!`
               : 'Welcome to Community Garden Planner!'}
           </Typography>
           <Typography variant="body1" paragraph>
             Connect with local gardeners, manage tasks, track your garden, and grow together 🌱
           </Typography>
-          {!currentUser && (
+          {!user && (
             <Button
               variant="contained"
               color="secondary"
@@ -59,7 +59,7 @@ const Home = () => {
           </Grid>
         </Grid>
 
-        {!currentUser && (
+        {!user && (
           <Paper elevation={1} sx={{ mt: 6, p: 4 }}>
             <Typography variant="h5" gutterBottom>
               What is Community Garden Planner?

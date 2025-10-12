@@ -97,14 +97,7 @@ const Register = () => {
       if (!response.ok) throw new Error('Registration failed');
 
       const data = await response.json();
-      const user = {
-        username: formData.username,
-        email: formData.email,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-      };
-
-      register(user, data.token);
+      register(data);
 
       toast.success('Welcome to the community!', { position: 'top-right' });
       navigate('/');

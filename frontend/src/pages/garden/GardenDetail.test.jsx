@@ -54,7 +54,7 @@ describe('GardenDetail', () => {
 
     useAuth.mockReturnValue({
       token: 'fake-token',
-      currentUser: { id: 1, username: 'testuser' },
+      user: { id: 1, username: 'testuser' },
     });
 
     fetch.mockImplementation((url) => {

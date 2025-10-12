@@ -47,7 +47,7 @@ const GardenDetail = () => {
   const [openTaskModal, setOpenTaskModal] = useState(false);
   const handleOpenTaskModal = () => setOpenTaskModal(true);
   const handleCloseTaskModal = () => setOpenTaskModal(false);
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const { token } = useAuth();
   const [openGardenEditModal, setOpenGardenEditModal] = useState(false);
   const handleOpenGardenEditModal = () => setOpenGardenEditModal(true);
@@ -174,8 +174,8 @@ const GardenDetail = () => {
           (member) => member.garden === parseInt(gardenId)
         );
         setMembers(filteredMembersData || []); // Check if current user is a member and their role
-        if (currentUser) {
-          const userMember = filteredMembersData?.find((m) => m.username === currentUser.username);
+        if (user) {
+          const userMember = filteredMembersData?.find((m) => m.username === user.username);
           setIsMember(!!userMember);
           setIsManager(userMember?.role === 'MANAGER');
           setUserMembership(userMember);
@@ -194,7 +194,7 @@ const GardenDetail = () => {
     };
 
     fetchGardenData();
-  }, [gardenId, currentUser, token]);
+  }, [gardenId, user, token]);
 
   useEffect(() => {
     const fetchCustomTaskTypes = async () => {
@@ -264,7 +264,7 @@ const GardenDetail = () => {
       );
       setMembers(filteredMembersData || []);
       // Update user membership status
-      const userMember = filteredMembersData?.find((m) => m.username === currentUser.username);
+      const userMember = filteredMembersData?.find((m) => m.username === user.username);
       setIsMember(!!userMember);
       setUserMembership(userMember);
     } catch (err) {
@@ -592,7 +592,7 @@ const GardenDetail = () => {
             size={{ xs: 12, md: 4 }}
             sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}
           >
-            {currentUser ? (
+            {user ? (
               isMember ? (
                 userMembership?.status === 'PENDING' ? (
                   <Button variant="outlined" disabled sx={{ mr: 1 }}>

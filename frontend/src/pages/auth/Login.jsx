@@ -44,8 +44,7 @@ const Login = () => {
       const data = await response.json();
 
       // Save user and token via context
-      const user = { username };
-      login(user, data.token);
+      login(data);
 
       toast.success('Welcome back to the garden!', {
         position: 'top-right',

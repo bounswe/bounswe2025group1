@@ -23,9 +23,9 @@ vi.mock('react-router-dom', async () => {
 const API_URL = 'http://fakeapi.com';
 
 // Helper to wrap with auth context
-const renderWithAuth = (ui, { currentUser = {}, token = 'test-token' } = {}) => {
+const renderWithAuth = (ui, { user = {}, token = 'test-token' } = {}) => {
   return render(
-    <AuthContext.Provider value={{ currentUser, token }}>
+    <AuthContext.Provider value={{ user, token }}>
       <MemoryRouter initialEntries={['/profile']}>
         <Routes>
           <Route path="/profile" element={ui} />

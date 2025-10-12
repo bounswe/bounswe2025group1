@@ -7,7 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 vi.mock('../../contexts/AuthContextUtils', () => ({
   useAuth: () => ({
     token: 'mock-token',
-    currentUser: { id: 1, username: 'testuser' },
+    user: { id: 1, username: 'testuser' },
   }),
 }));
 

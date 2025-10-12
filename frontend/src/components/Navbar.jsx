@@ -55,7 +55,7 @@ function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, logout } = useAuth();
+  const { user, logout } = useAuth();
 
   // Track scroll position to add shadow when scrolled
   useEffect(() => {
@@ -223,7 +223,7 @@ function Navbar() {
             ))}
           </Box>
 
-          {currentUser && (
+          {user && (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               {/* Profile menu */}
               <Tooltip title="Open settings">
@@ -261,7 +261,7 @@ function Navbar() {
               >
                 <Box sx={{ px: 2, py: 1, textAlign: 'center', borderBottom: '1px solid #eee' }}>
                   <Typography variant="subtitle1" component="div">
-                    {currentUser?.username || 'Guest'}
+                    {user?.username || 'Guest'}
                   </Typography>
                 </Box>
                 {settings.map((setting) => (
@@ -292,7 +292,7 @@ function Navbar() {
           )}
 
           {/* Login and Register buttons when user is not signed in */}
-          {!currentUser && (
+          {!user && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Button
                 variant="outlined"
@@ -387,7 +387,7 @@ function Navbar() {
 
         <Divider sx={{ my: 1 }} />
 
-        {currentUser ? (
+        {user ? (
           <>
             <Typography
               variant="subtitle2"

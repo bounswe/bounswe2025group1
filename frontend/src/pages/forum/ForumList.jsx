@@ -38,7 +38,7 @@ const ForumList = () => {
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
 
-  const { currentUser, token } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -169,7 +169,7 @@ const ForumList = () => {
               alignItems: 'center',
             }}
           >
-            {currentUser && (
+            {user && (
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
@@ -246,7 +246,7 @@ const ForumList = () => {
                       : post.content}
                   </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                    {currentUser && (
+                    {user && (
                       <Button
                         variant="text"
                         startIcon={<AddCommentIcon />}
@@ -282,7 +282,7 @@ const ForumList = () => {
       )}
 
       {/* Create Post Floating Action Button (for logged in users) */}
-      {currentUser && (
+      {user && (
         <Tooltip title="Create new post" arrow placement="left">
           <Fab
             color="primary"
