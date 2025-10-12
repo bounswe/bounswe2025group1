@@ -26,7 +26,7 @@ from rest_framework import generics
 from rest_framework.exceptions import PermissionDenied
 
 from .serializers import (
-    RegisterSerializer, ProfileSerializer, LoginWithCaptchaSerializer, UserSerializer, ProfileUpdateSerializer,
+    RegisterSerializer, ProfileSerializer, LoginSerializer, UserSerializer, ProfileUpdateSerializer,
     FollowSerializer, GardenSerializer, GardenMembershipSerializer,
     CustomTaskTypeSerializer, TaskSerializer, ForumPostSerializer, CommentSerializer,
     UserGardenSerializer
@@ -52,7 +52,7 @@ class RegisterView(APIView):
 
 
 class CustomLoginView(ObtainAuthToken):
-    serializer_class = LoginWithCaptchaSerializer
+    serializer_class = LoginSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
