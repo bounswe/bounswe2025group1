@@ -14,20 +14,17 @@ const STATUS_COLORS = {
   COMPLETED: '#c8e6c9',
 };
 
-const TaskBoard = ({ tasks, setTasks, onStatusUpdate, onTaskClick }) => {
+const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
   const onDragEnd = (result) => {
-    const { destination, source, draggableId } = result;
-    if (!destination || destination.droppableId === source.droppableId) return;
+    const { source, destination, draggableId } = result;
+    if (!destination) return; // Dropped outside a droppable area
+    if (source.droppableId === destination.droppableId && source.index === destination.index)
+      return; // No change in position
 
-    const taskId = parseInt(draggableId);
-    const updatedTasks = tasks.map((task) =>
-      task.id === taskId ? { ...task, status: destination.droppableId } : task
-    );
-    setTasks(updatedTasks);
-
-    if (onStatusUpdate) {
-      onStatusUpdate(taskId, destination.droppableId);
-    }
+    const taskId = parseInt(draggableId, 10);
+    const newStatus = destination.droppableId;
+    const updatedTask = tasks.find((task) => task.id === taskId);
+    handleTaskUpdate({ ...updatedTask, status: newStatus });
   };
 
   return (

@@ -18,6 +18,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const TaskModal = ({
   open,
@@ -68,13 +70,16 @@ const TaskModal = ({
       setLoadingMembers(true);
       try {
         const token = getToken();
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`,
-          },
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/members/`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) {
           toast.error('Failed to fetch garden members');
@@ -82,7 +87,7 @@ const TaskModal = ({
 
         const data = await response.json();
         const members = data
-          .filter((member) => member.garden === parseInt(gardenId) && member.status === 'ACCEPTED')
+          .filter((member) => member.status === 'ACCEPTED')
           .map((member) => ({ id: member.user_id, name: member.username }));
         setGardenMembers(members);
       } catch (error) {
@@ -218,7 +223,7 @@ const TaskModal = ({
       }
     } // Final form should match the API requirements
     const finalForm = {
-      id: updatedForm.id, // Preserve ID for edit mode
+      id: updatedForm.id,
       garden: parseInt(gardenId),
       title: updatedForm.title,
       description: updatedForm.description,
