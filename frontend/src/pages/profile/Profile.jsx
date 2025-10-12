@@ -26,8 +26,8 @@ import GardenCard from '../../components/GardenCard';
 import React from 'react';
 
 const Profile = () => {
-  const { userId } = useParams();
-  const { currentUser, token } = useContext(AuthContext);
+  let { userId } = useParams();
+  const { user, token } = useContext(AuthContext);
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -44,7 +44,9 @@ const Profile = () => {
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [isOwnProfile, setIsOwnProfile] = useState(!userId);
+
+  userId = userId ? userId.toString() : user.user_id.toString();
+  const isOwnProfile = !userId || (user && user?.user_id?.toString() === userId);
 
   // Fetch profile data
   useEffect(() => {
@@ -75,8 +77,7 @@ const Profile = () => {
         }
 
         const data = await response.json();
-        if (data.username === currentUser.username && !isOwnProfile) {
-          setIsOwnProfile(true);
+        if (data.id.toString() === user.user_id.toString() && !isOwnProfile) {
           navigate('/profile');
         }
 
@@ -88,9 +89,9 @@ const Profile = () => {
         });
 
         // Check if current user is following this profile
-        if (!isOwnProfile && currentUser) {
-          const followingResponse = await fetch(
-            `${import.meta.env.VITE_API_URL}/profile/following/`,
+        if (!isOwnProfile && user) {
+          const followersResponse = await fetch(
+            `${import.meta.env.VITE_API_URL}/user/${userId}/followers/`,
             {
               headers: {
                 Authorization: `Token ${token}`,
@@ -98,16 +99,16 @@ const Profile = () => {
             }
           );
 
-          if (followingResponse.ok) {
-            const followingData = await followingResponse.json();
-            setIsFollowing(followingData.some((user) => user.id.toString() === userId));
+          if (followersResponse.ok) {
+            const followingData = await followersResponse.json();
+            setIsFollowing(followingData.some((u) => u.id.toString() === user.user_id.toString()));
           }
         }
 
         // Fetch user's gardens
         try {
           const gardensResponse = await fetch(
-            `${import.meta.env.VITE_API_URL}/gardens/user/${userId || currentUser.id}/`,
+            `${import.meta.env.VITE_API_URL}/gardens/user/${userId || user.user_id}/`,
             {
               headers: {
                 Authorization: `Token ${token}`,
@@ -132,7 +133,7 @@ const Profile = () => {
     };
 
     fetchProfileData();
-  }, [token, userId, currentUser, navigate, isOwnProfile]);
+  }, [token, userId, user, navigate, isOwnProfile]);
 
   // Fetch followers and following lists
   useEffect(() => {
@@ -141,7 +142,7 @@ const Profile = () => {
 
       try {
         const followersResponse = await fetch(
-          `${import.meta.env.VITE_API_URL}/profile/followers/`,
+          `${import.meta.env.VITE_API_URL}/user/${userId}/followers/`,
           {
             headers: {
               Authorization: `Token ${token}`,
@@ -150,7 +151,7 @@ const Profile = () => {
         );
 
         const followingResponse = await fetch(
-          `${import.meta.env.VITE_API_URL}/profile/following/`,
+          `${import.meta.env.VITE_API_URL}/user/${userId}/following/`,
           {
             headers: {
               Authorization: `Token ${token}`,
@@ -261,7 +262,7 @@ const Profile = () => {
       toast.success(`Successfully ${isFollowing ? 'unfollowed' : 'followed'} user`);
 
       // Update followers list
-      const followersResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/followers/`, {
+      const followersResponse = await fetch(`${import.meta.env.VITE_API_URL}/user/${userId}/followers/`, {
         headers: {
           Authorization: `Token ${token}`,
         },
@@ -468,7 +469,7 @@ const Profile = () => {
                       {followers && followers.length > 0 ? (
                         <Grid container spacing={2}>
                           {followers.map((follower) => (
-                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={follower.user_id}>
+                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={follower.id}>
                               <Paper
                                 elevation={1}
                                 sx={{
@@ -477,7 +478,7 @@ const Profile = () => {
                                   alignItems: 'center',
                                   cursor: 'pointer',
                                 }}
-                                onClick={() => navigateToUserProfile(follower.user_id)}
+                                onClick={() => navigateToUserProfile(follower.id)}
                               >
                                 <Avatar
                                   src={follower.profile_picture || '/default-avatar.png'}
@@ -513,7 +514,7 @@ const Profile = () => {
                       {following && following.length > 0 ? (
                         <Grid container spacing={2}>
                           {following.map((followedUser) => (
-                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={followedUser.user_id}>
+                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={followedUser.id}>
                               <Paper
                                 elevation={1}
                                 sx={{
@@ -522,7 +523,7 @@ const Profile = () => {
                                   alignItems: 'center',
                                   cursor: 'pointer',
                                 }}
-                                onClick={() => navigateToUserProfile(followedUser.user_id)}
+                                onClick={() => navigateToUserProfile(followedUser.id)}
                               >
                                 <Avatar
                                   src={followedUser.profile_picture || '/default-avatar.png'}
