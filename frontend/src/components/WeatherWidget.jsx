@@ -1,16 +1,10 @@
 import { useState, useEffect } from 'react';
-import {
-  Paper,
-  Typography,
-  Box,
-  Divider,
-  CircularProgress,
-  Button,
-  Alert
-} from '@mui/material';
+import { Paper, Typography, Box, Divider, CircularProgress, Button, Alert } from '@mui/material';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import React from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const WeatherWidget = () => {
   const [weatherData, setWeatherData] = useState(null);
@@ -24,10 +18,10 @@ const WeatherWidget = () => {
     try {
       // Open-Meteo API URL with relevant parameters
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3`;
-      
+
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Weather service unavailable');
+        toast.error('Weather service unavailable');
       }
 
       const data = await response.json();
@@ -87,7 +81,7 @@ const WeatherWidget = () => {
       condition: getWeatherCondition(data.current.weather_code),
       humidity: data.current.relative_humidity_2m,
       wind: Math.round(data.current.wind_speed_10m),
-      feelsLike: Math.round(data.current.apparent_temperature)
+      feelsLike: Math.round(data.current.apparent_temperature),
     };
 
     // Process forecast for next 3 days
@@ -95,13 +89,13 @@ const WeatherWidget = () => {
       date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       high: Math.round(data.daily.temperature_2m_max[index]),
       low: Math.round(data.daily.temperature_2m_min[index]),
-      condition: getWeatherCondition(data.daily.weather_code[index])
+      condition: getWeatherCondition(data.daily.weather_code[index]),
     }));
 
     return {
       location: locationName,
       current,
-      forecast
+      forecast,
     };
   };
 
@@ -112,7 +106,7 @@ const WeatherWidget = () => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
           timeout: 5000,
-          maximumAge: 0
+          maximumAge: 0,
         });
       });
 
@@ -134,11 +128,11 @@ const WeatherWidget = () => {
         try {
           const permission = await navigator.permissions.query({ name: 'geolocation' });
           setLocationPermission(permission.state);
-          
+
           if (permission.state === 'granted') {
             requestLocationPermission();
           }
-          
+
           permission.addEventListener('change', () => {
             setLocationPermission(permission.state);
           });
@@ -159,25 +153,49 @@ const WeatherWidget = () => {
 
   if (loading) {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+      <Paper
+        elevation={2}
+        sx={{
+          p: 3,
+          mb: 4,
+          height: 300,
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <CircularProgress color="success" size={40} />
-        <Typography variant="body2" sx={{ mt: 2 }}>Loading weather data...</Typography>
+        <Typography variant="body2" sx={{ mt: 2 }}>
+          Loading weather data...
+        </Typography>
       </Paper>
     );
   }
-  
+
   if (locationPermission === 'denied' || error) {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
+      <Paper
+        elevation={2}
+        sx={{
+          p: 3,
+          mb: 4,
+          height: 300,
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
           <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
         </Typography>
-        <Alert severity="info" sx={{ mb: 2,  }}>
+        <Alert severity="info" sx={{ mb: 2 }}>
           {error || 'Weather data requires location access'}
         </Alert>
         <Box sx={{ mt: 'auto' }}>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             startIcon={<LocationOnIcon />}
             onClick={requestLocationPermission}
             color="primary"
@@ -192,16 +210,30 @@ const WeatherWidget = () => {
 
   if (locationPermission === 'prompt') {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
-        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Paper
+        elevation={2}
+        sx={{
+          p: 3,
+          mb: 4,
+          height: 300,
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
           <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
         </Typography>
-        <Typography variant="body1" sx={{ mb: 2,  }}>
+        <Typography variant="body1" sx={{ mb: 2 }}>
           Get local weather updates for your garden
         </Typography>
         <Box sx={{ mt: 'auto' }}>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             startIcon={<LocationOnIcon />}
             onClick={requestLocationPermission}
             color="primary"
@@ -216,7 +248,18 @@ const WeatherWidget = () => {
 
   if (!weatherData) {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <Paper
+        elevation={2}
+        sx={{
+          p: 3,
+          mb: 4,
+          height: 300,
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+        }}
+      >
         <Typography variant="body1" color="text.secondary">
           Weather data unavailable
         </Typography>
@@ -225,7 +268,17 @@ const WeatherWidget = () => {
   }
 
   return (
-    <Paper elevation={2} sx={{ p: 3, mb: 4, height: "100%", textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
+    <Paper
+      elevation={2}
+      sx={{
+        p: 3,
+        mb: 4,
+        height: 300,
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
         <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
       </Typography>
@@ -242,7 +295,8 @@ const WeatherWidget = () => {
         </Box>
       </Box>
       <Typography variant="body2" sx={{ mb: 1 }}>
-        Feels like: {weatherData.current.feelsLike}°C | Humidity: {weatherData.current.humidity}% | Wind: {weatherData.current.wind} km/h
+        Feels like: {weatherData.current.feelsLike}°C | Humidity: {weatherData.current.humidity}% |
+        Wind: {weatherData.current.wind} km/h
       </Typography>
       <Divider sx={{ my: 2 }} />
       <Typography variant="body2" gutterBottom>
@@ -252,8 +306,12 @@ const WeatherWidget = () => {
         {weatherData.forecast.map((day, index) => (
           <Box key={index} sx={{ textAlign: 'center' }}>
             <Typography variant="body2">{day.date}</Typography>
-            <Typography variant="body2">{day.high}° / {day.low}°</Typography>
-            <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>{day.condition}</Typography>
+            <Typography variant="body2">
+              {day.high}° / {day.low}°
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+              {day.condition}
+            </Typography>
           </Box>
         ))}
       </Box>

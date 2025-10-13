@@ -45,6 +45,14 @@ class GardenViewSet(viewsets.ModelViewSet):
             status='ACCEPTED'
         )
 
+    @action(detail=True, methods=['get'], url_path='members')
+    def members(self, request, pk=None):
+        """Get list of members for this garden (URL: /gardens/<id>/members)"""
+        garden = self.get_object()
+        memberships = GardenMembership.objects.filter(garden=garden)
+        serializer = GardenMembershipSerializer(memberships, many=True, context={'request': request})
+        return Response(serializer.data)
+
 
 class GardenMembershipViewSet(viewsets.ModelViewSet):
     queryset = GardenMembership.objects.all()
@@ -91,3 +99,4 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
         # Serialize the gardens with user role information
         serializer = UserGardenSerializer(gardens, many=True, context={'request': request})
         return Response(serializer.data)
+

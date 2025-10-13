@@ -6,9 +6,8 @@ import Profile from './Profile';
 import AuthContext from '../../contexts/AuthContextUtils';
 import React from 'react';
 
-
 vi.mock('../../components/GardenCard', () => ({
-  default: ({ garden }) => <div>Garden: {garden.name}</div>
+  default: ({ garden }) => <div>Garden: {garden.name}</div>,
 }));
 
 const mockNavigate = vi.fn();
@@ -24,9 +23,9 @@ vi.mock('react-router-dom', async () => {
 const API_URL = 'http://fakeapi.com';
 
 // Helper to wrap with auth context
-const renderWithAuth = (ui, { currentUser = {}, token = 'test-token' } = {}) => {
+const renderWithAuth = (ui, { user = {}, token = 'test-token' } = {}) => {
   return render(
-    <AuthContext.Provider value={{ currentUser, token }}>
+    <AuthContext.Provider value={{ user, token }}>
       <MemoryRouter initialEntries={['/profile']}>
         <Routes>
           <Route path="/profile" element={ui} />
@@ -69,7 +68,7 @@ describe('Profile Component', () => {
       json: async () => ({
         username: 'johndoe',
         email: 'john@example.com',
-        profile: { location: 'Earth' }
+        profile: { location: 'Earth' },
       }),
     });
 
@@ -87,7 +86,7 @@ describe('Profile Component', () => {
       json: async () => ({
         username: 'johndoe',
         email: 'john@example.com',
-        profile: { location: 'Earth' }
+        profile: { location: 'Earth' },
       }),
     });
 
@@ -109,7 +108,7 @@ describe('Profile Component', () => {
       json: async () => ({
         username: 'johndoe',
         email: 'john@example.com',
-        profile: { location: 'Earth' }
+        profile: { location: 'Earth' },
       }),
     });
 
@@ -134,7 +133,7 @@ describe('Profile Component', () => {
         json: async () => ({
           username: 'johndoe',
           email: 'john@example.com',
-          profile: { location: 'Earth' }
+          profile: { location: 'Earth' },
         }),
       })
       .mockResolvedValueOnce({
@@ -156,7 +155,7 @@ describe('Profile Component', () => {
         json: async () => ({
           username: 'johndoe',
           email: 'john@example.com',
-          profile: { location: 'Earth' }
+          profile: { location: 'Earth' },
         }),
       })
       .mockResolvedValueOnce({
