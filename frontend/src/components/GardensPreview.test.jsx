@@ -5,11 +5,11 @@ import GardensPreview from './GardensPreview';
 import { useAuth } from '../contexts/AuthContextUtils';
 
 vi.mock('../contexts/AuthContextUtils', () => ({
-  useAuth: vi.fn()
+  useAuth: vi.fn(),
 }));
 
 vi.mock('react-router-dom', () => ({
-  useNavigate: () => vi.fn()
+  useNavigate: () => vi.fn(),
 }));
 
 const mockGardens = [
@@ -19,7 +19,7 @@ const mockGardens = [
     description: 'A test garden description',
     location: 'Test Location 1',
     members: 5,
-    tasks: 3
+    tasks: 3,
   },
   {
     id: 2,
@@ -27,8 +27,8 @@ const mockGardens = [
     description: 'Another test garden description',
     location: 'Test Location 2',
     members: 3,
-    tasks: 7
-  }
+    tasks: 7,
+  },
 ];
 
 describe('GardensPreview component', () => {
@@ -37,7 +37,7 @@ describe('GardensPreview component', () => {
     vi.resetAllMocks();
     useAuth.mockReturnValue({
       token: 'mock-token',
-      currentUser: { id: 1, username: 'testuser' }
+      user: { id: 1, username: 'testuser' },
     });
   });
 
@@ -53,28 +53,28 @@ describe('GardensPreview component', () => {
     // Mock profile response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ username: 'testuser' })
+      json: async () => ({ username: 'testuser' }),
     });
-    
+
     // Mock memberships response
     window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [
         { status: 'ACCEPTED', username: 'testuser', garden: 1 },
-        { status: 'ACCEPTED', username: 'testuser', garden: 2 }
-      ]
+        { status: 'ACCEPTED', username: 'testuser', garden: 2 },
+      ],
     });
-    
+
     // Mock garden 1 response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => mockGardens[0]
+      json: async () => mockGardens[0],
     });
-    
+
     // Mock garden 2 response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => mockGardens[1]
+      json: async () => mockGardens[1],
     });
 
     render(<GardensPreview />);
@@ -89,31 +89,31 @@ describe('GardensPreview component', () => {
     // Mock profile response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ username: 'testuser' })
+      json: async () => ({ username: 'testuser' }),
     });
-    
+
     // Mock memberships response
     window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [
         { status: 'ACCEPTED', username: 'testuser', garden: 1 },
         { status: 'ACCEPTED', username: 'testuser', garden: 2 },
-        { status: 'ACCEPTED', username: 'testuser', garden: 3 }
-      ]
+        { status: 'ACCEPTED', username: 'testuser', garden: 3 },
+      ],
     });
-    
+
     // Mock garden 1 response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => mockGardens[0]
+      json: async () => mockGardens[0],
     });
-    
+
     // Mock garden 2 response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => mockGardens[1]
+      json: async () => mockGardens[1],
     });
-    
+
     // Mock garden 3 response
     window.fetch.mockResolvedValueOnce({
       ok: true,
@@ -123,8 +123,8 @@ describe('GardensPreview component', () => {
         description: 'Yet another garden',
         location: 'Test Location 3',
         members: 1,
-        tasks: 2
-      })
+        tasks: 2,
+      }),
     });
 
     render(<GardensPreview limit={2} />);
@@ -141,13 +141,13 @@ describe('GardensPreview component', () => {
     // Mock profile response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ username: 'testuser' })
+      json: async () => ({ username: 'testuser' }),
     });
-    
+
     // Mock memberships response with empty array
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => []
+      json: async () => [],
     });
 
     render(<GardensPreview />);
@@ -160,13 +160,13 @@ describe('GardensPreview component', () => {
   it('handles public gardens for non-logged in users', async () => {
     useAuth.mockReturnValue({
       token: null,
-      currentUser: null
+      user: null,
     });
 
     // Mock public gardens response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => mockGardens
+      json: async () => mockGardens,
     });
 
     render(<GardensPreview />);

@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+coverage
+.vscode
+.env
+.env.*
+public
+static
+media
+frontend/package-lock.json

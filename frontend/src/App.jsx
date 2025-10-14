@@ -129,7 +129,16 @@ function App() {
       <CssBaseline />
       <AuthProvider>
         <Router>
-          <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: '100vh',
+              width: '100%',
+              maxWidth: '100%',
+              overflow: 'hidden',
+            }}
+          >
             <Navbar />
             <Box
               component="main"
@@ -142,7 +151,7 @@ function App() {
                 overflowX: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'stretch'
+                alignItems: 'stretch',
               }}
             >
               <Routes>
@@ -151,7 +160,7 @@ function App() {
                 <Route path="/auth/register" element={<Register />} />
                 <Route path="/gardens" element={<GardenList />} />
                 <Route path="/gardens/:gardenId" element={<GardenDetail />} />
-                <Route path='/tasks' element={<Tasks />} />
+                <Route path="/tasks" element={<Tasks />} />
                 <Route path="/forum" element={<ForumList />} />
                 <Route path="/forum/:postId" element={<ForumPost />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
@@ -170,7 +179,7 @@ function App() {
                 mt: 'auto',
                 backgroundColor: '#f5f5f5',
                 textAlign: 'center',
-                width: '100%'
+                width: '100%',
               }}
             >
               <Box sx={{ color: 'text.secondary' }}>

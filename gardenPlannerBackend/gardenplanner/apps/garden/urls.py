@@ -25,6 +25,8 @@ forum_patterns = [
 urlpatterns = [
     # Include router URLs
     path('', include(router.urls)),
+    # Explicit update route for tasks to handle PUT at tasks/<pk>
+    path('tasks/<int:pk>', views.TaskUpdateView.as_view(), name='task-update'),
     
     # Authentication endpoints
     path('register/', views.RegisterView.as_view(), name='register'),
@@ -40,7 +42,11 @@ urlpatterns = [
     path('profile/followers/', views.FollowersListView.as_view(), name='followers'),
     path('profile/following/', views.FollowingListView.as_view(), name='following'),
     path('profile/block/', views.BlockUnblockView.as_view(), name='block-unblock'),
-    
+    path('user/<int:user_id>/gardens/', views.UserGardensView.as_view(), name='user-gardens'),
+    path('user/<int:user_id>/followers/', views.UserFollowersView.as_view(), name='user-followers'),
+    path('user/<int:user_id>/following/', views.UserFollowingView.as_view(), name='user-following'),
+    path('user/<int:user_id>/is-following/', views.UserIsFollowingView.as_view(), name='user-is-following'),
+    path('user/<int:user_id>/tasks/', views.UserTasksView.as_view(), name='user-tasks'),
     # Forum endpoints with namespace
     path('forum/', include(forum_patterns)),
     
