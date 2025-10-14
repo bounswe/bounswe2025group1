@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from garden.models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Notification
+from django.contrib.contenttypes.models import ContentType
+from garden.models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification
 from unittest.mock import patch
 
 
@@ -619,6 +620,107 @@ class WeatherDataViewTests(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'], 'Location parameter is required')
 
+# In garden/tests.py
+
+class ReportingSystemTests(APITestCase):
+    """Tests the core functionality and permissions for user reporting and admin review."""
+
+    def setUp(self):
+        def get_auth_token(user):
+            token, _ = Token.objects.get_or_create(user=user)
+            return token.key
+        self.get_auth_token = get_auth_token
+
+        self.user = User.objects.create_user(username='reporter', password='pw')
+        self.admin_user = User.objects.create_superuser(username='admin', email='a@a.com', password='pw')
+        Profile.objects.filter(user=self.admin_user).update(role='ADMIN')
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.get_auth_token(self.user)}')
+        self.admin_client = self.client_class()
+        self.admin_client.credentials(HTTP_AUTHORIZATION=f'Token {self.get_auth_token(self.admin_user)}')
+        
+        self.report_url = reverse('garden:report-list')
+        self.admin_reports_url = reverse('garden:admin-report-list')
+
+        self.post = ForumPost.objects.create(title="Post to Report", content="Content", author=self.user)
+        self.comment = Comment.objects.create(forum_post=self.post, content="Comment", author=self.user)
+
+
+    # --- Test Report Creation (User) ---
+
+    def test_create_report_success(self):
+        """User can successfully report a ForumPost."""
+        data = {'content_type': 'forumpost', 'object_id': self.post.id, 'reason': 'abuse'}
+        response = self.client.post(self.report_url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Report.objects.count(), 1)
+        self.assertEqual(Report.objects.first().reporter, self.user)
+        self.assertEqual(Report.objects.first().content_object, self.post)
+
+    def test_create_report_duplicate_fail(self):
+        """User cannot report the same object twice."""
+        data = {'content_type': 'forumpost', 'object_id': self.post.id, 'reason': 'spam'}
+        self.client.post(self.report_url, data, format='json')
+        
+        response = self.client.post(self.report_url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['detail'], 'You already reported this content.')
+    
+    def test_create_report_invalid_type_fail(self):
+        """Invalid content_type string fails with 400."""
+        data = {'content_type': 'badmodel', 'object_id': 999, 'reason': 'other'}
+        response = self.client.post(self.report_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+  
+    # --- Test Admin Review (AdminReportViewSet) ---
+
+    def test_admin_list_and_review_access(self):
+        """Only admins can access the admin report list."""
+        non_admin_client = self.client_class()
+        non_admin_client.credentials(HTTP_AUTHORIZATION=f'Token {self.get_auth_token(self.user)}')
+        response = non_admin_client.get(self.admin_reports_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        response = self.admin_client.get(self.admin_reports_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_admin_review_mark_valid_deletes_content(self):
+        """Marking a report as VALID should soft-delete the reported content."""
+        data = {'content_type': 'forumpost', 'object_id': self.post.id, 'reason': 'abuse'}
+        self.client.post(self.report_url, data, format='json')
+        report_id = Report.objects.first().id
+        
+        review_url = reverse('garden:admin-report-review', kwargs={'pk': report_id})
+        
+        response = self.admin_client.post(review_url, {'is_valid': True}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        report = Report.objects.get(id=report_id)
+        self.assertTrue(report.reviewed)
+        self.assertTrue(report.is_valid)
+        self.post.refresh_from_db()
+        self.assertTrue(self.post.is_deleted, "Post must be soft-deleted by admin action.")
+
+    def test_admin_review_mark_invalid_keeps_content(self):
+        """Marking a report as INVALID should mark it reviewed but preserve the content."""
+        data = {'content_type': 'forumpost', 'object_id': self.post.id, 'reason': 'abuse'}
+        self.client.post(self.report_url, data, format='json')
+        report_id = Report.objects.first().id
+        
+        review_url = reverse('garden:admin-report-review', kwargs={'pk': report_id})
+
+        response = self.admin_client.post(review_url, {'is_valid': False}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        report = Report.objects.get(id=report_id)
+        self.assertTrue(report.reviewed)
+        self.assertFalse(report.is_valid)
+        self.post.refresh_from_db()
+        self.assertFalse(self.post.is_deleted, "Post must NOT be soft-deleted by invalid report.")
 
 class NotificationTests(TestCase):
     def setUp(self):

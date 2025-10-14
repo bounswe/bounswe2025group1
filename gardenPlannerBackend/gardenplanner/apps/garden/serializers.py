@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Notification
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification
 from django.contrib.auth import get_user_model
 from django.conf import settings
 import requests
@@ -190,6 +190,24 @@ class UserGardenSerializer(serializers.ModelSerializer):
             except GardenMembership.DoesNotExist:
                 return None
         return None
+    
+class ReportSerializer(serializers.ModelSerializer):
+    content_type = serializers.CharField()
+    object_id = serializers.IntegerField()
+
+    class Meta:
+        model = Report
+        fields = [
+            'id', 'reporter', 'content_type', 'object_id', 
+            'reason', 'description', 'created_at', 'reviewed', 'is_valid'
+        ]
+        read_only_fields = ['reporter', 'created_at', 'reviewed', 'is_valid']
+
+    def create(self, validated_data):
+        validated_data['reporter'] = self.context['request'].user
+        return super().create(validated_data)
+    
+
 
 
 class NotificationSerializer(serializers.ModelSerializer):
