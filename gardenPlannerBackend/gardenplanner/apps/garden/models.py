@@ -21,6 +21,7 @@ class Profile(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='MEMBER')
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True)
     blocked_users = models.ManyToManyField('self', symmetrical=False, related_name='blocked_by', blank=True)
+    receives_notifications = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -191,3 +192,24 @@ class Report(models.Model):
 
     def __str__(self):
         return f"Report on {self.content_object} by {self.reporter.username}"
+
+
+class NotificationCategory(models.TextChoices):
+    TASK = 'TASK', 'Task Update'
+    SOCIAL = 'SOCIAL', 'Social Activity'
+    FORUM = 'FORUM', 'Forum Activity'
+    WEATHER = 'WEATHER', 'Weather Alert'
+    # Add other categories as needed
+
+class Notification(models.Model):
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    category = models.CharField(max_length=30, choices=NotificationCategory.choices)
+    read = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-timestamp',)
+
+    def __str__(self):
+        return f"Notification for {self.recipient.username} ({self.category})"

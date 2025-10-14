@@ -14,7 +14,6 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { COLORS } from '../../constants/Config';
-import { useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
@@ -104,6 +103,7 @@ export default function LoginScreen() {
                   <Text style={styles.buttonText}>Sign In</Text>
                 )}
               </TouchableOpacity>
+
               <View style={styles.registerContainer}>
                 <Text style={styles.registerText}>Don't have an account? </Text>
                 <TouchableOpacity onPress={() => router.push('/auth/register')}>
