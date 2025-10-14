@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+
 
 
 class Profile(models.Model):
@@ -140,6 +143,12 @@ class ForumPost(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="forum_posts")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+
+    #soft delete (content will be shown as moderated and not actually deleted from the db)
+    def delete(self):
+        self.is_deleted = True
+        self.save()
     
     def __str__(self):
         return f"{self.title} by {self.author.username}"
@@ -149,6 +158,36 @@ class Comment(models.Model):
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
     created_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
+
+    #soft delete (content will be shown as moderated and not actually deleted from the db)
+    def delete(self):
+        self.is_deleted = True
+        self.save()
     
     def __str__(self):
         return f"Comment by {self.author.username} on {self.forum_post.title}"
+    
+class Report(models.Model):
+    REASONS = [
+        ('abuse', 'Abusive or Harassing'),
+        ('spam', 'Spam or Misleading'),
+        ('illegal', 'Illegal Content'),
+        ('other', 'Other'),
+    ]
+
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    # Generic relation (can point to ForumPost or Comment)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    reason = models.CharField(max_length=50, choices=REASONS)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed = models.BooleanField(default=False)
+    is_valid = models.BooleanField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Report on {self.content_object} by {self.reporter.username}"

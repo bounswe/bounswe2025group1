@@ -31,6 +31,11 @@ from .task import (
 )
 from .weatherdata import WeatherDataView
 
+from .report import (
+    ReportViewSet,
+    AdminReportViewSet      
+)
+
 
 __all__ = [
     # Forum and Comment Views
