@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report
 
 # Register your models here.
 admin.site.register(Profile)
