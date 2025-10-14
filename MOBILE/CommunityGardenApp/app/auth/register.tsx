@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -49,7 +50,7 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!validateForm()) return;
-    
+
     setLoading(true);
     setError('');
     try {
@@ -139,7 +140,6 @@ export default function RegisterScreen() {
                   <Text style={styles.buttonText}>Sign Up</Text>
                 )}
               </TouchableOpacity>
-
 
               <View style={styles.loginContainer}>
                 <Text style={styles.loginText}>Already have an account? </Text>
