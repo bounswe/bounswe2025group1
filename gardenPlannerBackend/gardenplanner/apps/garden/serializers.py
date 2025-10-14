@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Notification
 from django.contrib.auth import get_user_model
 from django.conf import settings
 import requests
@@ -15,13 +15,13 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 
-                  'profile_picture', 'location', 'role', 'created_at', 'updated_at']
+                  'profile_picture', 'location', 'role', 'receives_notifications', 'created_at', 'updated_at']
         read_only_fields = ['id', 'role', 'created_at', 'updated_at']
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ['profile_picture', 'location']
+        fields = ['profile_picture', 'location', 'receives_notifications']
 
 
 class FollowSerializer(serializers.Serializer):
@@ -36,7 +36,6 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ['username', 'email', 'first_name', 'last_name', 'password', 'location', 'profile_picture']
-
 
     def create(self, validated_data):
         location = validated_data.pop('location', None)
@@ -191,3 +190,9 @@ class UserGardenSerializer(serializers.ModelSerializer):
             except GardenMembership.DoesNotExist:
                 return None
         return None
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ('id', 'message', 'category', 'read', 'timestamp')

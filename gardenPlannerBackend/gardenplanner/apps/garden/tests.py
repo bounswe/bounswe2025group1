@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from garden.models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment
+from garden.models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Notification
 from unittest.mock import patch
 
 
@@ -177,10 +177,8 @@ class APITests(APITestCase):
         )
 
     # Authentication Endpoints
-    @patch('garden.serializers.verify_recaptcha')
-    def test_register_user(self, mock_verify_recaptcha):
+    def test_register_user(self):
         """Test user registration"""
-        mock_verify_recaptcha.return_value = {'success': True}
         url = reverse('garden:register')
         data = {
             'username': 'newuser',
@@ -188,8 +186,7 @@ class APITests(APITestCase):
             'first_name': 'New',
             'last_name': 'User',
             'password': 'newpassword',
-            'location': 'New Location',
-            'captcha': 'dummy-token'
+            'location': 'New Location'
         }
         
         response = self.client.post(url, data, format='json')
@@ -203,15 +200,12 @@ class APITests(APITestCase):
         user = User.objects.get(username='newuser')
         self.assertEqual(user.profile.location, 'New Location')
 
-    @patch('garden.serializers.verify_recaptcha')
-    def test_login(self, mock_verify_recaptcha):
+    def test_login(self):
         """Test user login"""
-        mock_verify_recaptcha.return_value = {'success': True}
         url = reverse('garden:login')
         data = {
             'username': 'testuser',
-            'password': 'testpassword',
-            'captcha': 'dummy-token'
+            'password': 'testpassword'
         }
         
         response = self.client.post(url, data, format='json')
@@ -624,3 +618,87 @@ class WeatherDataViewTests(APITestCase):
         response = self.client.get(reverse('weather'))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'], 'Location parameter is required')
+
+
+class NotificationTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user1 = User.objects.create_user(username='user1', password='password123')
+        self.user2 = User.objects.create_user(username='user2', password='password123')
+        
+        self.notification1_user1 = Notification.objects.create(recipient=self.user1, message='Message 1 for user1', read=False)
+        self.notification2_user1 = Notification.objects.create(recipient=self.user1, message='Message 2 for user1', read=False)
+        self.notification3_user1 = Notification.objects.create(recipient=self.user1, message='Message 3 for user1', read=True)
+        
+        self.notification1_user2 = Notification.objects.create(recipient=self.user2, message='Message 1 for user2', read=False)
+        
+        self.client.force_authenticate(user=self.user1)
+
+    def test_list_notifications_for_authenticated_user(self):
+        """
+        Ensure a user can only list their own notifications.
+        """
+        url = reverse('garden:notification-list')
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 3)
+
+    def test_retrieve_own_notification(self):
+        """
+        Ensure a user can retrieve a detail view of their own notification.
+        """
+        url = reverse('garden:notification-detail', args=[self.notification1_user1.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], self.notification1_user1.message)
+
+    def test_cannot_retrieve_other_user_notification(self):
+        """
+        Ensure a user gets a 404 when trying to access another user's notification.
+        """
+        url = reverse('garden:notification-detail', args=[self.notification1_user2.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_unread_count(self):
+        """
+        Ensure the unread_count action returns the correct count.
+        """
+        url = reverse('garden:notification-unread-count')
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['unread_count'], 2)
+
+    def test_mark_as_read(self):
+        """
+        Ensure the mark_as_read action correctly updates a notification.
+        """
+        self.assertFalse(self.notification1_user1.read)
+
+        url = reverse('garden:notification-mark-as-read', args=[self.notification1_user1.id])
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        self.notification1_user1.refresh_from_db()
+        self.assertTrue(self.notification1_user1.read)
+
+    def test_mark_all_as_read(self):
+        """
+        Ensure the mark_all_as_read action updates all of the user's notifications.
+        """
+        url = reverse('garden:notification-mark-all-as-read')
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        user1_notifications = Notification.objects.filter(recipient=self.user1)
+        for notif in user1_notifications:
+            self.assertTrue(notif.read)
+
+        self.notification1_user2.refresh_from_db()
+        self.assertFalse(self.notification1_user2.read)

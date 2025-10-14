@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { 
-  AppBar, 
-  Box, 
-  Toolbar, 
-  IconButton, 
-  Typography, 
-  Menu, 
-  Container, 
-  Avatar, 
-  Button, 
-  Tooltip, 
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  IconButton,
+  Typography,
+  Menu,
+  Container,
+  Avatar,
+  Button,
+  Tooltip,
   MenuItem,
   Badge,
   Fade,
@@ -19,7 +19,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Divider
+  Divider,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -40,13 +40,13 @@ const pages = [
   { name: 'Home', path: '/', icon: <HomeIcon /> },
   { name: 'Gardens', path: '/gardens', icon: <YardIcon /> },
   { name: 'Tasks', path: '/tasks', icon: <AssignmentIcon /> },
-  { name: 'Forum', path: '/forum', icon: <ForumIcon /> }
+  { name: 'Forum', path: '/forum', icon: <ForumIcon /> },
 ];
 
 const settings = [
   { name: 'Profile', path: '/profile', icon: <PersonIcon /> },
   { name: 'Settings', path: '/profile/settings', icon: <SettingsIcon /> },
-  { name: 'Logout', icon: <LogoutIcon />, action: 'logout' }
+  { name: 'Logout', icon: <LogoutIcon />, action: 'logout' },
 ];
 
 function Navbar() {
@@ -55,8 +55,8 @@ function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, logout } = useAuth();
-  
+  const { user, logout } = useAuth();
+
   // Track scroll position to add shadow when scrolled
   useEffect(() => {
     const handleScroll = () => {
@@ -66,7 +66,7 @@ function Navbar() {
         setScrolled(false);
       }
     };
-    
+
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -80,7 +80,7 @@ function Navbar() {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
-  
+
   const handleMenuAction = (path, action) => {
     handleCloseUserMenu();
 
@@ -89,13 +89,12 @@ function Navbar() {
       console.log('User logged out');
       toast.success('You’ve been logged out.', {
         position: 'top-right',
-        theme: 'colored'
+        theme: 'colored',
       });
       setTimeout(() => navigate('/'), 2000);
     } else if (path) {
       navigate(path);
     }
-    
   };
 
   const toggleDrawer = (open) => (event) => {
@@ -106,18 +105,16 @@ function Navbar() {
   };
 
   const isActivePath = (path) => {
-    return location.pathname === path || 
-      (path !== '/' && location.pathname.startsWith(path));
+    return location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
   };
-  
 
-  return (    
-  <AppBar 
-      position="sticky" 
-      sx={{ 
-        backgroundColor: '#558b2f', 
-        width: '100%', 
-        left: 0, 
+  return (
+    <AppBar
+      position="sticky"
+      sx={{
+        backgroundColor: '#558b2f',
+        width: '100%',
+        left: 0,
         right: 0,
         transition: 'box-shadow 0.3s ease',
         boxShadow: scrolled ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
@@ -147,7 +144,7 @@ function Navbar() {
                 },
               }}
             >
-              <YardIcon sx={{ mr: 1, fontSize: 28, color: '#ffffff' }} /> 
+              <YardIcon sx={{ mr: 1, fontSize: 28, color: '#ffffff' }} />
               <span style={{ borderBottom: '2px solid rgba(255,255,255,0.7)' }}>
                 Community Garden Planner
               </span>
@@ -192,9 +189,9 @@ function Navbar() {
                 key={page.name}
                 onClick={() => navigate(page.path)}
                 sx={{
-                  my: 2, 
+                  my: 2,
                   mx: 0.5,
-                  color: 'white', 
+                  color: 'white',
                   display: 'flex',
                   alignItems: 'center',
                   borderRadius: '8px',
@@ -214,29 +211,30 @@ function Navbar() {
                       height: '3px',
                       borderRadius: '3px',
                       backgroundColor: 'white',
-                    }
-                  })
+                    },
+                  }),
                 }}
               >
                 {page.icon}
-                <Box component="span" sx={{ ml: 1 }}>{page.name}</Box>
+                <Box component="span" sx={{ ml: 1 }}>
+                  {page.name}
+                </Box>
               </Button>
             ))}
           </Box>
 
-          {currentUser && (
+          {user && (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-
               {/* Profile menu */}
               <Tooltip title="Open settings">
-                <IconButton 
-                  onClick={handleOpenUserMenu} 
-                  sx={{ 
+                <IconButton
+                  onClick={handleOpenUserMenu}
+                  sx={{
                     p: 0,
                     border: '2px solid rgba(255, 255, 255, 0.7)',
-                    '&:hover': { 
+                    '&:hover': {
                       border: '2px solid white',
-                    }
+                    },
                   }}
                 >
                   <Avatar alt="User" src="/static/avatar.jpg" sx={{ width: 36, height: 36 }}>
@@ -263,12 +261,12 @@ function Navbar() {
               >
                 <Box sx={{ px: 2, py: 1, textAlign: 'center', borderBottom: '1px solid #eee' }}>
                   <Typography variant="subtitle1" component="div">
-                    {currentUser?.username || 'Guest'}
+                    {user?.username || 'Guest'}
                   </Typography>
                 </Box>
                 {settings.map((setting) => (
-                  <MenuItem 
-                    key={setting.name} 
+                  <MenuItem
+                    key={setting.name}
                     onClick={() => handleMenuAction(setting.path, setting.action)}
                     sx={{
                       display: 'flex',
@@ -279,8 +277,8 @@ function Navbar() {
                       mx: 1,
                       my: 0.5,
                       '&:hover': {
-                        backgroundColor: '#f0f7eb'
-                      }
+                        backgroundColor: '#f0f7eb',
+                      },
                     }}
                   >
                     <ListItemIcon sx={{ minWidth: 'auto', color: '#558b2f' }}>
@@ -294,32 +292,32 @@ function Navbar() {
           )}
 
           {/* Login and Register buttons when user is not signed in */}
-          {!currentUser && (
+          {!user && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Button 
+              <Button
                 variant="outlined"
                 onClick={() => navigate('/auth/login')}
-                sx={{ 
-                  borderColor: 'white', 
+                sx={{
+                  borderColor: 'white',
                   color: 'white',
                   '&:hover': {
                     borderColor: 'white',
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  }
+                  },
                 }}
               >
                 Login
               </Button>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 onClick={() => navigate('/auth/register')}
-                sx={{ 
-                  borderColor: 'white', 
+                sx={{
+                  borderColor: 'white',
                   color: 'white',
                   '&:hover': {
                     borderColor: 'white',
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  }
+                  },
                 }}
               >
                 Sign Up
@@ -328,20 +326,29 @@ function Navbar() {
           )}
         </Toolbar>
       </Container>
-      
+
       {/* Mobile drawer */}
       <Drawer
         anchor="left"
         open={drawerOpen}
         onClose={toggleDrawer(false)}
         sx={{
-          '& .MuiDrawer-paper': { 
+          '& .MuiDrawer-paper': {
             width: '85%',
             maxWidth: '300px',
           },
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: '#558b2f', color: 'white' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            p: 2,
+            bgcolor: '#558b2f',
+            color: 'white',
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <YardIcon sx={{ mr: 1 }} />
             <Typography variant="h6" component="div">
@@ -352,9 +359,9 @@ function Navbar() {
             <CloseIcon />
           </IconButton>
         </Box>
-        
+
         <Divider />
-        
+
         <List sx={{ pt: 0 }}>
           {pages.map((page) => (
             <ListItem key={page.name} disablePadding>
@@ -368,23 +375,24 @@ function Navbar() {
                   ...(isActivePath(page.path) && {
                     bgcolor: '#f0f7eb',
                     borderLeft: '4px solid #558b2f',
-                  })
+                  }),
                 }}
               >
-                <ListItemIcon sx={{ color: '#558b2f', minWidth: '40px' }}>
-                  {page.icon}
-                </ListItemIcon>
+                <ListItemIcon sx={{ color: '#558b2f', minWidth: '40px' }}>{page.icon}</ListItemIcon>
                 <ListItemText primary={page.name} />
               </ListItemButton>
             </ListItem>
           ))}
         </List>
-        
+
         <Divider sx={{ my: 1 }} />
-        
-        {currentUser ? (
+
+        {user ? (
           <>
-            <Typography variant="subtitle2" sx={{ px: 2, py: 1, fontWeight: 'bold', color: 'text.secondary' }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ px: 2, py: 1, fontWeight: 'bold', color: 'text.secondary' }}
+            >
               User Settings
             </Typography>
             <List sx={{ pt: 0 }}>
@@ -398,13 +406,12 @@ function Navbar() {
                         logout();
                         toast.info('You’ve been logged out.', {
                           position: 'top-right',
-                          theme: 'colored'
+                          theme: 'colored',
                         });
                         setTimeout(() => navigate('/'), 2000);
                       } else if (setting.path) {
                         navigate(setting.path);
                       }
-                      
                     }}
                     sx={{ py: 1.5 }}
                   >
@@ -419,10 +426,10 @@ function Navbar() {
           </>
         ) : (
           <Box sx={{ p: 2 }}>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              fullWidth 
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
               onClick={() => {
                 navigate('/');
                 setDrawerOpen(false);
@@ -431,9 +438,9 @@ function Navbar() {
             >
               Login
             </Button>
-            <Button 
-              variant="outlined" 
-              color="primary" 
+            <Button
+              variant="outlined"
+              color="primary"
               fullWidth
               onClick={() => {
                 navigate('/auth/register');

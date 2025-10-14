@@ -9,7 +9,7 @@ import {
   Link,
   Paper,
   Avatar,
-  InputAdornment
+  InputAdornment,
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
@@ -17,41 +17,34 @@ import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContextUtils';
-import ReCAPTCHA from 'react-google-recaptcha';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [captchaToken, setCaptchaToken] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      if (!captchaToken) {
-        toast.error('Please complete the reCAPTCHA.');
-        return;
-      }
       const response = await fetch(`${import.meta.env.VITE_API_URL}/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
 
-        body: JSON.stringify({ username, password, captcha: captchaToken}),
+        body: JSON.stringify({ username, password }),
       });
 
       if (!response.ok) {
-        throw new Error('Login failed');
+        toast.error('Login failed');
       }
 
       const data = await response.json();
 
       // Save user and token via context
-      const user = { username };
-      login(user, data.token);
+      login(data);
 
       toast.success('Welcome back to the garden!', {
         position: 'top-right',
@@ -135,12 +128,6 @@ const Login = () => {
                   ),
                 }}
               />
-               <Box sx={{  display: 'flex', justifyContent: 'center', mt: 2 }}>
-                <ReCAPTCHA
-                  sitekey="6LeROzorAAAAACC44mV_hc77HI8uri9RE4f5vHiz"
-                  onChange={(token) => setCaptchaToken(token)}
-                />
-              </Box>
               <Button
                 type="submit"
                 fullWidth
@@ -152,13 +139,19 @@ const Login = () => {
                   color: '#fff',
                   '&:hover': {
                     background: 'linear-gradient(90deg, #7cb342 0%, #33691e 100%)',
-                  }
+                  },
                 }}
               >
                 Sign In
               </Button>
               <Box sx={{ mt: 3, textAlign: 'center' }}>
-                <Link href="/auth/forgot-password" variant="body2" underline="hover" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                <Link
+                  href="/auth/forgot-password"
+                  variant="body2"
+                  underline="hover"
+                  color="text.secondary"
+                  sx={{ display: 'block', mb: 1 }}
+                >
                   Forgot password?
                 </Link>
                 <Typography variant="body2" color="text.secondary">
