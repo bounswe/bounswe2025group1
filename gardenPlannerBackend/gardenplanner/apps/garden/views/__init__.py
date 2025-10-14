@@ -74,6 +74,9 @@ __all__ = [
     "CustomTaskTypeViewSet",
     "TaskViewSet",
     "TaskUpdateView",
+    # Report Vİews
+    "ReportViewSet",
+    "AdminReportViewSet"
     # Other Views
     "WeatherDataView",
 ]
