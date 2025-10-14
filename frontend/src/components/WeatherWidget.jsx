@@ -22,6 +22,8 @@ const WeatherWidget = () => {
       const response = await fetch(url);
       if (!response.ok) {
         toast.error('Weather service unavailable');
+        setError('Weather service is currently unavailable. Please try again later.');
+        return;
       }
 
       const data = await response.json();

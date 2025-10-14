@@ -114,6 +114,7 @@ const GardenList = () => {
 
       if (!response.ok) {
         toast.error('Garden creation failed');
+        return;
       }
 
       const data = await response.json();
@@ -141,6 +142,7 @@ const GardenList = () => {
         theme: 'colored',
       });
       console.error(error);
+      return;
     }
   };
 

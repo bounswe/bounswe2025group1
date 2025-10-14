@@ -38,6 +38,7 @@ const Tasks = () => {
         const errorText = await response.text();
         console.error('Update failed:', errorText);
         toast.error('Update failed');
+        return;
       }
 
       const updated = await response.json();
@@ -80,6 +81,7 @@ const Tasks = () => {
         const errorText = await response.text();
         console.error('Accept failed:', errorText);
         toast.error('Accept failed');
+        return;
       }
 
       const updated = await response.json();
@@ -106,6 +108,7 @@ const Tasks = () => {
         const errorText = await response.text();
         console.error('Decline failed:', errorText);
         toast.error('Decline failed');
+        return;
       }
 
       const updated = await response.json();
@@ -136,6 +139,9 @@ const Tasks = () => {
         } else {
           console.error('Failed to fetch tasks');
           toast.error('Failed to fetch tasks');
+          setTasks([]);
+          setLoading(false);
+          return;
         }
       } catch (error) {
         console.error('Error fetching tasks:', error);

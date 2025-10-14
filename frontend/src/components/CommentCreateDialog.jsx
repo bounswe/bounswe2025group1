@@ -46,6 +46,9 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
 
       if (!response.ok) {
         toast.error('Failed to post comment');
+        setError('Failed to post your comment. Please try again.');
+        setLoading(false);
+        return;
       }
 
       const data = await response.json();

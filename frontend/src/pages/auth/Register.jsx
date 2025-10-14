@@ -94,7 +94,11 @@ const Register = () => {
         }),
       });
 
-      if (!response.ok) toast.error('Registration failed');
+      if (!response.ok) {
+        toast.error('Registration failed');
+        setError('Failed to create an account. Please try again.');
+        return;
+      }
 
       const data = await response.json();
       register(data);
@@ -104,6 +108,8 @@ const Register = () => {
     } catch (err) {
       toast.error('Failed to create an account.', { position: 'top-right' });
       console.error(err);
+      setError('Failed to create an account. Please try again.');
+      return;
     }
   };
 

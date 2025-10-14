@@ -176,6 +176,7 @@ const GardenDetail = () => {
         const errorText = await response.text();
         console.error('Update failed:', errorText);
         toast.error('Update failed');
+        return;
       }
 
       const updated = await response.json();
@@ -219,6 +220,7 @@ const GardenDetail = () => {
 
       if (!joinRes.ok) {
         toast.error('Failed to join garden');
+        return;
       }
       toast.success('Request to join garden sent!');
 
@@ -247,6 +249,7 @@ const GardenDetail = () => {
 
         if (!leaveRes.ok) {
           toast.error('Failed to leave garden');
+          return;
         }
 
         toast.success('You have left the garden');
@@ -280,6 +283,7 @@ const GardenDetail = () => {
 
       if (!removeRes.ok) {
         toast.error('Failed to remove member');
+        return;
       }
       toast.success('Member removed from garden');
 
@@ -308,6 +312,7 @@ const GardenDetail = () => {
 
       if (!updateRes.ok) {
         toast.error('Failed to update member role');
+        return;
       }
       toast.success('Member role updated');
 
@@ -334,6 +339,7 @@ const GardenDetail = () => {
 
       if (!acceptRes.ok) {
         toast.error('Failed to accept member');
+        return;
       }
 
       toast.success('Member accepted');
@@ -423,6 +429,7 @@ const GardenDetail = () => {
         const errorText = await response.text();
         console.error('Accept failed:', errorText);
         toast.error('Accept failed');
+        return;
       }
 
       const updated = await response.json();
@@ -449,6 +456,7 @@ const GardenDetail = () => {
         const errorText = await response.text();
         console.error('Decline failed:', errorText);
         toast.error('Decline failed');
+        return;
       }
 
       const updated = await response.json();
@@ -478,7 +486,10 @@ const GardenDetail = () => {
         }),
       });
 
-      if (!response.ok) toast.error('Update failed');
+      if (!response.ok) {
+        toast.error('Update failed');
+        return;
+      }
 
       const updatedGarden = await response.json();
       setGarden(updatedGarden);
@@ -507,6 +518,7 @@ const GardenDetail = () => {
         navigate('/gardens');
       } else {
         toast.error('Failed to delete');
+        return;
       }
     } catch (err) {
       console.error('Error deleting garden:', err);

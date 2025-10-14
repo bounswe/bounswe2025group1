@@ -63,6 +63,9 @@ const ForumPost = () => {
 
         if (!postResponse.ok) {
           toast.error('Failed to fetch post');
+          setLoading(false);
+          setError('Failed to load the post. Please try again later.');
+          return;
         }
 
         const postData = await postResponse.json();
@@ -126,6 +129,8 @@ const ForumPost = () => {
 
       if (!response.ok) {
         toast.error('Failed to update post');
+        setError('Failed to update your post. Please try again.');
+        return;
       }
 
       const data = await response.json();
@@ -140,6 +145,7 @@ const ForumPost = () => {
 
       // Show error toast notification
       toast.error('Failed to update post. Please try again.');
+      return;
     }
   };
 
@@ -154,6 +160,9 @@ const ForumPost = () => {
 
       if (!response.ok) {
         toast.error('Failed to delete post');
+        setError('Failed to delete the post. Please try again.');
+        setDeleteDialogOpen(false);
+        return;
       }
 
       // Show success toast notification
@@ -168,6 +177,7 @@ const ForumPost = () => {
 
       // Show error toast notification
       toast.error('Failed to delete post. Please try again.');
+      return;
     }
   };
 

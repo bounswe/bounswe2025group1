@@ -37,18 +37,16 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        });
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`);
 
         if (!response.ok) {
           toast.error('Failed to fetch posts');
+          setLoading(false);
+          return;
         }
 
         const data = await response.json();
-        setPosts(data);
+        setPosts(data || []);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching forum posts:', error);
