@@ -1,10 +1,16 @@
 import React from 'react';
-import {
-  Modal, Fade, Backdrop, Box, Typography, TextField, Switch, Button
-} from '@mui/material';
+import { Modal, Fade, Backdrop, Box, Typography, TextField, Switch, Button } from '@mui/material';
 
-const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, handleSubmit, handleDelete, mode = 'create' }) => {
-
+const GardenModal = ({
+  open,
+  onClose,
+  form,
+  handleChange,
+  handleTogglePublic,
+  handleSubmit,
+  handleDelete,
+  mode = 'create',
+}) => {
   return (
     <Modal
       open={open}
@@ -31,7 +37,8 @@ const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, ha
         >
           <Typography variant="h6" gutterBottom>
             {mode === 'edit' ? 'Edit Garden' : 'Create New Garden'}
-          </Typography>          <TextField
+          </Typography>{' '}
+          <TextField
             label="Garden Name"
             name="name"
             fullWidth
@@ -40,7 +47,6 @@ const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, ha
             onChange={handleChange}
             required
           />
-
           <TextField
             label="Description"
             name="description"
@@ -51,25 +57,20 @@ const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, ha
             value={form.description}
             onChange={handleChange}
           />
-
           <TextField
             label="Location"
             name="location"
             fullWidth
             margin="normal"
-            value={form.location}            onChange={handleChange}
+            value={form.location}
+            onChange={handleChange}
             required
           />
-
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
             <Typography variant="body1" sx={{ mr: 2 }}>
               Do you wish this garden to be public?
             </Typography>
-            <Switch
-              checked={form.isPublic}
-              onChange={handleTogglePublic}
-              color="success"
-            />
+            <Switch checked={form.isPublic} onChange={handleTogglePublic} color="success" />
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, gap: '3%' }}>
             <Button
@@ -80,11 +81,7 @@ const GardenModal = ({ open, onClose, form, handleChange, handleTogglePublic, ha
               {mode === 'edit' ? 'Save Changes' : 'Create Garden'}
             </Button>
             {mode === 'edit' && (
-              <Button
-                variant="contained"
-                color="error"
-                onClick={handleDelete}
-              >
+              <Button variant="contained" color="error" onClick={handleDelete}>
                 Delete Garden
               </Button>
             )}

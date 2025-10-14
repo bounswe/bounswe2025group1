@@ -37,7 +37,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ['username', 'email', 'first_name', 'last_name', 'password', 'location', 'profile_picture']
 
-
     def create(self, validated_data):
         location = validated_data.pop('location', None)
         profile_picture = validated_data.pop('profile_picture', None)

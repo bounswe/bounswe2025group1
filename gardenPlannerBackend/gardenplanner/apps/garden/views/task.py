@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from django.db import models
 from rest_framework.response import Response
-from rest_framework import viewsets, status, filters
+from rest_framework import viewsets, status, filters, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 
@@ -44,7 +44,8 @@ class TaskViewSet(viewsets.ModelViewSet):
         user = self.request.user
         action = getattr(self, 'action', None)
 
-        if action in ['retrieve', 'assign_task', 'accept_task', 'decline_task', 'complete_task','self_assign_task']:
+        # Ensure update/partial_update also use the membership-based queryset
+        if action in ['retrieve', 'update', 'partial_update', 'assign_task', 'accept_task', 'decline_task', 'complete_task','self_assign_task']:
             memberships = GardenMembership.objects.filter(user=user, status='ACCEPTED')
             garden_ids = memberships.values_list('garden_id', flat=True)
             return Task.objects.filter(garden_id__in=garden_ids)
@@ -212,3 +213,18 @@ class TaskViewSet(viewsets.ModelViewSet):
         task.save()
 
         return Response(TaskSerializer(task).data)
+
+
+class TaskUpdateView(generics.UpdateAPIView):
+    """Dedicated endpoint to update a Task using PUT at /tasks/<pk> (no trailing slash).
+
+    Permissions mirror the TaskViewSet update behavior: only garden managers or
+    the task assignee (or system admins) may update the task.
+    """
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+    def get_permissions(self):
+        # Follow same permission choices used in TaskViewSet for update operations
+        permission_classes = [IsAuthenticated, IsGardenManager | IsTaskAssignee]
+        return [permission() for permission in permission_classes]

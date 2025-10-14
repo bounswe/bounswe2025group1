@@ -1,5 +1,4 @@
-import React, { useState, useRef } from 'react';
-import Recaptcha from 'react-native-recaptcha-that-works';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -19,7 +18,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function RegisterScreen() {
-  const recaptchaRef = useRef();
   const [formData, setFormData] = useState({
     username: '', email: '', password: '', confirmPassword: '',
     first_name: '', last_name: '', location: '',
@@ -49,7 +47,9 @@ export default function RegisterScreen() {
     return true;
   };
 
-  const handleVerify = async (captchaToken) => {
+  const handleRegister = async () => {
+    if (!validateForm()) return;
+    
     setLoading(true);
     setError('');
     try {
@@ -60,7 +60,6 @@ export default function RegisterScreen() {
         first_name: formData.first_name,
         last_name: formData.last_name,
         location: formData.location || 'Istanbul',
-        captcha: captchaToken
       });
       router.replace('/(tabs)');
     } catch (err) {
@@ -68,11 +67,6 @@ export default function RegisterScreen() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleRegister = () => {
-    if (!validateForm()) return;
-    recaptchaRef.current?.open();
   };
 
   return (
@@ -146,15 +140,6 @@ export default function RegisterScreen() {
                 )}
               </TouchableOpacity>
 
-              {/* reCAPTCHA Component */}
-              <Recaptcha
-                ref={recaptchaRef}
-                siteKey="6LeROzorAAAAACC44mV_hc77HI8uri9RE4f5vHiz"
-                baseUrl="http://164.92.202.177"
-                size="normal"
-                onVerify={handleVerify}
-                onExpire={() => setError('Captcha expired. Please try again.')}
-              />
 
               <View style={styles.loginContainer}>
                 <Text style={styles.loginText}>Already have an account? </Text>

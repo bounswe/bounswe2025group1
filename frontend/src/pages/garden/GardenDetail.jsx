@@ -5,12 +5,9 @@ import {
   Typography,
   Box,
   Grid,
-  Card,
-  CardContent,
   Button,
   Tabs,
   Tab,
-  Divider,
   Chip,
   Avatar,
   List,
@@ -19,11 +16,6 @@ import {
   ListItemAvatar,
   CircularProgress,
   Paper,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
@@ -45,77 +37,15 @@ const GardenDetail = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [openTaskModal, setOpenTaskModal] = useState(false);
-  const handleOpenTaskModal = () => setOpenTaskModal(true);
-  const handleCloseTaskModal = () => setOpenTaskModal(false);
-  const { currentUser } = useAuth();
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const [openGardenEditModal, setOpenGardenEditModal] = useState(false);
   const handleOpenGardenEditModal = () => setOpenGardenEditModal(true);
   const handleCloseGardenEditModal = () => setOpenGardenEditModal(false);
-  const [customTaskTypes, setCustomTaskTypes] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
   const [isMember, setIsMember] = useState(false);
   const [isManager, setIsManager] = useState(false);
   const [userMembership, setUserMembership] = useState(null);
-  const handleTaskChipClick = (task) => {
-    // Format the task data to ensure consistent structure for the modal
-    const formattedTask = {
-      id: task.id,
-      title: task.title,
-      description: task.description,
-      status: task.status || 'PENDING',
-      due_date: task.due_date,
-      assigned_to: task.assigned_to,
-      custom_type: task.custom_type ? String(task.custom_type) : null,
-      garden: task.garden
-    };
-    console.log('Task selected for edit:', formattedTask);
-    setSelectedTask(formattedTask);
-    setEditTaskModalOpen(true);
-  };
-  const handleTaskUpdate = async (updatedTask) => {
-    try {      
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        },
-        body: JSON.stringify(updatedTask)
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Update failed:', errorText);
-        throw new Error('Update failed');
-      }
-
-      const updated = await response.json();
-      setTasks(prev => prev.map(t => (t.id === updated.id ? updated : t)));
-      toast.success('Task updated!');
-      setEditTaskModalOpen(false);
-    } catch (err) {
-      toast.error('Could not update task.');
-    }
-  };
-
-
-  const handleTaskDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this task?')) return;
-    try {
-      await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
-        method: 'DELETE',
-        headers: { Authorization: `Token ${token}` }
-      });
-      setTasks(prev => prev.filter(t => t.id !== selectedTask.id));
-      toast.success('Task deleted');
-      setEditTaskModalOpen(false);
-    } catch {
-      toast.error('Failed to delete task');
-    }
-  };
-
   const [taskForm, setTaskForm] = useState({
     type: 'Custom',
     title: '',
@@ -140,13 +70,14 @@ const GardenDetail = () => {
 
   useEffect(() => {
     const fetchGardenData = async () => {
+      setLoading(true);
       try {
         const gardenRes = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Token ${token}`
-          }
+            Authorization: `Token ${token}`,
+          },
         });
         const gardenData = await gardenRes.json();
         setGarden(gardenData);
@@ -155,75 +86,121 @@ const GardenDetail = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Token ${token}`
-          }
+            Authorization: `Token ${token}`,
+          },
         });
         const tasksData = await tasksRes.json();
         setTasks(tasksData);
 
-        // Fetch all memberships and filter by garden ID on the frontend
-        const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`
+        const membersResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/members/`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Token ${token}`,
+            },
           }
-        });
-        const allMembersData = await membersRes.json();
-        const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
-        setMembers(filteredMembersData || []);        // Check if current user is a member and their role
-        if (currentUser) {
-          const userMember = filteredMembersData?.find(m => m.username === currentUser.username);
+        );
+        const membersData = await membersResponse.json();
+        setMembers(membersData || []);
+        if (user) {
+          const userMember = membersData?.find((m) => m.username === user.username);
           setIsMember(!!userMember);
           setIsManager(userMember?.role === 'MANAGER');
           setUserMembership(userMember);
-        }        setEditForm({
+        }
+        setEditForm({
           name: gardenData.name || '',
           description: gardenData.description || '',
           location: gardenData.location || '',
           isPublic: gardenData.is_public || false,
         });
-        setLoading(false);
       } catch (error) {
         console.error('Error fetching garden data:', error);
-        setLoading(false);
       }
+      setLoading(false);
     };
 
-    fetchGardenData();
-  }, [gardenId, currentUser, token]);
-
-
-  useEffect(() => {
-    const fetchCustomTaskTypes = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`, {
-          headers: { Authorization: `Token ${token}` }
-        });
-        const data = await response.json();
-        setCustomTaskTypes(data);
-      } catch (err) {
-        toast.error('Could not load custom task types');
-      }
-    };
-
-    if (token && gardenId) {
-      fetchCustomTaskTypes();
+    if (gardenId && token) {
+      fetchGardenData();
     }
-  }, [token, gardenId]);
+  }, [gardenId, user, token]);
 
-
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
+  const refreshMembers = async () => {
+    try {
+      const membersResponse = await fetch(
+        `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/members/`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+      const membersData = await membersResponse.json();
+      setMembers(membersData || []);
+      // Update user membership status
+      const userMember = membersData?.find((m) => m.username === user.username);
+      setIsMember(!!userMember);
+      setUserMembership(userMember);
+    } catch (error) {
+      console.error('Error refreshing members:', error);
+    }
   };
 
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
+  const handleTaskChipClick = (task) => {
+    // Format the task data to ensure consistent structure for the modal
+    console.log('Task selected for edit:', task);
+    setSelectedTask({
+      status: task.status || 'PENDING',
+      custom_type: task.custom_type ? task.custom_type?.toString() : null,
+      ...task,
+    });
+    setEditTaskModalOpen(true);
   };
 
-  const handleToggleEditPublic = () => {
-    setEditForm((prev) => ({ ...prev, isPublic: !prev.isPublic }));
+  const handleTaskUpdate = async (updatedTask) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${updatedTask.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(updatedTask),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Update failed:', errorText);
+        toast.error('Update failed');
+      }
+
+      const updated = await response.json();
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      toast.success('Task updated!');
+      setEditTaskModalOpen(false);
+    } catch (err) {
+      console.error('Error updating task:', err);
+      toast.error('Could not update task.');
+    }
+  };
+
+  const handleTaskDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
+        method: 'DELETE',
+        headers: { Authorization: `Token ${token}` },
+      });
+      setTasks((prev) => prev.filter((t) => t.id !== selectedTask.id));
+      toast.success('Task deleted');
+      setEditTaskModalOpen(false);
+    } catch {
+      toast.error('Failed to delete task');
+    }
   };
 
   const handleJoinGarden = async () => {
@@ -233,140 +210,108 @@ const GardenDetail = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify({
-          garden: parseInt(gardenId)
-        })
+          garden: parseInt(gardenId),
+        }),
       });
-      
+
       if (!joinRes.ok) {
-        throw new Error('Failed to join garden');
+        toast.error('Failed to join garden');
       }
-        toast.success('Request to join garden sent!');
-      
-      // Refresh members list
-      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        }
-      });
-      const allMembersData = await membersRes.json();
-      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
-      setMembers(filteredMembersData || []);
-        // Update user membership status
-      const userMember = filteredMembersData?.find(m => m.username === currentUser.username);
-      setIsMember(!!userMember);
-      setUserMembership(userMember);
+      toast.success('Request to join garden sent!');
+
+      await refreshMembers();
     } catch (err) {
       console.error('Join garden error:', err);
       toast.error('Failed to join garden');
     }
   };
+
   const handleLeaveGarden = async () => {
     if (!window.confirm('Are you sure you want to leave this garden?')) return;
-    
+
     try {
       if (userMembership) {
-        const leaveRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${userMembership.id}/`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`
+        const leaveRes = await fetch(
+          `${import.meta.env.VITE_API_URL}/memberships/${userMembership.id}/`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Token ${token}`,
+            },
           }
-        });
-        
+        );
+
         if (!leaveRes.ok) {
-          throw new Error('Failed to leave garden');
+          toast.error('Failed to leave garden');
         }
-        
+
         toast.success('You have left the garden');
-          // Update state
+        // Update state
         setIsMember(false);
         setIsManager(false);
         setUserMembership(null);
-        
-        // Refresh members list
-        const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`
-          }
-        });
-        const allMembersData = await membersRes.json();
-        const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
-        setMembers(filteredMembersData || []);
+
+        await refreshMembers();
       }
     } catch (err) {
       console.error('Leave garden error:', err);
       toast.error('Failed to leave garden');
     }
   };
+
   const handleRemoveMember = async (membershipId) => {
     if (!window.confirm('Are you sure you want to remove this member?')) return;
-    
+
     try {
-      const removeRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${membershipId}/`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
+      const removeRes = await fetch(
+        `${import.meta.env.VITE_API_URL}/memberships/${membershipId}/`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+          },
         }
-      });
-      
+      );
+
       if (!removeRes.ok) {
-        throw new Error('Failed to remove member');
+        toast.error('Failed to remove member');
       }
-        toast.success('Member removed from garden');
-      
-      // Refresh members list
-      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        }
-      });
-      const allMembersData = await membersRes.json();
-      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
-      setMembers(filteredMembersData || []);
+      toast.success('Member removed from garden');
+
+      await refreshMembers();
     } catch (err) {
       console.error('Remove member error:', err);
       toast.error('Failed to remove member');
     }
   };
+
   const handleChangeMemberRole = async (membershipId, newRole) => {
     try {
-      const updateRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${membershipId}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        },
-        body: JSON.stringify({
-          role: newRole
-        })
-      });
-      
-      if (!updateRes.ok) {
-        throw new Error('Failed to update member role');
-      }
-        toast.success('Member role updated');
-      
-      // Refresh members list
-      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
+      const updateRes = await fetch(
+        `${import.meta.env.VITE_API_URL}/memberships/${membershipId}/`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+          },
+          body: JSON.stringify({
+            role: newRole,
+          }),
         }
-      });
-      const allMembersData = await membersRes.json();
-      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
-      setMembers(filteredMembersData || []);
+      );
+
+      if (!updateRes.ok) {
+        toast.error('Failed to update member role');
+      }
+      toast.success('Member role updated');
+
+      await refreshMembers();
     } catch (err) {
       console.error('Change role error:', err);
       toast.error('Failed to update member role');
@@ -375,32 +320,25 @@ const GardenDetail = () => {
 
   const handleAcceptMember = async (membershipId) => {
     try {
-      const acceptRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/${membershipId}/accept/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        },
-        body: JSON.stringify({})
-      });
-      
-      if (!acceptRes.ok) {
-        throw new Error('Failed to accept member');
-      }
-      
-      toast.success('Member accepted');
-      
-      // Refresh members list
-      const membersRes = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
+      const acceptRes = await fetch(
+        `${import.meta.env.VITE_API_URL}/memberships/${membershipId}/accept/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+          },
+          body: JSON.stringify({}),
         }
-      });
-      const allMembersData = await membersRes.json();
-      const filteredMembersData = allMembersData.filter(member => member.garden === parseInt(gardenId));
-      setMembers(filteredMembersData || []);
+      );
+
+      if (!acceptRes.ok) {
+        toast.error('Failed to accept member');
+      }
+
+      toast.success('Member accepted');
+
+      await refreshMembers();
     } catch (err) {
       console.error('Accept member error:', err);
       toast.error('Failed to accept member');
@@ -433,9 +371,8 @@ const GardenDetail = () => {
     );
   }
   const handleTaskSubmit = async (formData) => {
-
     if (!token) {
-      toast.error("You must be logged in to create a task.");
+      toast.error('You must be logged in to create a task.');
       return;
     }
 
@@ -444,7 +381,7 @@ const GardenDetail = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -462,11 +399,64 @@ const GardenDetail = () => {
         return;
       }
 
-      setTasks(prev => [...prev, data]);
+      setTasks((prev) => [...prev, data]);
       toast.success('Task created!');
-      handleCloseTaskModal();
+      setOpenTaskModal(false);
     } catch (err) {
+      console.error('Error creating task:', err);
       toast.error('Something went wrong while creating the task.');
+    }
+  };
+
+  const handleAcceptTask = async (task) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/accept/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(task),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Accept failed:', errorText);
+        toast.error('Accept failed');
+      }
+
+      const updated = await response.json();
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      toast.success('Task accepted!');
+    } catch (err) {
+      console.error('Error accepting task:', err);
+      toast.error('Could not accept task.');
+    }
+  };
+
+  const handleDeclineTask = async (task) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/decline/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(task),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Decline failed:', errorText);
+        toast.error('Decline failed');
+      }
+
+      const updated = await response.json();
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      toast.success('Task declined!');
+    } catch (err) {
+      console.error('Error declining task:', err);
+      toast.error('Could not decline task.');
     }
   };
 
@@ -488,14 +478,15 @@ const GardenDetail = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Update failed');
+      if (!response.ok) toast.error('Update failed');
 
       const updatedGarden = await response.json();
       setGarden(updatedGarden);
       toast.success('Garden updated!');
       handleCloseGardenEditModal();
     } catch (err) {
-      //toast.error('Error updating garden');
+      console.error('Error updating garden:', err);
+      toast.error('Error updating garden');
     }
   };
 
@@ -507,17 +498,18 @@ const GardenDetail = () => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Token ${token}`
-        }
+          Authorization: `Token ${token}`,
+        },
       });
 
       if (res.status === 204) {
         toast.success('Garden deleted');
         navigate('/gardens');
       } else {
-        throw new Error('Failed to delete');
+        toast.error('Failed to delete');
       }
     } catch (err) {
+      console.error('Error deleting garden:', err);
       toast.error('Could not delete garden.');
     }
   };
@@ -528,7 +520,11 @@ const GardenDetail = () => {
       <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 8 }}>
-            <Typography variant="h4" gutterBottom sx={{ color: '#2e7d32', fontWeight: 'bold', textAlign: "start" }}>
+            <Typography
+              variant="h4"
+              gutterBottom
+              sx={{ color: '#2e7d32', fontWeight: 'bold', textAlign: 'start' }}
+            >
               {garden.name}
             </Typography>
             <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
@@ -554,15 +550,15 @@ const GardenDetail = () => {
             <Typography variant="body1" sx={{ textAlign: 'start' }}>
               {garden.description}
             </Typography>
-          </Grid>          <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-            {currentUser ? (
+          </Grid>{' '}
+          <Grid
+            size={{ xs: 12, md: 4 }}
+            sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}
+          >
+            {user ? (
               isMember ? (
                 userMembership?.status === 'PENDING' ? (
-                  <Button
-                    variant="outlined"
-                    disabled
-                    sx={{ mr: 1 }}
-                  >
+                  <Button variant="outlined" disabled sx={{ mr: 1 }}>
                     Request Pending
                   </Button>
                 ) : (
@@ -611,11 +607,11 @@ const GardenDetail = () => {
       <Box sx={{ width: '100%', mb: 3 }}>
         <Tabs
           value={activeTab}
-          onChange={handleTabChange}
+          onChange={(event, newValue) => setActiveTab(newValue)}
           variant="fullWidth"
           sx={{
             '.MuiTabs-indicator': { backgroundColor: '#558b2f' },
-            '.Mui-selected': { color: '#558b2f' }
+            '.Mui-selected': { color: '#558b2f' },
           }}
         >
           <Tab label="Tasks" />
@@ -629,12 +625,18 @@ const GardenDetail = () => {
         {/* Tasks Tab */}
         {activeTab === 0 && (
           <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" sx={{ color: '#558b2f' }}>Garden Tasks</Typography>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}
+            >
+              <Typography variant="h6" sx={{ color: '#558b2f' }}>
+                Garden Tasks
+              </Typography>
               {isMember && (
                 <Button
                   variant="contained"
-                  onClick={handleOpenTaskModal}
+                  onClick={() => {
+                    setOpenTaskModal(true);
+                  }}
                   sx={{ backgroundColor: '#558b2f' }}
                 >
                   Add Task
@@ -646,20 +648,9 @@ const GardenDetail = () => {
               tasks={tasks}
               setTasks={setTasks}
               onTaskClick={handleTaskChipClick}
-              onStatusUpdate={async (id, newStatus) => {
-                await fetch(`${import.meta.env.VITE_API_URL}/tasks/${id}/`, {
-                  method: 'PATCH',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Token ${token}`
-                  },
-                  body: JSON.stringify({ status: newStatus })
-                });
-              }}
+              handleTaskUpdate={handleTaskUpdate}
             />
           </Box>
-
-
         )}
 
         {/* Members Tab */}
@@ -673,12 +664,20 @@ const GardenDetail = () => {
                       <Avatar>
                         <AccountCircleIcon />
                       </Avatar>
-                    </ListItemAvatar>                    <ListItemText
-                      primary={<Typography variant="body1" sx={{ cursor: 'pointer' }} onClick={() => navigate(`/profile/${member.user_id}`)}>
-                        {member.username || `User ${member.id || 'Unknown'}`}
-                      </Typography>}
+                    </ListItemAvatar>{' '}
+                    <ListItemText
+                      primary={
+                        <Typography
+                          variant="body1"
+                          sx={{ cursor: 'pointer' }}
+                          onClick={() => navigate(`/profile/${member.user_id}`)}
+                        >
+                          {member.username || `User ${member.id || 'Unknown'}`}
+                        </Typography>
+                      }
                       secondary={`Role: ${member.role} • Status: ${member.status}`}
-                    />                    {isManager && member.id !== userMembership?.id && (
+                    />{' '}
+                    {isManager && member.id !== userMembership?.id && (
                       <>
                         {member.status === 'PENDING' ? (
                           <Button
@@ -695,7 +694,12 @@ const GardenDetail = () => {
                             size="small"
                             variant="outlined"
                             color="primary"
-                            onClick={() => handleChangeMemberRole(member.id, member.role === 'MANAGER' ? 'WORKER' : 'MANAGER')}
+                            onClick={() =>
+                              handleChangeMemberRole(
+                                member.id,
+                                member.role === 'MANAGER' ? 'WORKER' : 'MANAGER'
+                              )
+                            }
                             sx={{ mr: 1 }}
                           >
                             {member.role === 'MANAGER' ? 'Demote' : 'Promote'}
@@ -715,7 +719,11 @@ const GardenDetail = () => {
                 </Paper>
               ))}
               {members.length === 0 && (
-                <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 3 }}>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ textAlign: 'center', mt: 3 }}
+                >
                   No members found
                 </Typography>
               )}
@@ -725,18 +733,22 @@ const GardenDetail = () => {
 
         {/* Calendar Tab */}
         {activeTab === 2 && (
-          <CalendarTab tasks={tasks} onTaskClick={handleTaskChipClick} onEmptyDayClick={(date) => {
-            setTaskForm((prev) => ({
-              ...prev,
-              deadline: date.toISOString()
-            }));
-            setOpenTaskModal(true);
-          }} />
+          <CalendarTab
+            tasks={tasks}
+            onTaskClick={handleTaskChipClick}
+            onEmptyDayClick={(date) => {
+              setTaskForm((prev) => ({
+                ...prev,
+                deadline: date.toISOString(),
+              }));
+              setOpenTaskModal(true);
+            }}
+          />
         )}
       </Box>
       <TaskModal
         open={openTaskModal}
-        onClose={handleCloseTaskModal}
+        onClose={() => setOpenTaskModal(false)}
         onSubmit={handleTaskSubmit}
         initialData={taskForm}
         gardenId={gardenId}
@@ -745,8 +757,8 @@ const GardenDetail = () => {
         open={openGardenEditModal}
         onClose={handleCloseGardenEditModal}
         form={editForm}
-        handleChange={handleEditChange}
-        handleTogglePublic={handleToggleEditPublic}
+        handleChange={(e) => setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
+        handleTogglePublic={() => setEditForm((prev) => ({ ...prev, isPublic: !prev.isPublic }))}
         handleSubmit={handleGardenSubmit}
         handleDelete={handleDeleteGarden}
         mode="edit"
@@ -756,13 +768,13 @@ const GardenDetail = () => {
         onClose={() => setEditTaskModalOpen(false)}
         onSubmit={handleTaskUpdate}
         onDelete={handleTaskDelete}
-        initialData={selectedTask}
-        customTaskTypes={customTaskTypes}
+        handleAcceptTask={handleAcceptTask}
+        handleDeclineTask={handleDeclineTask}
+        task={selectedTask}
         gardenId={gardenId}
         mode="edit"
       />
-
-     </Container>
+    </Container>
   );
 };
 

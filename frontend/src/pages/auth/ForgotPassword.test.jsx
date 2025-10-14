@@ -34,7 +34,7 @@ describe('ForgotPassword page', () => {
     // Setup a successful response by default
     fetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ detail: 'Success' })
+      json: () => Promise.resolve({ detail: 'Success' }),
     });
   });
 
@@ -50,37 +50,34 @@ describe('ForgotPassword page', () => {
       target: { value: 'user@example.com' },
     });
     fireEvent.click(screen.getByRole('button', { name: /send reset link/i }));
-    
+
     await waitFor(() => {
       expect(toast.info).toHaveBeenCalledWith(
         'Reset link has been sent if such an email exists.',
         expect.any(Object)
       );
     });
-    
+
     expect(screen.getByText(/please check your email/i)).toBeInTheDocument();
   });
-  
+
   it('shows error when API call fails', async () => {
     // Setup a failed response
     fetch.mockResolvedValue({
       ok: false,
-      json: () => Promise.resolve({ detail: 'Failed to send reset link.' })
+      json: () => Promise.resolve({ detail: 'Failed to send reset link.' }),
     });
-    
+
     renderPage();
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'user@example.com' },
     });
     fireEvent.click(screen.getByRole('button', { name: /send reset link/i }));
-    
+
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        'Failed to send reset link.',
-        expect.any(Object)
-      );
+      expect(toast.error).toHaveBeenCalledWith('Failed to send reset link.', expect.any(Object));
     });
-    
+
     expect(screen.getByTestId('error-message')).toBeInTheDocument();
   });
 });

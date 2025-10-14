@@ -16,9 +16,14 @@ from .userauth import (
 from .profile import (
     ProfileView,
     UserProfileView,
+    UserGardensView,
+    UserTasksView,
     FollowView,
     FollowersListView,
     FollowingListView,
+    UserFollowersView,
+    UserFollowingView,
+    UserIsFollowingView,
     BlockUnblockView
 )
 from .garden import (
@@ -27,7 +32,8 @@ from .garden import (
 )
 from .task import (
     CustomTaskTypeViewSet,
-    TaskViewSet
+    TaskViewSet,
+    TaskUpdateView
 )
 from .notification import NotificationViewSet
 from .weatherdata import WeatherDataView
@@ -48,9 +54,14 @@ __all__ = [
     # Profile Views
     "ProfileView",
     "UserProfileView",
+    "UserGardensView",
+    "UserTasksView",
     "FollowView",
     "FollowersListView",
     "FollowingListView",
+    "UserFollowersView",
+    "UserFollowingView",
+    "UserIsFollowingView",
     "BlockUnblockView",
     # Garden Views
     "GardenViewSet",
@@ -60,6 +71,7 @@ __all__ = [
     "TaskViewSet",
     # Notification Views
     "NotificationViewSet",
+    "TaskUpdateView",
     # Other Views
     "WeatherDataView",
 ]
