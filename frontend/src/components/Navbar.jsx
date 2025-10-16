@@ -46,7 +46,8 @@ const pages = [
 
 const settings = [
   { name: 'Profile', path: '/profile', icon: <PersonIcon /> },
-  { name: 'Settings', path: '/profile/settings', icon: <SettingsIcon /> },
+  // TODO: Implement Settings page
+  // { name: 'Settings', path: '/settings', icon: <SettingsIcon /> },
   { name: 'Logout', icon: <LogoutIcon />, action: 'logout' },
 ];
 
