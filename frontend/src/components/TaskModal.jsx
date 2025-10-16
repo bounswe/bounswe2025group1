@@ -478,6 +478,19 @@ const TaskModal = ({
               </Button>
             )}
             <Button 
+              variant="outlined" 
+              onClick={onClose}
+              onKeyDown={createButtonKeyboardHandler(onClose)}
+              sx={{
+                '&:focus': {
+                  outline: '2px solid #1976d2',
+                  outlineOffset: '2px',
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
               type="submit" 
               variant="contained" 
               sx={{ 
