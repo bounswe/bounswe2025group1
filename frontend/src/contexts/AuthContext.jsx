@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }) => {
 
       if (!response.ok) {
         toast.error('Logout failed');
+        return false;
       }
 
       localStorage.removeItem('token'); // clear token

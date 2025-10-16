@@ -42,6 +42,7 @@ const Login = () => {
 
       if (!response.ok) {
         toast.error('Login failed');
+        return;
       }
 
       const data = await response.json();
@@ -61,6 +62,7 @@ const Login = () => {
         theme: 'colored',
       });
       console.error(error);
+      return;
     }
   };
 

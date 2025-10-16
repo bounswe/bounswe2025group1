@@ -74,6 +74,7 @@ const ResetPassword = () => {
       if (!response.ok) {
         const resData = await response.json();
         toast.error(resData.detail || 'Failed to reset password.');
+        return setError(resData.detail || 'Failed to reset password.');
       }
 
       toast.success('Password reset successfully!', { position: 'top-right' });
@@ -81,7 +82,7 @@ const ResetPassword = () => {
       setTimeout(() => navigate('/auth/login'), 2000);
     } catch (err) {
       toast.error(err.message, { position: 'top-right' });
-      setError(err.message);
+      return setError(err.message);
     }
   };
 

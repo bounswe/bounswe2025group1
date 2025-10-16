@@ -22,22 +22,26 @@ const TaskWidget = () => {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/user/${user.user_id}/tasks/`,
-          {
-            headers: {
-              Authorization: `Token ${token}`,
-            },
+        if (token) {
+          const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/user/${user.user_id}/tasks/`,
+            {
+              headers: {
+                Authorization: `Token ${token}`,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            toast.error('Failed to fetch tasks');
+            setLoading(false);
+            return;
           }
-        );
 
-        if (!response.ok) {
-          toast.error('Failed to fetch tasks');
+          const data = await response.json();
+          setTasks(data);
+          setLoading(false);
         }
-
-        const data = await response.json();
-        setTasks(data);
-        setLoading(false);
       } catch (error) {
         console.error('Error fetching tasks:', error);
         setLoading(false);

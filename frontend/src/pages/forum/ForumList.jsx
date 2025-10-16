@@ -58,6 +58,8 @@ const ForumList = () => {
 
         if (!response.ok) {
           toast.error('Failed to fetch posts');
+          setLoading(false);
+          return;
         }
 
         const data = await response.json();

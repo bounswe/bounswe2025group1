@@ -14,7 +14,6 @@ const GardensPreview = ({ limit = 2 }) => {
     const fetchGardens = async () => {
       try {
         if (token) {
-          // Then get all memberships
           const membershipsResponse = await fetch(
             `${import.meta.env.VITE_API_URL}/user/${user.user_id}/gardens`,
             {
@@ -28,6 +27,8 @@ const GardensPreview = ({ limit = 2 }) => {
 
           if (!membershipsResponse.ok) {
             toast.error('Failed to fetch memberships');
+            setLoading(false);
+            return;
           }
 
           const membershipsData = await membershipsResponse.json();
@@ -69,6 +70,8 @@ const GardensPreview = ({ limit = 2 }) => {
 
           if (!response.ok) {
             toast.error('Failed to fetch gardens');
+            setLoading(false);
+            return;
           }
 
           const data = await response.json();

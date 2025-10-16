@@ -50,6 +50,9 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
 
       if (!response.ok) {
         toast.error('Failed to create post');
+        setError('Failed to create post. Please try again.');
+        setLoading(false);
+        return;
       }
 
       const newPost = await response.json();

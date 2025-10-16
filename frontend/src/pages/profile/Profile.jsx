@@ -61,8 +61,6 @@ const Profile = () => {
       }
 
       try {
-        setLoading(true);
-
         const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/${userId}/`, {
           headers: {
             Authorization: `Token ${token}`,
@@ -164,6 +162,7 @@ const Profile = () => {
     };
 
     const fetchAllData = async () => {
+      setLoading(true);
       await fetchProfileData();
       await fetchUserGardens();
       await fetchRelationships();
@@ -255,6 +254,7 @@ const Profile = () => {
   };
 
   const handleFollowToggle = async () => {
+    if (!token) return;
     try {
       const method = isFollowing ? 'DELETE' : 'POST';
 
