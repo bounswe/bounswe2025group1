@@ -4,13 +4,11 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  /* Scrollbar theme tokens (used by .nice-scroll) */
-  --scrollbar-track: rgba(34, 197, 94, 0.06);
-  --scrollbar-thumb: rgba(34, 197, 94, 0.36);
-  --scrollbar-thumb-hover: rgba(34, 197, 94, 0.58);
+  
+  /* Scrollbar theme tokens (used by .nice-scroll) - will be updated by ThemeContext */
+  --scrollbar-track: rgba(85, 139, 47, 0.06);
+  --scrollbar-thumb: rgba(85, 139, 47, 0.36);
+  --scrollbar-thumb-hover: rgba(85, 139, 47, 0.58);
   --scrollbar-width: 10px;
 
   font-synthesis: none;
@@ -36,6 +34,7 @@ body {
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
+  /* Let Material-UI handle colors through theme */
 }
 
 html {
@@ -116,21 +115,7 @@ button:focus-visible {
   background: #ffe4b9 !important;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-    --scrollbar-track: rgba(34, 197, 94, 0.06);
-    --scrollbar-thumb: rgba(34, 197, 94, 0.36);
-    --scrollbar-thumb-hover: rgba(34, 197, 94, 0.58);
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
+/* Remove prefers-color-scheme media query as theme is now controlled by ThemeContext */
 
 /* Nice, themed scrollbar for scrollable containers */
 .nice-scroll {

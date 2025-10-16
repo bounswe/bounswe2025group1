@@ -36,6 +36,9 @@ import { useAuth } from '../contexts/AuthContextUtils';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createRovingTabindex, createButtonKeyboardHandler, createLinkKeyboardHandler } from '../utils/keyboardNavigation';
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../contexts/ThemeContext';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
 
 const pages = [
   { name: 'Home', path: '/', icon: <HomeIcon /> },
@@ -57,6 +60,8 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { currentTheme } = useTheme();
+  const muiTheme = useMuiTheme();
   const drawerItemsRef = useRef([]);
   const settingsMenuRef = useRef([]);
 
@@ -133,13 +138,13 @@ function Navbar() {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: '#558b2f',
+        backgroundColor: muiTheme.palette.primary.main,
         width: '100%',
         left: 0,
         right: 0,
         transition: 'box-shadow 0.3s ease',
         boxShadow: scrolled ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
-        backgroundImage: 'linear-gradient(to right, #558b2f, #33691e)',
+        backgroundImage: muiTheme.palette.custom?.navbarGradient || `linear-gradient(to right, ${muiTheme.palette.primary.main}, ${muiTheme.palette.primary.dark})`,
         borderRadius: '0px',
       }}
     >
@@ -256,6 +261,11 @@ function Navbar() {
                 </Box>
               </Button>
             ))}
+          </Box>
+
+          {/* Theme toggle - always visible */}
+          <Box sx={{ display: 'flex', alignItems: 'center', mr: user ? 2 : 0 }}>
+            <ThemeToggle />
           </Box>
 
           {user && (
@@ -404,7 +414,7 @@ function Navbar() {
             justifyContent: 'space-between',
             alignItems: 'center',
             p: 2,
-            bgcolor: '#558b2f',
+            bgcolor: muiTheme.palette.primary.main,
             color: 'white',
           }}
         >

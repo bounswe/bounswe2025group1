@@ -1,4 +1,4 @@
-import { Container, Typography, Box, Grid, Button, Paper } from '@mui/material';
+import { Container, Typography, Box, Grid, Button, Paper, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import WeatherWidget from '../../components/WeatherWidget';
@@ -9,6 +9,7 @@ import TaskWidget from '../../components/TaskWidget';
 const Home = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
@@ -19,8 +20,11 @@ const Home = () => {
           sx={{
             p: 4,
             mb: 5,
-            background: 'linear-gradient(135deg, #81c784 0%, #388e3c 100%)',
-            color: 'white',
+            background: theme.palette.custom?.buttonGradient || `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
+            color: theme.palette.primary.contrastText,
+            border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
+              ? '2px solid #000000' 
+              : 'none',
           }}
         >
           <Typography variant="h4" gutterBottom>
@@ -56,7 +60,17 @@ const Home = () => {
         </Grid>
 
         {!user && (
-          <Paper elevation={1} sx={{ mt: 6, p: 4 }}>
+          <Paper 
+            elevation={1} 
+            sx={{ 
+              mt: 6, 
+              p: 4,
+              backgroundColor: theme.palette.background.paper,
+              border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
+                ? '2px solid #000000' 
+                : 'none',
+            }}
+          >
             <Typography variant="h5" gutterBottom>
               What is Community Garden Planner?
             </Typography>
@@ -68,7 +82,26 @@ const Home = () => {
               engagement, and environmental avareness. Join the community today and lets make a
               difference together!
             </Typography>
-            <Button variant="contained" onClick={() => navigate('/auth/register')}>
+            <Button 
+              variant="contained" 
+              onClick={() => navigate('/auth/register')}
+              sx={{
+                background: theme.palette.custom?.buttonGradient || theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
+                  ? '2px solid #000000' 
+                  : 'none',
+                '&:hover': {
+                  background: theme.palette.custom?.buttonGradientHover || theme.palette.primary.dark,
+                },
+                '&:focus': {
+                  outline: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+                    ? '3px solid #ffff00'
+                    : `2px solid ${theme.palette.primary.main}`,
+                  outlineOffset: '2px',
+                },
+              }}
+            >
               Create Your First Garden
             </Button>
           </Paper>
