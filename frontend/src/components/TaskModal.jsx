@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal,
   Fade,
@@ -21,6 +21,7 @@ import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../contexts/AuthContextUtils';
+import { createFormKeyboardHandler, createButtonKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
 
 const TaskModal = ({
   open,
@@ -57,6 +58,8 @@ const TaskModal = ({
 
   const [newTaskTypeName, setNewTaskTypeName] = useState('');
   const [newTaskTypeDescription, setNewTaskTypeDescription] = useState('');
+  const modalRef = useRef(null);
+  const focusableElementsRef = useRef([]);
 
   // NOTE: fetch helpers moved into the useEffect below to avoid changing the
   // useEffect dependency array on every render (fixes react-hooks/exhaustive-deps).
@@ -236,6 +239,29 @@ const TaskModal = ({
     onClose();
   };
 
+  // Create keyboard handler for the form
+  const formKeyboardHandler = createFormKeyboardHandler(handleSubmit, onClose);
+
+  // Set up focus trap when modal opens
+  useEffect(() => {
+    if (open && modalRef.current) {
+      // Get all focusable elements within the modal
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      focusableElementsRef.current = Array.from(focusableElements);
+      
+      // Focus the first element
+      if (focusableElementsRef.current.length > 0) {
+        focusableElementsRef.current[0].focus();
+      }
+      
+      // Set up focus trap
+      const cleanup = trapFocus(modalRef.current, focusableElementsRef.current);
+      return cleanup;
+    }
+  }, [open]);
+
   return (
     <Modal
       open={open}
@@ -246,8 +272,10 @@ const TaskModal = ({
     >
       <Fade in={open}>
         <Box
+          ref={modalRef}
           component="form"
           onSubmit={handleSubmit}
+          onKeyDown={formKeyboardHandler}
           sx={{
             position: 'absolute',
             top: '50%',
@@ -258,9 +286,15 @@ const TaskModal = ({
             borderRadius: 2,
             boxShadow: 24,
             p: 4,
+            '&:focus': {
+              outline: 'none',
+            },
           }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="task-modal-title"
         >
-          <Typography variant="h6" gutterBottom>
+          <Typography id="task-modal-title" variant="h6" gutterBottom>
             {mode === 'edit' ? 'Edit Task' : 'Add Task'}
           </Typography>
 
@@ -395,6 +429,15 @@ const TaskModal = ({
                   onClick={() => {
                     handleAcceptTask(task);
                   }}
+                  onKeyDown={createButtonKeyboardHandler(() => {
+                    handleAcceptTask(task);
+                  })}
+                  sx={{
+                    '&:focus': {
+                      outline: '2px solid #4caf50',
+                      outlineOffset: '2px',
+                    },
+                  }}
                 >
                   Accept Task
                 </Button>
@@ -404,17 +447,47 @@ const TaskModal = ({
                   onClick={() => {
                     handleDeclineTask(task);
                   }}
+                  onKeyDown={createButtonKeyboardHandler(() => {
+                    handleDeclineTask(task);
+                  })}
+                  sx={{
+                    '&:focus': {
+                      outline: '2px solid #f44336',
+                      outlineOffset: '2px',
+                    },
+                  }}
                 >
                   Decline Task
                 </Button>
               </>
             )}
             {mode === 'edit' && (
-              <Button variant="contained" color="error" onClick={onDelete}>
+              <Button 
+                variant="contained" 
+                color="error" 
+                onClick={onDelete}
+                onKeyDown={createButtonKeyboardHandler(onDelete)}
+                sx={{
+                  '&:focus': {
+                    outline: '2px solid #f44336',
+                    outlineOffset: '2px',
+                  },
+                }}
+              >
                 Delete Task
               </Button>
             )}
-            <Button type="submit" variant="contained" sx={{ backgroundColor: '#558b2f' }}>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              sx={{ 
+                backgroundColor: '#558b2f',
+                '&:focus': {
+                  outline: '2px solid #558b2f',
+                  outlineOffset: '2px',
+                },
+              }}
+            >
               {mode === 'edit' ? 'Save Changes' : 'Create Task'}
             </Button>
           </Box>
