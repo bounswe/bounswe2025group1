@@ -1,5 +1,5 @@
 // Login.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -17,12 +17,15 @@ import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContextUtils';
+import { createFormKeyboardHandler, trapFocus } from '../../utils/keyboardNavigation';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
+  const formRef = useRef(null);
+  const focusableElementsRef = useRef([]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,6 +64,36 @@ const Login = () => {
     }
   };
 
+  // Create keyboard handler for the form
+  const formKeyboardHandler = (e) => {
+    // Don't handle Enter key on links - let them handle their own navigation
+    if (e.target.tagName === 'A' || e.target.getAttribute('role') === 'link') {
+      return;
+    }
+    // Use the default form keyboard handler for other elements
+    createFormKeyboardHandler(handleSubmit, () => navigate('/'))(e);
+  };
+
+  // Set up focus trap when component mounts
+  useEffect(() => {
+    if (formRef.current) {
+      // Get all focusable elements within the form
+      const focusableElements = formRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      focusableElementsRef.current = Array.from(focusableElements);
+      
+      // Focus the first element
+      if (focusableElementsRef.current.length > 0) {
+        focusableElementsRef.current[0].focus();
+      }
+      
+      // Set up focus trap
+      const cleanup = trapFocus(formRef.current, focusableElementsRef.current);
+      return cleanup;
+    }
+  }, []);
+
   return (
     <Container
       component="main"
@@ -89,7 +122,15 @@ const Login = () => {
             <Typography component="h1" variant="h5" fontWeight="bold">
               Sign in to Garden Planner
             </Typography>
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
+            <Box 
+              ref={formRef}
+              component="form" 
+              onSubmit={handleSubmit} 
+              onKeyDown={formKeyboardHandler}
+              sx={{ mt: 1, width: '100%' }}
+              role="form"
+              aria-label="Login form"
+            >
               <TextField
                 margin="normal"
                 required
@@ -108,6 +149,7 @@ const Login = () => {
                     </InputAdornment>
                   ),
                 }}
+                aria-label="Username"
               />
               <TextField
                 margin="normal"
@@ -127,6 +169,8 @@ const Login = () => {
                     </InputAdornment>
                   ),
                 }}
+
+                aria-label="Password"
               />
               <Button
                 type="submit"
@@ -140,7 +184,12 @@ const Login = () => {
                   '&:hover': {
                     background: 'linear-gradient(90deg, #7cb342 0%, #33691e 100%)',
                   },
+                  '&:focus': {
+                    outline: '2px solid #558b2f',
+                    outlineOffset: '2px',
+                  },
                 }}
+                aria-label="Sign in to your account"
               >
                 Sign In
               </Button>
@@ -150,13 +199,48 @@ const Login = () => {
                   variant="body2"
                   underline="hover"
                   color="text.secondary"
-                  sx={{ display: 'block', mb: 1 }}
+                  sx={{ 
+                    display: 'block', 
+                    mb: 1,
+                    '&:focus': {
+                      outline: '2px solid #558b2f',
+                      outlineOffset: '2px',
+                    },
+                  }}
+                  tabIndex={0}
+                  role="link"
+                  aria-label="Reset your password"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate('/auth/forgot-password');
+                    }
+                  }}
                 >
                   Forgot password?
                 </Link>
                 <Typography variant="body2" color="text.secondary">
-                  Don’t have an account?{' '}
-                  <Link href="/auth/register" underline="hover" color="primary">
+                  Don't have an account?{' '}
+                  <Link 
+                    href="/auth/register" 
+                    underline="hover" 
+                    color="primary"
+                    sx={{
+                      '&:focus': {
+                        outline: '2px solid #558b2f',
+                        outlineOffset: '2px',
+                      },
+                    }}
+                    tabIndex={0}
+                    role="link"
+                    aria-label="Create a new account"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate('/auth/register');
+                      }
+                    }}
+                  >
                     Sign up
                   </Link>
                 </Typography>

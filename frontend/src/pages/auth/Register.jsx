@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -27,6 +27,7 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
+import { createFormKeyboardHandler, trapFocus } from '../../utils/keyboardNavigation';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -42,6 +43,8 @@ const Register = () => {
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
+  const formRef = useRef(null);
+  const focusableElementsRef = useRef([]);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const hasUpper = /[A-Z]/.test(formData.password);
@@ -68,6 +71,36 @@ const Register = () => {
       [name]: type === 'checkbox' ? checked : value,
     });
   };
+
+  // Create keyboard handler for the form
+  const formKeyboardHandler = (e) => {
+    // Don't handle Enter key on links - let them handle their own navigation
+    if (e.target.tagName === 'A' || e.target.getAttribute('role') === 'link') {
+      return;
+    }
+    // Use the default form keyboard handler for other elements
+    createFormKeyboardHandler(handleSubmit, () => navigate('/'))(e);
+  };
+
+  // Set up focus trap when component mounts
+  useEffect(() => {
+    if (formRef.current) {
+      // Get all focusable elements within the form
+      const focusableElements = formRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      focusableElementsRef.current = Array.from(focusableElements);
+      
+      // Focus the first element
+      if (focusableElementsRef.current.length > 0) {
+        focusableElementsRef.current[0].focus();
+      }
+      
+      // Set up focus trap
+      const cleanup = trapFocus(formRef.current, focusableElementsRef.current);
+      return cleanup;
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -151,7 +184,15 @@ const Register = () => {
               </Typography>
             )}
 
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
+            <Box 
+              ref={formRef}
+              component="form" 
+              onSubmit={handleSubmit} 
+              onKeyDown={formKeyboardHandler}
+              sx={{ mt: 3, width: '100%' }}
+              role="form"
+              aria-label="Registration form"
+            >
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
@@ -168,6 +209,7 @@ const Register = () => {
                         </InputAdornment>
                       ),
                     }}
+                    aria-label="First name"
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -221,6 +263,7 @@ const Register = () => {
                         </InputAdornment>
                       ),
                     }}
+                    aria-label="Email address"
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
@@ -256,6 +299,7 @@ const Register = () => {
                         </InputAdornment>
                       ),
                     }}
+                    aria-label="Password"
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -278,6 +322,7 @@ const Register = () => {
                         </InputAdornment>
                       ),
                     }}
+                    aria-label="Confirm password"
                   />
                 </Grid>
               </Grid>
@@ -298,6 +343,21 @@ const Register = () => {
                       color="primary"
                       checked={formData.agreeTerms}
                       onChange={handleChange}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setFormData({
+                            ...formData,
+                            agreeTerms: !formData.agreeTerms,
+                          });
+                        }
+                      }}
+                      sx={{
+                        '&:focus': {
+                          outline: '2px solid #558b2f',
+                          outlineOffset: '2px',
+                        },
+                      }}
                     />
                   }
                   label="I agree to the terms and conditions"
@@ -321,7 +381,12 @@ const Register = () => {
                     background: '#cfd8dc',
                     color: '#666',
                   },
+                  '&:focus': {
+                    outline: '2px solid #558b2f',
+                    outlineOffset: '2px',
+                  },
                 }}
+                aria-label="Create your account"
               >
                 Sign Up
               </Button>
@@ -329,7 +394,26 @@ const Register = () => {
               <Box sx={{ textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
                   Already have an account?{' '}
-                  <Link href="/auth/login" underline="hover" color="primary">
+                  <Link 
+                    href="/auth/login" 
+                    underline="hover" 
+                    color="primary"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate('/auth/login');
+                      }
+                    }}
+                    sx={{
+                      '&:focus': {
+                        outline: '2px solid #558b2f',
+                        outlineOffset: '2px',
+                      },
+                    }}
+                    tabIndex={0}
+                    role="link"
+                    aria-label="Sign in to your account"
+                  >
                     Sign in
                   </Link>
                 </Typography>

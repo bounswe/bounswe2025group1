@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   Paper,
   Typography,
@@ -8,10 +8,12 @@ import {
   ListItemText,
   ListItemIcon,
   Chip,
+  ButtonBase,
 } from '@mui/material';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { bgForStatus, iconColorForStatus } from '../utils/taskUtils';
 import { useAuth } from '../contexts/AuthContextUtils';
+import { createListNavigation, createButtonKeyboardHandler } from '../utils/keyboardNavigation';
 
 const TaskList = ({
   tasks = [],
@@ -21,9 +23,37 @@ const TaskList = ({
   handleDeclineTask,
 }) => {
   const { user } = useAuth();
+  const listRef = useRef(null);
+  const taskRefs = useRef([]);
 
   console.log(tasks);
   console.log(user);
+
+  // Create keyboard navigation for the task list
+  const listNavigation = createListNavigation(
+    tasks,
+    (task, index) => {
+      if (handleTaskClick) {
+        handleTaskClick(task);
+      }
+    },
+    (task, index) => {
+      // Focus the task item
+      if (taskRefs.current[index]) {
+        taskRefs.current[index].focus();
+      }
+    }
+  );
+
+  // Handle keyboard navigation for the entire list
+  const handleListKeyDown = (event) => {
+    listNavigation.handleKeyDown(event);
+  };
+
+  // Set up refs for each task item
+  useEffect(() => {
+    taskRefs.current = taskRefs.current.slice(0, tasks.length);
+  }, [tasks.length]);
 
   return (
     <Paper
@@ -56,17 +86,46 @@ const TaskList = ({
       </Typography>
 
       {tasks.length > 0 ? (
-        <List className="nice-scroll" sx={{ overflowY: 'auto', flexGrow: 1, pr: 1 }} dense>
-          {tasks.map((task) => (
+        <List 
+          ref={listRef}
+          className="nice-scroll" 
+          sx={{ overflowY: 'auto', flexGrow: 1, pr: 1 }} 
+          dense
+          onKeyDown={handleListKeyDown}
+          role="listbox"
+          aria-label="Task list"
+        >
+          {tasks.map((task, index) => (
             <ListItem
               key={task.id}
+              ref={(el) => (taskRefs.current[index] = el)}
+              component="div"
               sx={{
                 mb: 1,
                 borderRadius: 1,
                 cursor: handleTaskClick ? 'pointer' : 'default',
                 bgcolor: bgForStatus(task.status),
+                '&:focus': {
+                  outline: '2px solid #558b2f',
+                  outlineOffset: '2px',
+                },
+                '&:hover': {
+                  bgcolor: bgForStatus(task.status),
+                  filter: 'brightness(0.95)',
+                },
               }}
-              onClick={() => handleTaskClick(task)}
+              onClick={() => handleTaskClick && handleTaskClick(task)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  if (handleTaskClick) {
+                    handleTaskClick(task);
+                  }
+                }
+              }}
+              tabIndex={0}
+              role="option"
+              aria-selected="false"
             >
               <ListItemIcon>
                 <TaskAltIcon sx={{ color: iconColorForStatus(task.status) }} />
@@ -85,21 +144,47 @@ const TaskList = ({
                     label="Accept"
                     size="small"
                     color="success"
+                    component={ButtonBase}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAcceptTask(task);
                     }}
-                    sx={{ cursor: 'pointer' }}
+                    onKeyDown={createButtonKeyboardHandler(() => {
+                      handleAcceptTask(task);
+                    })}
+                    sx={{ 
+                      cursor: 'pointer',
+                      '&:focus': {
+                        outline: '2px solid #4caf50',
+                        outlineOffset: '2px',
+                      },
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Accept task: ${task.title}`}
                   />
                   <Chip
                     label="Decline"
                     size="small"
                     color="error"
+                    component={ButtonBase}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeclineTask(task);
                     }}
-                    sx={{ cursor: 'pointer' }}
+                    onKeyDown={createButtonKeyboardHandler(() => {
+                      handleDeclineTask(task);
+                    })}
+                    sx={{ 
+                      cursor: 'pointer',
+                      '&:focus': {
+                        outline: '2px solid #f44336',
+                        outlineOffset: '2px',
+                      },
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Decline task: ${task.title}`}
                   />
                 </Box>
               )}

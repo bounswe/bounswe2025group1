@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Typography,
@@ -15,6 +15,7 @@ import {
   Paper,
   Fab,
   Tooltip,
+  ButtonBase,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -28,6 +29,7 @@ import CommentCreateDialog from '../../components/CommentCreateDialog';
 import React from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { createListNavigation, createButtonKeyboardHandler, createLinkKeyboardHandler } from '../../utils/keyboardNavigation';
 
 const ForumList = () => {
   const [posts, setPosts] = useState([]);
@@ -42,6 +44,8 @@ const ForumList = () => {
 
   const { user, token } = useAuth();
   const navigate = useNavigate();
+  const postRefs = useRef([]);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -118,6 +122,30 @@ const ForumList = () => {
     }).format(date);
   };
 
+  // Create keyboard navigation for the forum posts
+  const listNavigation = createListNavigation(
+    filteredPosts,
+    (post, index) => {
+      navigate(`/forum/${post.id}`);
+    },
+    (post, index) => {
+      // Focus the post item
+      if (postRefs.current[index]) {
+        postRefs.current[index].focus();
+      }
+    }
+  );
+
+  // Handle keyboard navigation for the entire forum list
+  const handleListKeyDown = (event) => {
+    listNavigation.handleKeyDown(event);
+  };
+
+  // Set up refs for each post item
+  useEffect(() => {
+    postRefs.current = postRefs.current.slice(0, filteredPosts.length);
+  }, [filteredPosts.length]);
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -148,6 +176,7 @@ const ForumList = () => {
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
+              ref={searchRef}
               fullWidth
               placeholder="Search posts by title, content or author..."
               value={searchTerm}
@@ -161,6 +190,18 @@ const ForumList = () => {
               }}
               variant="outlined"
               size="small"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '&:focus-within': {
+                    outline: '2px solid #558b2f',
+                    outlineOffset: '2px',
+                  },
+                },
+              }}
+              inputProps={{
+                'aria-label': 'Search forum posts',
+                'aria-describedby': 'search-help-text'
+              }}
             />
           </Grid>
           <Grid
@@ -176,11 +217,17 @@ const ForumList = () => {
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={() => setCreateDialogOpen(true)}
+                onKeyDown={createButtonKeyboardHandler(() => setCreateDialogOpen(true))}
                 sx={{
                   ml: 2,
                   bgcolor: '#558b2f',
                   '&:hover': { bgcolor: '#33691e' },
+                  '&:focus': {
+                    outline: '2px solid #558b2f',
+                    outlineOffset: '2px',
+                  },
                 }}
+                aria-label="Create new forum post"
               >
                 New Post
               </Button>
@@ -191,18 +238,37 @@ const ForumList = () => {
 
       {/* Forum Posts */}
       {filteredPosts.length > 0 ? (
-        filteredPosts.map((post) => (
-          <Card
-            key={post.id}
-            sx={{
-              mb: 3,
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: 3,
-              },
-            }}
-          >
+        <Box onKeyDown={handleListKeyDown} role="list" aria-label="Forum posts">
+          {filteredPosts.map((post, index) => (
+            <Card
+              key={post.id}
+              ref={(el) => (postRefs.current[index] = el)}
+              component="div"
+              sx={{
+                mb: 3,
+                width: '100%',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'pointer',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: 3,
+                },
+                '&:focus': {
+                  outline: '2px solid #558b2f',
+                  outlineOffset: '2px',
+                },
+              }}
+              onClick={() => navigate(`/forum/${post.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate(`/forum/${post.id}`);
+                }
+              }}
+              tabIndex={0}
+              role="listitem"
+              aria-label={`Forum post: ${post.title}`}
+            >
             <CardContent>
               <Grid container spacing={2}>
                 <Grid size={12}>
@@ -222,11 +288,24 @@ const ForumList = () => {
                       <Typography variant="subtitle2" color="text.secondary">
                         <Box
                           component="span"
-                          sx={{ cursor: 'pointer' }}
+                          sx={{ 
+                            cursor: 'pointer',
+                            '&:focus': {
+                              outline: '2px solid #558b2f',
+                              outlineOffset: '2px',
+                            },
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/profile/${post.author}`);
                           }}
+                          onKeyDown={createLinkKeyboardHandler((e) => {
+                            e.stopPropagation();
+                            navigate(`/profile/${post.author}`);
+                          })}
+                          tabIndex={0}
+                          role="link"
+                          aria-label={`View profile of ${post.author_username}`}
                         >
                           {post.author_username}
                         </Box>{' '}
@@ -252,8 +331,24 @@ const ForumList = () => {
                       <Button
                         variant="text"
                         startIcon={<AddCommentIcon />}
-                        onClick={() => handleOpenCommentDialog(post.id)}
-                        sx={{ mr: 2, color: '#558b2f', borderColor: '#558b2f' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenCommentDialog(post.id);
+                        }}
+                        onKeyDown={createButtonKeyboardHandler((e) => {
+                          e.stopPropagation();
+                          handleOpenCommentDialog(post.id);
+                        })}
+                        sx={{ 
+                          mr: 2, 
+                          color: '#558b2f', 
+                          borderColor: '#558b2f',
+                          '&:focus': {
+                            outline: '2px solid #558b2f',
+                            outlineOffset: '2px',
+                          },
+                        }}
+                        aria-label={`Add comment to post: ${post.title}`}
                       >
                         Comment
                       </Button>
@@ -261,8 +356,22 @@ const ForumList = () => {
                     <Button
                       variant="text"
                       startIcon={<ReadMoreIcon />}
-                      onClick={() => navigate(`/forum/${post.id}`)}
-                      sx={{ color: '#558b2f' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/forum/${post.id}`);
+                      }}
+                      onKeyDown={createButtonKeyboardHandler((e) => {
+                        e.stopPropagation();
+                        navigate(`/forum/${post.id}`);
+                      })}
+                      sx={{ 
+                        color: '#558b2f',
+                        '&:focus': {
+                          outline: '2px solid #558b2f',
+                          outlineOffset: '2px',
+                        },
+                      }}
+                      aria-label={`Read full post: ${post.title}`}
                     >
                       Read More
                     </Button>
@@ -271,7 +380,8 @@ const ForumList = () => {
               </Grid>
             </CardContent>
           </Card>
-        ))
+          ))}
+        </Box>
       ) : (
         <Box sx={{ py: 5, textAlign: 'left' }}>
           <Typography variant="h6" color="text.secondary">
@@ -289,6 +399,8 @@ const ForumList = () => {
           <Fab
             color="primary"
             aria-label="create post"
+            onClick={() => setCreateDialogOpen(true)}
+            onKeyDown={createButtonKeyboardHandler(() => setCreateDialogOpen(true))}
             sx={{
               position: 'fixed',
               bottom: 24,
@@ -297,8 +409,11 @@ const ForumList = () => {
               '&:hover': {
                 backgroundColor: '#33691e',
               },
+              '&:focus': {
+                outline: '2px solid #558b2f',
+                outlineOffset: '2px',
+              },
             }}
-            onClick={() => setCreateDialogOpen(true)}
           >
             <AddIcon />
           </Fab>

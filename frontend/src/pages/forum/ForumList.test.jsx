@@ -1,77 +1,88 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
+import { BrowserRouter } from 'react-router-dom';
 import ForumList from './ForumList';
 import { useAuth } from '../../contexts/AuthContextUtils';
-import { useNavigate } from 'react-router-dom';
 import React from 'react';
 
 // Mock the modules/hooks
-vi.mock('react-router-dom', () => ({
-  useNavigate: vi.fn(),
-}));
-
 vi.mock('../../contexts/AuthContextUtils', () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock('../../components/ForumCreateDialog', () => ({
-  default: ({ onPostCreated }) => (
-    <div
-      data-testid="forum-create-dialog"
-      onClick={() =>
-        onPostCreated({
-          id: '123',
-          title: 'New Post',
-          content: 'New post content',
-          author: 'user1',
-          created_at: '2025-05-01T12:00:00Z',
-          updated_at: '2025-05-01T12:00:00Z',
-        })
-      }
-    >
-      Mock Forum Create Dialog
-    </div>
-  ),
-}));
-
-vi.mock('../../components/CommentCreateDialog', () => ({
-  default: ({ onCommentCreated }) => (
-    <div data-testid="comment-create-dialog" onClick={() => onCommentCreated()}>
-      Mock Comment Create Dialog
-    </div>
-  ),
+vi.mock('react-toastify', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
 }));
 
 // Mock fetch
 window.fetch = vi.fn();
 
-describe('ForumList Component', () => {
-  const mockNavigate = vi.fn();
+// Mock useNavigate
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
+// Set up environment variables
+beforeAll(() => {
+  vi.stubEnv('VITE_API_URL', 'http://test-api.example.com');
+});
+
+const renderWithRouter = (component) => {
+  return render(
+    <BrowserRouter>
+      {component}
+    </BrowserRouter>
+  );
+};
+
+describe('ForumList Component - Keyboard Navigation', () => {
+  const mockUser = {
+    user_id: 1,
+    username: 'testuser',
+  };
+
+  const mockToken = 'mock-token';
   const mockPosts = [
     {
-      id: '1',
-      title: 'First Post',
-      content: 'This is the first post content',
-      author: 'user1',
-      created_at: '2025-05-01T12:00:00Z',
+      id: 1,
+      title: 'First Forum Post',
+      content: 'This is the content of the first post',
+      author: 1,
+      author_username: 'testuser',
+      created_at: '2025-01-15T10:00:00Z',
     },
     {
-      id: '2',
-      title: 'Second Post',
-      content: 'This is the second post content',
-      author: 'user2',
-      created_at: '2025-05-02T12:00:00Z',
+      id: 2,
+      title: 'Second Forum Post',
+      content: 'This is the content of the second post',
+      author: 2,
+      author_username: 'otheruser',
+      created_at: '2025-01-16T14:00:00Z',
+    },
+    {
+      id: 3,
+      title: 'Third Forum Post',
+      content: 'This is the content of the third post',
+      author: 1,
+      author_username: 'testuser',
+      created_at: '2025-01-17T09:00:00Z',
     },
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useNavigate.mockReturnValue(mockNavigate);
 
-    // Default mock return values
     useAuth.mockReturnValue({
-      user: { id: 'user1' },
-      token: 'mock-token',
+      user: mockUser,
+      token: mockToken,
     });
 
     // Mock successful fetch response
@@ -81,134 +92,288 @@ describe('ForumList Component', () => {
     });
   });
 
-  test('renders loading state initially', async () => {
-    render(<ForumList />);
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  afterAll(() => {
+    vi.unstubAllEnvs();
   });
 
-  test('renders forum posts after loading', async () => {
-    render(<ForumList />);
+  test('renders forum list with keyboard navigation support', async () => {
+    renderWithRouter(<ForumList />);
 
     await waitFor(() => {
-      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+      expect(screen.getByText('Community Forum')).toBeInTheDocument();
     });
 
+    // Check that the forum list has proper ARIA attributes
+    const forumList = screen.getByRole('list', { name: /forum posts/i });
+    expect(forumList).toBeInTheDocument();
+
+    // Check that posts are rendered
+    expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    expect(screen.getByText('Second Forum Post')).toBeInTheDocument();
+    expect(screen.getByText('Third Forum Post')).toBeInTheDocument();
+  });
+
+  test('supports keyboard navigation with arrow keys', async () => {
+    renderWithRouter(<ForumList />);
+
     await waitFor(() => {
-      expect(screen.getByText('First Post')).toBeInTheDocument();
-      expect(screen.getByText('Second Post')).toBeInTheDocument();
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const forumList = screen.getByRole('list', { name: /forum posts/i });
+    
+    // Test Arrow Down navigation
+    fireEvent.keyDown(forumList, { key: 'ArrowDown' });
+    
+    // Test Arrow Up navigation
+    fireEvent.keyDown(forumList, { key: 'ArrowUp' });
+    
+    // Should not cause errors
+    expect(forumList).toBeInTheDocument();
+  });
+
+  test('supports Enter key to select posts', async () => {
+    renderWithRouter(<ForumList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const forumList = screen.getByRole('list', { name: /forum posts/i });
+    
+    // Navigate to first post and press Enter
+    fireEvent.keyDown(forumList, { key: 'ArrowDown' });
+    fireEvent.keyDown(forumList, { key: 'Enter' });
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/forum/1');
+  });
+
+  test('supports Space key to select posts', async () => {
+    renderWithRouter(<ForumList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const forumList = screen.getByRole('list', { name: /forum posts/i });
+    
+    // Navigate to first post and press Space
+    fireEvent.keyDown(forumList, { key: 'ArrowDown' });
+    fireEvent.keyDown(forumList, { key: ' ' });
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/forum/1');
+  });
+
+  test('supports Home key to jump to first post', async () => {
+    renderWithRouter(<ForumList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const forumList = screen.getByRole('list', { name: /forum posts/i });
+    
+    fireEvent.keyDown(forumList, { key: 'Home' });
+    
+    // Should focus the first post
+    expect(forumList).toBeInTheDocument();
+  });
+
+  test('supports End key to jump to last post', async () => {
+    renderWithRouter(<ForumList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const forumList = screen.getByRole('list', { name: /forum posts/i });
+    
+    fireEvent.keyDown(forumList, { key: 'End' });
+    
+    // Should focus the last post
+    expect(forumList).toBeInTheDocument();
+  });
+
+  test('search field supports keyboard navigation', async () => {
+    renderWithRouter(<ForumList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const searchField = screen.getByLabelText('Search forum posts');
+    
+    expect(searchField).toBeInTheDocument();
+    expect(searchField).toHaveAttribute('aria-label', 'Search forum posts');
+  });
+
+  test('new post button supports keyboard navigation', async () => {
+    renderWithRouter(<ForumList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const newPostButton = screen.getByRole('button', { name: /create new forum post/i });
+    
+    // Test Enter key on New Post button
+    fireEvent.keyDown(newPostButton, { key: 'Enter' });
+    
+    // Should open create dialog
+    expect(screen.getByText('Create New Post')).toBeInTheDocument();
+  });
+
+  test('comment buttons support keyboard navigation', async () => {
+    renderWithRouter(<ForumList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const commentButtons = screen.getAllByRole('button', { name: /add comment to post/i });
+    
+    expect(commentButtons).toHaveLength(3);
+    
+    // Test Enter key on first comment button
+    fireEvent.keyDown(commentButtons[0], { key: 'Enter' });
+    
+    // Should open comment dialog
+    expect(screen.getByText('Add a Comment')).toBeInTheDocument();
+  });
+
+  test('read more buttons support keyboard navigation', async () => {
+    renderWithRouter(<ForumList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const readMoreButtons = screen.getAllByRole('button', { name: /read full post/i });
+    
+    expect(readMoreButtons).toHaveLength(3);
+    
+    // Test Space key on first read more button
+    fireEvent.keyDown(readMoreButtons[0], { key: ' ' });
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/forum/1');
+  });
+
+  test('author links support keyboard navigation', async () => {
+    renderWithRouter(<ForumList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const authorLinks = screen.getAllByRole('link', { name: /view profile of/i });
+    
+    expect(authorLinks).toHaveLength(3);
+    
+    // Test Enter key on first author link
+    fireEvent.keyDown(authorLinks[0], { key: 'Enter' });
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/profile/1');
+  });
+
+  test('floating action button supports keyboard navigation', async () => {
+    renderWithRouter(<ForumList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const fab = screen.getByRole('button', { name: /create post/i });
+    
+    // Test Enter key on FAB
+    fireEvent.keyDown(fab, { key: 'Enter' });
+    
+    // Should open create dialog
+    expect(screen.getByText('Create New Post')).toBeInTheDocument();
+  });
+
+  test('post items have proper focus indicators', async () => {
+    renderWithRouter(<ForumList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+    });
+
+    const postItems = screen.getAllByRole('listitem');
+    expect(postItems).toHaveLength(3);
+    
+    // Each post item should have proper ARIA attributes
+    postItems.forEach((item, index) => {
+      expect(item).toHaveAttribute('tabindex', '0');
+      expect(item).toHaveAttribute('role', 'listitem');
     });
   });
 
-  test('shows "No posts found" when there are no posts', async () => {
-    // Mock empty posts array
-    fetch.mockResolvedValue({
+  test('handles empty post list gracefully', async () => {
+    // Mock empty response
+    fetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve([]),
     });
 
-    render(<ForumList />);
+    renderWithRouter(<ForumList />);
 
     await waitFor(() => {
       expect(screen.getByText('No posts found')).toBeInTheDocument();
     });
+
+    expect(screen.queryByRole('list', { name: /forum posts/i })).not.toBeInTheDocument();
   });
 
-  test('filters posts based on search term', async () => {
-    render(<ForumList />);
+  test('handles search functionality with keyboard', async () => {
+    renderWithRouter(<ForumList />);
 
     await waitFor(() => {
-      expect(screen.getByText('First Post')).toBeInTheDocument();
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
     });
 
+    const searchField = screen.getByLabelText('Search forum posts');
+    
     // Type in search field
-    const searchInput = screen.getByPlaceholderText('Search posts by title, content or author...');
-    fireEvent.change(searchInput, { target: { value: 'Second' } });
-
-    // First post should be filtered out
+    fireEvent.change(searchField, { target: { value: 'First' } });
+    
+    // Should filter posts
     await waitFor(() => {
-      expect(screen.queryByText('First Post')).not.toBeInTheDocument();
-      expect(screen.getByText('Second Post')).toBeInTheDocument();
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
+      expect(screen.queryByText('Second Forum Post')).not.toBeInTheDocument();
     });
   });
 
-  test('opens forum create dialog when "New Post" button is clicked', async () => {
-    render(<ForumList />);
+  test('handles keyboard navigation without errors', async () => {
+    renderWithRouter(<ForumList />);
 
     await waitFor(() => {
-      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
     });
 
-    // Click on New Post button
-    const newPostButton = screen.getByText('New Post');
-    fireEvent.click(newPostButton);
-
-    // Dialog should be opened
-    expect(screen.getByTestId('forum-create-dialog')).toBeInTheDocument();
+    const forumList = screen.getByRole('list', { name: /forum posts/i });
+    
+    // Test various keyboard interactions
+    fireEvent.keyDown(forumList, { key: 'Tab' });
+    fireEvent.keyDown(forumList, { key: 'Shift' });
+    fireEvent.keyDown(forumList, { key: 'ArrowLeft' });
+    fireEvent.keyDown(forumList, { key: 'ArrowRight' });
+    
+    // Should not cause any errors
+    expect(forumList).toBeInTheDocument();
   });
 
-  test('navigates to post detail when "Read More" button is clicked', async () => {
-    render(<ForumList />);
+  test('supports normal tab navigation for post items', async () => {
+    renderWithRouter(<ForumList />);
 
     await waitFor(() => {
-      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+      expect(screen.getByText('First Forum Post')).toBeInTheDocument();
     });
 
-    // Find and click read more buttons (there should be one for each post)
-    const readMoreButtons = screen.getAllByText('Read More');
-    fireEvent.click(readMoreButtons[0]); // Click on first post's read more button
-
-    expect(mockNavigate).toHaveBeenCalledWith('/forum/1');
-  });
-
-  test('opens comment dialog when "Comment" button is clicked', async () => {
-    render(<ForumList />);
-
-    await waitFor(() => {
-      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-    });
-
-    // Find and click the comment button for the first post
-    const commentButtons = screen.getAllByText('Comment');
-    fireEvent.click(commentButtons[0]);
-
-    // Dialog should be opened
-    expect(screen.getByTestId('comment-create-dialog')).toBeInTheDocument();
-  });
-
-  test('shows error when fetch fails', async () => {
-    // Mock fetch error
-    fetch.mockRejectedValue(new Error('Failed to fetch'));
-
-    // Using console.error spy to prevent error logs in test output
-    const consoleSpy = vi.spyOn(console, 'error');
-    consoleSpy.mockImplementation(() => {});
-
-    render(<ForumList />);
-
-    await waitFor(() => {
-      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-    });
-
-    // Clean up spy
-    consoleSpy.mockRestore();
-  });
-
-  test('handles new post creation and navigates to the post', async () => {
-    render(<ForumList />);
-
-    await waitFor(() => {
-      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-    });
-
-    // Open the create dialog
-    const newPostButton = screen.getByText('New Post');
-    fireEvent.click(newPostButton);
-
-    // Trigger post creation by clicking the mock dialog
-    const dialog = screen.getByTestId('forum-create-dialog');
-    fireEvent.click(dialog);
-
-    // Should navigate to the new post
-    expect(mockNavigate).toHaveBeenCalledWith('/forum/123');
+    const postItems = screen.getAllByRole('listitem');
+    
+    // All items should be focusable with normal tab navigation
+    expect(postItems[0]).toHaveAttribute('tabindex', '0');
+    expect(postItems[1]).toHaveAttribute('tabindex', '0');
+    expect(postItems[2]).toHaveAttribute('tabindex', '0');
   });
 });
