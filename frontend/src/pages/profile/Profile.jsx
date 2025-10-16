@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -12,6 +12,7 @@ import {
   Grid,
   CircularProgress,
   TextField,
+  ButtonBase,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -23,6 +24,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import GardenCard from '../../components/GardenCard';
 import React from 'react';
+import { createButtonKeyboardHandler, createLinkKeyboardHandler, createRovingTabindex } from '../../utils/keyboardNavigation';
 
 const Profile = () => {
   let { userId } = useParams();
@@ -43,8 +45,11 @@ const Profile = () => {
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
+  const tabRefs = useRef([]);
+  const gardenRefs = useRef([]);
+  const followerRefs = useRef([]);
 
-  userId = userId ? userId.toString() : user.user_id.toString();
+  userId = userId ? userId.toString() : (user?.user_id?.toString() || '');
   const isOwnProfile = !userId || (user && user?.user_id?.toString() === userId);
 
   // Fetch profile data
@@ -70,7 +75,7 @@ const Profile = () => {
         }
 
         const data = await response.json();
-        if (data.id.toString() === user.user_id.toString() && !isOwnProfile) {
+        if (data?.id?.toString() === user?.user_id?.toString() && !isOwnProfile) {
           navigate('/profile');
         }
 
@@ -108,7 +113,7 @@ const Profile = () => {
       // Fetch user's gardens
       try {
         const gardensResponse = await fetch(
-          `${import.meta.env.VITE_API_URL}/user/${userId || user.user_id}/gardens/`,
+          `${import.meta.env.VITE_API_URL}/user/${userId || user?.user_id}/gardens/`,
           {
             headers: {
               Authorization: `Token ${token}`,
@@ -177,6 +182,30 @@ const Profile = () => {
     });
     setSelectedFile(null);
   };
+
+  // Set up roving tabindex for tabs
+  useEffect(() => {
+    if (tabRefs.current.length > 0) {
+      const rovingTabindex = createRovingTabindex(tabRefs.current, tabValue);
+      return () => rovingTabindex.updateTabindex();
+    }
+  }, [tabValue, tabRefs.current.length]);
+
+  // Set up roving tabindex for gardens
+  useEffect(() => {
+    if (tabValue === 0 && gardenRefs.current.length > 0) {
+      const rovingTabindex = createRovingTabindex(gardenRefs.current, 0);
+      return () => rovingTabindex.updateTabindex();
+    }
+  }, [tabValue, gardenRefs.current.length]);
+
+  // Set up roving tabindex for followers
+  useEffect(() => {
+    if (tabValue === 1 && followerRefs.current.length > 0) {
+      const rovingTabindex = createRovingTabindex(followerRefs.current, 0);
+      return () => rovingTabindex.updateTabindex();
+    }
+  }, [tabValue, followerRefs.current.length]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -316,7 +345,22 @@ const Profile = () => {
             />
 
             {isEditing && (
-              <Button variant="outlined" component="label" sx={{ mb: 2 }}>
+              <Button 
+                variant="outlined" 
+                component="label" 
+                sx={{ 
+                  mb: 2,
+                  '&:focus': {
+                    outline: '2px solid #558b2f',
+                    outlineOffset: '2px',
+                  },
+                }}
+                onKeyDown={createButtonKeyboardHandler(() => {
+                  // Trigger file input click
+                  const fileInput = document.querySelector('input[type="file"]');
+                  if (fileInput) fileInput.click();
+                })}
+              >
                 Change Picture
                 <input
                   type="file"
@@ -341,7 +385,15 @@ const Profile = () => {
                 color={isFollowing ? 'error' : 'primary'}
                 startIcon={isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
                 onClick={handleFollowToggle}
-                sx={{ mb: 2 }}
+                onKeyDown={createButtonKeyboardHandler(handleFollowToggle)}
+                sx={{ 
+                  mb: 2,
+                  '&:focus': {
+                    outline: '2px solid #558b2f',
+                    outlineOffset: '2px',
+                  },
+                }}
+                aria-label={isFollowing ? 'Unfollow user' : 'Follow user'}
               >
                 {isFollowing ? 'Unfollow' : 'Follow'}
               </Button>
@@ -352,7 +404,15 @@ const Profile = () => {
                 variant="outlined"
                 startIcon={<EditIcon />}
                 onClick={() => setIsEditing(true)}
-                sx={{ mb: 2 }}
+                onKeyDown={createButtonKeyboardHandler(() => setIsEditing(true))}
+                sx={{ 
+                  mb: 2,
+                  '&:focus': {
+                    outline: '2px solid #558b2f',
+                    outlineOffset: '2px',
+                  },
+                }}
+                aria-label="Edit profile"
               >
                 Edit Profile
               </Button>
@@ -360,10 +420,34 @@ const Profile = () => {
 
             {isEditing && (
               <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSaveProfile}>
+                <Button 
+                  variant="contained" 
+                  startIcon={<SaveIcon />} 
+                  onClick={handleSaveProfile}
+                  onKeyDown={createButtonKeyboardHandler(handleSaveProfile)}
+                  sx={{
+                    '&:focus': {
+                      outline: '2px solid #558b2f',
+                      outlineOffset: '2px',
+                    },
+                  }}
+                  aria-label="Save profile changes"
+                >
                   Save
                 </Button>
-                <Button variant="outlined" startIcon={<CancelIcon />} onClick={handleCancelEdit}>
+                <Button 
+                  variant="outlined" 
+                  startIcon={<CancelIcon />} 
+                  onClick={handleCancelEdit}
+                  onKeyDown={createButtonKeyboardHandler(handleCancelEdit)}
+                  sx={{
+                    '&:focus': {
+                      outline: '2px solid #558b2f',
+                      outlineOffset: '2px',
+                    },
+                  }}
+                  aria-label="Cancel profile editing"
+                >
                   Cancel
                 </Button>
               </Box>
@@ -423,10 +507,86 @@ const Profile = () => {
                     value={tabValue}
                     onChange={(e, val) => setTabValue(val)}
                     aria-label="profile tabs"
+                    role="tablist"
                   >
-                    <Tab label="Gardens" id="tab-0" />
-                    <Tab label="Followers" id="tab-1" />
-                    <Tab label="Following" id="tab-2" />
+                    <Tab 
+                      ref={(el) => (tabRefs.current[0] = el)}
+                      label="Gardens" 
+                      id="tab-0"
+                      role="tab"
+                      aria-selected={tabValue === 0}
+                      aria-controls="tabpanel-0"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setTabValue(0);
+                        } else if (e.key === 'ArrowRight') {
+                          e.preventDefault();
+                          setTabValue(1);
+                        } else if (e.key === 'ArrowLeft') {
+                          e.preventDefault();
+                          setTabValue(2);
+                        }
+                      }}
+                      sx={{
+                        '&:focus': {
+                          outline: '2px solid #558b2f',
+                          outlineOffset: '2px',
+                        },
+                      }}
+                    />
+                    <Tab 
+                      ref={(el) => (tabRefs.current[1] = el)}
+                      label="Followers" 
+                      id="tab-1"
+                      role="tab"
+                      aria-selected={tabValue === 1}
+                      aria-controls="tabpanel-1"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setTabValue(1);
+                        } else if (e.key === 'ArrowRight') {
+                          e.preventDefault();
+                          setTabValue(2);
+                        } else if (e.key === 'ArrowLeft') {
+                          e.preventDefault();
+                          setTabValue(0);
+                        }
+                      }}
+                      sx={{
+                        '&:focus': {
+                          outline: '2px solid #558b2f',
+                          outlineOffset: '2px',
+                        },
+                      }}
+                    />
+                    <Tab 
+                      ref={(el) => (tabRefs.current[2] = el)}
+                      label="Following" 
+                      id="tab-2"
+                      role="tab"
+                      aria-selected={tabValue === 2}
+                      aria-controls="tabpanel-2"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setTabValue(2);
+                        } else if (e.key === 'ArrowRight') {
+                          e.preventDefault();
+                          setTabValue(0);
+                        } else if (e.key === 'ArrowLeft') {
+                          e.preventDefault();
+                          setTabValue(1);
+                        }
+                      }}
+                      sx={{
+                        '&:focus': {
+                          outline: '2px solid #558b2f',
+                          outlineOffset: '2px',
+                        },
+                      }}
+                    />
                   </Tabs>
                 </Box>
 
@@ -436,9 +596,28 @@ const Profile = () => {
                     <>
                       {gardens.length > 0 ? (
                         <Grid container spacing={2}>
-                          {gardens.map((garden) => (
+                          {gardens.map((garden, index) => (
                             <Grid size={{ xs: 12, sm: 6 }} key={garden.id}>
-                              <GardenCard garden={garden} />
+                              <Box
+                                ref={(el) => (gardenRefs.current[index] = el)}
+                                sx={{
+                                  '&:focus': {
+                                    outline: '2px solid #558b2f',
+                                    outlineOffset: '2px',
+                                  },
+                                }}
+                                tabIndex={0}
+                                role="button"
+                                aria-label={`View garden: ${garden.name}`}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    navigate(`/gardens/${garden.id}`);
+                                  }
+                                }}
+                              >
+                                <GardenCard garden={garden} />
+                              </Box>
                             </Grid>
                           ))}
                         </Grid>
@@ -461,17 +640,28 @@ const Profile = () => {
                     <>
                       {followers && followers.length > 0 ? (
                         <Grid container spacing={2}>
-                          {followers.map((follower) => (
+                          {followers.map((follower, index) => (
                             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={follower.id}>
                               <Paper
+                                ref={(el) => (followerRefs.current[index] = el)}
+                                component={ButtonBase}
                                 elevation={1}
                                 sx={{
                                   p: 2,
                                   display: 'flex',
                                   alignItems: 'center',
                                   cursor: 'pointer',
+                                  width: '100%',
+                                  '&:focus': {
+                                    outline: '2px solid #558b2f',
+                                    outlineOffset: '2px',
+                                  },
                                 }}
                                 onClick={() => navigate(`/profile/${follower.id}`)}
+                                onKeyDown={createLinkKeyboardHandler(() => navigate(`/profile/${follower.id}`))}
+                                tabIndex={0}
+                                role="button"
+                                aria-label={`View profile of ${follower.username}`}
                               >
                                 <Avatar
                                   src={follower.profile_picture || '/default-avatar.png'}
