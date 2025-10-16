@@ -267,15 +267,30 @@ export const createLinkKeyboardHandler = (onClick) => {
  * @returns {Function} Keyboard event handler for forms
  */
 export const createFormKeyboardHandler = (onSubmit, onCancel) => {
-  return createKeyboardHandler({
-    onEnter: (event) => {
-      if (event.target.tagName !== 'TEXTAREA') {
+  return (event) => {
+    const { key, target } = event;
+    
+    // Skip keyboard handling for text inputs, textareas, and contenteditable elements
+    if (target.tagName === 'INPUT' || 
+        target.tagName === 'TEXTAREA' || 
+        target.isContentEditable ||
+        target.getAttribute('contenteditable') === 'true') {
+      return; // Let the browser handle normal text input
+    }
+    
+    switch (key) {
+      case 'Enter':
         event.preventDefault();
         onSubmit(event);
-      }
-    },
-    onEscape: onCancel
-  });
+        break;
+      case 'Escape':
+        event.preventDefault();
+        if (onCancel) {
+          onCancel(event);
+        }
+        break;
+    }
+  };
 };
 
 /**
