@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   AppBar,
   Box,
@@ -35,6 +35,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { createRovingTabindex, createButtonKeyboardHandler, createLinkKeyboardHandler } from '../utils/keyboardNavigation';
 
 const pages = [
   { name: 'Home', path: '/', icon: <HomeIcon /> },
@@ -56,6 +57,8 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const drawerItemsRef = useRef([]);
+  const settingsMenuRef = useRef([]);
 
   // Track scroll position to add shadow when scrolled
   useEffect(() => {
@@ -87,7 +90,7 @@ function Navbar() {
     if (action === 'logout') {
       logout();
       console.log('User logged out');
-      toast.success('You’ve been logged out.', {
+      toast.success("You've been logged out.", {
         position: 'top-right',
         theme: 'colored',
       });
@@ -98,11 +101,29 @@ function Navbar() {
   };
 
   const toggleDrawer = (open) => (event) => {
-    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+    if (event && event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
       return;
     }
     setDrawerOpen(open);
   };
+
+  // Navigation buttons use normal Tab navigation (no roving tabindex needed)
+
+  // Set up roving tabindex for drawer items
+  useEffect(() => {
+    if (drawerOpen && drawerItemsRef.current.length > 0) {
+      const rovingTabindex = createRovingTabindex(drawerItemsRef.current, 0);
+      return () => rovingTabindex.updateTabindex();
+    }
+  }, [drawerOpen, drawerItemsRef.current.length]);
+
+  // Set up roving tabindex for settings menu
+  useEffect(() => {
+    if (Boolean(anchorElUser) && settingsMenuRef.current.length > 0) {
+      const rovingTabindex = createRovingTabindex(settingsMenuRef.current, 0);
+      return () => rovingTabindex.updateTabindex();
+    }
+  }, [Boolean(anchorElUser), settingsMenuRef.current.length]);
 
   const isActivePath = (path) => {
     return location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
@@ -158,7 +179,15 @@ function Navbar() {
             color="inherit"
             aria-label="open drawer"
             onClick={toggleDrawer(true)}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            onKeyDown={createButtonKeyboardHandler(() => toggleDrawer(true)())}
+            sx={{ 
+              mr: 2, 
+              display: { md: 'none' },
+              '&:focus': {
+                outline: '2px solid white',
+                outlineOffset: '2px',
+              },
+            }}
           >
             <MenuIcon />
           </IconButton>
@@ -184,10 +213,11 @@ function Navbar() {
 
           {/* Desktop menu */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, ml: 3 }}>
-            {pages.map((page) => (
+            {pages.map((page, index) => (
               <Button
                 key={page.name}
                 onClick={() => navigate(page.path)}
+                onKeyDown={createButtonKeyboardHandler(() => navigate(page.path))}
                 sx={{
                   my: 2,
                   mx: 0.5,
@@ -199,6 +229,10 @@ function Navbar() {
                   position: 'relative',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  },
+                  '&:focus': {
+                    outline: '2px solid white',
+                    outlineOffset: '2px',
                   },
                   ...(isActivePath(page.path) && {
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -214,6 +248,7 @@ function Navbar() {
                     },
                   }),
                 }}
+                aria-current={isActivePath(page.path) ? 'page' : undefined}
               >
                 {page.icon}
                 <Box component="span" sx={{ ml: 1 }}>
@@ -229,13 +264,21 @@ function Navbar() {
               <Tooltip title="Open settings">
                 <IconButton
                   onClick={handleOpenUserMenu}
+                  onKeyDown={createButtonKeyboardHandler(handleOpenUserMenu)}
                   sx={{
                     p: 0,
                     border: '2px solid rgba(255, 255, 255, 0.7)',
                     '&:hover': {
                       border: '2px solid white',
                     },
+                    '&:focus': {
+                      outline: '2px solid white',
+                      outlineOffset: '2px',
+                    },
                   }}
+                  aria-label="Open user menu"
+                  aria-haspopup="true"
+                  aria-expanded={Boolean(anchorElUser)}
                 >
                   <Avatar alt="User" src="/static/avatar.jpg" sx={{ width: 36, height: 36 }}>
                     <AccountCircleIcon />
@@ -264,10 +307,12 @@ function Navbar() {
                     {user?.username || 'Guest'}
                   </Typography>
                 </Box>
-                {settings.map((setting) => (
+                {settings.map((setting, index) => (
                   <MenuItem
                     key={setting.name}
+                    ref={(el) => (settingsMenuRef.current[index] = el)}
                     onClick={() => handleMenuAction(setting.path, setting.action)}
+                    onKeyDown={createButtonKeyboardHandler(() => handleMenuAction(setting.path, setting.action))}
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -278,6 +323,10 @@ function Navbar() {
                       my: 0.5,
                       '&:hover': {
                         backgroundColor: '#f0f7eb',
+                      },
+                      '&:focus': {
+                        outline: '2px solid #558b2f',
+                        outlineOffset: '2px',
                       },
                     }}
                   >
@@ -297,12 +346,17 @@ function Navbar() {
               <Button
                 variant="outlined"
                 onClick={() => navigate('/auth/login')}
+                onKeyDown={createButtonKeyboardHandler(() => navigate('/auth/login'))}
                 sx={{
                   borderColor: 'white',
                   color: 'white',
                   '&:hover': {
                     borderColor: 'white',
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                  '&:focus': {
+                    outline: '2px solid white',
+                    outlineOffset: '2px',
                   },
                 }}
               >
@@ -311,12 +365,17 @@ function Navbar() {
               <Button
                 variant="outlined"
                 onClick={() => navigate('/auth/register')}
+                onKeyDown={createButtonKeyboardHandler(() => navigate('/auth/register'))}
                 sx={{
                   borderColor: 'white',
                   color: 'white',
                   '&:hover': {
                     borderColor: 'white',
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                  '&:focus': {
+                    outline: '2px solid white',
+                    outlineOffset: '2px',
                   },
                 }}
               >
@@ -355,7 +414,18 @@ function Navbar() {
               Menu
             </Typography>
           </Box>
-          <IconButton color="inherit" onClick={toggleDrawer(false)}>
+          <IconButton 
+            color="inherit" 
+            onClick={toggleDrawer(false)}
+            onKeyDown={createButtonKeyboardHandler(() => toggleDrawer(false)())}
+            sx={{
+              '&:focus': {
+                outline: '2px solid white',
+                outlineOffset: '2px',
+              },
+            }}
+            aria-label="Close menu"
+          >
             <CloseIcon />
           </IconButton>
         </Box>
@@ -363,20 +433,30 @@ function Navbar() {
         <Divider />
 
         <List sx={{ pt: 0 }}>
-          {pages.map((page) => (
+          {pages.map((page, index) => (
             <ListItem key={page.name} disablePadding>
               <ListItemButton
+                ref={(el) => (drawerItemsRef.current[index] = el)}
                 onClick={() => {
                   navigate(page.path);
                   setDrawerOpen(false);
                 }}
+                onKeyDown={createButtonKeyboardHandler(() => {
+                  navigate(page.path);
+                  setDrawerOpen(false);
+                })}
                 sx={{
                   py: 1.5,
+                  '&:focus': {
+                    outline: '2px solid #558b2f',
+                    outlineOffset: '2px',
+                  },
                   ...(isActivePath(page.path) && {
                     bgcolor: '#f0f7eb',
                     borderLeft: '4px solid #558b2f',
                   }),
                 }}
+                aria-current={isActivePath(page.path) ? 'page' : undefined}
               >
                 <ListItemIcon sx={{ color: '#558b2f', minWidth: '40px' }}>{page.icon}</ListItemIcon>
                 <ListItemText primary={page.name} />
@@ -396,15 +476,16 @@ function Navbar() {
               User Settings
             </Typography>
             <List sx={{ pt: 0 }}>
-              {settings.map((setting) => (
+              {settings.map((setting, index) => (
                 <ListItem key={setting.name} disablePadding>
                   <ListItemButton
+                    ref={(el) => (drawerItemsRef.current[pages.length + index] = el)}
                     onClick={() => {
                       setDrawerOpen(false);
 
                       if (setting.action === 'logout') {
                         logout();
-                        toast.info('You’ve been logged out.', {
+                        toast.info("You've been logged out.", {
                           position: 'top-right',
                           theme: 'colored',
                         });
@@ -413,7 +494,27 @@ function Navbar() {
                         navigate(setting.path);
                       }
                     }}
-                    sx={{ py: 1.5 }}
+                    onKeyDown={createButtonKeyboardHandler(() => {
+                      setDrawerOpen(false);
+
+                      if (setting.action === 'logout') {
+                        logout();
+                        toast.info("You've been logged out.", {
+                          position: 'top-right',
+                          theme: 'colored',
+                        });
+                        setTimeout(() => navigate('/'), 2000);
+                      } else if (setting.path) {
+                        navigate(setting.path);
+                      }
+                    })}
+                    sx={{ 
+                      py: 1.5,
+                      '&:focus': {
+                        outline: '2px solid #558b2f',
+                        outlineOffset: '2px',
+                      },
+                    }}
                   >
                     <ListItemIcon sx={{ color: '#558b2f', minWidth: '40px' }}>
                       {setting.icon}
@@ -434,7 +535,17 @@ function Navbar() {
                 navigate('/');
                 setDrawerOpen(false);
               }}
-              sx={{ mb: 1 }}
+              onKeyDown={createButtonKeyboardHandler(() => {
+                navigate('/');
+                setDrawerOpen(false);
+              })}
+              sx={{ 
+                mb: 1,
+                '&:focus': {
+                  outline: '2px solid #558b2f',
+                  outlineOffset: '2px',
+                },
+              }}
             >
               Login
             </Button>
@@ -445,6 +556,16 @@ function Navbar() {
               onClick={() => {
                 navigate('/auth/register');
                 setDrawerOpen(false);
+              }}
+              onKeyDown={createButtonKeyboardHandler(() => {
+                navigate('/auth/register');
+                setDrawerOpen(false);
+              })}
+              sx={{
+                '&:focus': {
+                  outline: '2px solid #558b2f',
+                  outlineOffset: '2px',
+                },
               }}
             >
               Register
