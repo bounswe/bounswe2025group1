@@ -25,6 +25,7 @@ import { useAuth } from '../../contexts/AuthContextUtils';
 import GardenCard from '../../components/GardenCard';
 import React from 'react';
 import { createButtonKeyboardHandler, createLinkKeyboardHandler, createRovingTabindex } from '../../utils/keyboardNavigation';
+import LocationPicker from '../../components/LocationPicker';
 
 const Profile = () => {
   let { userId } = useParams();
@@ -491,13 +492,12 @@ const Profile = () => {
                   value={editedProfile.email}
                   onChange={handleInputChange}
                 />
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Location"
-                  name="location"
+                <LocationPicker
                   value={editedProfile.location}
-                  onChange={handleInputChange}
+                  onChange={(value) => setEditedProfile({ ...editedProfile, location: value })}
+                  label="Location"
+                  height={200}
+                  sx={{ mt: 2, mb: 2 }}
                 />
               </Box>
             ) : (
