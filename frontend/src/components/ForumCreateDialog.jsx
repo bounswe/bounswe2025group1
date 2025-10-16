@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -14,6 +14,7 @@ import ForumIcon from '@mui/icons-material/Forum';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import React from 'react';
+import { createFormKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
 
 const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
   const [title, setTitle] = useState('');
@@ -21,6 +22,8 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { token } = useAuth();
+  const dialogRef = useRef(null);
+  const focusableElementsRef = useRef([]);
 
   const handleCreatePost = async () => {
     // Validation
@@ -78,9 +81,45 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
     onClose();
   };
 
+  // Create keyboard handler for the form
+  const formKeyboardHandler = createFormKeyboardHandler(handleCreatePost, handleClose);
+
+  // Set up focus trap when dialog opens
+  useEffect(() => {
+    if (open && dialogRef.current) {
+      // Get all focusable elements within the dialog
+      const focusableElements = dialogRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      focusableElementsRef.current = Array.from(focusableElements);
+      
+      // Focus the first element
+      if (focusableElementsRef.current.length > 0) {
+        focusableElementsRef.current[0].focus();
+      }
+      
+      // Set up focus trap
+      const cleanup = trapFocus(dialogRef.current, focusableElementsRef.current);
+      return cleanup;
+    }
+  }, [open]);
+
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-      <DialogTitle sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}>
+    <Dialog 
+      open={open} 
+      onClose={handleClose} 
+      fullWidth 
+      maxWidth="md"
+      ref={dialogRef}
+      onKeyDown={formKeyboardHandler}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="forum-create-title"
+    >
+      <DialogTitle 
+        id="forum-create-title"
+        sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}
+      >
         <ForumIcon sx={{ mr: 1 }} /> Create New Post
       </DialogTitle>
 
@@ -104,7 +143,16 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
-          sx={{ mb: 2 }}
+          sx={{ 
+            mb: 2,
+            '& .MuiOutlinedInput-root': {
+              '&:focus-within': {
+                outline: '2px solid #558b2f',
+                outlineOffset: '2px',
+              },
+            },
+          }}
+          aria-label="Post title"
         />
 
         <TextField
@@ -116,21 +164,45 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           required
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              '&:focus-within': {
+                outline: '2px solid #558b2f',
+                outlineOffset: '2px',
+              },
+            },
+          }}
+          aria-label="Post content"
         />
       </DialogContent>
 
       <DialogActions sx={{ p: 3 }}>
-        <Button onClick={handleClose} variant="outlined">
+        <Button 
+          onClick={handleClose} 
+          variant="outlined"
+          onKeyDown={createFormKeyboardHandler(handleClose)}
+          sx={{
+            '&:focus': {
+              outline: '2px solid #558b2f',
+              outlineOffset: '2px',
+            },
+          }}
+        >
           Cancel
         </Button>
         <Button
           onClick={handleCreatePost}
           variant="contained"
           disabled={loading}
+          onKeyDown={createFormKeyboardHandler(handleCreatePost)}
           sx={{
             bgcolor: '#558b2f',
             '&:hover': {
               bgcolor: '#33691e',
+            },
+            '&:focus': {
+              outline: '2px solid #558b2f',
+              outlineOffset: '2px',
             },
           }}
         >

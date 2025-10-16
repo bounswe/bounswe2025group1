@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -15,12 +15,15 @@ import SendIcon from '@mui/icons-material/Send';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import React from 'react';
+import { createFormKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
 
 const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { token } = useAuth();
+  const dialogRef = useRef(null);
+  const focusableElementsRef = useRef([]);
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -75,9 +78,45 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
     onClose();
   };
 
+  // Create keyboard handler for the form
+  const formKeyboardHandler = createFormKeyboardHandler(handleSubmit, handleClose);
+
+  // Set up focus trap when dialog opens
+  useEffect(() => {
+    if (open && dialogRef.current) {
+      // Get all focusable elements within the dialog
+      const focusableElements = dialogRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      focusableElementsRef.current = Array.from(focusableElements);
+      
+      // Focus the first element
+      if (focusableElementsRef.current.length > 0) {
+        focusableElementsRef.current[0].focus();
+      }
+      
+      // Set up focus trap
+      const cleanup = trapFocus(dialogRef.current, focusableElementsRef.current);
+      return cleanup;
+    }
+  }, [open]);
+
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-      <DialogTitle sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}>
+    <Dialog 
+      open={open} 
+      onClose={handleClose} 
+      fullWidth 
+      maxWidth="md"
+      ref={dialogRef}
+      onKeyDown={formKeyboardHandler}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="comment-create-title"
+    >
+      <DialogTitle 
+        id="comment-create-title"
+        sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}
+      >
         <AddCommentIcon sx={{ mr: 1 }} /> Add a Comment
       </DialogTitle>
 
@@ -103,11 +142,30 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           required
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              '&:focus-within': {
+                outline: '2px solid #558b2f',
+                outlineOffset: '2px',
+              },
+            },
+          }}
+          aria-label="Comment content"
         />
       </DialogContent>
 
       <DialogActions sx={{ p: 3 }}>
-        <Button onClick={handleClose} variant="outlined">
+        <Button 
+          onClick={handleClose} 
+          variant="outlined"
+          onKeyDown={createFormKeyboardHandler(handleClose)}
+          sx={{
+            '&:focus': {
+              outline: '2px solid #558b2f',
+              outlineOffset: '2px',
+            },
+          }}
+        >
           Cancel
         </Button>
         <Button
@@ -115,10 +173,15 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
           variant="contained"
           disabled={!content.trim() || loading}
           endIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
+          onKeyDown={createFormKeyboardHandler(handleSubmit)}
           sx={{
             bgcolor: '#558b2f',
             '&:hover': {
               bgcolor: '#33691e',
+            },
+            '&:focus': {
+              outline: '2px solid #558b2f',
+              outlineOffset: '2px',
             },
           }}
         >
