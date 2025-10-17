@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Paper, Button } from '@mui/material';
+import { Box, Typography, Paper, Button, useTheme } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { bgForStatus, iconColorForStatus } from '../utils/taskUtils';
 
@@ -12,6 +12,8 @@ const STATUS_LABELS = {
 };
 
 const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
+  const theme = useTheme();
+  
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
     if (!destination) return; // Dropped outside a droppable area
@@ -40,7 +42,7 @@ const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
                   p: 2,
                   borderTop: `8px solid ${iconColorForStatus(status)}`,
                   borderRadius: 2,
-                  backgroundColor: '#fafafa',
+                  backgroundColor: theme.palette.background.paper,
                 }}
               >
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
@@ -60,16 +62,32 @@ const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
                             p: 1.5,
                             mb: 1.2,
                             borderRadius: 2,
-                            backgroundColor: bgForStatus(task.status),
+                            backgroundColor: bgForStatus(task.status, theme),
                           }}
                         >
-                          <Typography variant="subtitle2">{task.title}</Typography>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography 
+                            variant="subtitle2" 
+                            sx={{ 
+                              color: theme.palette.text.primary,
+                              fontWeight: 500,
+                            }}
+                          >
+                            {task.title}
+                          </Typography>
+                          <Typography 
+                            variant="caption" 
+                            sx={{ 
+                              color: theme.palette.text.secondary,
+                            }}
+                          >
                             Due:{' '}
                             {task.due_date ? new Date(task.due_date).toLocaleDateString() : '—'}
                           </Typography>
                           <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption">
+                            <Typography 
+                              variant="caption"
+                              sx={{ color: theme.palette.text.secondary }}
+                            >
                               {task.assigned_to_username || 'Unassigned'}
                             </Typography>
                             <Button

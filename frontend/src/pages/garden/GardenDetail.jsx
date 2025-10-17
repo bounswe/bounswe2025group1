@@ -16,6 +16,7 @@ import {
   ListItemAvatar,
   CircularProgress,
   Paper,
+  useTheme,
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
@@ -38,6 +39,7 @@ const GardenDetail = () => {
   const [loading, setLoading] = useState(true);
   const [openTaskModal, setOpenTaskModal] = useState(false);
   const { user, token } = useAuth();
+  const theme = useTheme();
   const [openGardenEditModal, setOpenGardenEditModal] = useState(false);
   const handleOpenGardenEditModal = () => setOpenGardenEditModal(true);
   const handleCloseGardenEditModal = () => setOpenGardenEditModal(false);
@@ -369,7 +371,7 @@ const GardenDetail = () => {
           variant="contained"
           color="primary"
           onClick={() => navigate('/gardens')}
-          sx={{ mt: 2, backgroundColor: '#558b2f' }}
+          sx={{ mt: 2 }}
         >
           Back to Gardens
         </Button>
@@ -535,7 +537,7 @@ const GardenDetail = () => {
             <Typography
               variant="h4"
               gutterBottom
-              sx={{ color: '#2e7d32', fontWeight: 'bold', textAlign: 'start' }}
+              sx={{ color: theme.palette.primary.main, fontWeight: 'bold', textAlign: 'start' }}
             >
               {garden.name}
             </Typography>
@@ -544,19 +546,28 @@ const GardenDetail = () => {
                 icon={<LocationOnIcon />}
                 label={garden.location}
                 size="small"
-                sx={{ bgcolor: '#e8f5e9' }}
+                sx={{ 
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
+                  color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
+                }}
               />
               <Chip
                 icon={<GroupIcon />}
                 label={`${members.length} Members`}
                 size="small"
-                sx={{ bgcolor: '#e8f5e9' }}
+                sx={{ 
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
+                  color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
+                }}
               />
               <Chip
                 icon={<TaskIcon />}
                 label={`${tasks.length} Tasks`}
                 size="small"
-                sx={{ bgcolor: '#e8f5e9' }}
+                sx={{ 
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
+                  color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
+                }}
               />
             </Box>
             <Typography variant="body1" sx={{ textAlign: 'start' }}>
@@ -587,7 +598,7 @@ const GardenDetail = () => {
                 <Button
                   variant="contained"
                   onClick={handleJoinGarden}
-                  sx={{ mr: 1, backgroundColor: '#558b2f' }}
+                  sx={{ mr: 1 }}
                 >
                   Join Garden
                 </Button>
@@ -596,7 +607,7 @@ const GardenDetail = () => {
               <Button
                 variant="contained"
                 onClick={() => navigate('/auth/login')}
-                sx={{ mr: 1, backgroundColor: '#558b2f' }}
+                sx={{ mr: 1 }}
               >
                 Login to Join
               </Button>
@@ -606,7 +617,6 @@ const GardenDetail = () => {
                 variant="outlined"
                 color="primary"
                 onClick={handleOpenGardenEditModal}
-                sx={{ color: '#558b2f', borderColor: '#558b2f' }}
               >
                 Manage Garden
               </Button>
@@ -621,10 +631,6 @@ const GardenDetail = () => {
           value={activeTab}
           onChange={(event, newValue) => setActiveTab(newValue)}
           variant="fullWidth"
-          sx={{
-            '.MuiTabs-indicator': { backgroundColor: '#558b2f' },
-            '.Mui-selected': { color: '#558b2f' },
-          }}
         >
           <Tab label="Tasks" />
           <Tab label="Members" />
@@ -640,7 +646,7 @@ const GardenDetail = () => {
             <Box
               sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}
             >
-              <Typography variant="h6" sx={{ color: '#558b2f' }}>
+              <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
                 Garden Tasks
               </Typography>
               {isMember && (
@@ -649,7 +655,6 @@ const GardenDetail = () => {
                   onClick={() => {
                     setOpenTaskModal(true);
                   }}
-                  sx={{ backgroundColor: '#558b2f' }}
                 >
                   Add Task
                 </Button>
