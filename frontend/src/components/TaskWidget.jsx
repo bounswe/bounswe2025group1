@@ -35,7 +35,7 @@ const TaskWidget = () => {
           );
 
           if (!response.ok) {
-            toast.error('Failed to fetch tasks');
+            toast.error(t('tasks.failedToFetchTasks'));
             setLoading(false);
             return;
           }

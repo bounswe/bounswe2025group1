@@ -42,7 +42,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`);
 
         if (!response.ok) {
-          toast.error('Failed to fetch posts');
+          toast.error(t('errors.failedToFetchPosts'));
           setLoading(false);
           return;
         }
@@ -51,7 +51,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
         setPosts(data || []);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching forum posts:', error);
+        console.error(t('errors.failedToFetchPosts'), error);
         setLoading(false);
       }
     };

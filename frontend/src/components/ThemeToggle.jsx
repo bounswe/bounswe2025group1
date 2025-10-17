@@ -18,8 +18,10 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '../contexts/ThemeContext';
 import { themeNames } from '../themes/themeConfig';
+import { useTranslation } from 'react-i18next';
 
 const ThemeToggle = () => {
+  const { t } = useTranslation();
   const { currentTheme, changeTheme, toggleHighContrast, availableThemes } = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -56,11 +58,11 @@ const ThemeToggle = () => {
 
   return (
     <>
-      <Tooltip title="Change theme">
+      <Tooltip title={t('theme.changeTheme')}>
         <IconButton
           onClick={handleClick}
           color="inherit"
-          aria-label="Change theme"
+          aria-label={t('theme.changeTheme')}
           aria-haspopup="true"
           aria-expanded={open}
           sx={{
@@ -90,7 +92,7 @@ const ThemeToggle = () => {
       >
         <Box sx={{ px: 2, py: 1 }}>
           <Typography variant="subtitle2" color="text.secondary">
-            Choose Theme
+            {t('theme.chooseTheme')}
           </Typography>
         </Box>
         <Divider />

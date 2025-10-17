@@ -260,7 +260,7 @@ const GardenList = () => {
                     onClick={() => navigate(`/gardens/${garden.id}`)}
                     sx={{ backgroundColor: '#558b2f', '&:hover': { backgroundColor: '#33691e' } }}
                   >
-                    View Garden
+                    {t('gardens.viewGarden')}
                   </Button>
                 </Box>
               </Card>

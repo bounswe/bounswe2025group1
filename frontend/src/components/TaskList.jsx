@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next';
 
 const TaskList = ({
   tasks = [],
-  title = 'Tasks',
+  title = useTranslation().t('tasks.title'),
   handleTaskClick,
   handleAcceptTask,
   handleDeclineTask,

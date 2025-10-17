@@ -28,7 +28,7 @@ const GardensPreview = ({ limit = 2 }) => {
           );
 
           if (!membershipsResponse.ok) {
-            toast.error('Failed to fetch memberships');
+            toast.error(t('errors.failedToFetchMemberships'));
             setLoading(false);
             return;
           }
@@ -71,7 +71,7 @@ const GardensPreview = ({ limit = 2 }) => {
           });
 
           if (!response.ok) {
-            toast.error('Failed to fetch gardens');
+            toast.error(t('errors.failedToFetchGardens'));
             setLoading(false);
             return;
           }

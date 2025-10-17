@@ -233,7 +233,7 @@ const WeatherWidget = () => {
           <WbSunnyIcon sx={{ mr: 1 }} /> {t('weather.title')}
         </Typography>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          Get local weather updates for your garden
+          {t('weather.description')}
         </Typography>
         <Box sx={{ mt: 'auto' }}>
           <Button
@@ -243,7 +243,7 @@ const WeatherWidget = () => {
             color="primary"
             fullWidth
           >
-            Share Location
+            {t('weather.shareLocation')}
           </Button>
         </Box>
       </Paper>

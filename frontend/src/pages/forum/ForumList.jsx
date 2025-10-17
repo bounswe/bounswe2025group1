@@ -59,7 +59,7 @@ const ForumList = () => {
         });
 
         if (!response.ok) {
-          toast.error('Failed to fetch posts');
+          toast.error(t('errors.failedToFetchPosts'));
           setLoading(false);
           return;
         }
@@ -69,7 +69,7 @@ const ForumList = () => {
         setFilteredPosts(data);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching forum posts:', error);
+        console.error(t('errors.errorFetchingPosts'), error);
         setLoading(false);
       }
     };
@@ -182,7 +182,7 @@ const ForumList = () => {
             <TextField
               ref={searchRef}
               fullWidth
-              placeholder="Search posts by title, content or author..."
+              placeholder={t('forum.searchPlaceholder')}
               value={searchTerm}
               onChange={handleSearch}
               InputProps={{
@@ -233,7 +233,7 @@ const ForumList = () => {
                 }}
                 aria-label="Create new forum post"
               >
-                New Post
+                {t('forum.newPost')}
               </Button>
             )}
           </Grid>
@@ -392,7 +392,7 @@ const ForumList = () => {
             {t('forum.noPostsFound')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 3 }}>
-            {searchTerm ? 'Try a different search term' : 'Be the first to create a post!'}
+            {searchTerm ? t('forum.tryDifferentSearchTerm') : t('forum.beFirstToCreatePost')}
           </Typography>
         </Box>
       )}

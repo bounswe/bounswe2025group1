@@ -16,8 +16,10 @@ import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import React from 'react';
 import { createFormKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
+import { useTranslation } from 'react-i18next';
 
 const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,7 +29,7 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
 
   const handleSubmit = async () => {
     if (!content.trim()) {
-      setError('Comment cannot be empty');
+      setError(t('comments.cannotBeEmpty'));
       return;
     }
 
@@ -48,8 +50,8 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
       });
 
       if (!response.ok) {
-        toast.error('Failed to post comment');
-        setError('Failed to post your comment. Please try again.');
+        toast.error(t('comments.failedToPost'));
+        setError(t('comments.failedToPostTryAgain'));
         setLoading(false);
         return;
       }
@@ -61,17 +63,17 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
       setLoading(false);
 
       // Show success toast notification
-      toast.success('Comment posted successfully!');
+      toast.success(t('comments.postedSuccessfully'));
 
       // Call the callback function with the new comment data
       onCommentCreated(data);
     } catch (error) {
       console.error('Error posting comment:', error);
-      setError('Failed to post your comment. Please try again.');
+      setError(t('comments.failedToPostTryAgain'));
       setLoading(false);
 
       // Show error toast notification
-      toast.error('Failed to post comment. Please try again.');
+      toast.error(t('comments.failedToPostTryAgain'));
     }
   };
 
@@ -120,7 +122,7 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
         id="comment-create-title"
         sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}
       >
-        <AddCommentIcon sx={{ mr: 1 }} /> Add a Comment
+        <AddCommentIcon sx={{ mr: 1 }} /> {t('comments.addComment')}
       </DialogTitle>
 
       <DialogContent>
@@ -131,13 +133,13 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
         )}
 
         <DialogContentText sx={{ mb: 2, textAlign: 'left' }}>
-          Share your thoughts about this post.
+          {t('comments.shareThoughts')}
         </DialogContentText>
 
         <TextField
           autoFocus
           margin="dense"
-          label="Comment"
+          label={t('comments.comment')}
           multiline
           rows={5}
           fullWidth
@@ -169,7 +171,7 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
             },
           }}
         >
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -188,7 +190,7 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
             },
           }}
         >
-          {loading ? 'Posting...' : 'Post Comment'}
+          {loading ? t('comments.posting') : t('comments.postComment')}
         </Button>
       </DialogActions>
     </Dialog>

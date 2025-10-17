@@ -112,7 +112,7 @@ const Register = () => {
     setError('');
 
     if (!allValid) {
-      toast.error('Please complete all fields correctly.', { position: 'top-right' });
+      toast.error(t('auth.register.completeAllFields'), { position: 'top-right' });
       return;
     }
 
@@ -133,20 +133,20 @@ const Register = () => {
       });
 
       if (!response.ok) {
-        toast.error('Registration failed');
-        setError('Failed to create an account. Please try again.');
+        toast.error(t('auth.register.registrationFailed'));
+        setError(t('auth.register.failedToCreateAccount'));
         return;
       }
 
       const data = await response.json();
       register(data);
 
-      toast.success('Welcome to the community!', { position: 'top-right' });
+      toast.success(t('auth.register.welcomeToCommunity'), { position: 'top-right' });
       navigate('/');
     } catch (err) {
-      toast.error('Failed to create an account.', { position: 'top-right' });
+      toast.error(t('auth.register.failedToCreateAccount'), { position: 'top-right' });
       console.error(err);
-      setError('Failed to create an account. Please try again.');
+      setError(t('auth.register.failedToCreateAccount'));
       return;
     }
   };
@@ -198,7 +198,7 @@ const Register = () => {
               color: theme.palette.mode === 'dark' ? '#ffffff' : 'inherit',
             }}>🌱</Avatar>
             <Typography component="h1" variant="h5" fontWeight="bold">
-              Join the Garden Community
+              {t('auth.register.title')}
             </Typography>
             {error && (
               <Typography color="error" sx={{ mt: 2 }}>
@@ -221,7 +221,7 @@ const Register = () => {
                     name="firstName"
                     required
                     fullWidth
-                    label="First Name"
+                    label={t('auth.register.firstName')}
                     value={formData.firstName}
                     onChange={handleChange}
                     InputProps={{
@@ -239,7 +239,7 @@ const Register = () => {
                     name="lastName"
                     required
                     fullWidth
-                    label="Last Name"
+                    label={t('auth.register.lastName')}
                     value={formData.lastName}
                     onChange={handleChange}
                     InputProps={{
@@ -256,7 +256,7 @@ const Register = () => {
                     name="username"
                     required
                     fullWidth
-                    label="Username"
+                    label={t('auth.register.username')}
                     value={formData.username}
                     onChange={handleChange}
                     InputProps={{
@@ -273,11 +273,11 @@ const Register = () => {
                     name="email"
                     required
                     fullWidth
-                    label="Email Address"
+                    label={t('auth.register.email')}
                     value={formData.email}
                     onChange={handleChange}
                     error={!!formData.email && !validEmail}
-                    helperText={!!formData.email && !validEmail ? 'Invalid email format' : ''}
+                    helperText={!!formData.email && !validEmail ? t('auth.register.invalidEmail') : ''}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -292,7 +292,7 @@ const Register = () => {
                   <LocationPicker
                     value={formData.location}
                     onChange={(value) => setFormData({ ...formData, location: value })}
-                    label="Location"
+                    label={t('auth.register.location')}
                     required
                     height={200}
                   />
@@ -300,7 +300,7 @@ const Register = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="password"
-                    label="Password"
+                    label={t('auth.register.password')}
                     type="password"
                     required
                     fullWidth
@@ -319,7 +319,7 @@ const Register = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="confirmPassword"
-                    label="Confirm Password"
+                    label={t('auth.register.confirmPassword')}
                     type="password"
                     required
                     fullWidth
@@ -327,7 +327,7 @@ const Register = () => {
                     onChange={handleChange}
                     error={!!formData.confirmPassword && !passwordsMatch}
                     helperText={
-                      !!formData.confirmPassword && !passwordsMatch ? 'Passwords do not match' : ''
+                      !!formData.confirmPassword && !passwordsMatch ? t('auth.register.passwordMismatch') : ''
                     }
                     InputProps={{
                       startAdornment: (
@@ -342,11 +342,11 @@ const Register = () => {
               </Grid>
 
               <List dense sx={{ pl: 1, pt: 2 }}>
-                {renderRequirement('At least 8 characters', isLongEnough)}
-                {renderRequirement('At least one uppercase letter', hasUpper)}
-                {renderRequirement('At least one lowercase letter', hasLower)}
-                {renderRequirement('At least one number', hasNumber)}
-                {renderRequirement('At least one special character (!@#$%)', hasSpecial)}
+                {renderRequirement(t('auth.register.requirement8Chars'), isLongEnough)}
+                {renderRequirement(t('auth.register.requirementUppercase'), hasUpper)}
+                {renderRequirement(t('auth.register.requirementLowercase'), hasLower)}
+                {renderRequirement(t('auth.register.requirementNumber'), hasNumber)}
+                {renderRequirement(t('auth.register.requirementSpecial'), hasSpecial)}
               </List>
 
               <Box sx={{ mt: 2 }}>
@@ -376,7 +376,7 @@ const Register = () => {
                       }}
                     />
                   }
-                  label="I agree to the terms and conditions"
+                  label={t('auth.register.agreeTerms')}
                 />
               </Box>
 
@@ -412,12 +412,12 @@ const Register = () => {
                 }}
                 aria-label="Create your account"
               >
-                Sign Up
+                {t('auth.register.signUp')}
               </Button>
 
               <Box sx={{ textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
-                  Already have an account?{' '}
+                  {t('auth.register.alreadyHaveAccount')}{' '}
                   <Link 
                     href="/auth/login" 
                     underline="hover" 
@@ -440,7 +440,7 @@ const Register = () => {
                     role="link"
                     aria-label="Sign in to your account"
                   >
-                    Sign in
+                    {t('auth.register.signIn')}
                   </Link>
                 </Typography>
               </Box>
