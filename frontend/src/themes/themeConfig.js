@@ -72,9 +72,9 @@ export const lightTheme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#558b2f',
-      light: '#7cb342',
-      dark: '#33691e',
+      main: '#2e7d32', 
+      light: '#4caf50',
+      dark: '#1b5e20',
       contrastText: '#ffffff',
     },
     secondary: {
@@ -101,9 +101,9 @@ export const lightTheme = createTheme({
       loginBg: '#f9fbf6',
       loginPaper: '#ffffffee',
       avatar: '#c9dbb6',
-      navbarGradient: 'linear-gradient(to right, #558b2f, #33691e)',
-      buttonGradient: 'linear-gradient(90deg, #8bc34a 0%, #558b2f 100%)',
-      buttonGradientHover: 'linear-gradient(90deg, #7cb342 0%, #33691e 100%)',
+      navbarGradient: 'linear-gradient(to right, #2e7d32, #1b5e20)',
+      buttonGradient: 'linear-gradient(90deg, #4caf50 0%, #2e7d32 100%)',
+      buttonGradientHover: 'linear-gradient(90deg, #388e3c 0%, #1b5e20 100%)',
     },
   },
 });
@@ -114,10 +114,10 @@ export const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#7cb342',
-      light: '#aed581',
-      dark: '#558b2f',
-      contrastText: '#ffffff',
+      main: '#4caf50', 
+      light: '#81c784',
+      dark: '#388e3c',
+      contrastText: '#000000',
     },
     secondary: {
       main: '#ffb74d',
@@ -143,9 +143,9 @@ export const darkTheme = createTheme({
       loginBg: '#191A19',
       loginPaper: '#161b22',
       avatar: '#f9fbf6',
-      navbarGradient: 'linear-gradient(to right,#1E5128, #4E9F3D)',
-      buttonGradient: 'linear-gradient(90deg, #1E5128, #4E9F3D)',
-      buttonGradientHover: 'linear-gradient(90deg, #2ea043 0%, #238636 100%)',
+      navbarGradient: 'linear-gradient(to right, #4caf50, #388e3c)',
+      buttonGradient: 'linear-gradient(90deg, #4caf50 0%, #388e3c 100%)',
+      buttonGradientHover: 'linear-gradient(90deg, #66bb6a 0%, #4caf50 100%)',
     },
   },
 });
