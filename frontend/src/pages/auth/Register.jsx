@@ -28,10 +28,12 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import { createFormKeyboardHandler, trapFocus } from '../../utils/keyboardNavigation';
 import LocationPicker from '../../components/LocationPicker';
 
 const Register = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: '',

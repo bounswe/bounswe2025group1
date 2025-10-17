@@ -18,8 +18,10 @@ import { useAuth } from '../contexts/AuthContextUtils';
 import CircularProgress from '@mui/material/CircularProgress';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 
 const ForumPreview = ({ limit = 3, showViewAll = true }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { token } = useAuth();
   const [posts, setPosts] = useState([]);
@@ -83,7 +85,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   return (
     <Paper elevation={2} sx={{ p: 3, height: 300 }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-        <ForumIcon sx={{ mr: 1 }} /> Community Forum
+        <ForumIcon sx={{ mr: 1 }} /> {t('forum.title')}
       </Typography>
 
       {displayPosts.length > 0 ? (
@@ -134,7 +136,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
                 onClick={() => navigate('/forum')}
                 sx={{ color: '#2e7d32', borderColor: '#2e7d32' }}
               >
-                Explore Forum
+                {t('forum.exploreForum')}
               </Button>
             </Box>
           )}
@@ -142,7 +144,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
       ) : (
         <>
           <Typography variant="body2" paragraph>
-            Join discussions, share gardening tips, and connect with fellow garden enthusiasts.
+            {t('forum.subtitle')}
           </Typography>
           <Button
             variant="outlined"
@@ -150,7 +152,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
             onClick={() => navigate('/forum')}
             sx={{ color: '#2e7d32', borderColor: '#2e7d32' }}
           >
-            Explore Forum
+            {t('forum.exploreForum')}
           </Button>
         </>
       )}

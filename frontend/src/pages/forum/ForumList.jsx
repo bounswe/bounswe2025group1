@@ -28,10 +28,12 @@ import ForumCreateDialog from '../../components/ForumCreateDialog';
 import CommentCreateDialog from '../../components/CommentCreateDialog';
 import React from 'react';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import 'react-toastify/dist/ReactToastify.css';
 import { createListNavigation, createButtonKeyboardHandler, createLinkKeyboardHandler } from '../../utils/keyboardNavigation';
 
 const ForumList = () => {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -165,10 +167,10 @@ const ForumList = () => {
           gutterBottom
           sx={{ fontWeight: 'bold', color: '#2e7d32', display: 'flex', alignItems: 'center' }}
         >
-          <ForumIcon sx={{ mr: 1 }} /> Community Forum
+          <ForumIcon sx={{ mr: 1 }} /> {t('forum.title')}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph sx={{ textAlign: 'left' }}>
-          Join discussions, share gardening tips, and connect with fellow garden enthusiasts.
+          {t('forum.subtitle')}
         </Typography>
         <Divider sx={{ my: 2 }} />
       </Box>
@@ -387,7 +389,7 @@ const ForumList = () => {
       ) : (
         <Box sx={{ py: 5, textAlign: 'left' }}>
           <Typography variant="h6" color="text.secondary">
-            No posts found
+            {t('forum.noPostsFound')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 3 }}>
             {searchTerm ? 'Try a different search term' : 'Be the first to create a post!'}
@@ -397,7 +399,7 @@ const ForumList = () => {
 
       {/* Create Post Floating Action Button (for logged in users) */}
       {user && (
-        <Tooltip title="Create new post" arrow placement="left">
+        <Tooltip title={t('forum.newPost')} arrow placement="left">
           <Fab
             color="primary"
             aria-label="create post"

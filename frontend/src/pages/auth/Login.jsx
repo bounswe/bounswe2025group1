@@ -19,8 +19,10 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { createFormKeyboardHandler, trapFocus } from '../../utils/keyboardNavigation';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -135,7 +137,7 @@ const Login = () => {
               color: theme.palette.mode === 'dark' ? '#ffffff' : 'inherit',
             }}>🌿</Avatar>
             <Typography component="h1" variant="h5" fontWeight="bold">
-              Sign in to Garden Planner
+              {t('auth.login.title')}
             </Typography>
             <Box 
               ref={formRef}
@@ -151,7 +153,7 @@ const Login = () => {
                 required
                 fullWidth
                 id="username"
-                label="Username"
+                label={t('auth.login.email')}
                 name="username"
                 autoComplete="username"
                 autoFocus
@@ -164,14 +166,14 @@ const Login = () => {
                     </InputAdornment>
                   ),
                 }}
-                aria-label="Username"
+                aria-label={t('auth.login.email')}
               />
               <TextField
                 margin="normal"
                 required
                 fullWidth
                 name="password"
-                label="Password"
+                label={t('auth.login.password')}
                 type="password"
                 id="password"
                 autoComplete="current-password"
@@ -185,7 +187,7 @@ const Login = () => {
                   ),
                 }}
 
-                aria-label="Password"
+                aria-label={t('auth.login.password')}
               />
               <Button
                 type="submit"
@@ -209,9 +211,9 @@ const Login = () => {
                     outlineOffset: '2px',
                   },
                 }}
-                aria-label="Sign in to your account"
+                aria-label={t('auth.login.signInButton')}
               >
-                Sign In
+                {t('auth.login.signInButton')}
               </Button>
               <Box sx={{ mt: 3, textAlign: 'center' }}>
                 <Link
@@ -239,10 +241,10 @@ const Login = () => {
                     }
                   }}
                 >
-                  Forgot password?
+                  {t('auth.login.forgotPassword')}
                 </Link>
                 <Typography variant="body2" color="text.secondary">
-                  Don't have an account?{' '}
+                  {t('auth.login.noAccount')}{' '}
                   <Link 
                     href="/auth/register" 
                     underline="hover" 
@@ -265,7 +267,7 @@ const Login = () => {
                       }
                     }}
                   >
-                    Sign up
+                    {t('auth.login.signUpLink')}
                   </Link>
                 </Typography>
               </Box>
