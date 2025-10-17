@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Modal, Fade, Backdrop, Box, Typography, TextField, Switch, Button } from '@mui/material';
 import { createFormKeyboardHandler, createButtonKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
+import LocationPicker from './LocationPicker';
 
 const GardenModal = ({
   open,
@@ -92,14 +93,13 @@ const GardenModal = ({
             value={form.description}
             onChange={handleChange}
           />
-          <TextField
-            label="Location"
-            name="location"
-            fullWidth
-            margin="normal"
+          <LocationPicker
             value={form.location}
-            onChange={handleChange}
+            onChange={(value) => handleChange({ target: { name: 'location', value } })}
+            label="Garden Location"
             required
+            height={250}
+            sx={{ mt: 2, mb: 2 }}
           />
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
             <Typography variant="body1" sx={{ mr: 2 }}>
