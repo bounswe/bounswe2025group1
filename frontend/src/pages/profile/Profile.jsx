@@ -53,12 +53,24 @@ const Profile = () => {
   userId = userId ? userId.toString() : (user?.user_id?.toString() || '');
   const isOwnProfile = !userId || (user && user?.user_id?.toString() === userId);
 
+  useEffect(() => {
+    if (userId && isNaN(Number(userId))) {
+      toast.error('Invalid profile ID');
+      navigate('/profile');
+      return;
+    }
+  }, [userId, navigate]);
+
   // Fetch profile data
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!token) {
         navigate('/auth/login');
         return;
+      }
+
+      if (userId && isNaN(Number(userId))) {
+        return; 
       }
 
       try {
