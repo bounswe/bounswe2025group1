@@ -16,6 +16,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  useTheme,
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonIcon from '@mui/icons-material/Person';
@@ -44,6 +45,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
   const formRef = useRef(null);
   const focusableElementsRef = useRef([]);
 
@@ -161,7 +163,7 @@ const Register = () => {
       component="main"
       maxWidth="sm"
       sx={{
-        backgroundColor: '#f1f8e9',
+        backgroundColor: theme.palette.custom?.loginBg || theme.palette.background.default,
         minHeight: '80vh',
         display: 'flex',
         alignItems: 'center',
@@ -174,14 +176,25 @@ const Register = () => {
           sx={{
             p: 4,
             borderRadius: 3,
-            backgroundColor: '#ffffffee',
-            boxShadow: '0px 6px 20px rgba(85, 139, 47, 0.2)',
+            backgroundColor: theme.palette.custom?.loginPaper || theme.palette.background.paper,
+            boxShadow: theme.palette.mode === 'dark' 
+              ? '0px 6px 20px rgba(35, 134, 54, 0.3)' 
+              : theme.palette.mode === 'light'
+              ? '0px 6px 20px rgba(85, 139, 47, 0.2)'
+              : '0px 6px 20px rgba(0, 0, 0, 0.5)',
+            border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
+              ? '2px solid #000000' 
+              : 'none',
           }}
         >
           <Box
             sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}
           >
-            <Avatar sx={{ m: 1, bgcolor: '#c9dbb6' }}>🌱</Avatar>
+            <Avatar sx={{ 
+              m: 1, 
+              bgcolor: theme.palette.custom?.avatar || theme.palette.primary.light,
+              color: theme.palette.mode === 'dark' ? '#ffffff' : 'inherit',
+            }}>🌱</Avatar>
             <Typography component="h1" variant="h5" fontWeight="bold">
               Join the Garden Community
             </Typography>
@@ -353,7 +366,9 @@ const Register = () => {
                       }}
                       sx={{
                         '&:focus': {
-                          outline: '2px solid #558b2f',
+                          outline: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+                            ? '3px solid #ffff00'
+                            : `2px solid ${theme.palette.primary.main}`,
                           outlineOffset: '2px',
                         },
                       }}
@@ -371,17 +386,25 @@ const Register = () => {
                 sx={{
                   mt: 3,
                   mb: 2,
-                  background: 'linear-gradient(90deg, #8bc34a 0%, #558b2f 100%)',
-                  color: '#fff',
+                  background: theme.palette.custom?.buttonGradient || theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
+                    ? '2px solid #000000' 
+                    : 'none',
                   '&:hover': {
-                    background: 'linear-gradient(90deg, #7cb342 0%, #33691e 100%)',
+                    background: theme.palette.custom?.buttonGradientHover || theme.palette.primary.dark,
                   },
                   '&.Mui-disabled': {
-                    background: '#cfd8dc',
-                    color: '#666',
+                    background: theme.palette.mode === 'dark' ? '#333333' : '#cfd8dc',
+                    color: theme.palette.mode === 'dark' ? '#666666' : '#666',
+                    border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
+                      ? '2px solid #666666' 
+                      : 'none',
                   },
                   '&:focus': {
-                    outline: '2px solid #558b2f',
+                    outline: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+                      ? '3px solid #ffff00'
+                      : `2px solid ${theme.palette.primary.main}`,
                     outlineOffset: '2px',
                   },
                 }}
@@ -405,7 +428,9 @@ const Register = () => {
                     }}
                     sx={{
                       '&:focus': {
-                        outline: '2px solid #558b2f',
+                        outline: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+                          ? '3px solid #ffff00'
+                          : `2px solid ${theme.palette.primary.main}`,
                         outlineOffset: '2px',
                       },
                     }}

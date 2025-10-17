@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { Container, Typography, Box, Button, CircularProgress } from '@mui/material';
+import { Container, Typography, Box, Button, CircularProgress, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CalendarTab from '../../components/CalendarTab';
 import WeatherWidget from '../../components/WeatherWidget';
@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 const Tasks = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -198,7 +199,7 @@ const Tasks = () => {
             />
           </Box>
           <Box>
-            <Typography variant="h4" sx={{ mt: 1, mb: 2, color: '#558b2f' }}>
+            <Typography variant="h4" sx={{ mt: 1, mb: 2, color: theme.palette.primary.main }}>
               Task Calendar
             </Typography>
             <CalendarTab tasks={tasks} handleTaskClick={handleTaskClick} />

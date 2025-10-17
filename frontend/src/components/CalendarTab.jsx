@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
-import { Box, Typography, Paper, Chip, Button } from '@mui/material';
+import { Box, Typography, Paper, Chip, Button, useTheme } from '@mui/material';
 import { bgForStatus } from '../utils/taskUtils';
 import isoWeek from 'dayjs/plugin/isoWeek';
 dayjs.extend(isoWeek);
 
 const CalendarTab = ({ tasks, handleTaskClick, onEmptyDayClick }) => {
+  const theme = useTheme();
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const startOfMonth = currentMonth.startOf('month').startOf('week');
   const endOfMonth = currentMonth.endOf('month').endOf('week');
@@ -101,7 +102,16 @@ const CalendarTab = ({ tasks, handleTaskClick, onEmptyDayClick }) => {
                     key={task.id}
                     label={task.title}
                     size="small"
-                    sx={{ maxWidth: '100%', bgcolor: bgForStatus(task.status), cursor: 'pointer' }}
+                    sx={{ 
+                      maxWidth: '100%', 
+                      bgcolor: bgForStatus(task.status, theme),
+                      color: theme.palette.text.primary,
+                      cursor: 'pointer',
+                      '& .MuiChip-label': {
+                        color: theme.palette.text.primary,
+                        fontWeight: 500,
+                      }
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleTaskClick(task);

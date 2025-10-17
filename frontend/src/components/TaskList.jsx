@@ -9,6 +9,7 @@ import {
   ListItemIcon,
   Chip,
   ButtonBase,
+  useTheme,
 } from '@mui/material';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { bgForStatus, iconColorForStatus } from '../utils/taskUtils';
@@ -23,6 +24,7 @@ const TaskList = ({
   handleDeclineTask,
 }) => {
   const { user } = useAuth();
+  const theme = useTheme();
   const listRef = useRef(null);
   const taskRefs = useRef([]);
 
@@ -80,7 +82,11 @@ const TaskList = ({
             label={tasks.length}
             size="small"
             color="primary"
-            sx={{ bgcolor: '#e8f5e9', color: '#2e7d32', fontWeight: 'bold' }}
+            sx={{ 
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9', 
+              color: theme.palette.mode === 'dark' ? '#4caf50' : '#2e7d32', 
+              fontWeight: 'bold' 
+            }}
           />
         )}
       </Typography>
@@ -104,13 +110,13 @@ const TaskList = ({
                 mb: 1,
                 borderRadius: 1,
                 cursor: handleTaskClick ? 'pointer' : 'default',
-                bgcolor: bgForStatus(task.status),
+                bgcolor: bgForStatus(task.status, theme),
                 '&:focus': {
                   outline: '2px solid #558b2f',
                   outlineOffset: '2px',
                 },
                 '&:hover': {
-                  bgcolor: bgForStatus(task.status),
+                  bgcolor: bgForStatus(task.status, theme),
                   filter: 'brightness(0.95)',
                 },
               }}
@@ -137,6 +143,15 @@ const TaskList = ({
                   month: 'short',
                   day: 'numeric',
                 })}`}
+                sx={{
+                  '& .MuiListItemText-primary': {
+                    color: theme.palette.text.primary,
+                    fontWeight: 500,
+                  },
+                  '& .MuiListItemText-secondary': {
+                    color: theme.palette.text.secondary,
+                  },
+                }}
               />
               {user && task.assigned_to === user.user_id && task.status === 'PENDING' && (
                 <Box sx={{ display: 'flex', gap: 1 }}>
