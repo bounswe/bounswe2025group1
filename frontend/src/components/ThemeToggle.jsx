@@ -119,31 +119,6 @@ const ThemeToggle = () => {
         ))}
         
         <Divider />
-        
-        <MenuItem
-          onClick={() => {
-            toggleHighContrast();
-            handleClose();
-          }}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            py: 1.5,
-            '&:focus': {
-              outline: currentTheme === 'highContrast' ? '3px solid #ffff00' : '2px solid #558b2f',
-              outlineOffset: '2px',
-            },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 'auto' }}>
-            <HighContrastIcon />
-          </ListItemIcon>
-          <ListItemText 
-            primary="Toggle High Contrast" 
-            secondary="Quick accessibility toggle"
-          />
-        </MenuItem>
       </Menu>
     </>
   );
