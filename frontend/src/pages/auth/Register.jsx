@@ -28,6 +28,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import { createFormKeyboardHandler, trapFocus } from '../../utils/keyboardNavigation';
+import LocationPicker from '../../components/LocationPicker';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -273,20 +274,12 @@ const Register = () => {
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                  <TextField
-                    name="location"
-                    required
-                    fullWidth
-                    label="Location"
+                  <LocationPicker
                     value={formData.location}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonAddIcon />
-                        </InputAdornment>
-                      ),
-                    }}
+                    onChange={(value) => setFormData({ ...formData, location: value })}
+                    label="Location"
+                    required
+                    height={200}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
