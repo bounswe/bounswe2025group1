@@ -15,7 +15,7 @@ const GardensPreview = ({ limit = 2 }) => {
       try {
         if (token) {
           const membershipsResponse = await fetch(
-            `${import.meta.env.VITE_API_URL}/user/${user.user_id}/gardens`,
+            `${import.meta.env.VITE_API_URL}/memberships/`,
             {
               method: 'GET',
               headers: {
@@ -32,11 +32,15 @@ const GardensPreview = ({ limit = 2 }) => {
           }
 
           const membershipsData = await membershipsResponse.json();
+          console.log('All memberships:', membershipsData);
+          console.log('Current user:', user.username);
 
-          // Filter memberships where status is ACCEPTED and username matches
+          // Filter memberships where status is ACCEPTED and username matches current user
           const acceptedGardenIds = membershipsData
-            .filter((m) => m.status === 'ACCEPTED')
+            .filter((m) => m.status === 'ACCEPTED' && m.username === user.username)
             .map((m) => m.garden);
+          
+          console.log('Accepted garden IDs for user:', acceptedGardenIds);
 
           // Fetch each garden by ID
           const gardensData = [];
@@ -58,6 +62,7 @@ const GardensPreview = ({ limit = 2 }) => {
             }
           }
 
+          console.log('Final gardens data:', gardensData);
           setGardens(gardensData);
         } else {
           // For non-authenticated users, fetch public gardens
