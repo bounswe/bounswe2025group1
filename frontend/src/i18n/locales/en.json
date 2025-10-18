@@ -54,8 +54,38 @@
       "emailRequired": "Email is required",
       "emailInvalid": "Please enter a valid email address",
       "passwordRequired": "Password is required",
+      "loginFailed": "Login failed",
+      "welcomeBack": "Welcome back to the garden!",
+      "failedToLogin": "Failed to log in. Please check your credentials.",
       "loginSuccess": "Login successful!",
       "loginError": "Login failed. Please check your credentials."
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "description": "Enter your email and we'll send you a link to reset your password if it exists.",
+      "pleaseEnterEmail": "Please enter your email address",
+      "failedToSendResetLink": "Failed to send reset link.",
+      "resetLinkSent": "Reset link has been sent if such an email exists.",
+      "checkEmail": "Please check your email.",
+      "emailAddress": "Email Address",
+      "sendResetLink": "Send Reset Link",
+      "backToLogin": "← Back to Login"
+    },
+    "resetPassword": {
+      "title": "Reset Your Password",
+      "invalidToken": "Invalid or missing token.",
+      "tokenMissing": "Reset token is missing.",
+      "passwordsDoNotMatch": "Passwords do not match.",
+      "passwordRequirementsNotMet": "Password does not meet all requirements.",
+      "failedToReset": "Failed to reset password.",
+      "resetSuccessful": "Password reset successfully!",
+      "redirecting": "Password reset. Redirecting to login...",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "resetPasswordButton": "Reset Password",
+      "backTo": "Back to",
+      "login": "Login",
+      "logoutFailed": "Logout failed"
     },
     "register": {
       "title": "Join the Garden Community",
@@ -118,7 +148,9 @@
     "gardenLocation": "Garden Location",
     "makeGardenPublic": "Do you wish this garden to be public?",
     "deleteGarden": "Delete Garden",
-    "saveChanges": "Save Changes"
+    "saveChanges": "Save Changes",
+    "tryDifferentSearchTerm": "Try a different search term",
+    "beFirstToCreatePost": "Be the first to create a post!"
   },
   "forum": {
     "title": "Community Forum",
@@ -204,7 +236,9 @@
     "declineTask": "Decline Task",
     "createTask": "Create Task",
     "failedToCreateTaskType": "Failed to create custom task type",
-    "tasksRelatedTo": "Tasks related to {{name}}"
+    "tasksRelatedTo": "Tasks related to {{name}}",
+    "taskCreatedSuccessfully": "Task created successfully!",
+    "taskUpdatedSuccessfully": "Task updated successfully!"
   },
   "weather": {
     "title": "Weather Forecast",

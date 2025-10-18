@@ -269,10 +269,10 @@ const GardenList = () => {
         ) : (
           <Box sx={{ width: '100%', textAlign: 'center', py: 5 }}>
             <Typography variant="h6" color="text.secondary">
-              No gardens found matching your search.
+              {t('gardens.noGardensFound')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Try a different search term or create a new garden.
+              {t('gardens.tryDifferentSearchTerm')}
             </Typography>
           </Box>
         )}

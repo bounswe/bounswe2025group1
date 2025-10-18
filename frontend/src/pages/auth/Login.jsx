@@ -45,7 +45,7 @@ const Login = () => {
       });
 
       if (!response.ok) {
-        toast.error('Login failed');
+        toast.error(t('auth.login.loginFailed'));
         return;
       }
 
@@ -54,14 +54,14 @@ const Login = () => {
       // Save user and token via context
       login(data);
 
-      toast.success('Welcome back to the garden!', {
+      toast.success(t('auth.login.welcomeBack'), {
         position: 'top-right',
         theme: 'colored',
       });
 
       setTimeout(() => navigate('/'), 2000);
     } catch (error) {
-      toast.error('Failed to log in. Please check your credentials.', {
+      toast.error(t('auth.login.failedToLogin'), {
         position: 'top-right',
         theme: 'colored',
       });

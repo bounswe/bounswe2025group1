@@ -30,8 +30,10 @@ import TaskModal from '../../components/TaskModal';
 import CalendarTab from '../../components/CalendarTab';
 import GardenModal from '../../components/GardenModal';
 import TaskBoard from '../../components/TaskBoard';
+import { useTranslation } from 'react-i18next';
 
 const GardenDetail = () => {
+  const { t } = useTranslation();
   const [garden, setGarden] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [members, setMembers] = useState([]);

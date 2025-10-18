@@ -55,7 +55,37 @@
       "emailInvalid": "Lütfen geçerli bir e-posta adresi girin",
       "passwordRequired": "Şifre gereklidir",
       "loginSuccess": "Giriş başarılı!",
-      "loginError": "Giriş başarısız. Lütfen bilgilerinizi kontrol edin."
+      "loginError": "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.",
+      "loginFailed": "Giriş başarısız",
+      "welcomeBack": "Bahçeye tekrar hoş geldiniz!",
+      "failedToLogin": "Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin."
+    },
+    "forgotPassword": {
+      "title": "Şifrenizi mi unuttunuz?",
+      "description": "E-postanızı girin, varsa şifrenizi sıfırlamak için size bir bağlantı gönderelim.",
+      "pleaseEnterEmail": "Lütfen e-posta adresinizi girin",
+      "failedToSendResetLink": "Sıfırlama bağlantısı gönderilemedi.",
+      "resetLinkSent": "Böyle bir e-posta varsa sıfırlama bağlantısı gönderildi.",
+      "checkEmail": "Lütfen e-postanızı kontrol edin.",
+      "emailAddress": "E-posta Adresi",
+      "sendResetLink": "Sıfırlama Bağlantısı Gönder",
+      "backToLogin": "← Girişe Dön"
+    },
+    "resetPassword": {
+      "title": "Şifrenizi Sıfırlayın",
+      "invalidToken": "Geçersiz veya eksik token.",
+      "tokenMissing": "Sıfırlama token'ı eksik.",
+      "passwordsDoNotMatch": "Şifreler eşleşmiyor.",
+      "passwordRequirementsNotMet": "Şifre tüm gereksinimleri karşılamıyor.",
+      "failedToReset": "Şifre sıfırlanamadı.",
+      "resetSuccessful": "Şifre başarıyla sıfırlandı!",
+      "redirecting": "Şifre sıfırlandı. Girişe yönlendiriliyor...",
+      "newPassword": "Yeni Şifre",
+      "confirmPassword": "Şifreyi Onayla",
+      "resetPasswordButton": "Şifreyi Sıfırla",
+      "backTo": "Geri dön:",
+      "login": "Giriş",
+      "logoutFailed": "Çıkış başarısız"
     },
     "register": {
       "title": "Bahçe Topluluğuna Katılın",
@@ -118,7 +148,9 @@
     "gardenLocation": "Bahçe Konumu",
     "makeGardenPublic": "Bu bahçenin herkese açık olmasını istiyor musunuz?",
     "deleteGarden": "Bahçeyi Sil",
-    "saveChanges": "Değişiklikleri Kaydet"
+    "saveChanges": "Değişiklikleri Kaydet",
+    "tryDifferentSearchTerm": "Farklı bir arama terimi deneyin",
+    "beFirstToCreatePost": "İlk gönderiyi oluşturun!"
   },
   "forum": {
     "title": "Topluluk Forumu",
