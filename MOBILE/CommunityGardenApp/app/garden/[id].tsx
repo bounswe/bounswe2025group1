@@ -4,7 +4,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Image, FlatList, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
-import { API_URL, COLORS } from '../../constants/Config';
+import { API_URL } from '../../constants/Config';
+import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import { useAuth } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,6 +19,7 @@ export default function GardenDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { token, user } = useAuth();
+  const colors = useAccessibleColors();
   const navigation = useNavigation();
 
   const [garden, setGarden] = useState<any>(null);
@@ -34,12 +36,12 @@ export default function GardenDetailScreen() {
     navigation.setOptions({
       headerLeft: () => (
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
-          <Text style={{ color: COLORS.primaryDark, fontWeight: 'bold' }}>Back</Text>
+          <Text style={{ color: colors.white, fontWeight: 'bold' }}>Back</Text>
         </TouchableOpacity>
       ),
       headerTitle: 'Garden Detail',
     });
-  }, [navigation]);
+  }, [navigation, colors]);
 
   useEffect(() => {
     fetchGarden();
@@ -238,7 +240,7 @@ export default function GardenDetailScreen() {
   });
 
   if (loading || !garden) {
-    return <ActivityIndicator style={{ flex: 1 }} size="large" color={COLORS.primary} />;
+    return <ActivityIndicator style={{ flex: 1 }} size="large" color={colors.primary} />;
   }
   const userIsManager = members.some((m: any) => m.username === user?.username && m.role === 'MANAGER' && m.status === 'ACCEPTED');
   
@@ -257,34 +259,46 @@ export default function GardenDetailScreen() {
     }
   };
   return (
-    <View style={styles.container}>
-      <View style={styles.headerCard}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.headerCard, { backgroundColor: colors.surface }]}>
         <Image source={{ uri: (garden as any).image }} style={styles.headerImage} />
         <View style={styles.headerContent}>
-          <Text style={styles.gardenName}>{(garden as any).name}</Text>
+          <Text style={[styles.gardenName, { color: colors.text }]}>{(garden as any).name}</Text>
           <View style={styles.chipRow}>
-            <View style={styles.chip}><Ionicons name="location-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{(garden as any).location}</Text></View>
-            <View style={styles.chip}><Ionicons name="people-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{members.filter(m => m.status === 'ACCEPTED').length} Members</Text></View>
-            <View style={styles.chip}><Ionicons name="list-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{tasks.length} Tasks</Text></View>
+            <View style={[styles.chip, { backgroundColor: colors.secondary }]}>
+              <Ionicons name="location-outline" size={16} color={colors.primary} />
+              <Text style={[styles.chipText, { color: colors.text }]}>{(garden as any).location}</Text>
+            </View>
+            <View style={[styles.chip, { backgroundColor: colors.secondary }]}>
+              <Ionicons name="people-outline" size={16} color={colors.primary} />
+              <Text style={[styles.chipText, { color: colors.text }]}>{members.filter(m => m.status === 'ACCEPTED').length} Members</Text>
+            </View>
+            <View style={[styles.chip, { backgroundColor: colors.secondary }]}>
+              <Ionicons name="list-outline" size={16} color={colors.primary} />
+              <Text style={[styles.chipText, { color: colors.text }]}>{tasks.length} Tasks</Text>
+            </View>
           </View>
-          <Text style={styles.gardenDesc}>{(garden as any).description}</Text>
-          {membershipStatus && <Text style={styles.status}>Membership Status: {membershipStatus}</Text>}
+          <Text style={[styles.gardenDesc, { color: colors.textSecondary }]}>{(garden as any).description}</Text>
+          {membershipStatus && <Text style={[styles.status, { color: colors.primary }]}>Membership Status: {membershipStatus}</Text>}
           {garden.is_public && !membershipStatus && (
-            <TouchableOpacity style={styles.button} onPress={handleJoin} disabled={joining}>
-              <Text style={styles.buttonText}>{joining ? 'Sending Request...' : 'Join Garden'}</Text>
+            <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={handleJoin} disabled={joining}>
+              <Text style={[styles.buttonText, { color: colors.white }]}>{joining ? 'Sending Request...' : 'Join Garden'}</Text>
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      <View style={styles.tabsRow}>
+      <View style={[styles.tabsRow, { borderColor: colors.border }]}>
         {TABS.map((label, idx) => (
           <TouchableOpacity
             key={label}
-            style={[styles.tab, tab === idx && styles.tabActive]}
+            style={[styles.tab, tab === idx && { borderBottomColor: colors.primary }]}
             onPress={() => setTab(idx)}
           >
-            <Text style={[styles.tabText, tab === idx && styles.tabTextActive]}>{label}</Text>
+            <Text style={[styles.tabText, { 
+              color: tab === idx ? colors.primary : colors.text,
+              fontWeight: tab === idx ? 'bold' : 'normal'
+            }]}>{label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -292,55 +306,55 @@ export default function GardenDetailScreen() {
       <View style={styles.tabContent}>
         {tab === 0 && (
           <View>
-            <Text style={styles.sectionTitle}>Garden Tasks</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Garden Tasks</Text>
             {membershipStatus === 'ACCEPTED' && userIsManager && (
             <TouchableOpacity
                 onPress={() => router.push({ pathname: '/tasks/create-task', params: { gardenId: id.toString() } })}
-                style={{ backgroundColor: COLORS.primary, padding: 10, borderRadius: 8, marginBottom: 16 }}
+                style={{ backgroundColor: colors.primary, padding: 10, borderRadius: 8, marginBottom: 16 }}
             >
-                <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center' }}>+ Create Task</Text>
+                <Text style={{ color: colors.white, fontWeight: 'bold', textAlign: 'center' }}>+ Create Task</Text>
             </TouchableOpacity>
             )}
-            <Text style={styles.statusTitle}>Pending ({pendingTasks.length})</Text>
-            <FlatList data={pendingTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color="#fff9c4" />} />
-            <Text style={styles.statusTitle}>In Progress ({inProgressTasks.length})</Text>
-            <FlatList data={inProgressTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color="#e3f2fd" />} />
-            <Text style={styles.statusTitle}>Completed ({completedTasks.length})</Text>
-            <FlatList data={completedTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color="#e8f5e9" />} />
+            <Text style={[styles.statusTitle, { color: colors.primary }]}>Pending ({pendingTasks.length})</Text>
+            <FlatList data={pendingTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color={colors.surface} />} />
+            <Text style={[styles.statusTitle, { color: colors.primary }]}>In Progress ({inProgressTasks.length})</Text>
+            <FlatList data={inProgressTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color={colors.surface} />} />
+            <Text style={[styles.statusTitle, { color: colors.primary }]}>Completed ({completedTasks.length})</Text>
+            <FlatList data={completedTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color={colors.surface} />} />
           </View>
         )}
         {tab === 1 && (
         <View>
-            <Text style={styles.sectionTitle}>Garden Members</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Garden Members</Text>
             <FlatList
             data={members}
             keyExtractor={(item: any) => item.id.toString()}
             renderItem={({ item }: { item: any }) => (
-                <View style={taskCardStyles.card}>
-                <Text style={taskCardStyles.title}>Username: {item.username}</Text>
-                <Text>Role: {item.role}</Text>
-                <Text>Status: {item.status}</Text>
+                <View style={[taskCardStyles.card, { backgroundColor: colors.surface }]}>
+                <Text style={[taskCardStyles.title, { color: colors.text }]}>Username: {item.username}</Text>
+                <Text style={{ color: colors.textSecondary }}>Role: {item.role}</Text>
+                <Text style={{ color: colors.textSecondary }}>Status: {item.status}</Text>
 
                 {/* Follow/Unfollow and Block/Unblock button for each member except self */}
                 {user && String(item.user_id) !== String(user.id) && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
                     {blockedIds.includes(Number(item.user_id)) ? (
-                      <TouchableOpacity style={styles.unfollowButtonSmall} onPress={() => handleUnblock(Number(item.user_id))}>
-                        <Text style={styles.unfollowButtonTextSmall}>Unblock</Text>
+                      <TouchableOpacity style={[styles.unfollowButtonSmall, { backgroundColor: colors.surface }]} onPress={() => handleUnblock(Number(item.user_id))}>
+                        <Text style={[styles.unfollowButtonTextSmall, { color: colors.error }]}>Unblock</Text>
                       </TouchableOpacity>
                     ) : (
                       <>
                         {followingIds.includes(Number(item.user_id)) ? (
-                          <TouchableOpacity style={styles.unfollowButtonSmall} onPress={() => handleUnfollow(Number(item.user_id))}>
-                            <Text style={styles.unfollowButtonTextSmall}>Unfollow</Text>
+                          <TouchableOpacity style={[styles.unfollowButtonSmall, { backgroundColor: colors.surface }]} onPress={() => handleUnfollow(Number(item.user_id))}>
+                            <Text style={[styles.unfollowButtonTextSmall, { color: colors.error }]}>Unfollow</Text>
                           </TouchableOpacity>
                         ) : (
-                          <TouchableOpacity style={styles.followButtonSmall} onPress={() => handleFollow(Number(item.user_id))}>
-                            <Text style={styles.followButtonTextSmall}>Follow</Text>
+                          <TouchableOpacity style={[styles.followButtonSmall, { backgroundColor: colors.primary }]} onPress={() => handleFollow(Number(item.user_id))}>
+                            <Text style={[styles.followButtonTextSmall, { color: colors.white }]}>Follow</Text>
                           </TouchableOpacity>
                         )}
-                        <TouchableOpacity style={styles.blockIconButton} onPress={() => handleBlock(Number(item.user_id))}>
-                          <Text style={styles.blockIconText}>🚫</Text>
+                        <TouchableOpacity style={[styles.blockIconButton, { backgroundColor: colors.error }]} onPress={() => handleBlock(Number(item.user_id))}>
+                          <Text style={[styles.blockIconText, { color: colors.white }]}>🚫</Text>
                         </TouchableOpacity>
                       </>
                     )}
@@ -352,9 +366,9 @@ export default function GardenDetailScreen() {
                     <View style={{ flexDirection: 'row', marginTop: 8, gap: 10 }}>
                     <TouchableOpacity
                         onPress={() => handleMembershipAccept(item.id)}
-                        style={{ backgroundColor: 'green', padding: 6, borderRadius: 4 }}
+                        style={{ backgroundColor: colors.success, padding: 6, borderRadius: 4 }}
                     >
-                        <Text style={{ color: 'white' }}>Accept</Text>
+                        <Text style={{ color: colors.white }}>Accept</Text>
                     </TouchableOpacity>
                     </View>
                 )}
@@ -373,10 +387,21 @@ export default function GardenDetailScreen() {
                 // Optional: show a modal or filtered task list here
               }}
               theme={{
-                calendarBackground: '#fff',
-                todayTextColor: COLORS.primary,
-                arrowColor: COLORS.primaryDark,
-                dotColor: COLORS.primaryDark,
+                calendarBackground: colors.surface,
+                textSectionTitleColor: colors.text,
+                dayTextColor: colors.text,
+                todayTextColor: colors.primary,
+                selectedDayTextColor: colors.white,
+                selectedDayBackgroundColor: colors.primary,
+                arrowColor: colors.primary,
+                monthTextColor: colors.text,
+                indicatorColor: colors.primary,
+                textDayFontWeight: '300',
+                textMonthFontWeight: 'bold',
+                textDayHeaderFontWeight: '300',
+                textDayFontSize: 16,
+                textMonthFontSize: 16,
+                textDayHeaderFontSize: 13
               }}
             />
           </View>
@@ -388,16 +413,17 @@ export default function GardenDetailScreen() {
 
 function TaskCard({ task, color }: { task: any; color: any }) {
   const router = useRouter();
+  const colors = useAccessibleColors();
   return (
     <View style={[taskCardStyles.card, { backgroundColor: color }]}>
-      <Text style={taskCardStyles.title}>{task.title}</Text>
-      <Text style={taskCardStyles.caption}>Due: {task.due_date?.split('T')[0]}</Text>
+      <Text style={[taskCardStyles.title, { color: colors.text }]}>{task.title}</Text>
+      <Text style={[taskCardStyles.caption, { color: colors.textSecondary }]}>Due: {task.due_date?.split('T')[0]}</Text>
       <View style={taskCardStyles.row}>
-        <Text style={taskCardStyles.caption}>{task.assigned_to_username || 'Unassigned'}</Text>
+        <Text style={[taskCardStyles.caption, { color: colors.textSecondary }]}>{task.assigned_to_username || 'Unassigned'}</Text>
         <TouchableOpacity
           onPress={() => router.push({ pathname: '/tasks/task-detail', params: { taskId: task.id.toString() } })}
         >
-          <Text style={taskCardStyles.details}>Details</Text>
+          <Text style={[taskCardStyles.details, { color: colors.primary }]}>Details</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -405,33 +431,32 @@ function TaskCard({ task, color }: { task: any; color: any }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  headerCard: { flexDirection: 'row', backgroundColor: COLORS.white, borderRadius: 12, margin: 16, overflow: 'hidden', elevation: 2 },
+  container: { flex: 1 },
+  headerCard: { flexDirection: 'row', borderRadius: 12, margin: 16, overflow: 'hidden', elevation: 2 },
   headerImage: { width: 120, height: 120, backgroundColor: '#eee' },
   headerContent: { flex: 1, padding: 16 },
-  gardenName: { fontSize: 22, fontWeight: 'bold', color: COLORS.primaryDark },
+  gardenName: { fontSize: 22, fontWeight: 'bold' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', marginVertical: 8 },
-  chip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#e8f5e9', borderRadius: 16, paddingHorizontal: 10, paddingVertical: 4, marginRight: 8 },
-  chipText: { marginLeft: 4, color: COLORS.primaryDark, fontSize: 13 },
-  gardenDesc: { fontSize: 15, color: COLORS.text, marginVertical: 6 },
-  status: { color: COLORS.primaryDark, fontSize: 14, marginBottom: 8 },
-  button: { backgroundColor: COLORS.primary, padding: 10, borderRadius: 8, marginTop: 10 },
-  buttonText: { color: '#fff', fontWeight: 'bold' },
-  tabsRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#e0e0e0', marginHorizontal: 16, marginTop: 8 },
+  chip: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, paddingHorizontal: 10, paddingVertical: 4, marginRight: 8 },
+  chipText: { marginLeft: 4, fontSize: 13 },
+  gardenDesc: { fontSize: 15, marginVertical: 6 },
+  status: { fontSize: 14, marginBottom: 8 },
+  button: { padding: 10, borderRadius: 8, marginTop: 10 },
+  buttonText: { fontWeight: 'bold' },
+  tabsRow: { flexDirection: 'row', borderBottomWidth: 1, marginHorizontal: 16, marginTop: 8 },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
-  tabActive: { borderBottomWidth: 3, borderColor: COLORS.primaryDark },
-  tabText: { fontSize: 16, color: COLORS.text },
-  tabTextActive: { color: COLORS.primaryDark, fontWeight: 'bold' },
+  tabActive: { borderBottomWidth: 3 },
+  tabText: { fontSize: 16 },
+  tabTextActive: { fontWeight: 'bold' },
   tabContent: { padding: 16 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: COLORS.primaryDark, marginBottom: 8 },
-  statusTitle: { fontSize: 15, fontWeight: 'bold', color: COLORS.primary, marginTop: 16, marginBottom: 4 },
-  emptyText: { color: COLORS.text, fontSize: 14, textAlign: 'center', marginVertical: 8 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
+  statusTitle: { fontSize: 15, fontWeight: 'bold', marginTop: 16, marginBottom: 4 },
+  emptyText: { fontSize: 14, textAlign: 'center', marginVertical: 8 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  errorText: { color: COLORS.error, fontSize: 18, marginBottom: 16 },
-  backButton: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8 },
-  backButtonText: { color: COLORS.white, fontWeight: 'bold' },
+  errorText: { fontSize: 18, marginBottom: 16 },
+  backButton: { padding: 12, borderRadius: 8 },
+  backButtonText: { fontWeight: 'bold' },
   unfollowButtonSmall: {
-    backgroundColor: '#eee',
     paddingVertical: 8,
     paddingHorizontal: 18,
     borderRadius: 8,
@@ -439,12 +464,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   unfollowButtonTextSmall: {
-    color: '#d00',
     fontWeight: 'bold',
     fontSize: 15,
   },
   followButtonSmall: {
-    backgroundColor: COLORS.primary,
     paddingVertical: 8,
     paddingHorizontal: 18,
     borderRadius: 8,
@@ -452,12 +475,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   followButtonTextSmall: {
-    color: 'white',
     fontWeight: 'bold',
     fontSize: 15,
   },
   blockIconButton: {
-    backgroundColor: '#ffdddd',
     padding: 8,
     borderRadius: 50,
     alignItems: 'center',
@@ -467,15 +488,14 @@ const styles = StyleSheet.create({
   },
   blockIconText: {
     fontSize: 18,
-    color: '#d00',
     fontWeight: 'bold',
   },
 });
 
 const taskCardStyles = StyleSheet.create({
   card: { borderRadius: 10, padding: 12, marginBottom: 10, elevation: 1 },
-  title: { fontWeight: 'bold', fontSize: 15, color: COLORS.primaryDark },
-  caption: { fontSize: 13, color: COLORS.text },
+  title: { fontWeight: 'bold', fontSize: 15 },
+  caption: { fontSize: 13 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 },
-  details: { color: COLORS.primary, fontWeight: 'bold', fontSize: 13 },
+  details: { fontWeight: 'bold', fontSize: 13 },
 });

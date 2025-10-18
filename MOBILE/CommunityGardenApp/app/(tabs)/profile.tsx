@@ -8,10 +8,14 @@ import { useRouter, useNavigation } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import { useAccessibleColors, useAccessibleTheme } from '../../contexts/AccessibilityContextSimple';
+
 const TABS = ['Gardens', 'Followers', 'Following'];
 
 export default function ProfileScreen() {
   const { user, token, logout } = useAuth();
+  const colors = useAccessibleColors();
+  const theme = useAccessibleTheme();
   const router = useRouter();
   const navigation = useNavigation();
   const [profile, setProfile] = useState(null);
@@ -130,9 +134,9 @@ export default function ProfileScreen() {
     );
   }
   const renderGarden = ({ item }: { item: any }) => (
-    <View style={styles.gardenCard}>
+    <View style={[styles.gardenCard, { backgroundColor: colors.surface }]}>
       <View style={styles.row}>
-        <Text style={styles.gardenName}>{item.name}</Text>
+        <Text style={[styles.gardenName, { color: colors.text }]}>{item.name}</Text>
         <TouchableOpacity
           onPress={() =>
             router.push({
@@ -141,43 +145,52 @@ export default function ProfileScreen() {
             })
           }
         >
-          <Text style={styles.detailButtonText}>Go to Detail</Text>
+          <Text style={[styles.detailButtonText, { color: colors.primary }]}>Go to Detail</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Ionicons name="person-circle-outline" size={80} color={COLORS.primaryDark} style={{ marginBottom: 8 }} />
-        <Text style={styles.username}>{profile.username}</Text>
-        <Text style={styles.email}>{profile.email}</Text>
-        <Text style={styles.location}>{profile.profile?.location}</Text>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Logout</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface }]}>
+        <Ionicons name="person-circle-outline" size={80} color={colors.primary} style={{ marginBottom: 8 }} />
+        <Text style={[styles.username, { color: colors.text }]}>{profile.username}</Text>
+        <Text style={[styles.email, { color: colors.textSecondary }]}>{profile.email}</Text>
+        <Text style={[styles.location, { color: colors.textSecondary }]}>{profile.profile?.location}</Text>
+        
+        <TouchableOpacity 
+          style={[styles.logoutButton, { backgroundColor: colors.error }]} 
+          onPress={handleLogout}
+          accessibilityLabel="Logout"
+          accessibilityHint="Sign out of your account"
+        >
+          <Text style={[styles.logoutText, { color: colors.white }]}>Logout</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.tabsRow}>
+      <View style={[styles.tabsRow, { borderColor: colors.border }]}>
         {TABS.map((label, idx) => (
           <TouchableOpacity
             key={label}
-            style={[styles.tab, tab === idx && styles.tabActive]}
+            style={[styles.tab, tab === idx && { borderBottomColor: colors.primary }]}
             onPress={() => setTab(idx)}
           >
-            <Text style={[styles.tabText, tab === idx && styles.tabTextActive]}>{label}</Text>
+            <Text style={[styles.tabText, {
+              color: tab === idx ? colors.primary : colors.text,
+              fontWeight: tab === idx ? 'bold' : 'normal'
+            }]}>{label}</Text>
           </TouchableOpacity>
         ))}
       </View>
       <View style={styles.tabContent}>
         {tab === 0 && (
           <View>
-            <Text style={styles.sectionTitle}>Your Gardens</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Gardens</Text>
             <FlatList
               data={gardens}
               keyExtractor={(item, index) => item?.id?.toString() || `fallback-${index}`}
               renderItem={renderGarden} // <-- use your extracted function here
-              ListEmptyComponent={<Text style={styles.emptyText}>No gardens yet.</Text>}
+              ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>No gardens yet.</Text>}
             />
           </View>
         )}
@@ -185,48 +198,48 @@ export default function ProfileScreen() {
 
         {tab === 1 && (
           <View>
-            <Text style={styles.sectionTitle}>Followers</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Followers</Text>
             <FlatList
               data={followers}
               keyExtractor={item => item.id.toString()}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => router.push(`/user/${item.id}`)}
-                  style={styles.followerCard}
+                  style={[styles.followerCard, { backgroundColor: colors.surface }]}
                 >
-                  <Ionicons name="person-outline" size={24} color={COLORS.primaryDark} />
-                  <Text style={styles.followerName}>{item.username}</Text>
+                  <Ionicons name="person-outline" size={24} color={colors.primary} />
+                  <Text style={[styles.followerName, { color: colors.text }]}>{item.username}</Text>
                 </TouchableOpacity>
               )}
-              ListEmptyComponent={<Text style={styles.emptyText}>No followers yet.</Text>}
+              ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>No followers yet.</Text>}
             />
           </View>
         )}
 
         {tab === 2 && (
           <View>
-            <Text style={styles.sectionTitle}>Following</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Following</Text>
             <FlatList
               data={following}
               keyExtractor={item => item.id.toString()}
               renderItem={({ item }) => (
-                <View style={styles.followerCard}>
+                <View style={[styles.followerCard, { backgroundColor: colors.surface }]}>
                   <TouchableOpacity
                     onPress={() => router.push(`/user/${item.id}`)}
                     style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
                   >
-                    <Ionicons name="person-outline" size={24} color={COLORS.primaryDark} />
-                    <Text style={styles.followerName}>{item.username}</Text>
+                    <Ionicons name="person-outline" size={24} color={colors.primary} />
+                    <Text style={[styles.followerName, { color: colors.text }]}>{item.username}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={styles.unfollowButton}
+                    style={[styles.unfollowButton, { backgroundColor: colors.secondary }]}
                     onPress={() => handleUnfollow(item.id)}
                   >
-                    <Text style={styles.unfollowButtonText}>Unfollow</Text>
+                    <Text style={[styles.unfollowButtonText, { color: colors.error }]}>Unfollow</Text>
                   </TouchableOpacity>
                 </View>
               )}
-              ListEmptyComponent={<Text style={styles.emptyText}>Not following anyone yet.</Text>}
+              ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>Not following anyone yet.</Text>}
             />
           </View>
         )}
@@ -236,39 +249,35 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+  container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  errorText: { color: COLORS.error, fontSize: 18, marginBottom: 16 },
-  header: { alignItems: 'center', padding: 24, backgroundColor: COLORS.white, borderBottomWidth: 1, borderColor: '#e0e0e0' },
-  username: { fontSize: 22, fontWeight: 'bold', color: COLORS.primaryDark },
-  email: { fontSize: 15, color: COLORS.text },
-  location: { fontSize: 14, color: COLORS.text, marginBottom: 8 },
-  logoutButton: { marginTop: 12, backgroundColor: COLORS.error, paddingHorizontal: 24, paddingVertical: 8, borderRadius: 8 },
-  logoutText: { color: COLORS.white, fontWeight: 'bold', fontSize: 15 },
-  tabsRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#e0e0e0', marginTop: 16 },
+  errorText: { fontSize: 18, marginBottom: 16 },
+  header: { alignItems: 'center', padding: 24, borderBottomWidth: 1, borderColor: '#e0e0e0' },
+  username: { fontSize: 22, fontWeight: 'bold' },
+  email: { fontSize: 15 },
+  location: { fontSize: 14, marginBottom: 8 },
+  logoutButton: { marginTop: 12, paddingHorizontal: 24, paddingVertical: 8, borderRadius: 8 },
+  logoutText: { fontWeight: 'bold', fontSize: 15 },
+  tabsRow: { flexDirection: 'row', borderBottomWidth: 1, marginTop: 16 },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
-  tabActive: { borderBottomWidth: 3, borderColor: COLORS.primaryDark },
-  tabText: { fontSize: 16, color: COLORS.text },
-  tabTextActive: { color: COLORS.primaryDark, fontWeight: 'bold' },
+  tabText: { fontSize: 16 },
   tabContent: { padding: 16 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: COLORS.primaryDark, marginBottom: 8 },
-  gardenCard: { backgroundColor: COLORS.white, borderRadius: 10, padding: 12, marginBottom: 10, elevation: 1 },
-  gardenName: { fontWeight: 'bold', fontSize: 15, color: COLORS.primaryDark },
-  gardenDesc: { fontSize: 13, color: COLORS.text },
-  followerCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 10, padding: 12, marginBottom: 10, elevation: 1 },
-  followerName: { marginLeft: 10, fontSize: 15, color: COLORS.primaryDark },
-  emptyText: { color: COLORS.text, fontSize: 14, textAlign: 'center', marginVertical: 8 },
-  detailButtonText: {fontSize: 16,color: COLORS.primary,fontWeight: '600',},
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
+  gardenCard: { borderRadius: 10, padding: 12, marginBottom: 10, elevation: 1 },
+  gardenName: { fontWeight: 'bold', fontSize: 15 },
+  gardenDesc: { fontSize: 13 },
+  followerCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 10, padding: 12, marginBottom: 10, elevation: 1 },
+  followerName: { marginLeft: 10, fontSize: 15 },
+  emptyText: { fontSize: 14, textAlign: 'center', marginVertical: 8 },
+  detailButtonText: { fontSize: 16, fontWeight: '600' },
   row: {flexDirection: 'row',justifyContent: 'space-between',alignItems: 'center',},
   unfollowButton: {
-    backgroundColor: '#eee',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
     marginLeft: 10,
   },
   unfollowButtonText: {
-    color: '#d00',
     fontWeight: 'bold',
   },
 });
