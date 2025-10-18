@@ -26,6 +26,10 @@ import 'react-toastify/dist/ReactToastify.css';
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const uid = searchParams.get('uid');
+  
+  // Debug logging
+  console.log('Reset password params:', { uid, token, allParams: Object.fromEntries(searchParams) });
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -40,18 +44,18 @@ const ResetPassword = () => {
   const allValid = hasUpper && hasLower && hasNumber && hasSpecial && isLongEnough;
 
   useEffect(() => {
-    if (!token) {
-      setError('Invalid or missing token.');
+    if (!token || !uid) {
+      setError(t('auth.resetPassword.invalidToken'));
     }
-  }, [token]);
+  }, [token, uid]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!token) {
-      toast.error('Reset token is missing.', { position: 'top-right' });
-      return setError('Reset token is missing.');
+    if (!token || !uid) {
+      toast.error(t('auth.resetPassword.tokenMissing'), { position: 'top-right' });
+      return setError(t('auth.resetPassword.tokenMissing'));
     }
 
     if (password !== confirmPassword) {
@@ -65,10 +69,10 @@ const ResetPassword = () => {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/reset-password/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/reset/${uid}/${token}/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ password }),
       });
 
       if (!response.ok) {
