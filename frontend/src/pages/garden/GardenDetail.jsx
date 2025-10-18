@@ -30,6 +30,7 @@ import TaskModal from '../../components/TaskModal';
 import CalendarTab from '../../components/CalendarTab';
 import GardenModal from '../../components/GardenModal';
 import TaskBoard from '../../components/TaskBoard';
+import ImageGallery from '../../components/ImageGallery';
 
 const GardenDetail = () => {
   const [garden, setGarden] = useState(null);
@@ -82,6 +83,9 @@ const GardenDetail = () => {
           },
         });
         const gardenData = await gardenRes.json();
+        console.log('Garden data received:', gardenData);
+        console.log('Garden images:', gardenData.images);
+        console.log('Cover image:', gardenData.cover_image);
         setGarden(gardenData);
 
         const tasksRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/?garden=${gardenId}`, {
@@ -470,22 +474,35 @@ const GardenDetail = () => {
     }
   };
 
-  const handleGardenSubmit = async (e) => {
+  const handleGardenSubmit = async (e, formData) => {
     e.preventDefault();
 
     try {
+      // Extract image data if provided
+      const { cover_image_base64, gallery_base64, ...basicFormData } = formData || editForm;
+      
+      const requestBody = {
+        name: basicFormData.name || editForm.name,
+        description: basicFormData.description || editForm.description,
+        location: basicFormData.location || editForm.location,
+        is_public: basicFormData.isPublic !== undefined ? basicFormData.isPublic : editForm.isPublic,
+      };
+
+      // Add image data if provided
+      if (cover_image_base64 !== undefined) {
+        requestBody.cover_image_base64 = cover_image_base64;
+      }
+      if (gallery_base64 !== undefined) {
+        requestBody.gallery_base64 = gallery_base64;
+      }
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Token ${token}`,
         },
-        body: JSON.stringify({
-          name: editForm.name,
-          description: editForm.description,
-          location: editForm.location,
-          is_public: editForm.isPublic,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -573,6 +590,35 @@ const GardenDetail = () => {
             <Typography variant="body1" sx={{ textAlign: 'start' }}>
               {garden.description}
             </Typography>
+            
+            {/* Garden Images */}
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
+                Garden Gallery
+              </Typography>
+              {garden.images && garden.images.length > 0 ? (
+                <ImageGallery 
+                  images={garden.images}
+                  coverImage={garden.cover_image}
+                  maxColumns={3}
+                  imageHeight={200}
+                  showCoverBadge={true}
+                />
+              ) : (
+                <Box sx={{ 
+                  p: 3, 
+                  textAlign: 'center', 
+                  backgroundColor: 'grey.50', 
+                  borderRadius: 2,
+                  border: '2px dashed',
+                  borderColor: 'grey.300'
+                }}>
+                  <Typography variant="body2" color="text.secondary">
+                    No images uploaded yet. Garden managers can add images using the "Manage Garden" button.
+                  </Typography>
+                </Box>
+              )}
+            </Box>
           </Grid>{' '}
           <Grid
             size={{ xs: 12, md: 4 }}
@@ -779,6 +825,7 @@ const GardenDetail = () => {
         handleSubmit={handleGardenSubmit}
         handleDelete={handleDeleteGarden}
         mode="edit"
+        existingImages={garden}
       />
       <TaskModal
         open={editTaskModalOpen}

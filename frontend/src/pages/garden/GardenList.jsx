@@ -94,22 +94,35 @@ const GardenList = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, formData) => {
     e.preventDefault();
 
     try {
+      // Extract image data if provided
+      const { cover_image_base64, gallery_base64, ...basicFormData } = formData || form;
+      
+      const requestBody = {
+        name: basicFormData.name || form.name,
+        location: basicFormData.location || form.location,
+        description: basicFormData.description || form.description,
+        is_public: basicFormData.isPublic !== undefined ? basicFormData.isPublic : form.isPublic,
+      };
+
+      // Add image data if provided
+      if (cover_image_base64) {
+        requestBody.cover_image_base64 = cover_image_base64;
+      }
+      if (gallery_base64 && gallery_base64.length > 0) {
+        requestBody.gallery_base64 = gallery_base64;
+      }
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/gardens/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Token ${token}`,
         },
-        body: JSON.stringify({
-          name: form.name,
-          location: form.location,
-          description: form.description,
-          is_public: form.isPublic,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -228,7 +241,7 @@ const GardenList = () => {
               >
                 <CardMedia
                   component="img"
-                  image={`/gardens/garden${garden.id % 5}.png`}
+                  image={garden.cover_image?.image_base64 || `/gardens/garden${garden.id % 5}.png`}
                   alt={garden.name}
                   sx={{
                     width: '100%',
