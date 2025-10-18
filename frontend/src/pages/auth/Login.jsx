@@ -12,7 +12,7 @@ import {
   InputAdornment,
   useTheme,
 } from '@mui/material';
-import EmailIcon from '@mui/icons-material/Email';
+import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
@@ -160,11 +160,11 @@ const Login = () => {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <EmailIcon />
+                      <PersonIcon />
                     </InputAdornment>
                   ),
                 }}
-                aria-label="Username"
+                aria-label={t('auth.login.username')}
               />
               <TextField
                 margin="normal"

@@ -89,6 +89,7 @@ function AppContent() {
                 <Route path="/forum/:postId" element={<ForumPost />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
+                <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:userId" element={<Profile />} />
                 {/* Additional routes will be implemented later */}
