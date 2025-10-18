@@ -365,7 +365,12 @@ const LocationPicker = ({
 
       {isMapMode ? (
         <Paper elevation={2} sx={{ mb: 2, overflow: 'hidden', position: 'relative' }}>
-          <Box sx={{ height: height, position: 'relative' }}>
+          <Box sx={{ 
+            height: typeof height === 'object' ? height : height, 
+            position: 'relative',
+            minHeight: { xs: 200, sm: 250 },
+            maxHeight: { xs: 300, sm: 400, md: 500 }
+          }}>
             <MapContainer
               center={mapCenter}
               zoom={initialZoom}

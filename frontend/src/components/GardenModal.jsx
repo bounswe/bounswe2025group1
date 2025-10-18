@@ -58,11 +58,14 @@ const GardenModal = ({
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 500,
+            width: { xs: '95%', sm: '90%', md: 600 },
+            maxWidth: '90vw',
+            maxHeight: '90vh',
             bgcolor: 'background.paper',
             borderRadius: 2,
             boxShadow: 24,
-            p: 4,
+            p: { xs: 2, sm: 3, md: 4 },
+            overflow: 'auto',
             '&:focus': {
               outline: 'none',
             },
@@ -98,7 +101,7 @@ const GardenModal = ({
             onChange={(value) => handleChange({ target: { name: 'location', value } })}
             label="Garden Location"
             required
-            height={250}
+            height={{ xs: 200, sm: 250, md: 300 }}
             sx={{ mt: 2, mb: 2 }}
           />
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
@@ -107,13 +110,20 @@ const GardenModal = ({
             </Typography>
             <Switch checked={form.isPublic} onChange={handleTogglePublic} color="success" />
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, gap: 2 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'flex-end', 
+            mt: 4, 
+            gap: 2 
+          }}>
             {mode === 'edit' && (
               <Button 
                 variant="contained" 
                 color="error" 
                 onClick={handleDelete}
                 onKeyDown={createButtonKeyboardHandler(handleDelete)}
+                fullWidth={{ xs: true, sm: false }}
                 sx={{
                   '&:focus': {
                     outline: '2px solid #f44336',
@@ -128,6 +138,7 @@ const GardenModal = ({
               variant="outlined" 
               onClick={onClose}
               onKeyDown={createButtonKeyboardHandler(onClose)}
+              fullWidth={{ xs: true, sm: false }}
               sx={{
                 '&:focus': {
                   outline: '2px solid #1976d2',
@@ -140,6 +151,7 @@ const GardenModal = ({
             <Button
               type="submit"
               variant="contained"
+              fullWidth={{ xs: true, sm: false }}
               sx={{ 
                 backgroundColor: '#558b2f', 
                 '&:hover': { backgroundColor: '#33691e' },
