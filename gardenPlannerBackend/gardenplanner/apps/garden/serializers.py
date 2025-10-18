@@ -58,6 +58,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ['username', 'email', 'first_name', 'last_name', 'password', 'location', 'profile_picture']
 
+    def validate_email(self, value):
+        """Validate that email is unique"""
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
+
+    def validate_username(self, value):
+        """Validate that username is unique"""
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("A user with this username already exists.")
+        return value
+
     def create(self, validated_data):
         location = validated_data.pop('location', None)
         profile_picture = validated_data.pop('profile_picture', None)
