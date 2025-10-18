@@ -550,11 +550,11 @@ function Navbar() {
               color="primary"
               fullWidth
               onClick={() => {
-                navigate('/');
+                navigate('/auth/login');
                 setDrawerOpen(false);
               }}
               onKeyDown={createButtonKeyboardHandler(() => {
-                navigate('/');
+                navigate('/auth/login');
                 setDrawerOpen(false);
               })}
               sx={{ 
@@ -565,7 +565,7 @@ function Navbar() {
                 },
               }}
             >
-              Login
+              {t('navigation.login')}
             </Button>
             <Button
               variant="outlined"
