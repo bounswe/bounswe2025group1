@@ -26,6 +26,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import ForumCreateDialog from '../../components/ForumCreateDialog';
 import CommentCreateDialog from '../../components/CommentCreateDialog';
+import InlineImageUpload from '../../components/InlineImageUpload';
+import PostCard from '../../components/PostCard';
+import PostComposer from '../../components/PostComposer';
 import React from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -41,6 +44,9 @@ const ForumList = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
+  
+  // Modern UI state
+  const [useModernStyle, setUseModernStyle] = useState(true);
 
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -50,7 +56,7 @@ const ForumList = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/?include_comments=true`, {
           headers: {
             Authorization: `Token ${token}`,
           },
@@ -115,6 +121,92 @@ const ForumList = () => {
     navigate(`/forum/${selectedPostId}`);
   };
 
+  const handleModernPostSubmit = async (postData) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify({
+          title: postData.content.substring(0, 100) + (postData.content.length > 100 ? '...' : ''),
+          content: postData.content,
+          images_base64: postData.images,
+        }),
+      });
+
+      if (!response.ok) {
+        toast.error('Failed to create post');
+        return;
+      }
+
+      const newPost = await response.json();
+      setPosts([newPost, ...posts]);
+      setFilteredPosts([newPost, ...filteredPosts]);
+      
+      toast.success('Post created successfully!');
+    } catch (error) {
+      console.error('Error creating post:', error);
+      toast.error('Failed to create post. Please try again.');
+    }
+  };
+
+
+  const handlePostComment = async (postId, commentData) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/comments/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify({
+          forum_post: postId,
+          content: commentData.content,
+          images_base64: commentData.images,
+        }),
+      });
+
+      if (!response.ok) {
+        toast.error('Failed to post comment');
+        return;
+      }
+
+      const newComment = await response.json();
+      
+      // Update the posts list to include the new comment
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { 
+                ...post, 
+                comments: [...(post.comments || []), newComment],
+                comments_count: (post.comments_count || 0) + 1
+              }
+            : post
+        )
+      );
+      
+      setFilteredPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { 
+                ...post, 
+                comments: [...(post.comments || []), newComment],
+                comments_count: (post.comments_count || 0) + 1
+              }
+            : post
+        )
+      );
+      
+      toast.success('Comment posted successfully!');
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      toast.error('Failed to post comment. Please try again.');
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
@@ -157,246 +249,181 @@ const ForumList = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
+    <Container maxWidth="md" sx={{ mt: 2, mb: 6 }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography
-          variant="h4"
-          gutterBottom
-          sx={{ fontWeight: 'bold', color: '#2e7d32', display: 'flex', alignItems: 'center' }}
-        >
-          <ForumIcon sx={{ mr: 1 }} /> Community Forum
-        </Typography>
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: 'bold', color: '#2e7d32', display: 'flex', alignItems: 'center' }}
+          >
+            <ForumIcon sx={{ mr: 1 }} /> Community Forum
+          </Typography>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setUseModernStyle(!useModernStyle)}
+            sx={{
+              borderColor: '#558b2f',
+              color: '#558b2f',
+              textTransform: 'none',
+            }}
+          >
+            {useModernStyle ? 'Classic View' : 'Modern Style'}
+          </Button>
+        </Box>
         <Typography variant="subtitle1" color="text.secondary" paragraph sx={{ textAlign: 'left' }}>
           Join discussions, share gardening tips, and connect with fellow garden enthusiasts.
         </Typography>
-        <Divider sx={{ my: 2 }} />
       </Box>
 
-      {/* Search and Filter */}
-      <Paper elevation={1} sx={{ p: 2, mb: 4 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              ref={searchRef}
-              fullWidth
-              placeholder="Search posts by title, content or author..."
-              value={searchTerm}
-              onChange={handleSearch}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-              variant="outlined"
-              size="small"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '&:focus-within': {
-                    outline: '2px solid #558b2f',
-                    outlineOffset: '2px',
-                  },
-                },
-              }}
-              inputProps={{
-                'aria-label': 'Search forum posts',
-                'aria-describedby': 'search-help-text'
-              }}
-            />
-          </Grid>
-          <Grid
-            size={{ xs: 12, md: 6 }}
-            sx={{
-              display: 'flex',
-              justifyContent: { xs: 'flex-start', md: 'flex-end' },
-              alignItems: 'center',
-            }}
-          >
-            {user && (
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setCreateDialogOpen(true)}
-                onKeyDown={createButtonKeyboardHandler(() => setCreateDialogOpen(true))}
-                sx={{
-                  ml: 2,
-                  bgcolor: '#558b2f',
-                  '&:hover': { bgcolor: '#33691e' },
-                  '&:focus': {
-                    outline: '2px solid #558b2f',
-                    outlineOffset: '2px',
-                  },
-                }}
-                aria-label="Create new forum post"
-              >
-                New Post
-              </Button>
-            )}
-          </Grid>
-        </Grid>
+      {/* Search Bar */}
+      <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+        <TextField
+          ref={searchRef}
+          fullWidth
+          placeholder="Search posts..."
+          value={searchTerm}
+          onChange={handleSearch}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: 'text.secondary' }} />
+              </InputAdornment>
+            ),
+          }}
+          variant="outlined"
+          size="small"
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 3,
+              backgroundColor: '#f5f5f5',
+              '&:hover': {
+                backgroundColor: '#eeeeee',
+              },
+              '&.Mui-focused': {
+                backgroundColor: 'white',
+              },
+              '& fieldset': {
+                border: 'none',
+              },
+            },
+          }}
+        />
       </Paper>
+
+      {/* Modern Post Composer */}
+      {useModernStyle && user && (
+            <PostComposer
+          currentUser={user}
+          onSubmit={handleModernPostSubmit}
+          placeholder="What's on your mind?"
+        />
+      )}
 
       {/* Forum Posts */}
       {filteredPosts.length > 0 ? (
-        <Box onKeyDown={handleListKeyDown} role="list" aria-label="Forum posts">
-          {filteredPosts.map((post, index) => (
-            <Card
-              key={post.id}
-              ref={(el) => (postRefs.current[index] = el)}
-              component="div"
-              sx={{
-                mb: 3,
-                width: '100%',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                cursor: 'pointer',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: 3,
-                },
-                '&:focus': {
-                  outline: '2px solid #558b2f',
-                  outlineOffset: '2px',
-                },
-              }}
-              onClick={() => navigate(`/forum/${post.id}`)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  navigate(`/forum/${post.id}`);
-                }
-              }}
-              tabIndex={0}
-              role="listitem"
-              aria-label={`Forum post: ${post.title}`}
-            >
-            <CardContent>
-              <Grid container spacing={2}>
-                <Grid size={12}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mb: 1,
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {' '}
+        <Box>
+          {useModernStyle ? (
+            // Modern-style posts
+            filteredPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                currentUser={user}
+                isOwner={post.author === user?.id}
+                onComment={handlePostComment}
+                onEdit={(post) => navigate(`/forum/${post.id}`)}
+                onDelete={(postId) => console.log('Delete post:', postId)}
+              />
+            ))
+          ) : (
+            // Classic-style posts
+            <Box onKeyDown={handleListKeyDown} role="list" aria-label="Forum posts">
+              {filteredPosts.map((post, index) => (
+                <Card
+                  key={post.id}
+                  ref={(el) => (postRefs.current[index] = el)}
+                  component="div"
+                  sx={{
+                    mb: 3,
+                    width: '100%',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 3,
+                    },
+                    '&:focus': {
+                      outline: '2px solid #558b2f',
+                      outlineOffset: '2px',
+                    },
+                  }}
+                  onClick={() => navigate(`/forum/${post.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/forum/${post.id}`);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="listitem"
+                  aria-label={`Forum post: ${post.title}`}
+                >
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                       <Avatar sx={{ bgcolor: '#558b2f', width: 32, height: 32, mr: 1 }}>
                         {post.author_username && post.author_username.charAt(0)}
                       </Avatar>
                       <Typography variant="subtitle2" color="text.secondary">
-                        <Box
-                          component="span"
-                          sx={{ 
-                            cursor: 'pointer',
-                            '&:focus': {
-                              outline: '2px solid #558b2f',
-                              outlineOffset: '2px',
-                            },
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/profile/${post.author}`);
-                          }}
-                          onKeyDown={createLinkKeyboardHandler((e) => {
-                            e.stopPropagation();
-                            navigate(`/profile/${post.author}`);
-                          })}
-                          tabIndex={0}
-                          role="link"
-                          aria-label={`View profile of ${post.author_username}`}
-                        >
-                          {post.author_username}
-                        </Box>{' '}
-                        • {formatDate(post.created_at)}
+                        {post.author_username} • {formatDate(post.created_at)}
                       </Typography>
                     </Box>
-                  </Box>
-                  <Typography variant="h6" gutterBottom sx={{ textAlign: 'left' }}>
-                    {post.title}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    paragraph
-                    sx={{ mb: 2, textAlign: 'left' }}
-                  >
-                    {post.content.length > 200
-                      ? `${post.content.substring(0, 200)}...`
-                      : post.content}
-                  </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                    {user && (
+                    <Typography variant="h6" gutterBottom sx={{ textAlign: 'left' }}>
+                      {post.title}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      paragraph
+                      sx={{ mb: 2, textAlign: 'left' }}
+                    >
+                      {post.content.length > 200
+                        ? `${post.content.substring(0, 200)}...`
+                        : post.content}
+                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                       <Button
                         variant="text"
-                        startIcon={<AddCommentIcon />}
+                        startIcon={<ReadMoreIcon />}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleOpenCommentDialog(post.id);
+                          navigate(`/forum/${post.id}`);
                         }}
-                        onKeyDown={createButtonKeyboardHandler((e) => {
-                          e.stopPropagation();
-                          handleOpenCommentDialog(post.id);
-                        })}
-                        sx={{ 
-                          mr: 2, 
-                          color: '#558b2f', 
-                          borderColor: '#558b2f',
-                          '&:focus': {
-                            outline: '2px solid #558b2f',
-                            outlineOffset: '2px',
-                          },
-                        }}
-                        aria-label={`Add comment to post: ${post.title}`}
+                        sx={{ color: '#558b2f' }}
                       >
-                        Comment
+                        Read More
                       </Button>
-                    )}
-                    <Button
-                      variant="text"
-                      startIcon={<ReadMoreIcon />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/forum/${post.id}`);
-                      }}
-                      onKeyDown={createButtonKeyboardHandler((e) => {
-                        e.stopPropagation();
-                        navigate(`/forum/${post.id}`);
-                      })}
-                      sx={{ 
-                        color: '#558b2f',
-                        '&:focus': {
-                          outline: '2px solid #558b2f',
-                          outlineOffset: '2px',
-                        },
-                      }}
-                      aria-label={`Read full post: ${post.title}`}
-                    >
-                      Read More
-                    </Button>
-                  </Box>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-          ))}
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          )}
         </Box>
       ) : (
-        <Box sx={{ py: 5, textAlign: 'left' }}>
+        <Box sx={{ py: 5, textAlign: 'center' }}>
           <Typography variant="h6" color="text.secondary">
             No posts found
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             {searchTerm ? 'Try a different search term' : 'Be the first to create a post!'}
           </Typography>
         </Box>
       )}
 
-      {/* Create Post Floating Action Button (for logged in users) */}
-      {user && (
+      {/* Create Post Floating Action Button (for classic view) */}
+      {user && !useModernStyle && (
         <Tooltip title="Create new post" arrow placement="left">
           <Fab
             color="primary"
