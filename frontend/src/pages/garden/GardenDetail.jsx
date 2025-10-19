@@ -76,43 +76,50 @@ const GardenDetail = () => {
     const fetchGardenData = async () => {
       setLoading(true);
       try {
+        const gardenHeaders = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          gardenHeaders.Authorization = `Token ${token}`;
+        }
+        
         const gardenRes = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`,
-          },
+          headers: gardenHeaders,
         });
         const gardenData = await gardenRes.json();
         setGarden(gardenData);
 
-        const tasksRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/?garden=${gardenId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`,
-          },
-        });
-        const tasksData = await tasksRes.json();
-        setTasks(tasksData);
-
-        const membersResponse = await fetch(
-          `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/members/`,
-          {
+        // Only fetch tasks and members for authenticated users
+        if (token) {
+          const tasksRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/?garden=${gardenId}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Token ${token}`,
             },
+          });
+          const tasksData = await tasksRes.json();
+          setTasks(tasksData);
+
+          const membersResponse = await fetch(
+            `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/members/`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`,
+              },
+            }
+          );
+          const membersData = await membersResponse.json();
+          setMembers(membersData || []);
+          if (user) {
+            const userMember = membersData?.find((m) => m.username === user.username);
+            setIsMember(!!userMember);
+            setIsManager(userMember?.role === 'MANAGER');
+            setUserMembership(userMember);
           }
-        );
-        const membersData = await membersResponse.json();
-        setMembers(membersData || []);
-        if (user) {
-          const userMember = membersData?.find((m) => m.username === user.username);
-          setIsMember(!!userMember);
-          setIsManager(userMember?.role === 'MANAGER');
-          setUserMembership(userMember);
         }
         setEditForm({
           name: gardenData.name || '',
@@ -126,7 +133,7 @@ const GardenDetail = () => {
       setLoading(false);
     };
 
-    if (gardenId && token) {
+    if (gardenId) {
       fetchGardenData();
     }
   }, [gardenId, user, token]);
@@ -663,20 +670,63 @@ const GardenDetail = () => {
               )}
             </Box>
 
-            <TaskBoard
-              tasks={tasks}
-              setTasks={setTasks}
-              onTaskClick={handleTaskChipClick}
-              handleTaskUpdate={handleTaskUpdate}
-            />
+            {!token ? (
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                p: 4,
+                textAlign: 'center'
+              }}>
+                <Typography variant="body1" color="text.secondary" gutterBottom>
+                  {t('tasks.pleaseLogIn')}
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/auth/login')}
+                  sx={{ mt: 2 }}
+                >
+                  {t('tasks.logIn')}
+                </Button>
+              </Box>
+            ) : (
+              <TaskBoard
+                tasks={tasks}
+                setTasks={setTasks}
+                onTaskClick={handleTaskChipClick}
+                handleTaskUpdate={handleTaskUpdate}
+              />
+            )}
           </Box>
         )}
 
         {/* Members Tab */}
         {activeTab === 1 && (
           <Box>
-            <List>
-              {members.map((member) => (
+            {!token ? (
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                p: 4,
+                textAlign: 'center'
+              }}>
+                <Typography variant="body1" color="text.secondary" gutterBottom>
+                  Please log in to view garden members.
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/auth/login')}
+                  sx={{ mt: 2 }}
+                >
+                  {t('tasks.logIn')}
+                </Button>
+              </Box>
+            ) : (
+              <List>
+                {members.map((member) => (
                 <Paper key={member.id} elevation={1} sx={{ mb: 2 }}>
                   <ListItem>
                     <ListItemAvatar>
@@ -746,23 +796,46 @@ const GardenDetail = () => {
                   No members found
                 </Typography>
               )}
-            </List>
+              </List>
+            )}
           </Box>
         )}
 
         {/* Calendar Tab */}
         {activeTab === 2 && (
-          <CalendarTab
-            tasks={tasks}
-            onTaskClick={handleTaskChipClick}
-            onEmptyDayClick={(date) => {
-              setTaskForm((prev) => ({
-                ...prev,
-                deadline: date.toISOString(),
-              }));
-              setOpenTaskModal(true);
-            }}
-          />
+          !token ? (
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              p: 4,
+              textAlign: 'center'
+            }}>
+              <Typography variant="body1" color="text.secondary" gutterBottom>
+                {t('tasks.pleaseLogIn')}
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => navigate('/auth/login')}
+                sx={{ mt: 2 }}
+              >
+                {t('tasks.logIn')}
+              </Button>
+            </Box>
+          ) : (
+            <CalendarTab
+              tasks={tasks}
+              onTaskClick={handleTaskChipClick}
+              onEmptyDayClick={(date) => {
+                setTaskForm((prev) => ({
+                  ...prev,
+                  deadline: date.toISOString(),
+                }));
+                setOpenTaskModal(true);
+              }}
+            />
+          )
         )}
       </Box>
       <TaskModal
