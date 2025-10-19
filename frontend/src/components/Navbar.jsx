@@ -290,7 +290,11 @@ function Navbar() {
                   aria-haspopup="true"
                   aria-expanded={Boolean(anchorElUser)}
                 >
-                  <Avatar alt="User" src="/static/avatar.jpg" sx={{ width: 36, height: 36 }}>
+                  <Avatar 
+                    alt="User" 
+                    src={user?.profile?.profile_picture || '/default-avatar.png'} 
+                    sx={{ width: 36, height: 36 }}
+                  >
                     <AccountCircleIcon />
                   </Avatar>
                 </IconButton>

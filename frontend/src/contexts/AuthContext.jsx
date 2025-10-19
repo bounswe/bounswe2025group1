@@ -24,7 +24,39 @@ export const AuthProvider = ({ children }) => {
           
           if (response.ok) {
             // Token is valid, set user and token
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            
+            // If user doesn't have profile data, fetch it
+            if (!parsedUser.profile) {
+              try {
+                
+                const profileResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
+                  headers: {
+                    'Authorization': `Token ${storedToken}`,
+                  },
+                });
+                
+                if (profileResponse.ok) {
+                  const profileData = await profileResponse.json();
+                  
+                  // Merge stored user with fresh profile data
+                  const completeUserData = {
+                    ...parsedUser,
+                    ...profileData
+                  };
+                  
+                  setUser(completeUserData);
+                  setToken(storedToken);
+                  localStorage.setItem('user', JSON.stringify(completeUserData));
+                  return;
+                }
+              } catch (error) {
+                console.error('Profile fetch error on init:', error);
+              }
+            }
+            
+            // Fallback to stored user data
+            setUser(parsedUser);
             setToken(storedToken);
           } else {
             // Token is invalid, clear stored data
@@ -45,7 +77,41 @@ export const AuthProvider = ({ children }) => {
     validateStoredAuth();
   }, []);
 
-  const login = (data) => {
+  const login = async (data) => {
+    
+    // If login data doesn't include profile, fetch it
+    if (!data.profile) {
+      try {
+        
+        const profileResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
+          headers: {
+            'Authorization': `Token ${data.token}`,
+          },
+        });
+        
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          
+          // Merge login data with profile data
+          const completeUserData = {
+            ...data,
+            ...profileData
+          };
+          
+          setUser(completeUserData);
+          setToken(data.token);
+          localStorage.setItem('user', JSON.stringify(completeUserData));
+          localStorage.setItem('token', data.token);
+          return true;
+        } else {
+          console.error('Profile fetch failed:', profileResponse.status, profileResponse.statusText);
+        }
+      } catch (error) {
+        console.error('Profile fetch error:', error);
+      }
+    }
+    
+    // Fallback to original data if profile fetch fails
     setUser(data);
     setToken(data.token);
     localStorage.setItem('user', JSON.stringify(data));
@@ -89,6 +155,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (updatedUserData) => {
+    setUser(updatedUserData);
+    localStorage.setItem('user', JSON.stringify(updatedUserData));
+  };
+
   const value = {
     user,
     token,
@@ -96,6 +167,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
