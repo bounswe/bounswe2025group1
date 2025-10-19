@@ -22,8 +22,10 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 
 const ResetPassword = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const { uid: pathUid, token: pathToken } = useParams();
   
@@ -62,13 +64,13 @@ const ResetPassword = () => {
     }
 
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match.', { position: 'top-right' });
-      return setError('Passwords do not match.');
+      toast.error(t('auth.resetPassword.passwordsDoNotMatch'), { position: 'top-right' });
+      return setError(t('auth.resetPassword.passwordsDoNotMatch'));
     }
 
     if (!allValid) {
-      toast.error('Password does not meet all requirements.', { position: 'top-right' });
-      return setError('Password does not meet all requirements.');
+      toast.error(t('auth.resetPassword.passwordRequirementsNotMet'), { position: 'top-right' });
+      return setError(t('auth.resetPassword.passwordRequirementsNotMet'));
     }
 
     try {
@@ -80,11 +82,11 @@ const ResetPassword = () => {
 
       if (!response.ok) {
         const resData = await response.json();
-        toast.error(resData.detail || 'Failed to reset password.');
-        return setError(resData.detail || 'Failed to reset password.');
+        toast.error(resData.detail || t('auth.resetPassword.failedToReset'));
+        return setError(resData.detail || t('auth.resetPassword.failedToReset'));
       }
 
-      toast.success('Password reset successfully!', { position: 'top-right' });
+      toast.success(t('auth.resetPassword.resetSuccessful'), { position: 'top-right' });
       setSubmitted(true);
       setTimeout(() => navigate('/auth/login'), 2000);
     } catch (err) {
@@ -127,7 +129,7 @@ const ResetPassword = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Avatar sx={{ m: 1, bgcolor: '#c9dbb6' }}>🌼</Avatar>
             <Typography component="h1" variant="h5" fontWeight="bold">
-              Reset Your Password
+              {t('auth.resetPassword.title')}
             </Typography>
             {error && (
               <Typography color="error" sx={{ mt: 2 }}>
@@ -136,7 +138,7 @@ const ResetPassword = () => {
             )}
             {submitted ? (
               <Typography sx={{ mt: 3 }} color="success.main">
-                Password reset. Redirecting to login...
+                {t('auth.resetPassword.redirecting')}
               </Typography>
             ) : (
               <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
@@ -144,7 +146,7 @@ const ResetPassword = () => {
                   required
                   fullWidth
                   name="password"
-                  label="New Password"
+                  label={t('auth.resetPassword.newPassword')}
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -161,7 +163,7 @@ const ResetPassword = () => {
                   required
                   fullWidth
                   name="confirmPassword"
-                  label="Confirm Password"
+                  label={t('auth.resetPassword.confirmPassword')}
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -174,11 +176,11 @@ const ResetPassword = () => {
                   }}
                 />
                 <List dense sx={{ pl: 1, mb: 2 }}>
-                  {renderRequirement('At least 8 characters', isLongEnough)}
-                  {renderRequirement('At least one uppercase letter', hasUpper)}
-                  {renderRequirement('At least one lowercase letter', hasLower)}
-                  {renderRequirement('At least one number', hasNumber)}
-                  {renderRequirement('At least one special character (!@#$%)', hasSpecial)}
+                  {renderRequirement(t('auth.register.requirement8Chars'), isLongEnough)}
+                  {renderRequirement(t('auth.register.requirementUppercase'), hasUpper)}
+                  {renderRequirement(t('auth.register.requirementLowercase'), hasLower)}
+                  {renderRequirement(t('auth.register.requirementNumber'), hasNumber)}
+                  {renderRequirement(t('auth.register.requirementSpecial'), hasSpecial)}
                 </List>
                 <Button
                   type="submit"
@@ -199,15 +201,15 @@ const ResetPassword = () => {
                     },
                   }}
                 >
-                  Reset Password
+                  {t('auth.resetPassword.resetPasswordButton')}
                 </Button>
               </Box>
             )}
             <Box sx={{ textAlign: 'center', mt: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                Back to{' '}
+                {t('auth.resetPassword.backTo')}{' '}
                 <Link href="/auth/login" underline="hover" color="primary">
-                  Login
+                  {t('auth.resetPassword.login')}
                 </Link>
               </Typography>
             </Box>

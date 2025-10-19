@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography, Paper, Button, useTheme } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { bgForStatus, iconColorForStatus } from '../utils/taskUtils';
+import { useTranslation } from 'react-i18next';
 
 const STATUS_ORDER = ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'DECLINED'];
 const STATUS_LABELS = {
@@ -12,6 +13,7 @@ const STATUS_LABELS = {
 };
 
 const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   
   const onDragEnd = (result) => {
@@ -46,7 +48,7 @@ const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
                 }}
               >
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                  {STATUS_LABELS[status]} ({tasks.filter((t) => t.status === status).length})
+                  {t(`tasks.${status.toLowerCase()}`)} ({tasks.filter((t) => t.status === status).length})
                 </Typography>
 
                 {tasks
@@ -80,7 +82,7 @@ const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
                               color: theme.palette.text.secondary,
                             }}
                           >
-                            Due:{' '}
+                            {t('tasks.due')}:{' '}
                             {task.due_date ? new Date(task.due_date).toLocaleDateString() : '—'}
                           </Typography>
                           <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between' }}>
@@ -88,14 +90,14 @@ const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
                               variant="caption"
                               sx={{ color: theme.palette.text.secondary }}
                             >
-                              {task.assigned_to_username || 'Unassigned'}
+                              {task.assigned_to_username || t('tasks.unassigned')}
                             </Typography>
                             <Button
                               size="small"
                               onClick={() => onTaskClick?.(task)}
                               sx={{ color: 'text.secondary', minWidth: 'auto' }}
                             >
-                              Details
+                              {t('tasks.details')}
                             </Button>
                           </Box>
                         </Paper>

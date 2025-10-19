@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import dayjs from 'dayjs';
 import { Box, Typography, Paper, Chip, Button, useTheme } from '@mui/material';
 import { bgForStatus } from '../utils/taskUtils';
+import { useTranslation } from 'react-i18next';
 import isoWeek from 'dayjs/plugin/isoWeek';
 dayjs.extend(isoWeek);
 
 const CalendarTab = ({ tasks, handleTaskClick, onEmptyDayClick }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const startOfMonth = currentMonth.startOf('month').startOf('week');
@@ -53,8 +55,16 @@ const CalendarTab = ({ tasks, handleTaskClick, onEmptyDayClick }) => {
           mb: 1,
         }}
       >
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-          <Typography key={day} variant="subtitle2" align="center" fontWeight="bold">
+        {[
+          t('calendar.sun'), 
+          t('calendar.mon'), 
+          t('calendar.tue'), 
+          t('calendar.wed'), 
+          t('calendar.thu'), 
+          t('calendar.fri'), 
+          t('calendar.sat')
+        ].map((day, index) => (
+          <Typography key={index} variant="subtitle2" align="center" fontWeight="bold">
             {day}
           </Typography>
         ))}

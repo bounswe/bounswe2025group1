@@ -37,14 +37,16 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createRovingTabindex, createButtonKeyboardHandler, createLinkKeyboardHandler } from '../utils/keyboardNavigation';
 import ThemeToggle from './ThemeToggle';
+import LanguageToggle from './LanguageToggle';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
-const pages = [
-  { name: 'Home', path: '/', icon: <HomeIcon /> },
-  { name: 'Gardens', path: '/gardens', icon: <YardIcon /> },
-  { name: 'Tasks', path: '/tasks', icon: <AssignmentIcon /> },
-  { name: 'Forum', path: '/forum', icon: <ForumIcon /> },
+const getPages = (t) => [
+  { name: t('navigation.home'), path: '/', icon: <HomeIcon /> },
+  { name: t('navigation.gardens'), path: '/gardens', icon: <YardIcon /> },
+  { name: t('navigation.dashboard'), path: '/tasks', icon: <AssignmentIcon /> },
+  { name: t('navigation.forum'), path: '/forum', icon: <ForumIcon /> },
 ];
 
 const settings = [
@@ -55,6 +57,7 @@ const settings = [
 ];
 
 function Navbar() {
+  const { t } = useTranslation();
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -65,6 +68,10 @@ function Navbar() {
   const muiTheme = useMuiTheme();
   const drawerItemsRef = useRef([]);
   const settingsMenuRef = useRef([]);
+  
+  // Get translated navigation items
+  const pages = getPages(t);
+  const settings = getSettings(t);
 
   // Track scroll position to add shadow when scrolled
   useEffect(() => {
@@ -264,8 +271,9 @@ function Navbar() {
             ))}
           </Box>
 
-          {/* Theme toggle - always visible */}
+          {/* Theme and Language toggles - always visible */}
           <Box sx={{ display: 'flex', alignItems: 'center', mr: user ? 2 : 0 }}>
+            <LanguageToggle />
             <ThemeToggle />
           </Box>
 
@@ -371,7 +379,7 @@ function Navbar() {
                   },
                 }}
               >
-                Login
+                {t('navigation.login')}
               </Button>
               <Button
                 variant="outlined"
@@ -390,7 +398,7 @@ function Navbar() {
                   },
                 }}
               >
-                Sign Up
+                {t('navigation.register')}
               </Button>
             </Box>
           )}
@@ -543,11 +551,11 @@ function Navbar() {
               color="primary"
               fullWidth
               onClick={() => {
-                navigate('/');
+                navigate('/auth/login');
                 setDrawerOpen(false);
               }}
               onKeyDown={createButtonKeyboardHandler(() => {
-                navigate('/');
+                navigate('/auth/login');
                 setDrawerOpen(false);
               })}
               sx={{ 
@@ -558,7 +566,7 @@ function Navbar() {
                 },
               }}
             >
-              Login
+              {t('navigation.login')}
             </Button>
             <Button
               variant="outlined"
@@ -579,7 +587,7 @@ function Navbar() {
                 },
               }}
             >
-              Register
+              {t('navigation.register')}
             </Button>
           </Box>
         )}

@@ -5,8 +5,10 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import React from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 
 const WeatherWidget = () => {
+  const { t } = useTranslation();
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -190,7 +192,7 @@ const WeatherWidget = () => {
         }}
       >
         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-          <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
+          <WbSunnyIcon sx={{ mr: 1 }} /> {t('weather.title')}
         </Typography>
         <Alert severity="info" sx={{ mb: 2 }}>
           {error || 'Weather data requires location access'}
@@ -228,10 +230,10 @@ const WeatherWidget = () => {
           gutterBottom
           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
+          <WbSunnyIcon sx={{ mr: 1 }} /> {t('weather.title')}
         </Typography>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          Get local weather updates for your garden
+          {t('weather.description')}
         </Typography>
         <Box sx={{ mt: 'auto' }}>
           <Button
@@ -241,7 +243,7 @@ const WeatherWidget = () => {
             color="primary"
             fullWidth
           >
-            Share Location
+            {t('weather.shareLocation')}
           </Button>
         </Box>
       </Paper>

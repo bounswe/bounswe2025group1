@@ -4,8 +4,10 @@ import GardenCard from './GardenCard';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 
 const GardensPreview = ({ limit = 2 }) => {
+  const { t } = useTranslation();
   const [gardens, setGardens] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user, token } = useAuth();
@@ -26,7 +28,7 @@ const GardensPreview = ({ limit = 2 }) => {
           );
 
           if (!membershipsResponse.ok) {
-            toast.error('Failed to fetch memberships');
+            toast.error(t('errors.failedToFetchMemberships'));
             setLoading(false);
             return;
           }
@@ -74,7 +76,7 @@ const GardensPreview = ({ limit = 2 }) => {
           });
 
           if (!response.ok) {
-            toast.error('Failed to fetch gardens');
+            toast.error(t('errors.failedToFetchGardens'));
             setLoading(false);
             return;
           }
@@ -124,10 +126,10 @@ const GardensPreview = ({ limit = 2 }) => {
         }}
       >
         <Typography variant="h6" gutterBottom>
-          Gardens
+          {t('navigation.gardens')}
         </Typography>
         <Typography variant="body1" color="textSecondary">
-          {token ? 'You have no gardens yet.' : 'No gardens available.'}
+          {token ? t('gardens.noGardensYet') : t('gardens.noGardensAvailable')}
         </Typography>
       </Paper>
     );
@@ -136,7 +138,7 @@ const GardensPreview = ({ limit = 2 }) => {
   return (
     <>
       <Typography variant="h5" gutterBottom>
-        {token ? 'My Gardens' : 'Featured Gardens'}
+        {token ? t('gardens.myGardens') : t('gardens.featuredGardens')}
       </Typography>
       <Box display="flex" justifyContent="center" gap={2}>
         {gardens.slice(0, limit).map((garden) => (

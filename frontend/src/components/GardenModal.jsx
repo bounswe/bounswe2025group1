@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { Modal, Fade, Backdrop, Box, Typography, TextField, Switch, Button } from '@mui/material';
 import { createFormKeyboardHandler, createButtonKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
 import LocationPicker from './LocationPicker';
+import { useTranslation } from 'react-i18next';
 
 const GardenModal = ({
   open,
@@ -13,6 +14,7 @@ const GardenModal = ({
   handleDelete,
   mode = 'create',
 }) => {
+  const { t } = useTranslation();
   const modalRef = useRef(null);
   const focusableElementsRef = useRef([]);
 
@@ -75,10 +77,10 @@ const GardenModal = ({
           aria-labelledby="garden-modal-title"
         >
           <Typography id="garden-modal-title" variant="h6" gutterBottom>
-            {mode === 'edit' ? 'Edit Garden' : 'Create New Garden'}
+            {mode === 'edit' ? t('gardens.editGarden') : t('gardens.createGarden')}
           </Typography>
           <TextField
-            label="Garden Name"
+            label={t('gardens.gardenName')}
             name="name"
             fullWidth
             margin="normal"
@@ -87,7 +89,7 @@ const GardenModal = ({
             required
           />
           <TextField
-            label="Description"
+            label={t('gardens.description')}
             name="description"
             fullWidth
             margin="normal"
@@ -99,14 +101,14 @@ const GardenModal = ({
           <LocationPicker
             value={form.location}
             onChange={(value) => handleChange({ target: { name: 'location', value } })}
-            label="Garden Location"
+            label={t('gardens.gardenLocation')}
             required
             height={{ xs: 200, sm: 250, md: 300 }}
             sx={{ mt: 2, mb: 2 }}
           />
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
             <Typography variant="body1" sx={{ mr: 2 }}>
-              Do you wish this garden to be public?
+              {t('gardens.makeGardenPublic')}
             </Typography>
             <Switch checked={form.isPublic} onChange={handleTogglePublic} color="success" />
           </Box>
@@ -131,7 +133,7 @@ const GardenModal = ({
                   },
                 }}
               >
-                Delete Garden
+                {t('gardens.deleteGarden')}
               </Button>
             )}
             <Button 
@@ -146,7 +148,7 @@ const GardenModal = ({
                 },
               }}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -161,7 +163,7 @@ const GardenModal = ({
                 },
               }}
             >
-              {mode === 'edit' ? 'Save Changes' : 'Create Garden'}
+              {mode === 'edit' ? t('gardens.saveChanges') : t('gardens.createGarden')}
             </Button>
           </Box>
         </Box>

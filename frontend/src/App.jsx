@@ -3,6 +3,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import './App.css';
 
+// Initialize i18n
+import './i18n/config';
+
 // Components
 import Navbar from './components/Navbar';
 // Pages

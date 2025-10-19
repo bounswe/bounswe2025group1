@@ -30,8 +30,10 @@ import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import CommentCreateDialog from '../../components/CommentCreateDialog';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const ForumPost = () => {
+  const { t } = useTranslation();
   const { postId } = useParams();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
