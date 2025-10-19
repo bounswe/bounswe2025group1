@@ -1,18 +1,17 @@
 // File: app/garden/[id].tsx
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Image, FlatList, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import axios from 'axios';
 import { API_URL, COLORS } from '../../constants/Config';
 import { useAuth } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { useNavigation } from 'expo-router';
-import { useLayoutEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import { Calendar } from 'react-native-calendars';
 import ImageGallery from '../../components/ui/ImageGallery';
+
 const TABS = ['Tasks', 'Members', 'Calendar', 'Gallery'];
 
 export default function GardenDetailScreen() {
@@ -26,7 +25,7 @@ export default function GardenDetailScreen() {
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
-  const [membershipStatus, setMembershipStatus] = useState(null);
+  const [membershipStatus, setMembershipStatus] = useState<string | null>(null);
   const [tab, setTab] = useState(0);
   const [followingIds, setFollowingIds] = useState<number[]>([]);
   const [blockedIds, setBlockedIds] = useState<number[]>([]);
@@ -42,25 +41,11 @@ export default function GardenDetailScreen() {
     });
   }, [navigation]);
 
-  useEffect(() => {
-    fetchGarden();
-    fetchFollowing();
-    fetchBlocked();
-  }, [id]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchMembershipStatus();
-      fetchMembers();
-      fetchTasks();
-    }, [])
-  );
-
-  const fetchGarden = async () => {
+  // ---------- Data fetchers (top-level, before useFocusEffect) ----------
+  const fetchGarden = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/gardens/${id}/`);
-      console.log('Fetched garden data:', JSON.stringify(response.data, null, 2)); // Debug log
       setGarden(response.data);
     } catch (error) {
       console.error('Error fetching garden:', error);
@@ -69,34 +54,38 @@ export default function GardenDetailScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
 
-  const fetchMembershipStatus = async () => {
+  const fetchMembershipStatus = useCallback(async () => {
     if (!token) return;
     try {
       const res = await axios.get(`${API_URL}/memberships/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      const existing = res.data.find((m: any) => m.garden === parseInt(id as string) && m.username === user?.username);
+      const existing = res.data.find(
+        (m: any) => m.garden === parseInt(id as string, 10) && m.username === user?.username
+      );
       if (existing) setMembershipStatus(existing.status);
+      else setMembershipStatus(null);
     } catch (err) {
       console.error('Membership status fetch error:', err);
     }
-  };
+  }, [token, id, user?.username]);
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     if (!token) return;
     try {
       const res = await axios.get(`${API_URL}/memberships/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      const filtered = res.data.filter((m: any) => m.garden === parseInt(id as string));
+      const filtered = res.data.filter((m: any) => m.garden === parseInt(id as string, 10));
       setMembers(filtered);
     } catch (err) {
       console.error('Error fetching members:', err);
     }
-  };
-  const fetchTasks = async () => {
+  }, [token, id]);
+
+  const fetchTasks = useCallback(async () => {
     try {
       const res = await axios.get(`${API_URL}/tasks/?garden=${id}`, {
         headers: { Authorization: `Token ${token}` },
@@ -105,8 +94,9 @@ export default function GardenDetailScreen() {
     } catch (error) {
       console.error('Error fetching tasks:', error);
     }
-  };
-  const fetchFollowing = async () => {
+  }, [id, token]);
+
+  const fetchFollowing = useCallback(async () => {
     if (!token) return;
     try {
       const res = await axios.get(`${API_URL}/profile/following/`, {
@@ -116,8 +106,9 @@ export default function GardenDetailScreen() {
     } catch (err) {
       setFollowingIds([]);
     }
-  };
-  const fetchBlocked = async () => {
+  }, [token]);
+
+  const fetchBlocked = useCallback(async () => {
     if (!token) return;
     try {
       const res = await axios.get(`${API_URL}/profile/block/`, {
@@ -127,8 +118,84 @@ export default function GardenDetailScreen() {
     } catch (err) {
       setBlockedIds([]);
     }
-  };
+  }, [token]);
 
+  // ---------- Effects ----------
+  useEffect(() => {
+    fetchGarden();
+    fetchFollowing();
+    fetchBlocked();
+  }, [id, fetchGarden, fetchFollowing, fetchBlocked]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchMembershipStatus();
+      fetchMembers();
+      fetchTasks();
+    }, [fetchMembershipStatus, fetchMembers, fetchTasks])
+  );
+
+  // ---------- Derived data ----------
+  const { pendingTasks, inProgressTasks, completedTasks, markedDates, userIsManager } = useMemo(() => {
+    const pending = tasks.filter(
+      (task: any) => task.status === 'PENDING' || (task.status === 'DECLINED' && task.assigned_to !== user?.id)
+    );
+    const inProgress = tasks.filter((task: any) => task.status === 'IN_PROGRESS');
+    const completed = tasks.filter((task: any) => task.status === 'COMPLETED');
+    const calendarTasks = [...pending, ...inProgress, ...completed];
+    const dates: Record<string, any> = {};
+
+    const getDotColor = (task: any) => {
+      if (task.status === 'COMPLETED') return 'red';
+      if (task.status === 'IN_PROGRESS') return 'blue';
+      if (task.status === 'PENDING') return 'green';
+      return 'orange';
+    };
+
+    calendarTasks.forEach((task: any) => {
+      const date = task.due_date?.split('T')[0];
+      if (!date) return;
+      dates[date] = {
+        marked: true,
+        dotColor: getDotColor(task),
+      };
+    });
+
+    const isManager = members.some(
+      (m: any) => m.username === user?.username && m.role === 'MANAGER' && m.status === 'ACCEPTED'
+    );
+
+    return {
+      pendingTasks: pending,
+      inProgressTasks: inProgress,
+      completedTasks: completed,
+      markedDates: dates,
+      userIsManager: isManager,
+    };
+  }, [tasks, user?.id, user?.username, members]);
+
+  // Memoized gallery images (top-level, not conditional)
+  const galleryImages = useMemo(() => {
+    const imageArray = garden?.images || garden?.gallery;
+    if (Array.isArray(imageArray) && imageArray.length > 0) {
+      return imageArray.map((img: any) => ({
+        id: img.id,
+        image_base64: img.image_base64,
+      }));
+    }
+    return [];
+  }, [garden?.images, garden?.gallery]);
+
+
+
+  const getGardenImageSource = useCallback(() => {
+    if (garden?.cover_image?.image_base64) {
+      return { uri: garden.cover_image.image_base64 };
+    }
+    return { uri: 'https://via.placeholder.com/120x120/8bc34a/ffffff?text=Garden' };
+  }, [garden?.cover_image?.image_base64]);
+
+  // ---------- Actions ----------
   const handleFollow = async (userId: number) => {
     try {
       await axios.post(
@@ -144,14 +211,10 @@ export default function GardenDetailScreen() {
 
   const handleUnfollow = async (userId: number) => {
     try {
-      console.log('Unfollowing user with ID:', userId);
-      await axios.delete(
-        `${API_URL}/profile/follow/`,
-        {
-          data: { user_id: Number(userId) },
-          headers: { Authorization: `Token ${token}` }
-        }
-      );
+      await axios.delete(`${API_URL}/profile/follow/`, {
+        data: { user_id: Number(userId) },
+        headers: { Authorization: `Token ${token}` },
+      });
       setFollowingIds(prev => prev.filter(id => id !== userId));
     } catch (err) {
       Alert.alert('Error', 'Could not unfollow user.');
@@ -166,7 +229,7 @@ export default function GardenDetailScreen() {
         { headers: { Authorization: `Token ${token}` } }
       );
       setBlockedIds(prev => [...prev, userId]);
-      setFollowingIds(prev => prev.filter(id => id !== userId)); // Unfollow when blocking
+      setFollowingIds(prev => prev.filter(id => id !== userId));
       Alert.alert('Success', 'User has been blocked.');
     } catch (err: any) {
       if (err.response?.status === 400) {
@@ -179,13 +242,10 @@ export default function GardenDetailScreen() {
 
   const handleUnblock = async (userId: number) => {
     try {
-      await axios.delete(
-        `${API_URL}/profile/block/`,
-        {
-          data: { user_id: Number(userId) },
-          headers: { Authorization: `Token ${token}` }
-        }
-      );
+      await axios.delete(`${API_URL}/profile/block/`, {
+        data: { user_id: Number(userId) },
+        headers: { Authorization: `Token ${token}` },
+      });
       setBlockedIds(prev => prev.filter(id => id !== userId));
       Alert.alert('Success', 'User has been unblocked.');
     } catch (err) {
@@ -195,7 +255,6 @@ export default function GardenDetailScreen() {
 
   const handleJoin = async () => {
     try {
-
       await axios.post(
         `${API_URL}/memberships/`,
         {
@@ -209,67 +268,13 @@ export default function GardenDetailScreen() {
       );
 
       alert('Join request sent!');
+      // refresh state
       fetchMembershipStatus();
       fetchMembers();
-      fetchTasks(); // optional
+      fetchTasks();
     } catch (err) {
-      // console.error('Join error:', err.response?.data || err.message || err);
       alert('Could not send join request');
     }
-  };
-
-
-  const pendingTasks = tasks.filter((task: any) => task.status === 'PENDING' || (task.status === 'DECLINED' && task.assigned_to !== user?.id));
-  const inProgressTasks = tasks.filter((task: any) => task.status === 'IN_PROGRESS');
-  const completedTasks = tasks.filter((task: any) => task.status === 'COMPLETED');
-  const calendarTasks = [...pendingTasks, ...inProgressTasks, ...completedTasks];
-  const markedDates: any = {};
-  const getDotColor = (task: any) => {
-    if (task.status === 'COMPLETED') return 'red';
-    if (task.status === 'IN_PROGRESS') return 'blue';
-    if (task.status === 'PENDING') return 'green'; // not assigned yet
-    return 'orange'; // fallback for other pending/declined cases
-  };
-
-  calendarTasks.forEach((task: any) => {
-    const date = task.due_date.split('T')[0];
-    markedDates[date] = {
-      marked: true,
-      dotColor: getDotColor(task),
-    };
-  });
-
-  if (loading || !garden) {
-    return <ActivityIndicator style={{ flex: 1 }} size="large" color={COLORS.primary} />;
-  }
-  const userIsManager = members.some((m: any) => m.username === user?.username && m.role === 'MANAGER' && m.status === 'ACCEPTED');
-
-  const getGardenImageSource = () => {
-    if (garden?.cover_image?.image_base64) {
-      return { uri: garden.cover_image.image_base64 };
-    }
-    // Fallback to a default garden image
-    return { uri: 'https://via.placeholder.com/120x120/8bc34a/ffffff?text=Garden' };
-  };
-
-  const getGalleryImages = () => {
-    console.log('getGalleryImages called, garden:', garden); // Debug log
-    console.log('Garden gallery:', garden?.gallery); // Debug log
-    console.log('Garden images:', garden?.images); // Debug log
-
-    // Check both 'images' and 'gallery' fields
-    const imageArray = garden?.images || garden?.gallery;
-
-    if (imageArray && imageArray.length > 0) {
-      const mappedImages = imageArray.map((img: any) => ({
-        id: img.id,
-        image_base64: img.image_base64,
-      }));
-      console.log('Mapped gallery images:', mappedImages); // Debug log
-      return mappedImages;
-    }
-    console.log('No gallery images found'); // Debug log
-    return [];
   };
 
   const handleMembershipAccept = async (membershipId: any) => {
@@ -279,13 +284,17 @@ export default function GardenDetailScreen() {
         {},
         { headers: { Authorization: `Token ${token}` } }
       );
-      // Re-fetch the updated members list
       fetchMembers();
     } catch (err: any) {
       console.error('Failed to accept member:', err?.response?.data || err);
       Alert.alert('Error', 'Could not accept membership.');
     }
   };
+  if (loading || !garden) {
+    return <ActivityIndicator style={{ flex: 1 }} size="large" color={COLORS.primary} />;
+  }
+
+  // ---------- Render ----------
   return (
     <View style={styles.container}>
       <View style={styles.headerCard}>
@@ -293,9 +302,18 @@ export default function GardenDetailScreen() {
         <View style={styles.headerContent}>
           <Text style={styles.gardenName}>{(garden as any).name}</Text>
           <View style={styles.chipRow}>
-            <View style={styles.chip}><Ionicons name="location-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{(garden as any).location}</Text></View>
-            <View style={styles.chip}><Ionicons name="people-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{members.filter(m => m.status === 'ACCEPTED').length} Members</Text></View>
-            <View style={styles.chip}><Ionicons name="list-outline" size={16} color={COLORS.primaryDark} /><Text style={styles.chipText}>{tasks.length} Tasks</Text></View>
+            <View style={styles.chip}>
+              <Ionicons name="location-outline" size={16} color={COLORS.primaryDark} />
+              <Text style={styles.chipText}>{(garden as any).location}</Text>
+            </View>
+            <View style={styles.chip}>
+              <Ionicons name="people-outline" size={16} color={COLORS.primaryDark} />
+              <Text style={styles.chipText}>{members.filter(m => m.status === 'ACCEPTED').length} Members</Text>
+            </View>
+            <View style={styles.chip}>
+              <Ionicons name="list-outline" size={16} color={COLORS.primaryDark} />
+              <Text style={styles.chipText}>{tasks.length} Tasks</Text>
+            </View>
           </View>
           <Text style={styles.gardenDesc}>{(garden as any).description}</Text>
           {membershipStatus && <Text style={styles.status}>Membership Status: {membershipStatus}</Text>}
@@ -325,20 +343,33 @@ export default function GardenDetailScreen() {
             <Text style={styles.sectionTitle}>Garden Tasks</Text>
             {membershipStatus === 'ACCEPTED' && userIsManager && (
               <TouchableOpacity
-                onPress={() => router.push({ pathname: '/tasks/create-task', params: { gardenId: id.toString() } })}
+                onPress={() => router.push({ pathname: '/tasks/create-task', params: { gardenId: String(id) } })}
                 style={{ backgroundColor: COLORS.primary, padding: 10, borderRadius: 8, marginBottom: 16 }}
               >
                 <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center' }}>+ Create Task</Text>
               </TouchableOpacity>
             )}
             <Text style={styles.statusTitle}>Pending ({pendingTasks.length})</Text>
-            <FlatList data={pendingTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color="#fff9c4" />} />
+            <FlatList
+              data={pendingTasks}
+              keyExtractor={item => item.id.toString()}
+              renderItem={({ item }) => <TaskCard task={item} color="#fff9c4" />}
+            />
             <Text style={styles.statusTitle}>In Progress ({inProgressTasks.length})</Text>
-            <FlatList data={inProgressTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color="#e3f2fd" />} />
+            <FlatList
+              data={inProgressTasks}
+              keyExtractor={item => item.id.toString()}
+              renderItem={({ item }) => <TaskCard task={item} color="#e3f2fd" />}
+            />
             <Text style={styles.statusTitle}>Completed ({completedTasks.length})</Text>
-            <FlatList data={completedTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color="#e8f5e9" />} />
+            <FlatList
+              data={completedTasks}
+              keyExtractor={item => item.id.toString()}
+              renderItem={({ item }) => <TaskCard task={item} color="#e8f5e9" />}
+            />
           </View>
         )}
+
         {tab === 1 && (
           <View>
             <Text style={styles.sectionTitle}>Garden Members</Text>
@@ -351,25 +382,36 @@ export default function GardenDetailScreen() {
                   <Text>Role: {item.role}</Text>
                   <Text>Status: {item.status}</Text>
 
-                  {/* Follow/Unfollow and Block/Unblock button for each member except self */}
                   {user && String(item.user_id) !== String(user.id) && (
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
                       {blockedIds.includes(Number(item.user_id)) ? (
-                        <TouchableOpacity style={styles.unfollowButtonSmall} onPress={() => handleUnblock(Number(item.user_id))}>
+                        <TouchableOpacity
+                          style={styles.unfollowButtonSmall}
+                          onPress={() => handleUnblock(Number(item.user_id))}
+                        >
                           <Text style={styles.unfollowButtonTextSmall}>Unblock</Text>
                         </TouchableOpacity>
                       ) : (
                         <>
                           {followingIds.includes(Number(item.user_id)) ? (
-                            <TouchableOpacity style={styles.unfollowButtonSmall} onPress={() => handleUnfollow(Number(item.user_id))}>
+                            <TouchableOpacity
+                              style={styles.unfollowButtonSmall}
+                              onPress={() => handleUnfollow(Number(item.user_id))}
+                            >
                               <Text style={styles.unfollowButtonTextSmall}>Unfollow</Text>
                             </TouchableOpacity>
                           ) : (
-                            <TouchableOpacity style={styles.followButtonSmall} onPress={() => handleFollow(Number(item.user_id))}>
+                            <TouchableOpacity
+                              style={styles.followButtonSmall}
+                              onPress={() => handleFollow(Number(item.user_id))}
+                            >
                               <Text style={styles.followButtonTextSmall}>Follow</Text>
                             </TouchableOpacity>
                           )}
-                          <TouchableOpacity style={styles.blockIconButton} onPress={() => handleBlock(Number(item.user_id))}>
+                          <TouchableOpacity
+                            style={styles.blockIconButton}
+                            onPress={() => handleBlock(Number(item.user_id))}
+                          >
                             <Text style={styles.blockIconText}>🚫</Text>
                           </TouchableOpacity>
                         </>
@@ -377,7 +419,6 @@ export default function GardenDetailScreen() {
                     </View>
                   )}
 
-                  {/* Show buttons only if current user is manager AND item is pending */}
                   {userIsManager && item.status === 'PENDING' && (
                     <View style={{ flexDirection: 'row', marginTop: 8, gap: 10 }}>
                       <TouchableOpacity
@@ -393,6 +434,7 @@ export default function GardenDetailScreen() {
             />
           </View>
         )}
+
         {tab === 2 && (
           <View style={{ padding: 20 }}>
             <Calendar
@@ -400,7 +442,6 @@ export default function GardenDetailScreen() {
               markingType={'dot'}
               onDayPress={(day: any) => {
                 console.log('Selected day:', day.dateString);
-                // Optional: show a modal or filtered task list here
               }}
               theme={{
                 calendarBackground: '#fff',
@@ -411,14 +452,15 @@ export default function GardenDetailScreen() {
             />
           </View>
         )}
+
         {tab === 3 && (
           <View>
             <Text style={styles.sectionTitle}>Garden Gallery</Text>
-            {getGalleryImages().length > 0 ? (
+            {galleryImages.length > 0 ? (
               <ImageGallery
-                images={getGalleryImages()}
+                images={galleryImages}
                 coverImage={garden?.cover_image}
-                showCoverBadge={true}
+                showCoverBadge={false}
                 maxColumns={2}
                 imageHeight={150}
               />
@@ -429,8 +471,7 @@ export default function GardenDetailScreen() {
                 <Text style={styles.emptySubtext}>
                   {userIsManager
                     ? 'Add images by editing the garden'
-                    : 'Images will appear here when added by garden managers'
-                  }
+                    : 'Images will appear here when added by garden managers'}
                 </Text>
               </View>
             )}
@@ -450,7 +491,9 @@ function TaskCard({ task, color }: { task: any; color: any }) {
       <View style={taskCardStyles.row}>
         <Text style={taskCardStyles.caption}>{task.assigned_to_username || 'Unassigned'}</Text>
         <TouchableOpacity
-          onPress={() => router.push({ pathname: '/tasks/task-detail', params: { taskId: task.id.toString() } })}
+          onPress={() =>
+            router.push({ pathname: '/tasks/task-detail', params: { taskId: task.id.toString() } })
+          }
         >
           <Text style={taskCardStyles.details}>Details</Text>
         </TouchableOpacity>
@@ -493,11 +536,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
   },
-  unfollowButtonTextSmall: {
-    color: '#d00',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
+  unfollowButtonTextSmall: { color: '#d00', fontWeight: 'bold', fontSize: 15 },
   followButtonSmall: {
     backgroundColor: COLORS.primary,
     paddingVertical: 8,
@@ -506,11 +545,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
   },
-  followButtonTextSmall: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
+  followButtonTextSmall: { color: 'white', fontWeight: 'bold', fontSize: 15 },
   blockIconButton: {
     backgroundColor: '#ffdddd',
     padding: 8,
@@ -520,30 +555,13 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
   },
-  blockIconText: {
-    fontSize: 18,
-    color: '#d00',
-    fontWeight: 'bold',
-  },
+  blockIconText: { fontSize: 18, color: '#d00', fontWeight: 'bold' },
   emptyGallery: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
-    margin: 16,
-    borderWidth: 2,
-    borderColor: COLORS.secondary,
-    borderStyle: 'dashed',
+    flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32,
+    backgroundColor: COLORS.background, borderRadius: 12, margin: 16,
+    borderWidth: 2, borderColor: COLORS.secondary, borderStyle: 'dashed',
   },
-  emptySubtext: {
-    fontSize: 14,
-    color: COLORS.text,
-    textAlign: 'center',
-    marginTop: 8,
-    opacity: 0.7,
-  },
+  emptySubtext: { fontSize: 14, color: COLORS.text, textAlign: 'center', marginTop: 8, opacity: 0.7 },
 });
 
 const taskCardStyles = StyleSheet.create({
