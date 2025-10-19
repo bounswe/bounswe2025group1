@@ -108,7 +108,7 @@ const PostCard = ({
               {post.author_username?.charAt(0) || 'U'}
             </Avatar>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.95rem', textAlign: 'left' }}>
                 {post.author_username || 'Unknown User'}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
@@ -299,6 +299,7 @@ const PostCard = ({
                           fontSize: '0.75rem',
                           color: '#1976d2',
                           mb: 0.2,
+                          textAlign: 'left',
                         }}>
                           {comment.author_username || 'Unknown User'}
                         </Typography>
@@ -324,6 +325,7 @@ const PostCard = ({
                         fontSize: '0.65rem', 
                         ml: 0.5,
                         display: 'block',
+                        textAlign: 'right',
                       }}>
                         {formatTimeAgo(comment.created_at)}
                       </Typography>
