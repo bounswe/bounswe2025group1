@@ -50,11 +50,17 @@ const ForumList = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        });
+        const isValidToken = (t) =>
+          t !== null
+
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (isValidToken(token)) {
+          headers['Authorization'] = `Token ${token.trim()}`;
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, { headers });
 
         if (!response.ok) {
           toast.error('Failed to fetch posts');
