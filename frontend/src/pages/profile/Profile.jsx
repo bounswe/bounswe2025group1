@@ -258,9 +258,9 @@ const Profile = () => {
         email: updatedProfile.email,
         profile: {
           ...profile.profile,
-          profile_picture: updatedProfile.profile_picture,
-          location: updatedProfile.location,
-          receives_notifications: updatedProfile.receives_notifications,
+          profile_picture: updatedProfile.profile.profile_picture,
+          location: updatedProfile.profile.location,
+          receives_notifications: updatedProfile.profile.receives_notifications,
         },
       });
 
