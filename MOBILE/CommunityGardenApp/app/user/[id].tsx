@@ -4,12 +4,14 @@ import { useLocalSearchParams, router } from 'expo-router';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
-import { API_URL, COLORS } from '../../constants/Config';
+import { API_URL } from '../../constants/Config';
+import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 
 // @ts-nocheck
 
 export default function UserProfileScreen() {
   const { token, user } = useAuth();
+  const colors = useAccessibleColors();
   const { id } = useLocalSearchParams();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -18,9 +20,11 @@ export default function UserProfileScreen() {
   const [isBlocked, setIsBlocked] = useState(false);
   const [gardens, setGardens] = useState<any[]>([]);
 
-  const checkBlocking = async (userId: string | number) => {
+  const checkBlocking = async (userId: string | number | string[]) => {
     try {
-      const response = await axios.get(`${API_URL}/profile/block/?user_id=${userId}`, {
+      // Handle array case by taking first element
+      const userIdParam = Array.isArray(userId) ? userId[0] : userId;
+      const response = await axios.get(`${API_URL}/profile/block/?user_id=${userIdParam}`, {
         headers: { Authorization: `Token ${token}` }
       });
       return response.data;
@@ -33,10 +37,8 @@ export default function UserProfileScreen() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        let userId: string | number = id;
-        if (Array.isArray(id)) {
-          userId = id[0]; // fallback to first if array
-        }
+        // Handle array case by taking first element
+        const userId = Array.isArray(id) ? id[0] : id;
         const blockStatus = await checkBlocking(userId);
         if (!blockStatus.can_interact) {
           setError("You cannot view this profile due to blocking restrictions.");
@@ -158,57 +160,61 @@ export default function UserProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.centered}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={styles.centered}>
-        <Text style={{ color: 'red' }}>{error}</Text>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={{ color: colors.error }}>{error}</Text>
       </SafeAreaView>
     );
   }
   
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.username}>@{userData.username}</Text>
+        <Text style={[styles.username, { color: colors.primary }]}>@{userData.username}</Text>
 
-        <Text style={styles.label}>Name:</Text>
-        <Text style={styles.value}>{userData.first_name || ''} {userData.last_name || ''}</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Name:</Text>
+        <Text style={[styles.value, { color: colors.textSecondary }]}>{userData.first_name || ''} {userData.last_name || ''}</Text>
 
-        <Text style={styles.label}>Email:</Text>
-        <Text style={styles.value}>{userData.email || 'Hidden'}</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Email:</Text>
+        <Text style={[styles.value, { color: colors.textSecondary }]}>{userData.email || 'Hidden'}</Text>
 
-        <Text style={styles.label}>Location:</Text>
-        <Text style={styles.value}>{userData.profile?.location || 'Unknown'}</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Location:</Text>
+        <Text style={[styles.value, { color: colors.textSecondary }]}>{userData.profile?.location || 'Unknown'}</Text>
 
-        <Text style={styles.label}>Gardens:</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Gardens:</Text>
         {gardens && gardens.length > 0 ? (
           gardens.map((garden: any) => (
-            <Text key={garden.id} style={styles.value}>{garden.name}</Text>
+            <Text key={garden.id} style={[styles.value, { color: colors.textSecondary }]}>{garden.name}</Text>
           ))
         ) : (
-          <Text style={styles.value}>No gardens</Text>
+          <Text style={[styles.value, { color: colors.textSecondary }]}>No gardens</Text>
         )}
 
         {/* Only show follow/unfollow and block/unblock if not own profile */}
         {userData && user && String(userData.id) !== String(user.id) && (
           <View style={styles.actionButtonsRow}>
             <TouchableOpacity
-              style={isFollowing ? styles.unfollowButtonSmall : styles.followButtonSmall}
+              style={[isFollowing ? styles.unfollowButtonSmall : styles.followButtonSmall, {
+                backgroundColor: isFollowing ? colors.surface : colors.primary
+              }]}
               onPress={isFollowing ? handleUnfollow : handleFollow}
             >
-              <Text style={isFollowing ? styles.unfollowButtonTextSmall : styles.followButtonTextSmall}>
+              <Text style={[isFollowing ? styles.unfollowButtonTextSmall : styles.followButtonTextSmall, {
+                color: isFollowing ? colors.error : colors.white
+              }]}>
                 {isFollowing ? 'Unfollow' : 'Follow'}
               </Text>
             </TouchableOpacity>
             {/* Only show block/unblock if not own profile, and use checkBlocking result for UI if needed */}
-            <TouchableOpacity style={styles.blockIconButton} onPress={isBlocked ? handleUnblock : handleBlock}>
-              <Text style={styles.blockIconText}>🚫</Text>
+            <TouchableOpacity style={[styles.blockIconButton, { backgroundColor: colors.error }]} onPress={isBlocked ? handleUnblock : handleBlock}>
+              <Text style={[styles.blockIconText, { color: colors.white }]}>🚫</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -218,12 +224,12 @@ export default function UserProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+  container: { flex: 1 },
   scrollContent: { padding: 20 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  username: { fontSize: 24, fontWeight: 'bold', color: COLORS.primaryDark, marginBottom: 16 },
-  label: { fontWeight: 'bold', marginTop: 12, color: COLORS.primary },
-  value: { fontSize: 16, marginBottom: 8, color: COLORS.text },
+  username: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
+  label: { fontWeight: 'bold', marginTop: 12 },
+  value: { fontSize: 16, marginBottom: 8 },
   actionButtonsRow: {
     marginTop: 20,
     flexDirection: 'row',
@@ -232,7 +238,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   followButtonSmall: {
-    backgroundColor: COLORS.primary,
     paddingVertical: 8,
     paddingHorizontal: 18,
     borderRadius: 8,
@@ -240,12 +245,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   followButtonTextSmall: {
-    color: 'white',
     fontWeight: 'bold',
     fontSize: 15,
   },
   unfollowButtonSmall: {
-    backgroundColor: '#eee',
     paddingVertical: 8,
     paddingHorizontal: 18,
     borderRadius: 8,
@@ -253,12 +256,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   unfollowButtonTextSmall: {
-    color: '#d00',
     fontWeight: 'bold',
     fontSize: 15,
   },
   blockIconButton: {
-    backgroundColor: '#ffdddd',
     padding: 8,
     borderRadius: 50,
     alignItems: 'center',
@@ -268,7 +269,6 @@ const styles = StyleSheet.create({
   },
   blockIconText: {
     fontSize: 18,
-    color: '#d00',
     fontWeight: 'bold',
   },
 });
