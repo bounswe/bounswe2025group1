@@ -543,47 +543,150 @@ const GardenDetail = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
+      {/* Garden Cover Image */}
+      {garden?.cover_image?.image_base64 && (
+        <Box sx={{ mb: 4 }}>
+          <Box
+            sx={{
+              position: 'relative',
+              height: { xs: 250, sm: 350, md: 450 },
+              borderRadius: 4,
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              backgroundImage: `url(${garden.cover_image.image_base64})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
+                zIndex: 1,
+              }
+            }}
+          >
+            {/* Content overlay */}
+            <Box sx={{ 
+              position: 'absolute', 
+              bottom: 0, 
+              left: 0, 
+              right: 0, 
+              p: { xs: 3, sm: 4, md: 5 },
+              zIndex: 2,
+              background: 'linear-gradient(transparent, rgba(0,0,0,0.8))'
+            }}>
+              <Typography 
+                variant="h2" 
+                sx={{ 
+                  color: 'white', 
+                  fontWeight: 700,
+                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                  textShadow: '0 2px 8px rgba(0,0,0,0.6)',
+                  mb: 1,
+                  lineHeight: 1.2
+                }}
+              >
+                {garden.name}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <LocationOnIcon sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.2rem' }} />
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    color: 'rgba(255,255,255,0.9)',
+                    textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                    fontWeight: 400
+                  }}
+                >
+                  {garden.location}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 0.5,
+                  px: 2,
+                  py: 1,
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  borderRadius: 2,
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <GroupIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
+                    {members.length} Members
+                  </Typography>
+                </Box>
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 0.5,
+                  px: 2,
+                  py: 1,
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  borderRadius: 2,
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <TaskIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
+                    {tasks.length} Tasks
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
       {/* Garden Header */}
       <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 8 }}>
-            <Typography
-              variant="h4"
-              gutterBottom
-              sx={{ color: theme.palette.primary.main, fontWeight: 'bold', textAlign: 'start' }}
-            >
-              {garden.name}
-            </Typography>
-            <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-              <Chip
-                icon={<LocationOnIcon />}
-                label={garden.location}
-                size="small"
-                sx={{ 
-                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
-                  color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
-                }}
-              />
-              <Chip
-                icon={<GroupIcon />}
-                label={`${members.length} Members`}
-                size="small"
-                sx={{ 
-                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
-                  color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
-                }}
-              />
-              <Chip
-                icon={<TaskIcon />}
-                label={`${tasks.length} Tasks`}
-                size="small"
-                sx={{ 
-                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
-                  color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
-                }}
-              />
-            </Box>
-            <Typography variant="body1" sx={{ textAlign: 'start' }}>
+            {!garden?.cover_image?.image_base64 && (
+              <Typography
+                variant="h4"
+                gutterBottom
+                sx={{ color: theme.palette.primary.main, fontWeight: 'bold', textAlign: 'start' }}
+              >
+                {garden.name}
+              </Typography>
+            )}
+            {!garden?.cover_image?.image_base64 && (
+              <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Chip
+                  icon={<LocationOnIcon />}
+                  label={garden.location}
+                  size="small"
+                  sx={{ 
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
+                    color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
+                  }}
+                />
+                <Chip
+                  icon={<GroupIcon />}
+                  label={`${members.length} Members`}
+                  size="small"
+                  sx={{ 
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
+                    color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
+                  }}
+                />
+                <Chip
+                  icon={<TaskIcon />}
+                  label={`${tasks.length} Tasks`}
+                  size="small"
+                  sx={{ 
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
+                    color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
+                  }}
+                />
+              </Box>
+            )}
+            <Typography variant="body1" sx={{ textAlign: 'start', fontSize: '1.1rem', lineHeight: 1.6 }}>
               {garden.description}
             </Typography>
           </Grid>{' '}
