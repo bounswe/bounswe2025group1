@@ -76,18 +76,105 @@
     "edit": "Profili Düzenle",
     "followers": "Takipçiler",
     "following": "Takip Edilenler",
-    "logout": "Çıkış Yap"
+    "logout": "Çıkış Yap",
+    "gardens": "Bahçeler",
+    "noGardens": "Henüz bahçe yok.",
+    "noFollowers": "Henüz takipçi yok.",
+    "notFollowing": "Henüz kimseyi takip etmiyorsunuz.",
+    "goToDetail": "Detaya Git",
+    "unfollow": "Takipten Çık"
   },
   "garden": {
     "title": "Bahçelerim",
     "createGarden": "Bahçe Oluştur",
     "noGardens": "Bahçe bulunamadı.",
-    "viewDetails": "Detayları Gör"
+    "viewDetails": "Detayları Gör",
+    "detail": {
+      "title": "Bahçe Detayı",
+      "back": "Geri",
+      "tabs": {
+        "tasks": "Görevler",
+        "members": "Üyeler",
+        "calendar": "Takvim"
+      },
+      "joinGarden": "Bahçeye Katıl",
+      "sendingRequest": "İstek Gönderiliyor...",
+      "membershipStatus": "Üyelik Durumu",
+      "gardenTasks": "Bahçe Görevleri",
+      "createTask": "Görev Oluştur",
+      "gardenMembers": "Bahçe Üyeleri",
+      "pending": "Beklemede",
+      "inProgress": "Devam Ediyor",
+      "completed": "Tamamlandı",
+      "role": "Rol",
+      "status": "Durum",
+      "follow": "Takip Et",
+      "unfollow": "Takipten Çık",
+      "block": "Engelle",
+      "unblock": "Engeli Kaldır",
+      "accept": "Kabul Et",
+      "roles": {
+        "MANAGER": "Yönetici",
+        "WORKER": "İşçi"
+      },
+      "statuses": {
+        "ACCEPTED": "Kabul Edildi",
+        "PENDING": "Beklemede"
+      }
+    }
   },
   "tabs": {
     "home": "Ana Sayfa",
     "gardens": "Bahçeler",
     "forum": "Forum",
     "profile": "Profil"
+  },
+  "home": {
+    "welcome": "Bahçe Topluluğu Uygulamasına Hoş Geldiniz!",
+    "subtitle": "Bahçıvanlarla bağlantı kurun, büyüyün ve paylaşın 🌱",
+    "loadingWeather": "Hava durumu yükleniyor...",
+    "accessibilityLabel": "İnsanların birlikte bahçıvanlık yaptığını gösteren topluluk bahçesi illüstrasyonu",
+    "accessibilityHint": "Topluluk bahçıvanlığı kavramını temsil eden illüstrasyon"
+  },
+  "gardens": {
+    "title": "Herkese Açık Bahçeler",
+    "goToDetail": "Detaya Git",
+    "noGardens": "Herkese açık bahçe bulunamadı.",
+    "createGarden": "Bahçe Oluştur"
+  },
+  "tasks": {
+    "myTasks": "Görevlerim",
+    "status": "Durum",
+    "noTasks": "Size atanmış görev bulunmuyor.",
+    "inProgress": "Devam Ediyor",
+    "detail": {
+      "title": "Görev Detayı",
+      "loading": "Yükleniyor...",
+      "taskTitle": "Görev Başlığı",
+      "description": "Açıklama",
+      "dueDate": "Bitiş Tarihi",
+      "priority": "Öncelik",
+      "assignedTo": "Atanan Kişi",
+      "garden": "Bahçe",
+      "assignTask": "Görev Ata",
+      "completeTask": "Görevi Tamamla",
+      "acceptTask": "Görevi Kabul Et",
+      "declineTask": "Görevi Reddet",
+      "selfAssign": "Kendime Ata",
+      "high": "Yüksek",
+      "medium": "Orta",
+      "low": "Düşük",
+      "pending": "Beklemede",
+      "inProgress": "Devam Ediyor",
+      "completed": "Tamamlandı",
+      "accepted": "Kabul Edildi",
+      "declined": "Reddedildi"
+    }
+  },
+  "language": {
+    "select": "Dil Seçin",
+    "current": "Mevcut Dil",
+    "english": "İngilizce",
+    "turkish": "Türkçe"
   }
 }

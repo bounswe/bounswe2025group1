@@ -9,8 +9,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { useAccessibleColors, useAccessibleTheme } from '../../contexts/AccessibilityContextSimple';
+import { LanguageSwitcher } from '../../components/LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
-const TABS = ['Gardens', 'Followers', 'Following'];
+const TABS = [
+  { key: 'Gardens', label: 'profile.gardens' },
+  { key: 'Followers', label: 'profile.followers' },
+  { key: 'Following', label: 'profile.following' }
+];
 
 export default function ProfileScreen() {
   const { user, token, logout } = useAuth();
@@ -18,6 +24,7 @@ export default function ProfileScreen() {
   const theme = useAccessibleTheme();
   const router = useRouter();
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [profile, setProfile] = useState(null);
   const [gardens, setGardens] = useState([]);
   const [followers, setFollowers] = useState([]);
@@ -145,7 +152,7 @@ export default function ProfileScreen() {
             })
           }
         >
-          <Text style={[styles.detailButtonText, { color: colors.primary }]}>Go to Detail</Text>
+            <Text style={[styles.detailButtonText, { color: colors.primary }]}>{t('profile.goToDetail')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -159,38 +166,41 @@ export default function ProfileScreen() {
         <Text style={[styles.email, { color: colors.textSecondary }]}>{profile.email}</Text>
         <Text style={[styles.location, { color: colors.textSecondary }]}>{profile.profile?.location}</Text>
         
-        <TouchableOpacity 
-          style={[styles.logoutButton, { backgroundColor: colors.error }]} 
-          onPress={handleLogout}
-          accessibilityLabel="Logout"
-          accessibilityHint="Sign out of your account"
-        >
-          <Text style={[styles.logoutText, { color: colors.white }]}>Logout</Text>
-        </TouchableOpacity>
+        <View style={styles.settingsRow}>
+          <LanguageSwitcher variant="modal" style={styles.languageSwitcher} />
+          <TouchableOpacity 
+            style={[styles.logoutButton, { backgroundColor: colors.error }]} 
+            onPress={handleLogout}
+            accessibilityLabel="Logout"
+            accessibilityHint="Sign out of your account"
+          >
+            <Text style={[styles.logoutText, { color: colors.white }]}>{t('profile.logout')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <View style={[styles.tabsRow, { borderColor: colors.border }]}>
-        {TABS.map((label, idx) => (
+        {TABS.map((tabItem, idx) => (
           <TouchableOpacity
-            key={label}
+            key={tabItem.key}
             style={[styles.tab, tab === idx && { borderBottomColor: colors.primary }]}
             onPress={() => setTab(idx)}
           >
             <Text style={[styles.tabText, {
               color: tab === idx ? colors.primary : colors.text,
               fontWeight: tab === idx ? 'bold' : 'normal'
-            }]}>{label}</Text>
+            }]}>{t(tabItem.label)}</Text>
           </TouchableOpacity>
         ))}
       </View>
       <View style={styles.tabContent}>
         {tab === 0 && (
           <View>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Gardens</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('profile.gardens')}</Text>
             <FlatList
               data={gardens}
               keyExtractor={(item, index) => item?.id?.toString() || `fallback-${index}`}
               renderItem={renderGarden} // <-- use your extracted function here
-              ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>No gardens yet.</Text>}
+              ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('profile.noGardens')}</Text>}
             />
           </View>
         )}
@@ -198,7 +208,7 @@ export default function ProfileScreen() {
 
         {tab === 1 && (
           <View>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Followers</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('profile.followers')}</Text>
             <FlatList
               data={followers}
               keyExtractor={item => item.id.toString()}
@@ -211,14 +221,14 @@ export default function ProfileScreen() {
                   <Text style={[styles.followerName, { color: colors.text }]}>{item.username}</Text>
                 </TouchableOpacity>
               )}
-              ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>No followers yet.</Text>}
+              ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('profile.noFollowers')}</Text>}
             />
           </View>
         )}
 
         {tab === 2 && (
           <View>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Following</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('profile.following')}</Text>
             <FlatList
               data={following}
               keyExtractor={item => item.id.toString()}
@@ -235,11 +245,11 @@ export default function ProfileScreen() {
                     style={[styles.unfollowButton, { backgroundColor: colors.secondary }]}
                     onPress={() => handleUnfollow(item.id)}
                   >
-                    <Text style={[styles.unfollowButtonText, { color: colors.error }]}>Unfollow</Text>
+                    <Text style={[styles.unfollowButtonText, { color: colors.error }]}>{t('profile.unfollow')}</Text>
                   </TouchableOpacity>
                 </View>
               )}
-              ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>Not following anyone yet.</Text>}
+              ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('profile.notFollowing')}</Text>}
             />
           </View>
         )}
@@ -256,7 +266,9 @@ const styles = StyleSheet.create({
   username: { fontSize: 22, fontWeight: 'bold' },
   email: { fontSize: 15 },
   location: { fontSize: 14, marginBottom: 8 },
-  logoutButton: { marginTop: 12, paddingHorizontal: 24, paddingVertical: 8, borderRadius: 8 },
+  settingsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
+  languageSwitcher: { flex: 1, marginRight: 12 },
+  logoutButton: { paddingHorizontal: 24, paddingVertical: 8, borderRadius: 8 },
   logoutText: { fontWeight: 'bold', fontSize: 15 },
   tabsRow: { flexDirection: 'row', borderBottomWidth: 1, marginTop: 16 },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },

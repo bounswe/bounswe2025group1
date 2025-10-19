@@ -8,6 +8,7 @@ import { View, TouchableOpacity, StyleSheet, Modal, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAccessibility, useAccessibleColors } from '../contexts/AccessibilityContextSimple';
 import { HighContrastToggle } from './AccessibilityToggle';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export function GlobalAccessibilityToggle() {
   const [showModal, setShowModal] = useState(false);
@@ -67,6 +68,11 @@ export function GlobalAccessibilityToggle() {
                 variant="switch" 
                 style={styles.toggleContainer}
               />
+
+              <View style={styles.languageSection}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Language</Text>
+                <LanguageSwitcher variant="button" style={styles.languageButton} />
+              </View>
               
               <View style={styles.infoBox}>
                 <Ionicons name="information-circle" size={20} color={colors.primary} />
@@ -137,6 +143,17 @@ const styles = StyleSheet.create({
   },
   toggleContainer: {
     marginBottom: 24,
+  },
+  languageSection: {
+    marginVertical: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  languageButton: {
+    alignSelf: 'flex-start',
   },
   infoBox: {
     flexDirection: 'row',

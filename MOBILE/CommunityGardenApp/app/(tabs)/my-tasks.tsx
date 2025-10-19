@@ -8,11 +8,13 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 export default function MyTasksScreen() {
   const { token, user } = useAuth();
   const colors = useAccessibleColors();
   const [groupedTasks, setGroupedTasks] = useState([]);
   const router = useRouter();
+  const { t } = useTranslation();
 
   useFocusEffect(
     useCallback(() => {
@@ -68,7 +70,7 @@ export default function MyTasksScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.header, { color: colors.text }]}>My Tasks</Text>
+      <Text style={[styles.header, { color: colors.text }]}>{t('tasks.myTasks')}</Text>
       <ScrollView>
         {groupedTasks.map(group => (
           <View key={group.gardenId} style={styles.gardenSection}>
@@ -80,14 +82,14 @@ export default function MyTasksScreen() {
                 onPress={() => router.push(`/tasks/task-detail?taskId=${task.id}`)}
               >
                 <Text style={[styles.title, { color: colors.text }]}>{task.title}</Text>
-                <Text style={[styles.status, { color: colors.primary }]}>Status: {task.status}</Text>
+                <Text style={[styles.status, { color: colors.primary }]}>{t('tasks.status')}: {task.status}</Text>
               </TouchableOpacity>
             ))}
           </View>
         ))}
         {groupedTasks.length === 0 && (
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            You don't have any assigned tasks.
+            {t('tasks.noTasks')}
           </Text>
         )}
       </ScrollView>
