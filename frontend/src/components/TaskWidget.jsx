@@ -101,9 +101,7 @@ const TaskWidget = () => {
   }
 
   return (
-    <Paper elevation={2} sx={{ p: 3, height: 300 }}>
-      <TaskList tasks={tasks} title={t('tasks.title')} />
-    </Paper>
+    <TaskList tasks={tasks} title={t('tasks.title')} />
   );
 };
 
