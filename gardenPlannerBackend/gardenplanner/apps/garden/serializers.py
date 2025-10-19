@@ -289,6 +289,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class ForumPostSerializer(serializers.ModelSerializer):
     author_username = serializers.ReadOnlyField(source='author.username')
+    author_profile_picture = serializers.SerializerMethodField(read_only=True)
     images = serializers.SerializerMethodField(read_only=True)
     images_base64 = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     comments = serializers.SerializerMethodField(read_only=True)
@@ -296,7 +297,7 @@ class ForumPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ForumPost
-        fields = ['id', 'title', 'content', 'author', 'author_username', 'created_at', 'updated_at', 'images', 'images_base64', 'comments', 'comments_count']
+        fields = ['id', 'title', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'updated_at', 'images', 'images_base64', 'comments', 'comments_count']
         read_only_fields = ['id', 'created_at', 'updated_at', 'author', 'images', 'comments', 'comments_count']
 
     def get_images(self, obj):
@@ -323,6 +324,13 @@ class ForumPostSerializer(serializers.ModelSerializer):
     def get_comments_count(self, obj):
         return obj.comments.count()
 
+    def get_author_profile_picture(self, obj):
+        if hasattr(obj.author, 'profile') and obj.author.profile.profile_picture_data:
+            b64 = base64.b64encode(obj.author.profile.profile_picture_data).decode('ascii')
+            mime = getattr(obj.author.profile, 'profile_picture_mime_type', 'image/jpeg')
+            return f"data:{mime};base64,{b64}"
+        return None
+
     def create(self, validated_data):
         images_b64 = validated_data.pop('images_base64', [])
         post = super().create(validated_data)
@@ -336,12 +344,13 @@ class ForumPostSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source='author.username', read_only=True)
+    author_profile_picture = serializers.SerializerMethodField(read_only=True)
     images = serializers.SerializerMethodField(read_only=True)
     images_base64 = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
 
     class Meta:
         model = Comment
-        fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'created_at', 'images', 'images_base64']
+        fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'images', 'images_base64']
         read_only_fields = ['id', 'author', 'author_username', 'created_at', 'images']
 
     def get_images(self, obj):
@@ -356,6 +365,13 @@ class CommentSerializer(serializers.ModelSerializer):
                 'created_at': im.created_at,
             })
         return result
+
+    def get_author_profile_picture(self, obj):
+        if hasattr(obj.author, 'profile') and obj.author.profile.profile_picture_data:
+            b64 = base64.b64encode(obj.author.profile.profile_picture_data).decode('ascii')
+            mime = getattr(obj.author.profile, 'profile_picture_mime_type', 'image/jpeg')
+            return f"data:{mime};base64,{b64}"
+        return None
 
     def create(self, validated_data):
         images_b64 = validated_data.pop('images_base64', [])
