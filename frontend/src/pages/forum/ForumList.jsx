@@ -33,7 +33,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { createListNavigation, createButtonKeyboardHandler, createLinkKeyboardHandler } from '../../utils/keyboardNavigation';
 
 const ForumList = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -119,7 +119,8 @@ const ForumList = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
+    const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+    return new Intl.DateTimeFormat(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -354,7 +355,7 @@ const ForumList = () => {
                         }}
                         aria-label={`Add comment to post: ${post.title}`}
                       >
-                        Comment
+                        {t('comments.comment')}
                       </Button>
                     )}
                     <Button
@@ -377,7 +378,7 @@ const ForumList = () => {
                       }}
                       aria-label={`Read full post: ${post.title}`}
                     >
-                      Read More
+                      {t('forum.readMore')}
                     </Button>
                   </Box>
                 </Grid>

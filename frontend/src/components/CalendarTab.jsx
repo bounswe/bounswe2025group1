@@ -13,6 +13,15 @@ const CalendarTab = ({ tasks, handleTaskClick, onEmptyDayClick }) => {
   const startOfMonth = currentMonth.startOf('month').startOf('week');
   const endOfMonth = currentMonth.endOf('month').endOf('week');
 
+  const getTranslatedMonthYear = (date) => {
+    const monthNames = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'
+    ];
+    const monthKey = monthNames[date.month()];
+    return `${t(`calendar.${monthKey}`)} ${date.year()}`;
+  };
+
   const generateCalendarGrid = () => {
     const days = [];
     let current = startOfMonth.clone();
@@ -39,7 +48,7 @@ const CalendarTab = ({ tasks, handleTaskClick, onEmptyDayClick }) => {
           &lt;
         </Button>
         <Typography variant="h5" sx={{ color: '#2e7d32', fontWeight: 'bold' }}>
-          {currentMonth.format('MMMM YYYY')}
+          {getTranslatedMonthYear(currentMonth)}
         </Typography>
         <Button onClick={() => setCurrentMonth((prev) => prev.add(1, 'month'))} variant="outlined">
           &gt;

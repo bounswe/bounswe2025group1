@@ -555,7 +555,7 @@ const GardenDetail = () => {
               />
               <Chip
                 icon={<GroupIcon />}
-                label={`${members.length} Members`}
+                label={t('gardens.members', { count: members.length })}
                 size="small"
                 sx={{ 
                   bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
@@ -564,7 +564,7 @@ const GardenDetail = () => {
               />
               <Chip
                 icon={<TaskIcon />}
-                label={`${tasks.length} Tasks`}
+                label={t('gardens.tasks', { count: tasks.length })}
                 size="small"
                 sx={{ 
                   bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
@@ -593,7 +593,7 @@ const GardenDetail = () => {
                     onClick={handleLeaveGarden}
                     sx={{ mr: 1 }}
                   >
-                    Leave Garden
+                    {t('gardens.leaveGarden')}
                   </Button>
                 )
               ) : (
@@ -620,7 +620,7 @@ const GardenDetail = () => {
                 color="primary"
                 onClick={handleOpenGardenEditModal}
               >
-                Manage Garden
+                {t('gardens.manageGarden')}
               </Button>
             )}
           </Grid>
@@ -634,9 +634,9 @@ const GardenDetail = () => {
           onChange={(event, newValue) => setActiveTab(newValue)}
           variant="fullWidth"
         >
-          <Tab label="Tasks" />
-          <Tab label="Members" />
-          <Tab label="Calendar" />
+          <Tab label={t('gardens.tasksTab')} />
+          <Tab label={t('gardens.membersTab')} />
+          <Tab label={t('gardens.calendarTab')} />
         </Tabs>
       </Box>
 
@@ -649,7 +649,7 @@ const GardenDetail = () => {
               sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}
             >
               <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
-                Garden Tasks
+                {t('gardens.gardenTasks')}
               </Typography>
               {isMember && (
                 <Button
@@ -658,7 +658,7 @@ const GardenDetail = () => {
                     setOpenTaskModal(true);
                   }}
                 >
-                  Add Task
+                  {t('gardens.addTask')}
                 </Button>
               )}
             </Box>
@@ -694,7 +694,7 @@ const GardenDetail = () => {
                           {member.username || `User ${member.id || 'Unknown'}`}
                         </Typography>
                       }
-                      secondary={`Role: ${member.role} • Status: ${member.status}`}
+                      secondary={`${t('gardens.role')}: ${t(`gardens.${member.role.toLowerCase()}`)} • ${t('gardens.status')}: ${t(`gardens.${member.status.toLowerCase()}`)}`}
                     />{' '}
                     {isManager && member.id !== userMembership?.id && (
                       <>

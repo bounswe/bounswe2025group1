@@ -323,6 +323,7 @@ const TaskModal = ({
             rows={3}
             value={taskForm.description}
             onChange={handleFormChange}
+            placeholder={t('tasks.taskDescriptionPlaceholder')}
           />
 
           <FormControl fullWidth margin="normal">

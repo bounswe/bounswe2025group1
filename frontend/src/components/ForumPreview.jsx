@@ -21,7 +21,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useTranslation } from 'react-i18next';
 
 const ForumPreview = ({ limit = 3, showViewAll = true }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { token } = useAuth();
   const [posts, setPosts] = useState([]);
@@ -30,7 +30,8 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
+    const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+    return new Intl.DateTimeFormat(locale, {
       month: 'short',
       day: 'numeric',
     }).format(date);
