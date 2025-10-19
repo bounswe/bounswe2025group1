@@ -9,13 +9,40 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
-    }
-    setLoading(false);
+    const validateStoredAuth = async () => {
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('token');
+      
+      if (storedUser && storedToken) {
+        try {
+          // Validate token with backend
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
+            headers: {
+              'Authorization': `Token ${storedToken}`,
+            },
+          });
+          
+          if (response.ok) {
+            // Token is valid, set user and token
+            setUser(JSON.parse(storedUser));
+            setToken(storedToken);
+          } else {
+            // Token is invalid, clear stored data
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            console.log('Invalid token detected, cleared stored authentication');
+          }
+        } catch (error) {
+          // Network error or invalid token, clear stored data
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          console.log('Authentication validation failed, cleared stored data');
+        }
+      }
+      setLoading(false);
+    };
+    
+    validateStoredAuth();
   }, []);
 
   const login = (data) => {
