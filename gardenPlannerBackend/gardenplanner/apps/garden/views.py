@@ -93,7 +93,7 @@ class ProfileView(APIView):
         serializer = ProfileUpdateSerializer(request.user.profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(ProfileSerializer(request.user.profile).data)
+            return Response(UserSerializer(request.user).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

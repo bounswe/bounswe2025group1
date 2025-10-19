@@ -256,7 +256,12 @@ const Profile = () => {
         ...profile,
         username: updatedProfile.username,
         email: updatedProfile.email,
-        profile: updatedProfile.profile,
+        profile: {
+          ...profile.profile,
+          profile_picture: updatedProfile.profile_picture,
+          location: updatedProfile.location,
+          receives_notifications: updatedProfile.receives_notifications,
+        },
       });
 
       setIsEditing(false);
