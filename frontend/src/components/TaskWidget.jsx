@@ -7,6 +7,7 @@ import {
   ListItemText,
   Button,
   CircularProgress,
+  Paper,
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
@@ -40,8 +41,8 @@ const TaskWidget = () => {
 
           const data = await response.json();
           setTasks(data);
-          setLoading(false);
         }
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching tasks:', error);
         setLoading(false);
@@ -53,9 +54,47 @@ const TaskWidget = () => {
 
   if (loading) {
     return (
-      <Box display="flex" alignItems="center" justifyContent="center" minHeight="200px">
-        <CircularProgress />
-      </Box>
+      <Paper
+        elevation={2}
+        sx={{
+          p: 3,
+          mb: 4,
+          height: 300,
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <CircularProgress color="success" size={40} />
+        <Typography variant="body2" sx={{ mt: 2 }}>
+          Loading tasks...
+        </Typography>
+      </Paper>
+    );
+  }
+
+  // Show message for unauthenticated users
+  if (!token) {
+    return (
+      <Paper elevation={2} sx={{ p: 3, height: 300 }}>
+        <Typography variant="h6" gutterBottom>
+          {t('tasks.title')}
+        </Typography>
+        <Box sx={{ 
+          height: '100%', 
+          display: 'flex', 
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          textAlign: 'center'
+        }}>
+          <Typography variant="body2" color="text.secondary">
+            {t('tasks.pleaseLogIn')}
+          </Typography>
+        </Box>
+      </Paper>
     );
   }
 

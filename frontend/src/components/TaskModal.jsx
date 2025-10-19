@@ -66,7 +66,7 @@ const TaskModal = ({
 
   // Fetch data when component mounts or when gardenId changes
   useEffect(() => {
-    if (!gardenId) return;
+    if (!gardenId || !token) return;
 
     const fetchGardenMembers = async () => {
       setLoadingMembers(true);
