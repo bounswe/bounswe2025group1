@@ -40,9 +40,21 @@ const GardenCard = ({ garden, variant = 'default' }) => {
 
   const imageHeight = variant === 'compact' ? 120 : 160;
 
+  // Handle different image field names from different APIs
+  const getImageSrc = () => {
+    if (garden.cover_image?.image_base64) {
+      return garden.cover_image.image_base64;
+    }
+    if (garden.image) {
+      return garden.image;
+    }
+    // Fallback to a placeholder image
+    return `/gardens/garden${garden.id % 5}.png`;
+  };
+
   return (
     <Card sx={cardStyles[variant]}>
-      <CardMedia component="img" height={imageHeight} image={garden.image} alt={garden.name} />
+      <CardMedia component="img" height={imageHeight} image={getImageSrc()} alt={garden.name} />
       <CardContent sx={{ flexGrow: 1, pt: 2 }}>
         <Typography gutterBottom variant="h6" component="h2">
           {garden.name}

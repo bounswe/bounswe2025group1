@@ -66,7 +66,7 @@ class UserGardensView(APIView):
         memberships = GardenMembership.objects.filter(
             user=user,
             status='ACCEPTED'
-        ).select_related('garden')
+        ).select_related('garden').prefetch_related('garden__images')
         
         # Extract the gardens from the memberships
         gardens = [membership.garden for membership in memberships]

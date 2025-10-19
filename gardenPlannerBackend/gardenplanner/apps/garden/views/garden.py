@@ -15,7 +15,7 @@ from ..permissions import (
 
 
 class GardenViewSet(viewsets.ModelViewSet):
-    queryset = Garden.objects.all()
+    queryset = Garden.objects.prefetch_related('images')
     serializer_class = GardenSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description']

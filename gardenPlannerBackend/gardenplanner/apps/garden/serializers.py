@@ -164,7 +164,9 @@ class GardenSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         cover_image_b64 = validated_data.pop('cover_image_base64', None)
         gallery_b64 = validated_data.pop('gallery_base64', None)
+        
         instance = super().update(instance, validated_data)
+        
         if cover_image_b64 is not None:
             if cover_image_b64 == '':
                 instance.images.filter(is_cover=True).update(is_cover=False)
@@ -178,10 +180,13 @@ class GardenSerializer(serializers.ModelSerializer):
                     cover.save()
                 else:
                     GardenImage.objects.create(garden=instance, data=data_bytes, mime_type=mime, is_cover=True)
+        
         if gallery_b64 is not None:
             instance.images.filter(is_cover=False).delete()
             for img_b64 in gallery_b64:
                 if not img_b64:
+                    continue
+                if cover_image_b64 and img_b64 == cover_image_b64:
                     continue
                 data_bytes, mime = _decode_base64_image(img_b64)
                 GardenImage.objects.create(garden=instance, data=data_bytes, mime_type=mime, is_cover=False)
@@ -245,11 +250,13 @@ class ForumPostSerializer(serializers.ModelSerializer):
     author_username = serializers.ReadOnlyField(source='author.username')
     images = serializers.SerializerMethodField(read_only=True)
     images_base64 = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    comments = serializers.SerializerMethodField(read_only=True)
+    comments_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ForumPost
-        fields = ['id', 'title', 'content', 'author', 'author_username', 'created_at', 'updated_at', 'images', 'images_base64']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'author', 'images']
+        fields = ['id', 'title', 'content', 'author', 'author_username', 'created_at', 'updated_at', 'images', 'images_base64', 'comments', 'comments_count']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'author', 'images', 'comments', 'comments_count']
 
     def get_images(self, obj):
         imgs = obj.images.all().order_by('created_at')
@@ -263,6 +270,17 @@ class ForumPostSerializer(serializers.ModelSerializer):
                 'created_at': im.created_at,
             })
         return result
+
+    def get_comments(self, obj):
+        # Check if include_comments is requested
+        request = self.context.get('request')
+        if request and request.query_params.get('include_comments', '').lower() == 'true':
+            comments = obj.comments.all().order_by('created_at')
+            return CommentSerializer(comments, many=True, context=self.context).data
+        return []
+
+    def get_comments_count(self, obj):
+        return obj.comments.count()
 
     def create(self, validated_data):
         images_b64 = validated_data.pop('images_base64', [])
@@ -311,11 +329,13 @@ class CommentSerializer(serializers.ModelSerializer):
         
 class UserGardenSerializer(serializers.ModelSerializer):
     user_role = serializers.SerializerMethodField()
+    cover_image = serializers.SerializerMethodField(read_only=True)
+    images = GardenImageSerializer(many=True, read_only=True)
     
     class Meta:
         model = Garden
-        fields = ['id', 'name', 'description', 'location', 'is_public', 'user_role', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'description', 'location', 'is_public', 'user_role', 'created_at', 'updated_at', 'cover_image', 'images']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'cover_image', 'images']
     
     def get_user_role(self, obj):
         # This assumes that the request context contains the user
@@ -327,6 +347,12 @@ class UserGardenSerializer(serializers.ModelSerializer):
             except GardenMembership.DoesNotExist:
                 return None
         return None
+
+    def get_cover_image(self, obj):
+        cover = obj.images.filter(is_cover=True).first()
+        if not cover:
+            return None
+        return GardenImageSerializer(cover).data
     
 class ReportSerializer(serializers.ModelSerializer):
     content_type = serializers.CharField()
