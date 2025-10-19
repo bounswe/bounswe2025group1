@@ -60,6 +60,7 @@ export default function GardenDetailScreen() {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/gardens/${id}/`);
+      console.log('Fetched garden data:', JSON.stringify(response.data, null, 2)); // Debug log
       setGarden(response.data);
     } catch (error) {
       console.error('Error fetching garden:', error);
@@ -252,12 +253,22 @@ export default function GardenDetailScreen() {
   };
 
   const getGalleryImages = () => {
-    if (garden?.gallery && garden.gallery.length > 0) {
-      return garden.gallery.map((img: any) => ({
+    console.log('getGalleryImages called, garden:', garden); // Debug log
+    console.log('Garden gallery:', garden?.gallery); // Debug log
+    console.log('Garden images:', garden?.images); // Debug log
+
+    // Check both 'images' and 'gallery' fields
+    const imageArray = garden?.images || garden?.gallery;
+
+    if (imageArray && imageArray.length > 0) {
+      const mappedImages = imageArray.map((img: any) => ({
         id: img.id,
         image_base64: img.image_base64,
       }));
+      console.log('Mapped gallery images:', mappedImages); // Debug log
+      return mappedImages;
     }
+    console.log('No gallery images found'); // Debug log
     return [];
   };
 
