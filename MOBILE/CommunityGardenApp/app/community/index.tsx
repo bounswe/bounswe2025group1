@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { API_URL, COLORS } from '@/constants/Config';
+import { API_URL } from '@/constants/Config';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -15,6 +16,7 @@ interface CommunityMember {
 
 export default function CommunityScreen() {
   const { token, user } = useAuth();
+  const colors = useAccessibleColors();
   const [members, setMembers] = useState<CommunityMember[]>([]);
   const [followingIds, setFollowingIds] = useState<number[]>([]);
   const router = useRouter();
@@ -88,43 +90,42 @@ export default function CommunityScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Community Members</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.header, { color: colors.text }]}>Community Members</Text>
       <FlatList
         data={members}
         keyExtractor={(item: CommunityMember) => item.user_id.toString()}
         renderItem={({ item }: { item: CommunityMember }) => (
             <TouchableOpacity
-            style={styles.card}
+            style={[styles.card, { backgroundColor: colors.surface }]}
             onPress={() => router.push(`/user/${item.user_id}`)}
             activeOpacity={0.8}
             >
-            <Text style={styles.username}>{item.username}</Text>
+            <Text style={[styles.username, { color: colors.text }]}>{item.username}</Text>
             {!followingIds.includes(item.user_id) && (
                 <TouchableOpacity
-                style={styles.followButton}
+                style={[styles.followButton, { backgroundColor: colors.primary }]}
                 onPress={(e) => {
                     e.stopPropagation(); // Prevent navigation
                     handleFollow(item.user_id);
                 }}
                 >
-                <Text style={styles.followText}>Follow</Text>
+                <Text style={[styles.followText, { color: colors.white }]}>Follow</Text>
                 </TouchableOpacity>
             )}
             </TouchableOpacity>
             
         )}
-        ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>No members found.</Text>}
+        ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>No members found.</Text>}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { paddingTop: -30,paddingHorizontal: 20, flex: 1, backgroundColor: COLORS.background },
+  container: { paddingTop: -30, paddingHorizontal: 20, flex: 1 },
   header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
   card: {
-    backgroundColor: '#f0f4f8',
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
@@ -134,10 +135,10 @@ const styles = StyleSheet.create({
   },
   username: { fontSize: 16 },
   followButton: {
-    backgroundColor: COLORS.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
   },
-  followText: { color: 'white', fontWeight: 'bold' },
+  followText: { fontWeight: 'bold' },
+  emptyText: { textAlign: 'center', marginTop: 20 },
 });

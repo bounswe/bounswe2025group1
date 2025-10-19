@@ -29,6 +29,8 @@ import AddCommentIcon from '@mui/icons-material/AddComment';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import CommentCreateDialog from '../../components/CommentCreateDialog';
+import ImageGallery from '../../components/ImageGallery';
+import InlineImageUpload from '../../components/InlineImageUpload';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -46,6 +48,12 @@ const ForumPost = () => {
 
   // Comment dialog state
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  
+  // Inline comment state
+  const [showInlineComment, setShowInlineComment] = useState(false);
+  const [commentContent, setCommentContent] = useState('');
+  const [commentImages, setCommentImages] = useState([]);
+  const [commentLoading, setCommentLoading] = useState(false);
 
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -113,6 +121,50 @@ const ForumPost = () => {
   const handleCommentCreated = (newComment) => {
     setComments([...comments, newComment]);
     setCommentDialogOpen(false);
+  };
+
+  const handleInlineCommentSubmit = async () => {
+    if (!commentContent.trim()) {
+      toast.error('Comment cannot be empty');
+      return;
+    }
+
+    try {
+      setCommentLoading(true);
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/comments/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify({
+          forum_post: postId,
+          content: commentContent,
+          images_base64: commentImages,
+        }),
+      });
+
+      if (!response.ok) {
+        toast.error('Failed to post comment');
+        return;
+      }
+
+      const newComment = await response.json();
+      setComments([...comments, newComment]);
+      
+      // Reset form
+      setCommentContent('');
+      setCommentImages([]);
+      setShowInlineComment(false);
+      
+      toast.success('Comment posted successfully!');
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      toast.error('Failed to post comment. Please try again.');
+    } finally {
+      setCommentLoading(false);
+    }
   };
 
   const handlePostUpdate = async () => {
@@ -340,16 +392,37 @@ const ForumPost = () => {
               {post.content}
             </Typography>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+            {/* Post Images */}
+            {post.images && post.images.length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <ImageGallery 
+                  images={post.images}
+                  maxColumns={3}
+                  imageHeight={200}
+                />
+              </Box>
+            )}
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
               {user && (
-                <Button
-                  variant="outlined"
-                  startIcon={<AddCommentIcon />}
-                  onClick={() => setCommentDialogOpen(true)}
-                  sx={{ color: '#558b2f', borderColor: '#558b2f' }}
-                >
-                  {t('forum.addComment')}
-                </Button>
+                <>
+                  <Button
+                    variant="outlined"
+                    startIcon={<AddCommentIcon />}
+                    onClick={() => setShowInlineComment(!showInlineComment)}
+                    sx={{ color: '#558b2f', borderColor: '#558b2f' }}
+                  >
+                    {showInlineComment ? t('common.cancel') : t('forum.addComment')}
+                  </Button>
+                  <Button
+                    variant="text"
+                    startIcon={<AddCommentIcon />}
+                    onClick={() => setCommentDialogOpen(true)}
+                    sx={{ color: '#558b2f' }}
+                  >
+                    {t('forum.dialog')}
+                  </Button>
+                </>
               )}
             </Box>
           </>
@@ -368,6 +441,62 @@ const ForumPost = () => {
       </Box>
 
       <Divider sx={{ mb: 3 }} />
+
+      {/* Inline Comment Form */}
+      {showInlineComment && user && (
+        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+            Add a Comment
+          </Typography>
+          
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            placeholder="Share your thoughts about this post..."
+            value={commentContent}
+            onChange={(e) => setCommentContent(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          
+          <InlineImageUpload
+            onImagesChange={setCommentImages}
+            maxImages={3}
+            maxSizeMB={5}
+            initialImages={commentImages.map((img, index) => ({ 
+              base64: img, 
+              name: `image-${index + 1}.jpg` 
+            }))}
+            disabled={commentLoading}
+            compact={true}
+          />
+          
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setShowInlineComment(false);
+                setCommentContent('');
+                setCommentImages([]);
+              }}
+              disabled={commentLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleInlineCommentSubmit}
+              disabled={!commentContent.trim() || commentLoading}
+              sx={{ 
+                bgcolor: '#558b2f', 
+                '&:hover': { bgcolor: '#33691e' } 
+              }}
+            >
+              {commentLoading ? 'Posting...' : 'Post Comment'}
+            </Button>
+          </Box>
+        </Paper>
+      )}
 
       {/* Comment List */}
       {comments.length > 0 ? (
@@ -402,6 +531,17 @@ const ForumPost = () => {
                   <Typography variant="body2" sx={{ textAlign: 'left' }}>
                     {comment.content}
                   </Typography>
+                  
+                  {/* Comment Images */}
+                  {comment.images && comment.images.length > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <ImageGallery 
+                        images={comment.images}
+                        maxColumns={2}
+                        imageHeight={150}
+                      />
+                    </Box>
+                  )}
                 </Box>
               </Box>
             </CardContent>

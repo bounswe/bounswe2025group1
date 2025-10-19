@@ -9,6 +9,8 @@ import {
   Button,
   Alert,
   CircularProgress,
+  Divider,
+  Box,
 } from '@mui/material';
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import SendIcon from '@mui/icons-material/Send';
@@ -17,10 +19,12 @@ import { toast } from 'react-toastify';
 import React from 'react';
 import { createFormKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
 import { useTranslation } from 'react-i18next';
+import InlineImageUpload from './InlineImageUpload';
 
 const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
   const { t } = useTranslation();
   const [content, setContent] = useState('');
+  const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { token } = useAuth();
@@ -46,6 +50,7 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
         body: JSON.stringify({
           forum_post: postId,
           content: content,
+          images_base64: images,
         }),
       });
 
@@ -60,6 +65,7 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
 
       // Reset form
       setContent('');
+      setImages([]);
       setLoading(false);
 
       // Show success toast notification
@@ -79,6 +85,7 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
 
   const handleClose = () => {
     setContent('');
+    setImages([]);
     setError(null);
     onClose();
   };
@@ -157,6 +164,21 @@ const CommentCreateDialog = ({ open, onClose, postId, onCommentCreated }) => {
           }}
           aria-label="Comment content"
         />
+
+        {/* Inline Image Upload */}
+        <Box sx={{ mt: 2 }}>
+          <InlineImageUpload
+            onImagesChange={setImages}
+            maxImages={3}
+            maxSizeMB={5}
+            initialImages={images.map((img, index) => ({ 
+              base64: img, 
+              name: `image-${index + 1}.jpg` 
+            }))}
+            disabled={false}
+            compact={false}
+          />
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 3 }}>

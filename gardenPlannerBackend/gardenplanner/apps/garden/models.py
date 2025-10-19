@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.core.exceptions import ValidationError
 
 
 
@@ -65,6 +66,23 @@ class Garden(models.Model):
     
     def __str__(self):
         return self.name
+
+
+class GardenImage(models.Model):
+    garden = models.ForeignKey('Garden', on_delete=models.CASCADE, related_name='images')
+    data = models.BinaryField()
+    mime_type = models.CharField(max_length=100, default='image/jpeg')
+    is_cover = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self.is_cover:
+            # Ensure only one cover image per garden
+            GardenImage.objects.filter(garden=self.garden, is_cover=True).exclude(pk=self.pk).update(is_cover=False)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"GardenImage({self.garden_id}){'[cover]' if self.is_cover else ''}"
 
 
 class GardenMembership(models.Model):
@@ -168,6 +186,26 @@ class Comment(models.Model):
     
     def __str__(self):
         return f"Comment by {self.author.username} on {self.forum_post.title}"
+
+
+class ForumPostImage(models.Model):
+    post = models.ForeignKey(ForumPost, on_delete=models.CASCADE, related_name='images')
+    data = models.BinaryField()
+    mime_type = models.CharField(max_length=100, default='image/jpeg')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"ForumPostImage({self.post_id})"
+
+
+class CommentImage(models.Model):
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='images')
+    data = models.BinaryField()
+    mime_type = models.CharField(max_length=100, default='image/jpeg')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"CommentImage({self.comment_id})"
     
 class Report(models.Model):
     REASONS = [

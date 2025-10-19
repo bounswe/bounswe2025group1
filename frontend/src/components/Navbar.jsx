@@ -51,7 +51,8 @@ const getPages = (t) => [
 
 const getSettings = (t) => [
   { name: t('navigation.profile'), path: '/profile', icon: <PersonIcon /> },
-  { name: t('navigation.settings'), path: '/profile/settings', icon: <SettingsIcon /> },
+  // TODO: Implement Settings page
+  // { name: t('navigation.settings'), path: '/profile/settings', icon: <SettingsIcon /> },
   { name: t('navigation.logout'), icon: <LogoutIcon />, action: 'logout' },
 ];
 
@@ -101,7 +102,6 @@ function Navbar() {
 
     if (action === 'logout') {
       logout();
-      console.log('User logged out');
       toast.success("You've been logged out.", {
         position: 'top-right',
         theme: 'colored',

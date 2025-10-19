@@ -4,13 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
-import { API_URL, COLORS } from '../../constants/Config';
+import { API_URL } from '../../constants/Config';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import { Picker } from '@react-native-picker/picker';
 
 export default function TaskDetailScreen() {
   const { taskId } = useLocalSearchParams();
   const { token, user } = useAuth();
+  const colors = useAccessibleColors();
   const [task, setTask] = useState(null);
   const [members, setMembers] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState('');
@@ -114,79 +116,79 @@ export default function TaskDetailScreen() {
   };
 
   if (!task) {
-    return <Text style={styles.loading}>Loading task...</Text>;
+    return <Text style={[styles.loading, { color: colors.text }]}>Loading task...</Text>;
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{task.title}</Text>
-      <Text style={styles.label}>Description:</Text>
-      <Text style={styles.value}>{task.description || 'No description'}</Text>
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>{task.title}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Description:</Text>
+      <Text style={[styles.value, { color: colors.textSecondary }]}>{task.description || 'No description'}</Text>
 
-      <Text style={styles.label}>Status:</Text>
-      <Text style={styles.value}>{task.status}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Status:</Text>
+      <Text style={[styles.value, { color: colors.textSecondary }]}>{task.status}</Text>
 
-      <Text style={styles.label}>Due Date:</Text>
-      <Text style={styles.value}>{task.due_date?.split('T')[0]}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Due Date:</Text>
+      <Text style={[styles.value, { color: colors.textSecondary }]}>{task.due_date?.split('T')[0]}</Text>
 
-      <Text style={styles.label}>Assigned To:</Text>
-      <Text style={styles.value}>{task.assigned_to_username || 'Unassigned'}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Assigned To:</Text>
+      <Text style={[styles.value, { color: colors.textSecondary }]}>{task.assigned_to_username || 'Unassigned'}</Text>
 
-      <Text style={styles.label}>Assigned By:</Text>
-      <Text style={styles.value}>{task.assigned_by_username}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Assigned By:</Text>
+      <Text style={[styles.value, { color: colors.textSecondary }]}>{task.assigned_by_username}</Text>
 
-      <Text style={styles.label}>Garden:</Text>
-      <Text style={styles.value}>{task.garden_name}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Garden:</Text>
+      <Text style={[styles.value, { color: colors.textSecondary }]}>{task.garden_name}</Text>
 
       {task.custom_type_name && (
         <>
-          <Text style={styles.label}>Task Type:</Text>
-          <Text style={styles.value}>{task.custom_type_name}</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Task Type:</Text>
+          <Text style={[styles.value, { color: colors.textSecondary }]}>{task.custom_type_name}</Text>
         </>
       )}
 
-      <Text style={styles.label}>Created At:</Text>
-      <Text style={styles.value}>{task.created_at?.split('T')[0]}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Created At:</Text>
+      <Text style={[styles.value, { color: colors.textSecondary }]}>{task.created_at?.split('T')[0]}</Text>
 
-      <Text style={styles.label}>Updated At:</Text>
-      <Text style={styles.value}>{task.updated_at?.split('T')[0]}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Updated At:</Text>
+      <Text style={[styles.value, { color: colors.textSecondary }]}>{task.updated_at?.split('T')[0]}</Text>
 
       {/* Assignment by Manager */}
       {(isManager && (!task.assigned_to_username || task.status === 'DECLINED')) &&(
         <>
-          <Text style={styles.label}>Assign to Worker:</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Assign to Worker:</Text>
           
           <Picker
             selectedValue={selectedWorker}
             onValueChange={setSelectedWorker}
-            style={styles.picker}
+            style={[styles.picker, { backgroundColor: colors.surface }]}
           >
-            <Picker.Item label="Select a worker" value="" />
+            <Picker.Item label="Select a worker" value="" color={colors.text} />
             {members.map(member => (
-              <Picker.Item key={member.id} label={`User ${member.username}`} value={member.user_id.toString()} />
+              <Picker.Item key={member.id} label={`User ${member.username}`} value={member.user_id.toString()} color={colors.text} />
             ))}
             
           </Picker>
-          <TouchableOpacity style={styles.assignBtn} onPress={handleAssign}>
-            <Text style={styles.assignText}>Assign Task</Text>
+          <TouchableOpacity style={[styles.assignBtn, { backgroundColor: colors.primary }]} onPress={handleAssign}>
+            <Text style={[styles.assignText, { color: colors.white }]}>Assign Task</Text>
           </TouchableOpacity>
         </>
       )}
       
       {task.assigned_to === user.id && task.status === 'IN_PROGRESS' && (
-        <TouchableOpacity style={styles.completeBtn} onPress={handleComplete}>
-          <Text style={styles.completeText}>✓ Complete Task</Text>
+        <TouchableOpacity style={[styles.completeBtn, { backgroundColor: colors.success }]} onPress={handleComplete}>
+          <Text style={[styles.completeText, { color: colors.white }]}>✓ Complete Task</Text>
         </TouchableOpacity>
       )}
 
       {/* Accept / Decline by Assignee */}
       {task.assigned_to === user.id && task.status === 'PENDING' && (
         <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.acceptBtn} onPress={() => handleAction('accept')}>
-            <Text style={styles.btnText}>Accept</Text>
+          <TouchableOpacity style={[styles.acceptBtn, { backgroundColor: colors.success }]} onPress={() => handleAction('accept')}>
+            <Text style={[styles.btnText, { color: colors.white }]}>Accept</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.declineBtn} onPress={() => handleAction('decline')}>
-            <Text style={styles.btnText}>Decline</Text>
+          <TouchableOpacity style={[styles.declineBtn, { backgroundColor: colors.error }]} onPress={() => handleAction('decline')}>
+            <Text style={[styles.btnText, { color: colors.white }]}>Decline</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -194,8 +196,8 @@ export default function TaskDetailScreen() {
       {/* self assign */}
       {(task.status === 'PENDING' || task.status === 'DECLINED') && isMember && !isManager && task.assigned_to != user.id &&(
         <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.acceptBtn} onPress={handleSelfAssign}>
-            <Text style={styles.btnText}>Self Assign</Text>
+          <TouchableOpacity style={[styles.acceptBtn, { backgroundColor: colors.success }]} onPress={handleSelfAssign}>
+            <Text style={[styles.btnText, { color: colors.white }]}>Self Assign</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -204,18 +206,18 @@ export default function TaskDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: COLORS.background },
+  container: { padding: 20 },
   loading: { textAlign: 'center', marginTop: 40, fontSize: 16 },
-  title: { fontSize: 24, fontWeight: 'bold', color: COLORS.primaryDark, marginBottom: 16 },
-  label: { marginTop: 10, fontWeight: 'bold', color: COLORS.primary },
-  value: { fontSize: 15, marginBottom: 8, color: COLORS.text },
-  picker: { backgroundColor: '#fff', marginVertical: 8 },
-  assignBtn: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, marginTop: 8 },
-  assignText: { color: 'white', textAlign: 'center', fontWeight: 'bold' },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
+  label: { marginTop: 10, fontWeight: 'bold' },
+  value: { fontSize: 15, marginBottom: 8 },
+  picker: { marginVertical: 8 },
+  assignBtn: { padding: 12, borderRadius: 8, marginTop: 8 },
+  assignText: { textAlign: 'center', fontWeight: 'bold' },
   actionRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 20 },
-  acceptBtn: { backgroundColor: 'green', padding: 10, borderRadius: 6, flex: 1, marginRight: 8 },
-  declineBtn: { backgroundColor: 'red', padding: 10, borderRadius: 6, flex: 1 },
-  btnText: { color: 'white', textAlign: 'center', fontWeight: 'bold' },
-  completeBtn: {backgroundColor: 'green', padding: 12, borderRadius: 8, marginTop: 12,},
-  completeText: {color: 'white',fontWeight: 'bold',textAlign: 'center',},
+  acceptBtn: { padding: 10, borderRadius: 6, flex: 1, marginRight: 8 },
+  declineBtn: { padding: 10, borderRadius: 6, flex: 1 },
+  btnText: { textAlign: 'center', fontWeight: 'bold' },
+  completeBtn: { padding: 12, borderRadius: 8, marginTop: 12 },
+  completeText: { fontWeight: 'bold', textAlign: 'center' },
 });
