@@ -12,7 +12,8 @@ import { useNavigation } from 'expo-router';
 import { useLayoutEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import { Calendar } from 'react-native-calendars';
-const TABS = ['Tasks', 'Members', 'Calendar'];
+import ImageGallery from '../../components/ui/ImageGallery';
+const TABS = ['Tasks', 'Members', 'Calendar', 'Gallery'];
 
 export default function GardenDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -21,7 +22,7 @@ export default function GardenDetailScreen() {
   const navigation = useNavigation();
 
   const [garden, setGarden] = useState<any>(null);
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
@@ -145,9 +146,9 @@ export default function GardenDetailScreen() {
       console.log('Unfollowing user with ID:', userId);
       await axios.delete(
         `${API_URL}/profile/follow/`,
-        { 
+        {
           data: { user_id: Number(userId) },
-          headers: { Authorization: `Token ${token}` } 
+          headers: { Authorization: `Token ${token}` }
         }
       );
       setFollowingIds(prev => prev.filter(id => id !== userId));
@@ -179,9 +180,9 @@ export default function GardenDetailScreen() {
     try {
       await axios.delete(
         `${API_URL}/profile/block/`,
-        { 
+        {
           data: { user_id: Number(userId) },
-          headers: { Authorization: `Token ${token}` } 
+          headers: { Authorization: `Token ${token}` }
         }
       );
       setBlockedIds(prev => prev.filter(id => id !== userId));
@@ -205,7 +206,7 @@ export default function GardenDetailScreen() {
           headers: { Authorization: `Token ${token}` },
         }
       );
-  
+
       alert('Join request sent!');
       fetchMembershipStatus();
       fetchMembers();
@@ -216,8 +217,8 @@ export default function GardenDetailScreen() {
     }
   };
 
-  
-  const pendingTasks = tasks.filter((task: any) => task.status === 'PENDING'|| (task.status === 'DECLINED' && task.assigned_to !== user?.id) );
+
+  const pendingTasks = tasks.filter((task: any) => task.status === 'PENDING' || (task.status === 'DECLINED' && task.assigned_to !== user?.id));
   const inProgressTasks = tasks.filter((task: any) => task.status === 'IN_PROGRESS');
   const completedTasks = tasks.filter((task: any) => task.status === 'COMPLETED');
   const calendarTasks = [...pendingTasks, ...inProgressTasks, ...completedTasks];
@@ -241,7 +242,25 @@ export default function GardenDetailScreen() {
     return <ActivityIndicator style={{ flex: 1 }} size="large" color={COLORS.primary} />;
   }
   const userIsManager = members.some((m: any) => m.username === user?.username && m.role === 'MANAGER' && m.status === 'ACCEPTED');
-  
+
+  const getGardenImageSource = () => {
+    if (garden?.cover_image?.image_base64) {
+      return { uri: garden.cover_image.image_base64 };
+    }
+    // Fallback to a default garden image
+    return { uri: 'https://via.placeholder.com/120x120/8bc34a/ffffff?text=Garden' };
+  };
+
+  const getGalleryImages = () => {
+    if (garden?.gallery && garden.gallery.length > 0) {
+      return garden.gallery.map((img: any) => ({
+        id: img.id,
+        image_base64: img.image_base64,
+      }));
+    }
+    return [];
+  };
+
   const handleMembershipAccept = async (membershipId: any) => {
     try {
       await axios.post(
@@ -259,7 +278,7 @@ export default function GardenDetailScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.headerCard}>
-        <Image source={{ uri: (garden as any).image }} style={styles.headerImage} />
+        <Image source={getGardenImageSource()} style={styles.headerImage} />
         <View style={styles.headerContent}>
           <Text style={styles.gardenName}>{(garden as any).name}</Text>
           <View style={styles.chipRow}>
@@ -294,12 +313,12 @@ export default function GardenDetailScreen() {
           <View>
             <Text style={styles.sectionTitle}>Garden Tasks</Text>
             {membershipStatus === 'ACCEPTED' && userIsManager && (
-            <TouchableOpacity
+              <TouchableOpacity
                 onPress={() => router.push({ pathname: '/tasks/create-task', params: { gardenId: id.toString() } })}
                 style={{ backgroundColor: COLORS.primary, padding: 10, borderRadius: 8, marginBottom: 16 }}
-            >
+              >
                 <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center' }}>+ Create Task</Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
             )}
             <Text style={styles.statusTitle}>Pending ({pendingTasks.length})</Text>
             <FlatList data={pendingTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color="#fff9c4" />} />
@@ -310,58 +329,58 @@ export default function GardenDetailScreen() {
           </View>
         )}
         {tab === 1 && (
-        <View>
+          <View>
             <Text style={styles.sectionTitle}>Garden Members</Text>
             <FlatList
-            data={members}
-            keyExtractor={(item: any) => item.id.toString()}
-            renderItem={({ item }: { item: any }) => (
+              data={members}
+              keyExtractor={(item: any) => item.id.toString()}
+              renderItem={({ item }: { item: any }) => (
                 <View style={taskCardStyles.card}>
-                <Text style={taskCardStyles.title}>Username: {item.username}</Text>
-                <Text>Role: {item.role}</Text>
-                <Text>Status: {item.status}</Text>
+                  <Text style={taskCardStyles.title}>Username: {item.username}</Text>
+                  <Text>Role: {item.role}</Text>
+                  <Text>Status: {item.status}</Text>
 
-                {/* Follow/Unfollow and Block/Unblock button for each member except self */}
-                {user && String(item.user_id) !== String(user.id) && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                    {blockedIds.includes(Number(item.user_id)) ? (
-                      <TouchableOpacity style={styles.unfollowButtonSmall} onPress={() => handleUnblock(Number(item.user_id))}>
-                        <Text style={styles.unfollowButtonTextSmall}>Unblock</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <>
-                        {followingIds.includes(Number(item.user_id)) ? (
-                          <TouchableOpacity style={styles.unfollowButtonSmall} onPress={() => handleUnfollow(Number(item.user_id))}>
-                            <Text style={styles.unfollowButtonTextSmall}>Unfollow</Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <TouchableOpacity style={styles.followButtonSmall} onPress={() => handleFollow(Number(item.user_id))}>
-                            <Text style={styles.followButtonTextSmall}>Follow</Text>
-                          </TouchableOpacity>
-                        )}
-                        <TouchableOpacity style={styles.blockIconButton} onPress={() => handleBlock(Number(item.user_id))}>
-                          <Text style={styles.blockIconText}>🚫</Text>
+                  {/* Follow/Unfollow and Block/Unblock button for each member except self */}
+                  {user && String(item.user_id) !== String(user.id) && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                      {blockedIds.includes(Number(item.user_id)) ? (
+                        <TouchableOpacity style={styles.unfollowButtonSmall} onPress={() => handleUnblock(Number(item.user_id))}>
+                          <Text style={styles.unfollowButtonTextSmall}>Unblock</Text>
                         </TouchableOpacity>
-                      </>
-                    )}
-                  </View>
-                )}
+                      ) : (
+                        <>
+                          {followingIds.includes(Number(item.user_id)) ? (
+                            <TouchableOpacity style={styles.unfollowButtonSmall} onPress={() => handleUnfollow(Number(item.user_id))}>
+                              <Text style={styles.unfollowButtonTextSmall}>Unfollow</Text>
+                            </TouchableOpacity>
+                          ) : (
+                            <TouchableOpacity style={styles.followButtonSmall} onPress={() => handleFollow(Number(item.user_id))}>
+                              <Text style={styles.followButtonTextSmall}>Follow</Text>
+                            </TouchableOpacity>
+                          )}
+                          <TouchableOpacity style={styles.blockIconButton} onPress={() => handleBlock(Number(item.user_id))}>
+                            <Text style={styles.blockIconText}>🚫</Text>
+                          </TouchableOpacity>
+                        </>
+                      )}
+                    </View>
+                  )}
 
-                {/* Show buttons only if current user is manager AND item is pending */}
-                {userIsManager && item.status === 'PENDING' && (
+                  {/* Show buttons only if current user is manager AND item is pending */}
+                  {userIsManager && item.status === 'PENDING' && (
                     <View style={{ flexDirection: 'row', marginTop: 8, gap: 10 }}>
-                    <TouchableOpacity
+                      <TouchableOpacity
                         onPress={() => handleMembershipAccept(item.id)}
                         style={{ backgroundColor: 'green', padding: 6, borderRadius: 4 }}
-                    >
+                      >
                         <Text style={{ color: 'white' }}>Accept</Text>
-                    </TouchableOpacity>
+                      </TouchableOpacity>
                     </View>
-                )}
+                  )}
                 </View>
-            )}
+              )}
             />
-        </View>
+          </View>
         )}
         {tab === 2 && (
           <View style={{ padding: 20 }}>
@@ -379,6 +398,31 @@ export default function GardenDetailScreen() {
                 dotColor: COLORS.primaryDark,
               }}
             />
+          </View>
+        )}
+        {tab === 3 && (
+          <View>
+            <Text style={styles.sectionTitle}>Garden Gallery</Text>
+            {getGalleryImages().length > 0 ? (
+              <ImageGallery
+                images={getGalleryImages()}
+                coverImage={garden?.cover_image}
+                showCoverBadge={true}
+                maxColumns={2}
+                imageHeight={150}
+              />
+            ) : (
+              <View style={styles.emptyGallery}>
+                <Ionicons name="image-outline" size={48} color={COLORS.secondary} />
+                <Text style={styles.emptyText}>No gallery images yet</Text>
+                <Text style={styles.emptySubtext}>
+                  {userIsManager
+                    ? 'Add images by editing the garden'
+                    : 'Images will appear here when added by garden managers'
+                  }
+                </Text>
+              </View>
+            )}
           </View>
         )}
       </View>
@@ -469,6 +513,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#d00',
     fontWeight: 'bold',
+  },
+  emptyGallery: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    margin: 16,
+    borderWidth: 2,
+    borderColor: COLORS.secondary,
+    borderStyle: 'dashed',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginTop: 8,
+    opacity: 0.7,
   },
 });
 

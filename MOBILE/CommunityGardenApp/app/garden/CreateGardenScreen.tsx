@@ -1,10 +1,18 @@
 // File: app/garden/CreateGardenScreen.tsx
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Switch, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Switch, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { createGarden } from '../../services/garden';
 import { COLORS } from '../../constants/Config';
+import ImagePicker from '../../components/ui/ImagePicker';
+
+interface ImageData {
+  base64: string;
+  uri: string;
+  mimeType: string;
+  fileName: string;
+}
 
 export default function CreateGardenScreen() {
   const [name, setName] = useState('');
@@ -12,6 +20,8 @@ export default function CreateGardenScreen() {
   const [location, setLocation] = useState('');
   const [isPublic, setIsPublic] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [coverImage, setCoverImage] = useState<ImageData[]>([]);
+  const [galleryImages, setGalleryImages] = useState<ImageData[]>([]);
 
   const router = useRouter();
 
@@ -23,9 +33,27 @@ export default function CreateGardenScreen() {
 
     setLoading(true);
     try {
-      await createGarden({ name, description, location, is_public: isPublic });
+      const gardenData: any = {
+        name,
+        description,
+        location,
+        is_public: isPublic
+      };
+
+      // Add cover image if selected
+      if (coverImage.length > 0) {
+        gardenData.cover_image_base64 = coverImage[0].base64;
+      }
+
+      // Add gallery images if selected
+      if (galleryImages.length > 0) {
+        gardenData.gallery_base64 = galleryImages.map(img => img.base64);
+      }
+
+      await createGarden(gardenData);
       Alert.alert('Success', 'Garden created successfully!');
-      router.back(); // Navigate back to previous screen
+      // Navigate to gardens tab instead of going back
+      router.replace('/(tabs)/gardens');
     } catch (error) {
       console.error('Error creating garden:', error);
       Alert.alert('Error', 'Failed to create garden.');
@@ -35,7 +63,7 @@ export default function CreateGardenScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>Create New Garden</Text>
 
       <TextInput
@@ -67,6 +95,24 @@ export default function CreateGardenScreen() {
         />
       </View>
 
+      {/* Cover Image Upload */}
+      <ImagePicker
+        label="Cover Image (Optional)"
+        onImagesChange={setCoverImage}
+        maxImages={1}
+        allowMultiple={false}
+        initialImages={coverImage}
+      />
+
+      {/* Gallery Images Upload */}
+      <ImagePicker
+        label="Gallery Images (Optional)"
+        onImagesChange={setGalleryImages}
+        maxImages={5}
+        allowMultiple={true}
+        initialImages={galleryImages}
+      />
+
       <TouchableOpacity
         style={[styles.button, loading && styles.disabled]}
         onPress={handleSubmit}
@@ -74,7 +120,10 @@ export default function CreateGardenScreen() {
       >
         {loading ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.buttonText}>Create</Text>}
       </TouchableOpacity>
-    </View>
+
+      {/* Bottom padding for scroll */}
+      <View style={{ height: 20 }} />
+    </ScrollView>
   );
 }
 
