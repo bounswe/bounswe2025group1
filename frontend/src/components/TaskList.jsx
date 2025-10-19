@@ -28,8 +28,6 @@ const TaskList = ({
   const listRef = useRef(null);
   const taskRefs = useRef([]);
 
-  console.log(tasks);
-  console.log(user);
 
   // Create keyboard navigation for the task list
   const listNavigation = createListNavigation(

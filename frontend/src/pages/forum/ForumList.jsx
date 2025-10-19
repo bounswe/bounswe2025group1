@@ -334,7 +334,7 @@ const ForumList = () => {
                 isOwner={post.author === user?.id}
                 onComment={handlePostComment}
                 onEdit={(post) => navigate(`/forum/${post.id}`)}
-                onDelete={(postId) => console.log('Delete post:', postId)}
+                onDelete={(postId) => handleDeletePost(postId)}
               />
             ))
           ) : (

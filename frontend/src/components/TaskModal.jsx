@@ -212,7 +212,6 @@ const TaskModal = ({
       updatedForm.due_date = dayjs().toISOString();
     }
 
-    console.log('Form values before submission:', updatedForm);
 
     // If we have a new task type to create
     if (taskForm.custom_type === 'new' && newTaskTypeName) {

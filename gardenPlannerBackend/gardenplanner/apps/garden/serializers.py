@@ -164,7 +164,9 @@ class GardenSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         cover_image_b64 = validated_data.pop('cover_image_base64', None)
         gallery_b64 = validated_data.pop('gallery_base64', None)
+        
         instance = super().update(instance, validated_data)
+        
         if cover_image_b64 is not None:
             if cover_image_b64 == '':
                 instance.images.filter(is_cover=True).update(is_cover=False)
@@ -178,10 +180,13 @@ class GardenSerializer(serializers.ModelSerializer):
                     cover.save()
                 else:
                     GardenImage.objects.create(garden=instance, data=data_bytes, mime_type=mime, is_cover=True)
+        
         if gallery_b64 is not None:
             instance.images.filter(is_cover=False).delete()
             for img_b64 in gallery_b64:
                 if not img_b64:
+                    continue
+                if cover_image_b64 and img_b64 == cover_image_b64:
                     continue
                 data_bytes, mime = _decode_base64_image(img_b64)
                 GardenImage.objects.create(garden=instance, data=data_bytes, mime_type=mime, is_cover=False)

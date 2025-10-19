@@ -83,9 +83,6 @@ const GardenDetail = () => {
           },
         });
         const gardenData = await gardenRes.json();
-        console.log('Garden data received:', gardenData);
-        console.log('Garden images:', gardenData.images);
-        console.log('Cover image:', gardenData.cover_image);
         setGarden(gardenData);
 
         const tasksRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/?garden=${gardenId}`, {
@@ -158,7 +155,6 @@ const GardenDetail = () => {
 
   const handleTaskChipClick = (task) => {
     // Format the task data to ensure consistent structure for the modal
-    console.log('Task selected for edit:', task);
     setSelectedTask({
       status: task.status || 'PENDING',
       custom_type: task.custom_type ? task.custom_type?.toString() : null,
@@ -590,35 +586,6 @@ const GardenDetail = () => {
             <Typography variant="body1" sx={{ textAlign: 'start' }}>
               {garden.description}
             </Typography>
-            
-            {/* Garden Images */}
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
-                Garden Gallery
-              </Typography>
-              {garden.images && garden.images.length > 0 ? (
-                <ImageGallery 
-                  images={garden.images}
-                  coverImage={garden.cover_image}
-                  maxColumns={3}
-                  imageHeight={200}
-                  showCoverBadge={true}
-                />
-              ) : (
-                <Box sx={{ 
-                  p: 3, 
-                  textAlign: 'center', 
-                  backgroundColor: 'grey.50', 
-                  borderRadius: 2,
-                  border: '2px dashed',
-                  borderColor: 'grey.300'
-                }}>
-                  <Typography variant="body2" color="text.secondary">
-                    No images uploaded yet. Garden managers can add images using the "Manage Garden" button.
-                  </Typography>
-                </Box>
-              )}
-            </Box>
           </Grid>{' '}
           <Grid
             size={{ xs: 12, md: 4 }}
@@ -681,6 +648,7 @@ const GardenDetail = () => {
           <Tab label="Tasks" />
           <Tab label="Members" />
           <Tab label="Calendar" />
+          <Tab label="Gallery" />
         </Tabs>
       </Box>
 
@@ -807,6 +775,40 @@ const GardenDetail = () => {
               setOpenTaskModal(true);
             }}
           />
+        )}
+
+        {/* Gallery Tab */}
+        {activeTab === 3 && (
+          <Box>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, mb: 3 }}>
+              Garden Gallery
+            </Typography>
+            {garden?.images && garden.images.length > 0 ? (
+              <ImageGallery 
+                images={garden.images}
+                coverImage={garden.cover_image}
+                maxColumns={3}
+                imageHeight={200}
+                showCoverBadge={true}
+              />
+            ) : (
+              <Box sx={{ 
+                p: 4, 
+                textAlign: 'center', 
+                backgroundColor: 'grey.50', 
+                borderRadius: 2,
+                border: '2px dashed',
+                borderColor: 'grey.300'
+              }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  No Images Yet
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Garden managers can add images using the "Manage Garden" button.
+                </Typography>
+              </Box>
+            )}
+          </Box>
         )}
       </Box>
       <TaskModal

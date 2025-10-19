@@ -95,7 +95,6 @@ function Navbar() {
 
     if (action === 'logout') {
       logout();
-      console.log('User logged out');
       toast.success("You've been logged out.", {
         position: 'top-right',
         theme: 'colored',

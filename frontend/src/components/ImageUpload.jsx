@@ -100,7 +100,15 @@ const ImageUpload = ({
     const updatedImages = images.filter((_, i) => i !== index);
     setImages(updatedImages);
     
-    const base64Strings = updatedImages.map(img => img.base64);
+    // Convert to base64 strings for API - handle both new uploads and existing images
+    const base64Strings = updatedImages.map(img => {
+      // If it's a new upload with base64 property, use that
+      if (img.base64) {
+        return img.base64;
+      }
+      // If it's an existing image from backend, it might already be a string
+      return typeof img === 'string' ? img : img.image_base64 || img;
+    });
     onImagesChange(base64Strings);
     
     // If we removed the cover image, notify parent
@@ -282,3 +290,4 @@ const ImageUpload = ({
 };
 
 export default ImageUpload;
+

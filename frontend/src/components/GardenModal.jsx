@@ -34,6 +34,7 @@ const GardenModal = ({
       gallery_base64: galleryImages,
     };
     
+    
     // Call the original handleSubmit with enhanced form data
     handleSubmit(e, formData);
   };
@@ -43,9 +44,18 @@ const GardenModal = ({
     if (open && existingImages) {
       if (existingImages.cover_image) {
         setCoverImage(existingImages.cover_image.image_base64);
+      } else {
+        setCoverImage('');
       }
+      
       if (existingImages.images && existingImages.images.length > 0) {
-        setGalleryImages(existingImages.images.map(img => img.image_base64));
+        // Filter out cover image from gallery images to avoid duplicates
+        const galleryImages = existingImages.images
+          .filter(img => !img.is_cover)
+          .map(img => img.image_base64);
+        setGalleryImages(galleryImages);
+      } else {
+        setGalleryImages([]);
       }
     } else if (open && mode === 'create') {
       setCoverImage('');
