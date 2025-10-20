@@ -168,6 +168,8 @@
     "managersCanAddImages": "Garden managers can add images using the \"Manage Garden\" button.",
     "noMembersFound": "No members found",
     "remove": "Remove",
+    "coverImage": "Cover Image",
+    "galleryImages": "Gallery Images",
     "accept": "Accept",
     "demote": "Demote",
     "promote": "Promote",
