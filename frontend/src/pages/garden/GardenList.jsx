@@ -53,12 +53,17 @@ const GardenList = () => {
   useEffect(() => {
     const fetchGardens = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/gardens/`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const isValidToken = (t) =>
+          t !== null
+
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (isValidToken(token)) {
+          headers['Authorization'] = `Token ${token.trim()}`;
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/gardens/`, { headers });
         const data = await response.json();
         setGardens(data);
         setFilteredGardens(data);
