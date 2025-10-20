@@ -25,6 +25,7 @@
     "login": "Giriş Yap",
     "register": "Kayıt Ol",
     "logout": "Çıkış Yap",
+    "loggedOut": "Çıkış yapıldı.",
     "dashboard": "Kontrol Paneli"
   },
   "language": {
@@ -38,6 +39,7 @@
       "title": "Giriş Yap",
       "subtitle": "Topluluk Bahçe Planlayıcısına tekrar hoş geldiniz",
       "email": "E-posta Adresi",
+      "username": "Kullanıcı Adı",
       "password": "Şifre",
       "rememberMe": "Beni hatırla",
       "forgotPassword": "Şifrenizi mi unuttunuz?",
@@ -187,7 +189,8 @@
     "couldNotDeleteGarden": "Bahçe silinemedi.",
     "confirmDeleteTask": "Bu görevi silmek istediğinizden emin misiniz?",
     "confirmLeaveGarden": "Bu bahçeden ayrılmak istediğinizden emin misiniz?",
-    "confirmRemoveMember": "Bu üyeyi kaldırmak istediğinizden emin misiniz?"
+    "confirmRemoveMember": "Bu üyeyi kaldırmak istediğinizden emin misiniz?",
+    "gardenCreatedSuccessfully": "Bahçe başarıyla oluşturuldu!"
   },
   "forum": {
     "title": "Topluluk Forumu",
@@ -333,7 +336,8 @@
     "taskCreatedSuccessfully": "Görev başarıyla oluşturuldu!",
     "taskUpdatedSuccessfully": "Görev başarıyla güncellendi!",
     "in_progress": "Devam Ediyor",
-    "taskDescriptionPlaceholder": "Görev detaylarını açıklayın..."
+    "taskDescriptionPlaceholder": "Görev detaylarını açıklayın...",
+    "saveChanges": "Değişiklikleri Kaydet"
   },
   "weather": {
     "title": "Hava Durumu Tahmini",

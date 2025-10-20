@@ -25,6 +25,7 @@
     "login": "Login",
     "register": "Register",
     "logout": "Logout",
+    "loggedOut": "You've been logged out.",
     "dashboard": "Dashboard"
   },
   "language": {
@@ -38,6 +39,7 @@
       "title": "Sign In",
       "subtitle": "Welcome back to Community Garden Planner",
       "email": "Email Address",
+      "username": "Username",
       "password": "Password",
       "rememberMe": "Remember me",
       "forgotPassword": "Forgot your password?",
@@ -187,7 +189,8 @@
     "couldNotDeleteGarden": "Could not delete garden.",
     "confirmDeleteTask": "Are you sure you want to delete this task?",
     "confirmLeaveGarden": "Are you sure you want to leave this garden?",
-    "confirmRemoveMember": "Are you sure you want to remove this member?"
+    "confirmRemoveMember": "Are you sure you want to remove this member?",
+    "gardenCreatedSuccessfully": "Garden created successfully!"
   },
   "forum": {
     "title": "Community Forum",
@@ -334,7 +337,8 @@
     "taskCreatedSuccessfully": "Task created successfully!",
     "taskUpdatedSuccessfully": "Task updated successfully!",
     "in_progress": "In Progress",
-    "taskDescriptionPlaceholder": "Describe the task details..."
+    "taskDescriptionPlaceholder": "Describe the task details...",
+    "saveChanges": "Save Changes"
   },
   "weather": {
     "title": "Weather Forecast",

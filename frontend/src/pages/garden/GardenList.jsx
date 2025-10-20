@@ -139,7 +139,7 @@ const GardenList = () => {
 
       const data = await response.json();
 
-      toast.success('Garden created successfully!', {
+      toast.success(t('gardens.gardenCreatedSuccessfully'), {
         position: 'top-right',
         theme: 'colored',
       });
