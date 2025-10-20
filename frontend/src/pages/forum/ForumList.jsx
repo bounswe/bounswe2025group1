@@ -59,7 +59,10 @@ const ForumList = () => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/forum?include_comments=true`, { headers });
 
         if (!response.ok) {
-          toast.error(t('errors.failedToFetchPosts'));
+          // Only show error for authenticated users
+          if (token) {
+            toast.error(t('errors.failedToFetchPosts'));
+          }
           setLoading(false);
           return;
         }
@@ -69,7 +72,11 @@ const ForumList = () => {
         setFilteredPosts(data);
         setLoading(false);
       } catch (error) {
-        console.error(t('errors.errorFetchingPosts'), error);
+        console.error('Error fetching posts:', error);
+        // Only show error for authenticated users
+        if (token) {
+          toast.error(t('errors.failedToFetchPosts'));
+        }
         setLoading(false);
       }
     };
