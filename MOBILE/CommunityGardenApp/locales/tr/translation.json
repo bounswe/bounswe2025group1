@@ -208,5 +208,9 @@
     "forum": "Forum",
     "profile": "Profil",
     "myTasks": "Görevlerim"
+  },
+  "weather": {
+    "not_available": "Hava durumu verisi mevcut değil",
+    "update": "Hava Durumu Güncellemesi"
   }
 }

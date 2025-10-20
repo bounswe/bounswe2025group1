@@ -208,5 +208,9 @@
     "forum": "Forum",
     "profile": "Profile",
     "myTasks": "My Tasks"
+  },
+  "weather": {
+    "not_available": "Weather data not available",
+    "update": "Weather Update"
   }
 }
