@@ -26,8 +26,10 @@ import GardenCard from '../../components/GardenCard';
 import React from 'react';
 import { createButtonKeyboardHandler, createLinkKeyboardHandler, createRovingTabindex } from '../../utils/keyboardNavigation';
 import LocationPicker from '../../components/LocationPicker';
+import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
+  const { t } = useTranslation();
   let { userId } = useParams();
   const { user, token, updateUser } = useAuth();
   const navigate = useNavigate();
@@ -282,9 +284,9 @@ const Profile = () => {
       }
 
       setIsEditing(false);
-      toast.success('Profile updated successfully');
+      toast.success(t('profile.profileUpdatedSuccessfully'));
     } catch (err) {
-      toast.error('Error updating profile: ' + err.message);
+      toast.error(t('profile.errorUpdatingProfile') + ': ' + err.message);
     }
   };
 
@@ -308,7 +310,7 @@ const Profile = () => {
       }
 
       setIsFollowing(!isFollowing);
-      toast.success(`Successfully ${isFollowing ? 'unfollowed' : 'followed'} user`);
+      toast.success(isFollowing ? t('profile.successfullyUnfollowed') : t('profile.successfullyFollowed'));
 
       // Update followers list
       const followersResponse = await fetch(
@@ -390,13 +392,9 @@ const Profile = () => {
                     outlineOffset: '2px',
                   },
                 }}
-                onKeyDown={createButtonKeyboardHandler(() => {
-                  // Trigger file input click
-                  const fileInput = document.querySelector('input[type="file"]');
-                  if (fileInput) fileInput.click();
-                })}
+                onKeyDown={createButtonKeyboardHandler(() => {})}
               >
-                Change Picture
+                {t('profile.uploadPhoto')}
                 <input
                   type="file"
                   hidden
@@ -411,7 +409,7 @@ const Profile = () => {
             </Typography>
 
             <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-              {profile.profile?.location || 'No location set'}
+              {profile.profile?.location || t('profile.noLocationSet')}
             </Typography>
 
             {!isOwnProfile && (
@@ -428,9 +426,9 @@ const Profile = () => {
                     outlineOffset: '2px',
                   },
                 }}
-                aria-label={isFollowing ? 'Unfollow user' : 'Follow user'}
+                aria-label={isFollowing ? t('profile.unfollowUser') : t('profile.followUser')}
               >
-                {isFollowing ? 'Unfollow' : 'Follow'}
+                {isFollowing ? t('profile.unfollow') : t('profile.follow')}
               </Button>
             )}
 
@@ -447,9 +445,9 @@ const Profile = () => {
                     outlineOffset: '2px',
                   },
                 }}
-                aria-label="Edit profile"
+                aria-label={t('profile.editProfileLabel')}
               >
-                Edit Profile
+                {t('profile.editProfile')}
               </Button>
             )}
 
@@ -466,9 +464,9 @@ const Profile = () => {
                       outlineOffset: '2px',
                     },
                   }}
-                  aria-label="Save profile changes"
+                  aria-label={t('profile.saveProfileChanges')}
                 >
-                  Save
+                  {t('profile.save')}
                 </Button>
                 <Button 
                   variant="outlined" 
@@ -481,9 +479,9 @@ const Profile = () => {
                       outlineOffset: '2px',
                     },
                   }}
-                  aria-label="Cancel profile editing"
+                  aria-label={t('profile.cancelProfileEditing')}
                 >
-                  Cancel
+                  {t('profile.cancel')}
                 </Button>
               </Box>
             )}
@@ -493,13 +491,13 @@ const Profile = () => {
                 <Grid size={{ xs: 6 }}>
                   <Paper elevation={1} sx={{ p: 2, textAlign: 'center' }}>
                     <Typography variant="h6">{followers?.length || 0}</Typography>
-                    <Typography variant="body2">Followers</Typography>
+                    <Typography variant="body2">{t('profile.followers')}</Typography>
                   </Paper>
                 </Grid>
                 <Grid size={{ xs: 6 }}>
                   <Paper elevation={1} sx={{ p: 2, textAlign: 'center' }}>
                     <Typography variant="h6">{following?.length || 0}</Typography>
-                    <Typography variant="body2">Following</Typography>
+                    <Typography variant="body2">{t('profile.following')}</Typography>
                   </Paper>
                 </Grid>
               </Grid>
@@ -512,7 +510,7 @@ const Profile = () => {
                 <TextField
                   margin="normal"
                   fullWidth
-                  label="Username"
+                  label={t('profile.username')}
                   name="username"
                   value={editedProfile.username}
                   onChange={handleInputChange}
@@ -520,7 +518,7 @@ const Profile = () => {
                 <TextField
                   margin="normal"
                   fullWidth
-                  label="Email"
+                  label={t('profile.email')}
                   name="email"
                   type="email"
                   value={editedProfile.email}
@@ -529,7 +527,7 @@ const Profile = () => {
                 <LocationPicker
                   value={editedProfile.location}
                   onChange={(value) => setEditedProfile({ ...editedProfile, location: value })}
-                  label="Location"
+                  label={t('profile.location')}
                   height={200}
                   sx={{ mt: 2, mb: 2 }}
                 />
@@ -545,7 +543,7 @@ const Profile = () => {
                   >
                     <Tab 
                       ref={(el) => (tabRefs.current[0] = el)}
-                      label="Gardens" 
+                      label={t('profile.gardens')} 
                       id="tab-0"
                       role="tab"
                       aria-selected={tabValue === 0}
@@ -571,7 +569,7 @@ const Profile = () => {
                     />
                     <Tab 
                       ref={(el) => (tabRefs.current[1] = el)}
-                      label="Followers" 
+                      label={t('profile.followers')} 
                       id="tab-1"
                       role="tab"
                       aria-selected={tabValue === 1}
@@ -597,7 +595,7 @@ const Profile = () => {
                     />
                     <Tab 
                       ref={(el) => (tabRefs.current[2] = el)}
-                      label="Following" 
+                      label={t('profile.following')} 
                       id="tab-2"
                       role="tab"
                       aria-selected={tabValue === 2}
@@ -661,7 +659,7 @@ const Profile = () => {
                           color="text.secondary"
                           sx={{ py: 3, textAlign: 'center' }}
                         >
-                          No gardens yet.
+                          {t('profile.noGardensYet')}
                         </Typography>
                       )}
                     </>
@@ -717,7 +715,7 @@ const Profile = () => {
                           color="text.secondary"
                           sx={{ py: 3, textAlign: 'center' }}
                         >
-                          No followers yet.
+                          {t('profile.noFollowersYet')}
                         </Typography>
                       )}
                     </>
@@ -764,7 +762,7 @@ const Profile = () => {
                           color="text.secondary"
                           sx={{ py: 3, textAlign: 'center' }}
                         >
-                          Not following anyone yet.
+                          {t('profile.notFollowingAnyoneYet')}
                         </Typography>
                       )}
                     </>

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import AuthContext from './AuthContextUtils';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 
 export const AuthProvider = ({ children }) => {
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -140,7 +142,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        toast.error('Logout failed');
+        toast.error(t('auth.logoutFailed'));
         return false;
       }
 

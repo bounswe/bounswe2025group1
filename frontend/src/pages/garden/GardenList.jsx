@@ -26,10 +26,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 import { Switch } from '@mui/material';
 import GardenModal from '../../components/GardenModal';
 
 const GardenList = () => {
+  const { t } = useTranslation();
   const [gardens, setGardens] = useState([]);
   const [filteredGardens, setFilteredGardens] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -172,10 +174,10 @@ const GardenList = () => {
       {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
-          Community Gardens
+          {t('gardens.title')}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph>
-          Explore and join community gardens in your area or create your own.
+          {t('gardens.subtitle')}
         </Typography>
         <Divider sx={{ my: 2 }} />
       </Box>
@@ -186,7 +188,7 @@ const GardenList = () => {
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
-              placeholder="Search gardens by name, description or location..."
+              placeholder={t('gardens.searchByName')}
               value={searchTerm}
               onChange={handleSearch}
               InputProps={{
@@ -216,7 +218,7 @@ const GardenList = () => {
                 whiteSpace: 'nowrap',
               }}
             >
-              Add Garden
+              {t('gardens.addGarden')}
             </Button>
           </Grid>
         </Grid>
@@ -271,7 +273,7 @@ const GardenList = () => {
                     onClick={() => navigate(`/gardens/${garden.id}`)}
                     sx={{ backgroundColor: '#558b2f', '&:hover': { backgroundColor: '#33691e' } }}
                   >
-                    View Garden
+                    {t('gardens.viewGarden')}
                   </Button>
                 </Box>
               </Card>
@@ -280,10 +282,10 @@ const GardenList = () => {
         ) : (
           <Box sx={{ width: '100%', textAlign: 'center', py: 5 }}>
             <Typography variant="h6" color="text.secondary">
-              No gardens found matching your search.
+              {t('gardens.noGardensFound')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Try a different search term or create a new garden.
+              {t('gardens.tryDifferentSearchTerm')}
             </Typography>
           </Box>
         )}

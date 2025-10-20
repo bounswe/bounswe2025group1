@@ -18,8 +18,10 @@ import { useAuth } from '../contexts/AuthContextUtils';
 import CircularProgress from '@mui/material/CircularProgress';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 
 const ForumPreview = ({ limit = 3, showViewAll = true }) => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { token } = useAuth();
   const [posts, setPosts] = useState([]);
@@ -28,7 +30,8 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
+    const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+    return new Intl.DateTimeFormat(locale, {
       month: 'short',
       day: 'numeric',
     }).format(date);
@@ -40,7 +43,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`);
 
         if (!response.ok) {
-          toast.error('Failed to fetch posts');
+          toast.error(t('errors.failedToFetchPosts'));
           setLoading(false);
           return;
         }
@@ -49,7 +52,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
         setPosts(data || []);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching forum posts:', error);
+        console.error(t('errors.failedToFetchPosts'), error);
         setLoading(false);
       }
     };
@@ -83,7 +86,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   return (
     <Paper elevation={2} sx={{ p: 3, height: 300 }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-        <ForumIcon sx={{ mr: 1 }} /> Community Forum
+        <ForumIcon sx={{ mr: 1 }} /> {t('forum.title')}
       </Typography>
 
       {displayPosts.length > 0 ? (
@@ -139,7 +142,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
                 onClick={() => navigate('/forum')}
                 sx={{ color: '#2e7d32', borderColor: '#2e7d32' }}
               >
-                Explore Forum
+                {t('forum.exploreForum')}
               </Button>
             </Box>
           )}
@@ -147,7 +150,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
       ) : (
         <>
           <Typography variant="body2" paragraph>
-            Join discussions, share gardening tips, and connect with fellow garden enthusiasts.
+            {t('forum.subtitle')}
           </Typography>
           <Button
             variant="outlined"
@@ -155,7 +158,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
             onClick={() => navigate('/forum')}
             sx={{ color: '#2e7d32', borderColor: '#2e7d32' }}
           >
-            Explore Forum
+            {t('forum.exploreForum')}
           </Button>
         </>
       )}

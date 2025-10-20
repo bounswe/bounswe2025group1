@@ -8,6 +8,7 @@ import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_URL } from '@/constants/Config';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -16,6 +17,7 @@ export default function HomeScreen() {
   const [location, setLocation] = useState<string | null>(null);
   const { user, token } = useAuth();
   const colors = useAccessibleColors();
+  const { t } = useTranslation();
   useEffect(() => {
     const fetchCurrentProfile = async () => {
       try {
@@ -38,15 +40,15 @@ export default function HomeScreen() {
         {location ? (
           <WeatherWidget city={location} />
         ) : (
-          <Text style={[styles.loadingText, { color: colors.text }]}>Loading weather...</Text>
+          <Text style={[styles.loadingText, { color: colors.text }]}>{t('home.loadingWeather')}</Text>
         )}
     
         <ThemedView style={[styles.welcomeContainer, { backgroundColor: colors.surface }]}>
           <ThemedText type="title" style={styles.welcomeText}>
-            Welcome to the Garden Community App!
+            {t('home.welcome')}
           </ThemedText>
           <ThemedText type="subtitle">
-            Connect, grow, and share with fellow gardeners 🌱
+            {t('home.subtitle')}
           </ThemedText>
         </ThemedView>
     
@@ -57,8 +59,8 @@ export default function HomeScreen() {
             tintColor: colors.background === '#000000' ? colors.text : undefined
           }]}
           resizeMode="contain"
-          accessibilityLabel="Community garden illustration showing people gardening together"
-          accessibilityHint="Illustration representing the community gardening concept"
+          accessibilityLabel={t('home.accessibilityLabel')}
+          accessibilityHint={t('home.accessibilityHint')}
         />
       </SafeAreaView>
     

@@ -32,8 +32,10 @@ import CommentCreateDialog from '../../components/CommentCreateDialog';
 import ImageGallery from '../../components/ImageGallery';
 import InlineImageUpload from '../../components/InlineImageUpload';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const ForumPost = () => {
+  const { t, i18n } = useTranslation();
   const { postId } = useParams();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -70,9 +72,9 @@ const ForumPost = () => {
         });
 
         if (!postResponse.ok) {
-          toast.error('Failed to fetch post');
+          toast.error(t('forum.failedToFetchPost'));
           setLoading(false);
-          setError('Failed to load the post. Please try again later.');
+          setError(t('forum.failedToLoadPost'));
           return;
         }
 
@@ -190,7 +192,7 @@ const ForumPost = () => {
       setEditMode(false);
 
       // Show success toast notification
-      toast.success('Post updated successfully!');
+      toast.success(t('forum.postUpdatedSuccessfully'));
     } catch (error) {
       console.error('Error updating post:', error);
       setError('Failed to update your post. Please try again.');
@@ -211,8 +213,8 @@ const ForumPost = () => {
       });
 
       if (!response.ok) {
-        toast.error('Failed to delete post');
-        setError('Failed to delete the post. Please try again.');
+        toast.error(t('forum.failedToDeletePost'));
+        setError(t('forum.failedToDeletePostTryAgain'));
         setDeleteDialogOpen(false);
         return;
       }
@@ -228,19 +230,21 @@ const ForumPost = () => {
       setDeleteDialogOpen(false);
 
       // Show error toast notification
-      toast.error('Failed to delete post. Please try again.');
+      toast.error(t('forum.failedToDeletePost'));
       return;
     }
   };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
+    const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+    return new Intl.DateTimeFormat(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      hour12: i18n.language === 'tr' ? false : true,
     }).format(date);
   };
 
@@ -263,7 +267,7 @@ const ForumPost = () => {
           onClick={() => navigate('/forum')}
           sx={{ color: '#558b2f' }}
         >
-          Back to Forums
+          {t('forum.backToForums')}
         </Button>
       </Container>
     );
@@ -273,14 +277,14 @@ const ForumPost = () => {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
         <Typography variant="h5" color="text.secondary" sx={{ textAlign: 'left', py: 5 }}>
-          Post not found
+          {t('forum.postNotFound')}
         </Typography>
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/forum')}
           sx={{ color: '#558b2f' }}
         >
-          Back to Forums
+          {t('forum.backToForums')}
         </Button>
       </Container>
     );
@@ -295,7 +299,7 @@ const ForumPost = () => {
           onClick={() => navigate('/forum')}
           sx={{ color: '#558b2f', mb: 2 }}
         >
-          Back to Forums
+          {t('forum.backToForums')}
         </Button>
       </Box>
 
@@ -306,14 +310,14 @@ const ForumPost = () => {
           <Box component="form" sx={{ mb: 3 }}>
             <TextField
               fullWidth
-              label="Title"
+              label={t('forum.postTitle')}
               value={editedTitle}
               onChange={(e) => setEditedTitle(e.target.value)}
               sx={{ mb: 2 }}
             />
             <TextField
               fullWidth
-              label="Content"
+              label={t('forum.content')}
               multiline
               rows={6}
               value={editedContent}
@@ -322,14 +326,14 @@ const ForumPost = () => {
             />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
               <Button variant="outlined" onClick={() => setEditMode(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 variant="contained"
                 onClick={handlePostUpdate}
                 sx={{ bgcolor: '#558b2f', '&:hover': { bgcolor: '#33691e' } }}
               >
-                Save Changes
+                {t('forum.saveChanges')}
               </Button>
             </Box>
           </Box>
@@ -370,18 +374,18 @@ const ForumPost = () => {
               >
                 {post.author_username && post.author_username.charAt(0)}
               </Avatar>
-              <Box>
+              <Box sx={{ flex: 1, textAlign: 'left' }}>
                 <Typography
                   variant="subtitle2"
-                  sx={{ cursor: 'pointer' }}
+                  sx={{ cursor: 'pointer', textAlign: 'left', margin: 0 }}
                   onClick={() => navigate(`/profile/${post.author}`)}
                 >
                   {post.author_username}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Posted on {formatDate(post.created_at)}
+                  {t('forum.postedOn')} {formatDate(post.created_at)}
                   {post.updated_at !== post.created_at &&
-                    ` • Edited on ${formatDate(post.updated_at)}`}
+                    ` • ${t('forum.editedOn')} ${formatDate(post.updated_at)}`}
                 </Typography>
               </Box>
             </Box>
@@ -410,7 +414,7 @@ const ForumPost = () => {
                     onClick={() => setShowInlineComment(!showInlineComment)}
                     sx={{ color: '#558b2f', borderColor: '#558b2f' }}
                   >
-                    {showInlineComment ? 'Cancel' : 'Add Comment'}
+                    {showInlineComment ? t('common.cancel') : t('forum.addComment')}
                   </Button>
                   <Button
                     variant="text"
@@ -418,7 +422,7 @@ const ForumPost = () => {
                     onClick={() => setCommentDialogOpen(true)}
                     sx={{ color: '#558b2f' }}
                   >
-                    Dialog
+                    {t('forum.dialog')}
                   </Button>
                 </>
               )}
@@ -434,7 +438,7 @@ const ForumPost = () => {
           gutterBottom
           sx={{ color: '#2e7d32', fontWeight: 'medium', mt: 4, mb: 2 }}
         >
-          Comments ({comments.length})
+          {t('forum.comments')} ({comments.length})
         </Typography>
       </Box>
 

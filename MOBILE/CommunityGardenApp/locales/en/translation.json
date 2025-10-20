@@ -76,18 +76,129 @@
     "edit": "Edit Profile",
     "followers": "Followers",
     "following": "Following",
-    "logout": "Logout"
+    "logout": "Logout",
+    "gardens": "Gardens",
+    "noGardens": "No gardens yet.",
+    "noFollowers": "No followers yet.",
+    "notFollowing": "Not following anyone yet.",
+    "goToDetail": "Go to Detail",
+    "unfollow": "Unfollow"
   },
   "garden": {
     "title": "My Gardens",
     "createGarden": "Create Garden",
     "noGardens": "No gardens found.",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "detail": {
+      "title": "Garden Detail",
+      "back": "Back",
+      "tabs": {
+        "tasks": "Tasks",
+        "members": "Members",
+        "calendar": "Calendar"
+      },
+      "joinGarden": "Join Garden",
+      "sendingRequest": "Sending Request...",
+      "membershipStatus": "Membership Status",
+      "gardenTasks": "Garden Tasks",
+      "createTask": "Create Task",
+      "gardenMembers": "Garden Members",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "role": "Role",
+      "status": "Status",
+      "follow": "Follow",
+      "unfollow": "Unfollow",
+      "block": "Block",
+      "unblock": "Unblock",
+      "accept": "Accept",
+      "roles": {
+        "MANAGER": "Manager",
+        "WORKER": "Worker"
+      },
+      "statuses": {
+        "ACCEPTED": "Accepted",
+        "PENDING": "Pending"
+      }
+    },
+    "create": {
+      "title": "Create New Garden",
+      "name": "Garden Name",
+      "namePlaceholder": "Enter garden name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter garden description",
+      "location": "Location",
+      "locationPlaceholder": "Enter garden location",
+      "isPublic": "Public Garden",
+      "isPublicDescription": "Allow others to find and join this garden",
+      "createButton": "Create Garden",
+      "loading": "Creating garden...",
+      "success": "Garden created successfully!",
+      "error": "Failed to create garden. Please try again.",
+      "validation": "Validation",
+      "nameRequired": "Garden name is required."
+    }
   },
   "tabs": {
     "home": "Home",
     "gardens": "Gardens",
     "forum": "Forum",
     "profile": "Profile"
+  },
+  "home": {
+    "welcome": "Welcome to the Garden Community App!",
+    "subtitle": "Connect, grow, and share with fellow gardeners 🌱",
+    "loadingWeather": "Loading weather...",
+    "accessibilityLabel": "Community garden illustration showing people gardening together",
+    "accessibilityHint": "Illustration representing the community gardening concept"
+  },
+  "community": {
+    "title": "Community Members",
+    "follow": "Follow",
+    "noMembers": "No members found.",
+    "followSuccess": "Followed successfully!",
+    "followError": "Error following user."
+  },
+  "gardens": {
+    "title": "Public Gardens",
+    "goToDetail": "Go to Detail",
+    "noGardens": "No public gardens found.",
+    "createGarden": "Create Garden"
+  },
+  "tasks": {
+    "myTasks": "My Tasks",
+    "status": "Status",
+    "noTasks": "You don't have any assigned tasks.",
+    "inProgress": "In Progress",
+    "detail": {
+      "title": "Task Detail",
+      "loading": "Loading...",
+      "taskTitle": "Task Title",
+      "description": "Description",
+      "dueDate": "Due Date",
+      "priority": "Priority",
+      "assignedTo": "Assigned To",
+      "garden": "Garden",
+      "assignTask": "Assign Task",
+      "completeTask": "Complete Task",
+      "acceptTask": "Accept Task",
+      "declineTask": "Decline Task",
+      "selfAssign": "Self Assign",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "accepted": "Accepted",
+      "declined": "Declined"
+    }
+  },
+  "language": {
+    "select": "Select Language",
+    "current": "Current Language",
+    "english": "English",
+    "turkish": "Turkish"
   }
 }

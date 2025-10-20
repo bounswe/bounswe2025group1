@@ -8,11 +8,13 @@ import { API_URL } from '../../constants/Config';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import { Picker } from '@react-native-picker/picker';
+import { useTranslation } from 'react-i18next';
 
 export default function TaskDetailScreen() {
   const { taskId } = useLocalSearchParams();
   const { token, user } = useAuth();
   const colors = useAccessibleColors();
+  const { t } = useTranslation();
   const [task, setTask] = useState(null);
   const [members, setMembers] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState('');
@@ -116,28 +118,28 @@ export default function TaskDetailScreen() {
   };
 
   if (!task) {
-    return <Text style={[styles.loading, { color: colors.text }]}>Loading task...</Text>;
+    return <Text style={[styles.loading, { color: colors.text }]}>{t('tasks.detail.loading')}</Text>;
   }
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title, { color: colors.text }]}>{task.title}</Text>
-      <Text style={[styles.label, { color: colors.text }]}>Description:</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('tasks.detail.description')}:</Text>
       <Text style={[styles.value, { color: colors.textSecondary }]}>{task.description || 'No description'}</Text>
 
-      <Text style={[styles.label, { color: colors.text }]}>Status:</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('tasks.detail.status')}:</Text>
       <Text style={[styles.value, { color: colors.textSecondary }]}>{task.status}</Text>
 
-      <Text style={[styles.label, { color: colors.text }]}>Due Date:</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('tasks.detail.dueDate')}:</Text>
       <Text style={[styles.value, { color: colors.textSecondary }]}>{task.due_date?.split('T')[0]}</Text>
 
-      <Text style={[styles.label, { color: colors.text }]}>Assigned To:</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('tasks.detail.assignedTo')}:</Text>
       <Text style={[styles.value, { color: colors.textSecondary }]}>{task.assigned_to_username || 'Unassigned'}</Text>
 
       <Text style={[styles.label, { color: colors.text }]}>Assigned By:</Text>
       <Text style={[styles.value, { color: colors.textSecondary }]}>{task.assigned_by_username}</Text>
 
-      <Text style={[styles.label, { color: colors.text }]}>Garden:</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('tasks.detail.garden')}:</Text>
       <Text style={[styles.value, { color: colors.textSecondary }]}>{task.garden_name}</Text>
 
       {task.custom_type_name && (
@@ -170,14 +172,14 @@ export default function TaskDetailScreen() {
             
           </Picker>
           <TouchableOpacity style={[styles.assignBtn, { backgroundColor: colors.primary }]} onPress={handleAssign}>
-            <Text style={[styles.assignText, { color: colors.white }]}>Assign Task</Text>
+            <Text style={[styles.assignText, { color: colors.white }]}>{t('tasks.detail.assignTask')}</Text>
           </TouchableOpacity>
         </>
       )}
       
       {task.assigned_to === user.id && task.status === 'IN_PROGRESS' && (
         <TouchableOpacity style={[styles.completeBtn, { backgroundColor: colors.success }]} onPress={handleComplete}>
-          <Text style={[styles.completeText, { color: colors.white }]}>✓ Complete Task</Text>
+          <Text style={[styles.completeText, { color: colors.white }]}>✓ {t('tasks.detail.completeTask')}</Text>
         </TouchableOpacity>
       )}
 
@@ -185,10 +187,10 @@ export default function TaskDetailScreen() {
       {task.assigned_to === user.id && task.status === 'PENDING' && (
         <View style={styles.actionRow}>
           <TouchableOpacity style={[styles.acceptBtn, { backgroundColor: colors.success }]} onPress={() => handleAction('accept')}>
-            <Text style={[styles.btnText, { color: colors.white }]}>Accept</Text>
+            <Text style={[styles.btnText, { color: colors.white }]}>{t('tasks.detail.acceptTask')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.declineBtn, { backgroundColor: colors.error }]} onPress={() => handleAction('decline')}>
-            <Text style={[styles.btnText, { color: colors.white }]}>Decline</Text>
+            <Text style={[styles.btnText, { color: colors.white }]}>{t('tasks.detail.declineTask')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -197,7 +199,7 @@ export default function TaskDetailScreen() {
       {(task.status === 'PENDING' || task.status === 'DECLINED') && isMember && !isManager && task.assigned_to != user.id &&(
         <View style={styles.actionRow}>
           <TouchableOpacity style={[styles.acceptBtn, { backgroundColor: colors.success }]} onPress={handleSelfAssign}>
-            <Text style={[styles.btnText, { color: colors.white }]}>Self Assign</Text>
+            <Text style={[styles.btnText, { color: colors.white }]}>{t('tasks.detail.selfAssign')}</Text>
           </TouchableOpacity>
         </View>
       )}

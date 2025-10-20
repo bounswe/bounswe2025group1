@@ -3,6 +3,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import './App.css';
 
+// Initialize i18n
+import './i18n/config';
+
 // Components
 import Navbar from './components/Navbar';
 // Pages
@@ -89,6 +92,7 @@ function AppContent() {
                 <Route path="/forum/:postId" element={<ForumPost />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
+                <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:userId" element={<Profile />} />
                 {/* Additional routes will be implemented later */}
