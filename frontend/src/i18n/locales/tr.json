@@ -168,6 +168,8 @@
     "managersCanAddImages": "Bahçe yöneticileri \"Bahçeyi Yönet\" düğmesini kullanarak resim ekleyebilir.",
     "noMembersFound": "Üye bulunamadı",
     "remove": "Kaldır",
+    "coverImage": "Kapak Fotoğrafı",
+    "galleryImages": "Galeri Fotoğrafları",
     "accept": "Kabul Et",
     "demote": "Düşür",
     "promote": "Yükselt",
