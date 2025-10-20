@@ -121,6 +121,23 @@
         "ACCEPTED": "Kabul Edildi",
         "PENDING": "Beklemede"
       }
+    },
+    "create": {
+      "title": "Yeni Bahçe Oluştur",
+      "name": "Bahçe Adı",
+      "namePlaceholder": "Bahçe adını girin",
+      "description": "Açıklama",
+      "descriptionPlaceholder": "Bahçe açıklamasını girin",
+      "location": "Konum",
+      "locationPlaceholder": "Bahçe konumunu girin",
+      "isPublic": "Herkese Açık Bahçe",
+      "isPublicDescription": "Diğerlerinin bu bahçeyi bulmasına ve katılmasına izin ver",
+      "createButton": "Bahçe Oluştur",
+      "loading": "Bahçe oluşturuluyor...",
+      "success": "Bahçe başarıyla oluşturuldu!",
+      "error": "Bahçe oluşturulamadı. Lütfen tekrar deneyin.",
+      "validation": "Doğrulama",
+      "nameRequired": "Bahçe adı gereklidir."
     }
   },
   "tabs": {
@@ -135,6 +152,13 @@
     "loadingWeather": "Hava durumu yükleniyor...",
     "accessibilityLabel": "İnsanların birlikte bahçıvanlık yaptığını gösteren topluluk bahçesi illüstrasyonu",
     "accessibilityHint": "Topluluk bahçıvanlığı kavramını temsil eden illüstrasyon"
+  },
+  "community": {
+    "title": "Topluluk Üyeleri",
+    "follow": "Takip Et",
+    "noMembers": "Üye bulunamadı.",
+    "followSuccess": "Başarıyla takip edildi!",
+    "followError": "Kullanıcıyı takip ederken hata."
   },
   "gardens": {
     "title": "Herkese Açık Bahçeler",

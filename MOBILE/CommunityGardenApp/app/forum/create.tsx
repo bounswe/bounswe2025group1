@@ -6,6 +6,7 @@ import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 export default function CreatePostScreen() {
   const { token } = useAuth();
@@ -13,10 +14,11 @@ export default function CreatePostScreen() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const router = useRouter();
+  const { t } = useTranslation();
 
   const handleCreatePost = async () => {
     if (!title.trim() || !content.trim()) {
-      Alert.alert('Error', 'Title and content cannot be empty');
+      Alert.alert(t('common.error'), t('forum.errors.commentEmpty'));
       return;
     }
     try {
@@ -25,23 +27,23 @@ export default function CreatePostScreen() {
         { title, content },
         { headers: { Authorization: `Token ${token}` } }
       );
-      Alert.alert('Success', 'Post created successfully!');
+      Alert.alert(t('common.success'), t('forum.createPost'));
       router.push('/forum');
     } catch (error) {
-      Alert.alert('Error', 'Failed to create post');
+      Alert.alert(t('common.error'), t('forum.errors.fetchFailed'));
     }
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.header, { color: colors.text }]}>Create New Post</Text>
+      <Text style={[styles.header, { color: colors.text }]}>{t('forum.createPost')}</Text>
       <TextInput
         style={[styles.input, {
           backgroundColor: colors.surface,
           borderColor: colors.border,
           color: colors.text
         }]}
-        placeholder="Title"
+        placeholder={t('forum.searchPlaceholder')}
         placeholderTextColor={colors.textSecondary}
         value={title}
         onChangeText={setTitle}
@@ -52,7 +54,7 @@ export default function CreatePostScreen() {
           borderColor: colors.border,
           color: colors.text
         }]}
-        placeholder="Content"
+        placeholder={t('forum.post.addComment')}
         placeholderTextColor={colors.textSecondary}
         value={content}
         onChangeText={setContent}
@@ -60,7 +62,7 @@ export default function CreatePostScreen() {
         numberOfLines={4}
       />
       <TouchableOpacity style={[styles.createButton, { backgroundColor: colors.primary }]} onPress={handleCreatePost}>
-        <Text style={[styles.createButtonText, { color: colors.white }]}>Create Post</Text>
+        <Text style={[styles.createButtonText, { color: colors.white }]}>{t('forum.createPost')}</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

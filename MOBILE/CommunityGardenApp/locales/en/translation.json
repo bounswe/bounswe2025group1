@@ -121,6 +121,23 @@
         "ACCEPTED": "Accepted",
         "PENDING": "Pending"
       }
+    },
+    "create": {
+      "title": "Create New Garden",
+      "name": "Garden Name",
+      "namePlaceholder": "Enter garden name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter garden description",
+      "location": "Location",
+      "locationPlaceholder": "Enter garden location",
+      "isPublic": "Public Garden",
+      "isPublicDescription": "Allow others to find and join this garden",
+      "createButton": "Create Garden",
+      "loading": "Creating garden...",
+      "success": "Garden created successfully!",
+      "error": "Failed to create garden. Please try again.",
+      "validation": "Validation",
+      "nameRequired": "Garden name is required."
     }
   },
   "tabs": {
@@ -135,6 +152,13 @@
     "loadingWeather": "Loading weather...",
     "accessibilityLabel": "Community garden illustration showing people gardening together",
     "accessibilityHint": "Illustration representing the community gardening concept"
+  },
+  "community": {
+    "title": "Community Members",
+    "follow": "Follow",
+    "noMembers": "No members found.",
+    "followSuccess": "Followed successfully!",
+    "followError": "Error following user."
   },
   "gardens": {
     "title": "Public Gardens",

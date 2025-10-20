@@ -5,6 +5,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Switch, Act
 import { useRouter } from 'expo-router';
 import { createGarden } from '../../services/garden';
 import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
+import { useTranslation } from 'react-i18next';
 
 export default function CreateGardenScreen() {
   const [name, setName] = useState('');
@@ -15,21 +16,22 @@ export default function CreateGardenScreen() {
 
   const router = useRouter();
   const colors = useAccessibleColors();
+  const { t } = useTranslation();
 
   const handleSubmit = async () => {
     if (!name) {
-      Alert.alert('Validation', 'Garden name is required.');
+      Alert.alert(t('garden.create.validation'), t('garden.create.nameRequired'));
       return;
     }
 
     setLoading(true);
     try {
       await createGarden({ name, description, location, is_public: isPublic });
-      Alert.alert('Success', 'Garden created successfully!');
+      Alert.alert(t('garden.create.success'), t('garden.create.success'));
       router.back(); // Navigate back to previous screen
     } catch (error) {
       console.error('Error creating garden:', error);
-      Alert.alert('Error', 'Failed to create garden.');
+      Alert.alert(t('garden.create.error'), t('garden.create.error'));
     } finally {
       setLoading(false);
     }
@@ -37,10 +39,10 @@ export default function CreateGardenScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text }]}>Create New Garden</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{t('garden.create.title')}</Text>
 
       <TextInput
-        placeholder="Garden Name"
+        placeholder={t('garden.create.namePlaceholder')}
         style={[styles.input, {
           backgroundColor: colors.surface,
           borderColor: colors.border,
@@ -51,7 +53,7 @@ export default function CreateGardenScreen() {
         onChangeText={setName}
       />
       <TextInput
-        placeholder="Description"
+        placeholder={t('garden.create.descriptionPlaceholder')}
         style={[styles.input, styles.multiline, {
           backgroundColor: colors.surface,
           borderColor: colors.border,
@@ -63,7 +65,7 @@ export default function CreateGardenScreen() {
         multiline
       />
       <TextInput
-        placeholder="Location"
+        placeholder={t('garden.create.locationPlaceholder')}
         style={[styles.input, {
           backgroundColor: colors.surface,
           borderColor: colors.border,
@@ -75,7 +77,7 @@ export default function CreateGardenScreen() {
       />
 
       <View style={styles.switchRow}>
-        <Text style={[styles.switchLabel, { color: colors.text }]}>Make this garden public</Text>
+        <Text style={[styles.switchLabel, { color: colors.text }]}>{t('garden.create.isPublic')}</Text>
         <Switch
           value={isPublic}
           onValueChange={setIsPublic}
@@ -89,7 +91,7 @@ export default function CreateGardenScreen() {
         onPress={handleSubmit}
         disabled={loading}
       >
-        {loading ? <ActivityIndicator color={colors.white} /> : <Text style={[styles.buttonText, { color: colors.white }]}>Create</Text>}
+        {loading ? <ActivityIndicator color={colors.white} /> : <Text style={[styles.buttonText, { color: colors.white }]}>{t('garden.create.createButton')}</Text>}
       </TouchableOpacity>
     </View>
   );
