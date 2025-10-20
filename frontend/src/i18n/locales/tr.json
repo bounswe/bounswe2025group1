@@ -25,6 +25,7 @@
     "login": "Giriş Yap",
     "register": "Kayıt Ol",
     "logout": "Çıkış Yap",
+    "loggedOut": "Çıkış yapıldı.",
     "dashboard": "Kontrol Paneli"
   },
   "language": {
@@ -187,7 +188,8 @@
     "couldNotDeleteGarden": "Bahçe silinemedi.",
     "confirmDeleteTask": "Bu görevi silmek istediğinizden emin misiniz?",
     "confirmLeaveGarden": "Bu bahçeden ayrılmak istediğinizden emin misiniz?",
-    "confirmRemoveMember": "Bu üyeyi kaldırmak istediğinizden emin misiniz?"
+    "confirmRemoveMember": "Bu üyeyi kaldırmak istediğinizden emin misiniz?",
+    "gardenCreatedSuccessfully": "Bahçe başarıyla oluşturuldu!"
   },
   "forum": {
     "title": "Topluluk Forumu",

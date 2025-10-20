@@ -25,6 +25,7 @@
     "login": "Login",
     "register": "Register",
     "logout": "Logout",
+    "loggedOut": "You've been logged out.",
     "dashboard": "Dashboard"
   },
   "language": {
@@ -187,7 +188,8 @@
     "couldNotDeleteGarden": "Could not delete garden.",
     "confirmDeleteTask": "Are you sure you want to delete this task?",
     "confirmLeaveGarden": "Are you sure you want to leave this garden?",
-    "confirmRemoveMember": "Are you sure you want to remove this member?"
+    "confirmRemoveMember": "Are you sure you want to remove this member?",
+    "gardenCreatedSuccessfully": "Garden created successfully!"
   },
   "forum": {
     "title": "Community Forum",

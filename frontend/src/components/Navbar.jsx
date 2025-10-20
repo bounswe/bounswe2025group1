@@ -102,7 +102,7 @@ function Navbar() {
 
     if (action === 'logout') {
       logout();
-      toast.success("You've been logged out.", {
+      toast.success(t('navigation.loggedOut'), {
         position: 'top-right',
         theme: 'colored',
       });
@@ -507,7 +507,7 @@ function Navbar() {
 
                       if (setting.action === 'logout') {
                         logout();
-                        toast.info("You've been logged out.", {
+                        toast.info(t('navigation.loggedOut'), {
                           position: 'top-right',
                           theme: 'colored',
                         });
@@ -521,7 +521,7 @@ function Navbar() {
 
                       if (setting.action === 'logout') {
                         logout();
-                        toast.info("You've been logged out.", {
+                        toast.info(t('navigation.loggedOut'), {
                           position: 'top-right',
                           theme: 'colored',
                         });
