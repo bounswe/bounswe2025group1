@@ -363,11 +363,10 @@ const ForumPost = () => {
               )}
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              {' '}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, width: '100%' }}>
               <Avatar 
                 src={post.author_profile_picture || '/default-avatar.png'}
-                sx={{ bgcolor: '#558b2f', width: 40, height: 40, mr: 1 }}
+                sx={{ bgcolor: '#558b2f', width: 40, height: 40, mr: 2, flexShrink: 0 }}
               >
                 {post.author_username && post.author_username.charAt(0)}
               </Avatar>
