@@ -304,12 +304,13 @@ class ForumPostSerializer(serializers.ModelSerializer):
     author_profile_picture = serializers.SerializerMethodField(read_only=True)
     images = serializers.SerializerMethodField(read_only=True)
     images_base64 = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    delete_image_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     comments = serializers.SerializerMethodField(read_only=True)
     comments_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ForumPost
-        fields = ['id', 'title', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'updated_at', 'images', 'images_base64', 'comments', 'comments_count']
+        fields = ['id', 'title', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'updated_at', 'images', 'images_base64', 'delete_image_ids', 'comments', 'comments_count']
         read_only_fields = ['id', 'created_at', 'updated_at', 'author', 'images', 'comments', 'comments_count']
 
     def get_images(self, obj):
@@ -352,6 +353,26 @@ class ForumPostSerializer(serializers.ModelSerializer):
             data_bytes, mime = _decode_base64_image(img_b64)
             ForumPostImage.objects.create(post=post, data=data_bytes, mime_type=mime)
         return post
+
+    def update(self, instance, validated_data):
+        images_b64 = validated_data.pop('images_base64', None)
+        delete_image_ids = validated_data.pop('delete_image_ids', None)
+        
+        instance = super().update(instance, validated_data)
+        
+        # Delete specified images
+        if delete_image_ids is not None:
+            instance.images.filter(id__in=delete_image_ids).delete()
+        
+        # Add new images
+        if images_b64 is not None:
+            for img_b64 in images_b64:
+                if not img_b64:
+                    continue
+                data_bytes, mime = _decode_base64_image(img_b64)
+                ForumPostImage.objects.create(post=instance, data=data_bytes, mime_type=mime)
+        
+        return instance
 
 
 class CommentSerializer(serializers.ModelSerializer):
