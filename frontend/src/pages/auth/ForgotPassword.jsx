@@ -14,8 +14,10 @@ import EmailIcon from '@mui/icons-material/Email';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 
 const ForgotPassword = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -25,12 +27,12 @@ const ForgotPassword = () => {
     setError('');
 
     if (!email) {
-      setError('Please enter your email address');
+      setError(t('auth.forgotPassword.pleaseEnterEmail'));
       return;
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/forgot-password/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/password-reset/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -38,13 +40,13 @@ const ForgotPassword = () => {
 
       if (!response.ok) {
         const resData = await response.json();
-        toast.error(resData.detail || 'Failed to send reset link.');
-        setError(resData.detail || 'Failed to send reset link.');
+        toast.error(resData.detail || t('auth.forgotPassword.failedToSendResetLink'));
+        setError(resData.detail || t('auth.forgotPassword.failedToSendResetLink'));
         return;
       }
 
       setSubmitted(true);
-      toast.info('Reset link has been sent if such an email exists.', {
+      toast.info(t('auth.forgotPassword.resetLinkSent'), {
         position: 'top-right',
       });
     } catch (err) {
@@ -88,10 +90,10 @@ const ForgotPassword = () => {
           >
             <Avatar sx={{ m: 1, bgcolor: '#c9dbb6' }}>🌾</Avatar>
             <Typography component="h1" variant="h5" fontWeight="bold">
-              Forgot your password?
+              {t('auth.forgotPassword.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 1 }}>
-              Enter your email and we'll send you a link to reset your password if it exists.
+              {t('auth.forgotPassword.description')}
             </Typography>
             {error && (
               <Typography color="error" role="alert" data-testid="error-message" sx={{ mt: 2 }}>
@@ -100,14 +102,14 @@ const ForgotPassword = () => {
             )}
             {submitted ? (
               <Typography sx={{ mt: 3 }} color="success.main">
-                Please check your email.
+                {t('auth.forgotPassword.checkEmail')}
               </Typography>
             ) : (
               <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
                 <TextField
                   required
                   fullWidth
-                  label="Email Address"
+                  label={t('auth.forgotPassword.emailAddress')}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -134,7 +136,7 @@ const ForgotPassword = () => {
                   }}
                   startIcon={<LockResetIcon />}
                 >
-                  Send Reset Link
+                  {t('auth.forgotPassword.sendResetLink')}
                 </Button>
               </Box>
             )}
@@ -153,7 +155,7 @@ const ForgotPassword = () => {
                   },
                 }}
               >
-                ← Back to Login
+                {t('auth.forgotPassword.backToLogin')}
               </Button>
             </Box>
           </Box>

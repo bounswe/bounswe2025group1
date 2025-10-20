@@ -18,6 +18,9 @@ class Profile(models.Model):
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    # DB-backed profile picture storage (preferred)
+    profile_picture_data = models.BinaryField(null=True, blank=True)
+    profile_picture_mime_type = models.CharField(max_length=100, default='image/jpeg')
     location = models.CharField(max_length=255, blank=True, null=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='MEMBER')
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True)

@@ -30,9 +30,11 @@ import TaskModal from '../../components/TaskModal';
 import CalendarTab from '../../components/CalendarTab';
 import GardenModal from '../../components/GardenModal';
 import TaskBoard from '../../components/TaskBoard';
+import { useTranslation } from 'react-i18next';
 import ImageGallery from '../../components/ImageGallery';
 
 const GardenDetail = () => {
+  const { t } = useTranslation();
   const [garden, setGarden] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [members, setMembers] = useState([]);
@@ -75,43 +77,50 @@ const GardenDetail = () => {
     const fetchGardenData = async () => {
       setLoading(true);
       try {
+        const gardenHeaders = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          gardenHeaders.Authorization = `Token ${token}`;
+        }
+        
         const gardenRes = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`,
-          },
+          headers: gardenHeaders,
         });
         const gardenData = await gardenRes.json();
         setGarden(gardenData);
 
-        const tasksRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/?garden=${gardenId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`,
-          },
-        });
-        const tasksData = await tasksRes.json();
-        setTasks(tasksData);
-
-        const membersResponse = await fetch(
-          `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/members/`,
-          {
+        // Only fetch tasks and members for authenticated users
+        if (token) {
+          const tasksRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/?garden=${gardenId}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Token ${token}`,
             },
+          });
+          const tasksData = await tasksRes.json();
+          setTasks(tasksData);
+
+          const membersResponse = await fetch(
+            `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/members/`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`,
+              },
+            }
+          );
+          const membersData = await membersResponse.json();
+          setMembers(membersData || []);
+          if (user) {
+            const userMember = membersData?.find((m) => m.username === user.username);
+            setIsMember(!!userMember);
+            setIsManager(userMember?.role === 'MANAGER');
+            setUserMembership(userMember);
           }
-        );
-        const membersData = await membersResponse.json();
-        setMembers(membersData || []);
-        if (user) {
-          const userMember = membersData?.find((m) => m.username === user.username);
-          setIsMember(!!userMember);
-          setIsManager(userMember?.role === 'MANAGER');
-          setUserMembership(userMember);
         }
         setEditForm({
           name: gardenData.name || '',
@@ -125,7 +134,7 @@ const GardenDetail = () => {
       setLoading(false);
     };
 
-    if (gardenId && token) {
+    if (gardenId) {
       fetchGardenData();
     }
   }, [gardenId, user, token]);
@@ -192,17 +201,17 @@ const GardenDetail = () => {
   };
 
   const handleTaskDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    if (!window.confirm(t('gardens.confirmDeleteTask'))) return;
     try {
       await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
         method: 'DELETE',
         headers: { Authorization: `Token ${token}` },
       });
       setTasks((prev) => prev.filter((t) => t.id !== selectedTask.id));
-      toast.success('Task deleted');
+      toast.success(t('gardens.taskDeleted'));
       setEditTaskModalOpen(false);
     } catch {
-      toast.error('Failed to delete task');
+      toast.error(t('gardens.failedToDeleteTask'));
     }
   };
 
@@ -221,20 +230,20 @@ const GardenDetail = () => {
       });
 
       if (!joinRes.ok) {
-        toast.error('Failed to join garden');
+        toast.error(t('gardens.failedToJoinGarden'));
         return;
       }
-      toast.success('Request to join garden sent!');
+      toast.success(t('gardens.requestToJoinSent'));
 
       await refreshMembers();
     } catch (err) {
       console.error('Join garden error:', err);
-      toast.error('Failed to join garden');
+      toast.error(t('gardens.failedToJoinGarden'));
     }
   };
 
   const handleLeaveGarden = async () => {
-    if (!window.confirm('Are you sure you want to leave this garden?')) return;
+    if (!window.confirm(t('gardens.confirmLeaveGarden'))) return;
 
     try {
       if (userMembership) {
@@ -250,11 +259,11 @@ const GardenDetail = () => {
         );
 
         if (!leaveRes.ok) {
-          toast.error('Failed to leave garden');
+          toast.error(t('gardens.failedToLeaveGarden'));
           return;
         }
 
-        toast.success('You have left the garden');
+        toast.success(t('gardens.youHaveLeftGarden'));
         // Update state
         setIsMember(false);
         setIsManager(false);
@@ -264,12 +273,12 @@ const GardenDetail = () => {
       }
     } catch (err) {
       console.error('Leave garden error:', err);
-      toast.error('Failed to leave garden');
+      toast.error(t('gardens.failedToLeaveGarden'));
     }
   };
 
   const handleRemoveMember = async (membershipId) => {
-    if (!window.confirm('Are you sure you want to remove this member?')) return;
+    if (!window.confirm(t('gardens.confirmRemoveMember'))) return;
 
     try {
       const removeRes = await fetch(
@@ -284,15 +293,15 @@ const GardenDetail = () => {
       );
 
       if (!removeRes.ok) {
-        toast.error('Failed to remove member');
+        toast.error(t('gardens.failedToRemoveMember'));
         return;
       }
-      toast.success('Member removed from garden');
+      toast.success(t('gardens.memberRemovedFromGarden'));
 
       await refreshMembers();
     } catch (err) {
       console.error('Remove member error:', err);
-      toast.error('Failed to remove member');
+      toast.error(t('gardens.failedToRemoveMember'));
     }
   };
 
@@ -313,15 +322,15 @@ const GardenDetail = () => {
       );
 
       if (!updateRes.ok) {
-        toast.error('Failed to update member role');
+        toast.error(t('gardens.failedToUpdateMemberRole'));
         return;
       }
-      toast.success('Member role updated');
+      toast.success(t('gardens.memberRoleUpdated'));
 
       await refreshMembers();
     } catch (err) {
       console.error('Change role error:', err);
-      toast.error('Failed to update member role');
+      toast.error(t('gardens.failedToUpdateMemberRole'));
     }
   };
 
@@ -340,16 +349,16 @@ const GardenDetail = () => {
       );
 
       if (!acceptRes.ok) {
-        toast.error('Failed to accept member');
+        toast.error(t('gardens.failedToAcceptMember'));
         return;
       }
 
-      toast.success('Member accepted');
+      toast.success(t('gardens.memberAccepted'));
 
       await refreshMembers();
     } catch (err) {
       console.error('Accept member error:', err);
-      toast.error('Failed to accept member');
+      toast.error(t('gardens.failedToAcceptMember'));
     }
   };
 
@@ -529,15 +538,15 @@ const GardenDetail = () => {
       });
 
       if (res.status === 204) {
-        toast.success('Garden deleted');
+        toast.success(t('gardens.gardenDeleted'));
         navigate('/gardens');
       } else {
-        toast.error('Failed to delete');
+        toast.error(t('gardens.failedToDelete'));
         return;
       }
     } catch (err) {
       console.error('Error deleting garden:', err);
-      toast.error('Could not delete garden.');
+      toast.error(t('gardens.couldNotDeleteGarden'));
     }
   };
 
@@ -668,7 +677,7 @@ const GardenDetail = () => {
                 />
                 <Chip
                   icon={<GroupIcon />}
-                  label={`${members.length} Members`}
+                  label={t('gardens.members', { count: members.length })}
                   size="small"
                   sx={{ 
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
@@ -677,7 +686,7 @@ const GardenDetail = () => {
                 />
                 <Chip
                   icon={<TaskIcon />}
-                  label={`${tasks.length} Tasks`}
+                  label={t('gardens.tasks', { count: tasks.length })}
                   size="small"
                   sx={{ 
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
@@ -698,7 +707,7 @@ const GardenDetail = () => {
               isMember ? (
                 userMembership?.status === 'PENDING' ? (
                   <Button variant="outlined" disabled sx={{ mr: 1 }}>
-                    Request Pending
+                    {t('gardens.requestPending')}
                   </Button>
                 ) : (
                   <Button
@@ -707,7 +716,7 @@ const GardenDetail = () => {
                     onClick={handleLeaveGarden}
                     sx={{ mr: 1 }}
                   >
-                    Leave Garden
+                    {t('gardens.leaveGarden')}
                   </Button>
                 )
               ) : (
@@ -716,7 +725,7 @@ const GardenDetail = () => {
                   onClick={handleJoinGarden}
                   sx={{ mr: 1 }}
                 >
-                  Join Garden
+                  {t('gardens.joinGarden')}
                 </Button>
               )
             ) : (
@@ -725,7 +734,7 @@ const GardenDetail = () => {
                 onClick={() => navigate('/auth/login')}
                 sx={{ mr: 1 }}
               >
-                Login to Join
+                {t('gardens.loginToJoin')}
               </Button>
             )}
             {isManager && (
@@ -734,7 +743,7 @@ const GardenDetail = () => {
                 color="primary"
                 onClick={handleOpenGardenEditModal}
               >
-                Manage Garden
+                {t('gardens.manageGarden')}
               </Button>
             )}
           </Grid>
@@ -748,10 +757,10 @@ const GardenDetail = () => {
           onChange={(event, newValue) => setActiveTab(newValue)}
           variant="fullWidth"
         >
-          <Tab label="Tasks" />
-          <Tab label="Members" />
-          <Tab label="Calendar" />
-          <Tab label="Gallery" />
+          <Tab label={t('gardens.tasksTab')} />
+          <Tab label={t('gardens.membersTab')} />
+          <Tab label={t('gardens.calendarTab')} />
+          <Tab label={t('gardens.galleryTab')} />
         </Tabs>
       </Box>
 
@@ -764,7 +773,7 @@ const GardenDetail = () => {
               sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}
             >
               <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
-                Garden Tasks
+                {t('gardens.gardenTasks')}
               </Typography>
               {isMember && (
                 <Button
@@ -773,25 +782,68 @@ const GardenDetail = () => {
                     setOpenTaskModal(true);
                   }}
                 >
-                  Add Task
+                  {t('gardens.addTask')}
                 </Button>
               )}
             </Box>
 
-            <TaskBoard
-              tasks={tasks}
-              setTasks={setTasks}
-              onTaskClick={handleTaskChipClick}
-              handleTaskUpdate={handleTaskUpdate}
-            />
+            {!token ? (
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                p: 4,
+                textAlign: 'center'
+              }}>
+                <Typography variant="body1" color="text.secondary" gutterBottom>
+                  {t('tasks.pleaseLogIn')}
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/auth/login')}
+                  sx={{ mt: 2 }}
+                >
+                  {t('tasks.logIn')}
+                </Button>
+              </Box>
+            ) : (
+              <TaskBoard
+                tasks={tasks}
+                setTasks={setTasks}
+                onTaskClick={handleTaskChipClick}
+                handleTaskUpdate={handleTaskUpdate}
+              />
+            )}
           </Box>
         )}
 
         {/* Members Tab */}
         {activeTab === 1 && (
           <Box>
-            <List>
-              {members.map((member) => (
+            {!token ? (
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                p: 4,
+                textAlign: 'center'
+              }}>
+                <Typography variant="body1" color="text.secondary" gutterBottom>
+                  Please log in to view garden members.
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/auth/login')}
+                  sx={{ mt: 2 }}
+                >
+                  {t('tasks.logIn')}
+                </Button>
+              </Box>
+            ) : (
+              <List>
+                {members.map((member) => (
                 <Paper key={member.id} elevation={1} sx={{ mb: 2 }}>
                   <ListItem>
                     <ListItemAvatar>
@@ -809,7 +861,7 @@ const GardenDetail = () => {
                           {member.username || `User ${member.id || 'Unknown'}`}
                         </Typography>
                       }
-                      secondary={`Role: ${member.role} • Status: ${member.status}`}
+                      secondary={`${t('gardens.role')}: ${t(`gardens.${member.role.toLowerCase()}`)} • ${t('gardens.status')}: ${t(`gardens.${member.status.toLowerCase()}`)}`}
                     />{' '}
                     {isManager && member.id !== userMembership?.id && (
                       <>
@@ -821,7 +873,7 @@ const GardenDetail = () => {
                             onClick={() => handleAcceptMember(member.id)}
                             sx={{ mr: 1 }}
                           >
-                            Accept
+                            {t('gardens.accept')}
                           </Button>
                         ) : (
                           <Button
@@ -836,7 +888,7 @@ const GardenDetail = () => {
                             }
                             sx={{ mr: 1 }}
                           >
-                            {member.role === 'MANAGER' ? 'Demote' : 'Promote'}
+                            {member.role === 'MANAGER' ? t('gardens.demote') : t('gardens.promote')}
                           </Button>
                         )}
                         <Button
@@ -845,7 +897,7 @@ const GardenDetail = () => {
                           color="error"
                           onClick={() => handleRemoveMember(member.id)}
                         >
-                          Remove
+                          {t('gardens.remove')}
                         </Button>
                       </>
                     )}
@@ -858,33 +910,56 @@ const GardenDetail = () => {
                   color="textSecondary"
                   sx={{ textAlign: 'center', mt: 3 }}
                 >
-                  No members found
+                  {t('gardens.noMembersFound')}
                 </Typography>
               )}
-            </List>
+              </List>
+            )}
           </Box>
         )}
 
         {/* Calendar Tab */}
         {activeTab === 2 && (
-          <CalendarTab
-            tasks={tasks}
-            onTaskClick={handleTaskChipClick}
-            onEmptyDayClick={(date) => {
-              setTaskForm((prev) => ({
-                ...prev,
-                deadline: date.toISOString(),
-              }));
-              setOpenTaskModal(true);
-            }}
-          />
+          !token ? (
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              p: 4,
+              textAlign: 'center'
+            }}>
+              <Typography variant="body1" color="text.secondary" gutterBottom>
+                {t('tasks.pleaseLogIn')}
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => navigate('/auth/login')}
+                sx={{ mt: 2 }}
+              >
+                {t('tasks.logIn')}
+              </Button>
+            </Box>
+          ) : (
+            <CalendarTab
+              tasks={tasks}
+              onTaskClick={handleTaskChipClick}
+              onEmptyDayClick={(date) => {
+                setTaskForm((prev) => ({
+                  ...prev,
+                  deadline: date.toISOString(),
+                }));
+                setOpenTaskModal(true);
+              }}
+            />
+          )
         )}
 
         {/* Gallery Tab */}
         {activeTab === 3 && (
           <Box>
             <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, mb: 3 }}>
-              Garden Gallery
+              {t('gardens.gardenGallery')}
             </Typography>
             {garden?.images && garden.images.length > 0 ? (
               <ImageGallery 
@@ -898,16 +973,16 @@ const GardenDetail = () => {
               <Box sx={{ 
                 p: 4, 
                 textAlign: 'center', 
-                backgroundColor: 'grey.50', 
+                backgroundColor: 'background.paper', 
                 borderRadius: 2,
                 border: '2px dashed',
-                borderColor: 'grey.300'
+                borderColor: 'divider'
               }}>
                 <Typography variant="h6" color="text.secondary" gutterBottom>
-                  No Images Yet
+                  {t('gardens.noImagesYet')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Garden managers can add images using the "Manage Garden" button.
+                  {t('gardens.managersCanAddImages')}
                 </Typography>
               </Box>
             )}

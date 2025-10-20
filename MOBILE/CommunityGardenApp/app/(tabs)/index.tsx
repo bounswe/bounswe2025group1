@@ -4,16 +4,20 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import WeatherWidget from '@/components/WeatherWidget';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_URL } from '@/constants/Config';
+import { useTranslation } from 'react-i18next';
 
 
 
 
 export default function HomeScreen() {
   const [location, setLocation] = useState<string | null>(null);
-  const { user, token } = useAuth()
+  const { user, token } = useAuth();
+  const colors = useAccessibleColors();
+  const { t } = useTranslation();
   useEffect(() => {
     const fetchCurrentProfile = async () => {
       try {
@@ -32,26 +36,31 @@ export default function HomeScreen() {
   
   return (
     
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         {location ? (
           <WeatherWidget city={location} />
         ) : (
-          <Text style={{ marginBottom: 12 }}>Loading weather...</Text>
+          <Text style={[styles.loadingText, { color: colors.text }]}>{t('home.loadingWeather')}</Text>
         )}
     
-        <ThemedView style={styles.welcomeContainer}>
+        <ThemedView style={[styles.welcomeContainer, { backgroundColor: colors.surface }]}>
           <ThemedText type="title" style={styles.welcomeText}>
-            Welcome to the Garden Community App!
+            {t('home.welcome')}
           </ThemedText>
           <ThemedText type="subtitle">
-            Connect, grow, and share with fellow gardeners 🌱
+            {t('home.subtitle')}
           </ThemedText>
         </ThemedView>
     
         <Image
           source={require('@/assets/images/communitygarden.png')}
-          style={styles.gardenImage}
+          style={[styles.gardenImage, { 
+            opacity: colors.background === '#000000' ? 0.8 : 1.0,
+            tintColor: colors.background === '#000000' ? colors.text : undefined
+          }]}
           resizeMode="contain"
+          accessibilityLabel={t('home.accessibilityLabel')}
+          accessibilityHint={t('home.accessibilityHint')}
         />
       </SafeAreaView>
     
@@ -61,7 +70,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7FBE9',
     padding: 20,
   },
   welcomeContainer: {
@@ -70,9 +78,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 8,
-    backgroundColor: '#F7FBE9',
   },
   welcomeText: {textAlign: 'center',marginBottom: 8,},
+  loadingText: {
+    marginBottom: 12,
+  },
   gardenImage: {
     width: '100%',
     height: 300,

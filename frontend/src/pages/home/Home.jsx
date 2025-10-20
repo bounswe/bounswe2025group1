@@ -1,12 +1,14 @@
 import { Container, Typography, Box, Grid, Button, Paper, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
+import { useTranslation } from 'react-i18next';
 import WeatherWidget from '../../components/WeatherWidget';
 import ForumPreview from '../../components/ForumPreview';
 import GardensPreview from '../../components/GardensPreview';
 import TaskWidget from '../../components/TaskWidget';
 
 const Home = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -28,10 +30,10 @@ const Home = () => {
           }}
         >
           <Typography variant="h4" gutterBottom>
-            {user ? `Welcome, ${user.username}!` : 'Welcome to Community Garden Planner!'}
+            {user ? t('home.welcome', { username: `, ${user.username}` }) : t('home.welcomeGuest')}
           </Typography>
           <Typography variant="body1" paragraph>
-            Connect with local gardeners, manage tasks, track your garden, and grow together 🌱
+            {t('home.subtitle')}
           </Typography>
           {!user && (
             <Button
@@ -39,7 +41,7 @@ const Home = () => {
               color="secondary"
               onClick={() => navigate('/auth/register')}
             >
-              Join Our Community
+              {t('home.joinCommunity')}
             </Button>
           )}
         </Paper>
@@ -72,15 +74,10 @@ const Home = () => {
             }}
           >
             <Typography variant="h5" gutterBottom>
-              What is Community Garden Planner?
+              {t('home.aboutTitle')}
             </Typography>
             <Typography variant="body1" paragraph>
-              Community Garden Planner is a platform designed to help you manage your garden and
-              connect with local gardeners. In the platform, you can create and manage your own
-              garden, track tasks, ask gardening questions to experts, and even connect with other
-              gardeners in your area. Our goal is to foster recreational gardening, community
-              engagement, and environmental avareness. Join the community today and lets make a
-              difference together!
+              {t('home.aboutDescription')}
             </Typography>
             <Button 
               variant="contained" 
@@ -102,7 +99,7 @@ const Home = () => {
                 },
               }}
             >
-              Create Your First Garden
+              {t('home.createFirstGarden')}
             </Button>
           </Paper>
         )}

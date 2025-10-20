@@ -7,6 +7,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.conf import settings
 from django.core.mail import send_mail
+import os
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -68,31 +69,37 @@ class PasswordResetAPIView(APIView):
         if not email:
             return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        users = User.objects.filter(email=email)
-        if users.exists():
-            for user in users:
-                token = default_token_generator.make_token(user)
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
+        try:
+            user = User.objects.get(email=email)
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
 
-                reset_url = f"{request.scheme}://{request.get_host()}/api/reset/{uid}/{token}/"
+            # Generate frontend URL - use same host without port
+            host = request.get_host()
+            if ':' in host:
+                # Remove port from host
+                host = host.split(':')[0]
+            
+            frontend_url = f"{request.scheme}://{host}"
+            reset_url = f"{frontend_url}/reset-password/{uid}/{token}/"
 
-                # You can use a template instead of plain string
-                message = f"Hi {user.username},\n\nClick the link below to reset your password:\n{reset_url}"
+            # You can use a template instead of plain string
+            message = f"Hi {user.username},\n\nClick the link below to reset your password:\n{reset_url}"
 
-                # Send email
-                send_mail(
-                    'Password Reset Request',
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email],
-                    fail_silently=False,
-                )
+            # Send email
+            send_mail(
+                'Password Reset Request',
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
 
             return Response(
                 {'message': 'Password reset link has been sent to your email address.'},
                 status=status.HTTP_200_OK
             )
-        else:
+        except User.DoesNotExist:
             # Not leaking information about whether the email exists
             return Response(
                 {'message': 'If a user with this email exists, a password reset link will be sent.'},

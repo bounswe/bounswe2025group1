@@ -3,11 +3,12 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator }
 import { useNavigation } from 'expo-router';
 import { listPublicGardens } from '../../services/garden';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import { useRouter } from 'expo-router';
-import { COLORS } from '../../constants/Config';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 interface Garden {
   id: number;
@@ -22,8 +23,10 @@ export default function GardensScreen() {
   const [gardens, setGardens] = useState<Garden[]>([]);
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
+  const colors = useAccessibleColors();
   const navigation = useNavigation();
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchGardens();
@@ -47,13 +50,13 @@ export default function GardensScreen() {
   };
 
   const renderGarden = ({ item }: { item: Garden }) => (
-    <View style={styles.card}>
-      <Text style={styles.title}>{item.name}</Text>
-      {item.description ? <Text style={styles.desc}>{item.description}</Text> : null}
-      {item.location ? <Text style={styles.loc}>📍 {item.location}</Text> : null}
+    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+      <Text style={[styles.title, { color: colors.text }]}>{item.name}</Text>
+      {item.description ? <Text style={[styles.desc, { color: colors.textSecondary }]}>{item.description}</Text> : null}
+      {item.location ? <Text style={[styles.loc, { color: colors.textSecondary }]}>📍 {item.location}</Text> : null}
   
       <TouchableOpacity
-        style={styles.detailButton}
+        style={[styles.detailButton, { backgroundColor: colors.primary }]}
         onPress={() =>
           router.push({
             pathname: '/garden/[id]',
@@ -61,7 +64,7 @@ export default function GardensScreen() {
           })
         }
       >
-        <Text style={styles.detailButtonText}>Go to Detail</Text>
+        <Text style={[styles.detailButtonText, { color: colors.white }]}>{t('gardens.goToDetail')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -70,18 +73,18 @@ export default function GardensScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={gardens}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderGarden}
-        ListEmptyComponent={<Text style={styles.empty}>No public gardens found.</Text>}
+        ListEmptyComponent={<Text style={[styles.empty, { color: colors.textSecondary }]}>{t('gardens.noGardens')}</Text>}
       />
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.primary }]}
         onPress={() => router.push('/garden/CreateGardenScreen')}
       >
-        <Text style={styles.fabText}>＋</Text>
+        <Text style={[styles.fabText, { color: colors.white }]}>＋</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -91,7 +94,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f7fdf7',
   },
   loader: {
     flex: 1,
@@ -100,7 +102,6 @@ const styles = StyleSheet.create({
   card: {
     padding: 16,
     borderRadius: 8,
-    backgroundColor: '#fff',
     marginBottom: 12,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -115,24 +116,20 @@ const styles = StyleSheet.create({
   },
   desc: {
     fontSize: 14,
-    color: '#555',
   },
   loc: {
     marginTop: 6,
     fontSize: 12,
-    color: '#888',
   },
   empty: {
     textAlign: 'center',
     marginTop: 40,
-    color: '#888',
     fontSize: 16,
   },
   fab: {
     position: 'absolute',
     right: 20,
     bottom: 100,
-    backgroundColor: COLORS.primary,
     width: 60,
     height: 60,
     borderRadius: 30,
@@ -146,26 +143,17 @@ const styles = StyleSheet.create({
   },
   fabText: {
     fontSize: 30,
-    color: '#fff',
     lineHeight: 34,
   },
   detailButton: {
     marginTop: 10,
-    backgroundColor: COLORS.primary,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 8,
     alignSelf: 'flex-start',
   },
   detailButtonText: {
-    color: '#fff',
     fontWeight: 'bold',
     fontSize: 14,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    paddingTop: 20,           // Add top padding
-    paddingHorizontal: 16,    // Optional left/right padding
   },
 });

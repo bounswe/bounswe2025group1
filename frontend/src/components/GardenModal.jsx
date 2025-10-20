@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Modal, Fade, Backdrop, Box, Typography, TextField, Switch, Button, Divider } from '@mui/material';
 import { createFormKeyboardHandler, createButtonKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
 import LocationPicker from './LocationPicker';
+import { useTranslation } from 'react-i18next';
 import ImageUpload from './ImageUpload';
 
 const GardenModal = ({
@@ -15,6 +16,7 @@ const GardenModal = ({
   mode = 'create',
   existingImages = null,
 }) => {
+  const { t } = useTranslation();
   const modalRef = useRef(null);
   const focusableElementsRef = useRef([]);
   const [coverImage, setCoverImage] = useState('');
@@ -109,13 +111,14 @@ const GardenModal = ({
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 500,
+            width: { xs: '95%', sm: '90%', md: 600 },
+            maxWidth: '90vw',
             maxHeight: '90vh',
             bgcolor: 'background.paper',
             borderRadius: 2,
             boxShadow: 24,
-            display: 'flex',
-            flexDirection: 'column',
+            p: { xs: 2, sm: 3, md: 4 },
+            overflow: 'auto',
             '&:focus': {
               outline: 'none',
             },
@@ -124,151 +127,95 @@ const GardenModal = ({
           aria-modal="true"
           aria-labelledby="garden-modal-title"
         >
-          {/* Header - Fixed */}
-          <Box sx={{ p: 4, pb: 2, flexShrink: 0 }}>
-            <Typography id="garden-modal-title" variant="h6" gutterBottom>
-              {mode === 'edit' ? 'Edit Garden' : 'Create New Garden'}
+          <Typography id="garden-modal-title" variant="h6" gutterBottom>
+            {mode === 'edit' ? t('gardens.editGarden') : t('gardens.createGarden')}
+          </Typography>
+          <TextField
+            label={t('gardens.gardenName')}
+            name="name"
+            fullWidth
+            margin="normal"
+            value={form.name}
+            onChange={handleChange}
+            required
+          />
+          <TextField
+            label={t('gardens.description')}
+            name="description"
+            fullWidth
+            margin="normal"
+            multiline
+            rows={3}
+            value={form.description}
+            onChange={handleChange}
+          />
+          <LocationPicker
+            value={form.location}
+            onChange={(value) => handleChange({ target: { name: 'location', value } })}
+            label={t('gardens.gardenLocation')}
+            required
+            height={{ xs: 200, sm: 250, md: 300 }}
+            sx={{ mt: 2, mb: 2 }}
+          />
+          <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+            <Typography variant="body1" sx={{ mr: 2 }}>
+              {t('gardens.makeGardenPublic')}
             </Typography>
+            <Switch checked={form.isPublic} onChange={handleTogglePublic} color="success" />
           </Box>
-
-          {/* Scrollable Content */}
           <Box sx={{ 
-            flex: 1, 
-            overflow: 'auto', 
-            px: 4,
-            '&::-webkit-scrollbar': {
-              width: '8px',
-            },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: 'rgba(0,0,0,0.1)',
-              borderRadius: '4px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: '#558b2f',
-              borderRadius: '4px',
-              '&:hover': {
-                backgroundColor: '#33691e',
-              },
-            },
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'flex-end', 
+            mt: 4, 
+            gap: 2 
           }}>
-            <TextField
-              label="Garden Name"
-              name="name"
-              fullWidth
-              margin="normal"
-              value={form.name}
-              onChange={handleChange}
-              required
-            />
-            <TextField
-              label="Description"
-              name="description"
-              fullWidth
-              margin="normal"
-              multiline
-              rows={3}
-              value={form.description}
-              onChange={handleChange}
-            />
-            <LocationPicker
-              value={form.location}
-              onChange={(value) => handleChange({ target: { name: 'location', value } })}
-              label="Garden Location"
-              required
-              height={250}
-              sx={{ mt: 2, mb: 2 }}
-            />
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-              <Typography variant="body1" sx={{ mr: 2 }}>
-                Do you wish this garden to be public?
-              </Typography>
-              <Switch checked={form.isPublic} onChange={handleTogglePublic} color="success" />
-            </Box>
-
-            <Divider sx={{ my: 3 }} />
-
-            {/* Cover Image Upload */}
-            <ImageUpload
-              label="Cover Image"
-              maxImages={1}
-              maxSizeMB={5}
-              onImagesChange={(images) => setCoverImage(images[0] || '')}
-              initialImages={coverImage ? [{ base64: coverImage, name: 'cover.jpg' }] : []}
-              showCoverToggle={false}
-              disabled={false}
-            />
-
-            <Divider sx={{ my: 2 }} />
-
-            {/* Gallery Images Upload */}
-            <ImageUpload
-              label="Gallery Images"
-              maxImages={10}
-              maxSizeMB={5}
-              onImagesChange={setGalleryImages}
-              initialImages={galleryImages.map((img, index) => ({ 
-                base64: img, 
-                name: `gallery-${index + 1}.jpg` 
-              }))}
-              showCoverToggle={false}
-              disabled={false}
-            />
-          </Box>
-          {/* Footer - Fixed */}
-          <Box sx={{ 
-            p: 4, 
-            pt: 2, 
-            flexShrink: 0, 
-            borderTop: '1px solid',
-            borderColor: 'divider',
-            backgroundColor: 'background.paper',
-            borderRadius: '0 0 8px 8px',
-          }}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              {mode === 'edit' && (
-                <Button 
-                  variant="contained" 
-                  color="error" 
-                  onClick={handleDelete}
-                  onKeyDown={createButtonKeyboardHandler(handleDelete)}
-                  sx={{
-                    '&:focus': {
-                      outline: '2px solid #f44336',
-                      outlineOffset: '2px',
-                    },
-                  }}
-                >
-                  Delete Garden
-                </Button>
-              )}
+            {mode === 'edit' && (
               <Button 
-                variant="outlined" 
-                onClick={handleClose}
-                onKeyDown={createButtonKeyboardHandler(handleClose)}
+                variant="contained" 
+                color="error" 
+                onClick={handleDelete}
+                onKeyDown={createButtonKeyboardHandler(handleDelete)}
+                fullWidth={{ xs: true, sm: false }}
                 sx={{
                   '&:focus': {
-                    outline: '2px solid #1976d2',
+                    outline: '2px solid #f44336',
                     outlineOffset: '2px',
                   },
                 }}
               >
-                Cancel
+                {t('gardens.deleteGarden')}
               </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                sx={{ 
-                  backgroundColor: '#558b2f', 
-                  '&:hover': { backgroundColor: '#33691e' },
-                  '&:focus': {
-                    outline: '2px solid #558b2f',
-                    outlineOffset: '2px',
-                  },
-                }}
-              >
-                {mode === 'edit' ? 'Save Changes' : 'Create Garden'}
-              </Button>
-            </Box>
+            )}
+            <Button 
+              variant="outlined" 
+              onClick={onClose}
+              onKeyDown={createButtonKeyboardHandler(onClose)}
+              fullWidth={{ xs: true, sm: false }}
+              sx={{
+                '&:focus': {
+                  outline: '2px solid #1976d2',
+                  outlineOffset: '2px',
+                },
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth={{ xs: true, sm: false }}
+              sx={{ 
+                backgroundColor: '#558b2f', 
+                '&:hover': { backgroundColor: '#33691e' },
+                '&:focus': {
+                  outline: '2px solid #558b2f',
+                  outlineOffset: '2px',
+                },
+              }}
+            >
+              {mode === 'edit' ? t('gardens.saveChanges') : t('gardens.createGarden')}
+            </Button>
           </Box>
         </Box>
       </Fade>

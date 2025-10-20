@@ -17,9 +17,11 @@ import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import React from 'react';
 import { createFormKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
+import { useTranslation } from 'react-i18next';
 import InlineImageUpload from './InlineImageUpload';
 
 const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState([]);
@@ -32,7 +34,7 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
   const handleCreatePost = async () => {
     // Validation
     if (!title.trim() || !content.trim()) {
-      setError('Title and content are required.');
+      setError(t('forum.titleAndContentRequired'));
       return;
     }
 
@@ -54,8 +56,8 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
       });
 
       if (!response.ok) {
-        toast.error('Failed to create post');
-        setError('Failed to create post. Please try again.');
+        toast.error(t('forum.failedToCreatePost'));
+        setError(t('forum.failedToCreatePostTryAgain'));
         setLoading(false);
         return;
       }
@@ -69,17 +71,17 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
       setLoading(false);
 
       // Show success toast notification
-      toast.success('Post created successfully!');
+      toast.success(t('forum.postCreatedSuccessfully'));
 
       // Call the callback function with the new post data
       onPostCreated(newPost);
     } catch (error) {
       console.error('Error creating post:', error);
-      setError('Failed to create post. Please try again later.');
+      setError(t('forum.failedToCreatePostTryLater'));
       setLoading(false);
 
       // Show error toast notification
-      toast.error('Failed to create post. Please try again.');
+      toast.error(t('forum.failedToCreatePostTryAgain'));
     }
   };
 
@@ -130,7 +132,7 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
         id="forum-create-title"
         sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}
       >
-        <ForumIcon sx={{ mr: 1 }} /> Create New Post
+        <ForumIcon sx={{ mr: 1 }} /> {t('forum.createPost')}
       </DialogTitle>
 
       <DialogContent>
@@ -141,13 +143,13 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
         )}
 
         <DialogContentText sx={{ mb: 2 }}>
-          Share your gardening experiences, questions, or tips with the community.
+          {t('forum.createPostDescription')}
         </DialogContentText>
 
         <TextField
           autoFocus
           margin="dense"
-          label="Title"
+          label={t('forum.postTitle')}
           fullWidth
           variant="outlined"
           value={title}
@@ -166,7 +168,7 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
         />
 
         <TextField
-          label="Content"
+          label={t('forum.postContent')}
           multiline
           rows={10}
           fullWidth
@@ -213,7 +215,7 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
             },
           }}
         >
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleCreatePost}
@@ -234,10 +236,10 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
           {loading ? (
             <>
               <CircularProgress size={20} sx={{ mr: 1 }} />
-              Posting...
+              {t('forum.posting')}
             </>
           ) : (
-            'Post'
+            t('forum.post')
           )}
         </Button>
       </DialogActions>

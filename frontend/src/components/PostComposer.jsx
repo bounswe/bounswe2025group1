@@ -10,13 +10,15 @@ import {
   Chip,
   Divider,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import InlineImageUpload from './InlineImageUpload';
 
 const PostComposer = ({
   currentUser,
   onSubmit,
-  placeholder = "What's on your mind?",
+  placeholder,
 }) => {
+  const { t } = useTranslation();
   const [postText, setPostText] = useState('');
   const [images, setImages] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -67,6 +69,7 @@ const PostComposer = ({
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <Avatar 
+            src={currentUser?.profile?.profile_picture || '/default-avatar.png'}
             sx={{ 
               width: 40, 
               height: 40,
@@ -79,7 +82,7 @@ const PostComposer = ({
           </Avatar>
           <TextField
             fullWidth
-            placeholder={placeholder}
+            placeholder={placeholder || t('forum.whatsOnYourMind')}
             value={postText}
             onChange={handleTextChange}
             onFocus={handleTextFocus}
@@ -89,12 +92,12 @@ const PostComposer = ({
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: 3,
-                backgroundColor: '#f5f5f5',
+                backgroundColor: 'background.default',
                 '&:hover': {
-                  backgroundColor: '#eeeeee',
+                  backgroundColor: 'action.hover',
                 },
                 '&.Mui-focused': {
-                  backgroundColor: 'white',
+                  backgroundColor: 'background.paper',
                 },
                 '& fieldset': {
                   border: 'none',
@@ -146,7 +149,7 @@ const PostComposer = ({
               px: 3,
             }}
           >
-            {isSubmitting ? 'Posting...' : 'Post'}
+            {isSubmitting ? t('forum.posting') : t('forum.post')}
           </Button>
         </Box>
       </CardContent>

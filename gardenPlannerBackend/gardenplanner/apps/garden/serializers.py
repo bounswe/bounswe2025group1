@@ -32,6 +32,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
+    profile_picture = serializers.SerializerMethodField()
     
     class Meta:
         model = Profile
@@ -39,10 +40,41 @@ class ProfileSerializer(serializers.ModelSerializer):
                   'profile_picture', 'location', 'role', 'receives_notifications', 'created_at', 'updated_at']
         read_only_fields = ['id', 'role', 'created_at', 'updated_at']
 
+    def get_profile_picture(self, obj):
+        if getattr(obj, 'profile_picture_data', None):
+            b64 = base64.b64encode(obj.profile_picture_data).decode('ascii')
+            mime = getattr(obj, 'profile_picture_mime_type', 'image/jpeg')
+            return f"data:{mime};base64,{b64}"
+        return None
+
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['profile_picture', 'location', 'receives_notifications']
+
+    def update(self, instance, validated_data):
+        request = self.context.get('request') if hasattr(self, 'context') else None
+        uploaded = None
+        if request and hasattr(request, 'FILES'):
+            uploaded = request.FILES.get('profile_picture')
+        # Fallback: DRF may have already placed the file in validated_data
+        if uploaded is None:
+            uploaded = validated_data.get('profile_picture')
+
+        if uploaded is not None:
+            # Persist image into DB-backed fields and ignore FileField storage
+            try:
+                image_bytes = uploaded.read()
+            except Exception:
+                image_bytes = None
+            if image_bytes:
+                validated_data.pop('profile_picture', None)
+                validated_data['profile_picture_data'] = image_bytes
+                validated_data['profile_picture_mime_type'] = getattr(uploaded, 'content_type', 'image/jpeg')
+                # Clear file field to avoid dangling references
+                instance.profile_picture = None
+
+        return super().update(instance, validated_data)
 
 
 class FollowSerializer(serializers.Serializer):
@@ -58,9 +90,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ['username', 'email', 'first_name', 'last_name', 'password', 'location', 'profile_picture']
 
+    def validate_email(self, value):
+        """Validate that email is unique"""
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
+
+    def validate_username(self, value):
+        """Validate that username is unique"""
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("A user with this username already exists.")
+        return value
+
     def create(self, validated_data):
         location = validated_data.pop('location', None)
-        profile_picture = validated_data.pop('profile_picture', None)
+        uploaded = validated_data.pop('profile_picture', None)
 
         user = self.Meta.model.objects.create_user(
             username=validated_data['username'],
@@ -73,9 +117,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         profile, _ = Profile.objects.get_or_create(user=user)
         if location:
             profile.location = location
-        if profile_picture:
-            profile.profile_picture = profile_picture
-        if location or profile_picture:
+
+        if uploaded is not None:
+            try:
+                image_bytes = uploaded.read()
+            except Exception:
+                image_bytes = None
+            if image_bytes:
+                profile.profile_picture_data = image_bytes
+                profile.profile_picture_mime_type = getattr(uploaded, 'content_type', 'image/jpeg')
+                profile.profile_picture = None
+
+        if location or uploaded is not None:
             profile.save()
 
         return user
@@ -248,6 +301,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class ForumPostSerializer(serializers.ModelSerializer):
     author_username = serializers.ReadOnlyField(source='author.username')
+    author_profile_picture = serializers.SerializerMethodField(read_only=True)
     images = serializers.SerializerMethodField(read_only=True)
     images_base64 = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     comments = serializers.SerializerMethodField(read_only=True)
@@ -255,7 +309,7 @@ class ForumPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ForumPost
-        fields = ['id', 'title', 'content', 'author', 'author_username', 'created_at', 'updated_at', 'images', 'images_base64', 'comments', 'comments_count']
+        fields = ['id', 'title', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'updated_at', 'images', 'images_base64', 'comments', 'comments_count']
         read_only_fields = ['id', 'created_at', 'updated_at', 'author', 'images', 'comments', 'comments_count']
 
     def get_images(self, obj):
@@ -282,6 +336,13 @@ class ForumPostSerializer(serializers.ModelSerializer):
     def get_comments_count(self, obj):
         return obj.comments.count()
 
+    def get_author_profile_picture(self, obj):
+        if hasattr(obj.author, 'profile') and obj.author.profile.profile_picture_data:
+            b64 = base64.b64encode(obj.author.profile.profile_picture_data).decode('ascii')
+            mime = getattr(obj.author.profile, 'profile_picture_mime_type', 'image/jpeg')
+            return f"data:{mime};base64,{b64}"
+        return None
+
     def create(self, validated_data):
         images_b64 = validated_data.pop('images_base64', [])
         post = super().create(validated_data)
@@ -295,12 +356,13 @@ class ForumPostSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source='author.username', read_only=True)
+    author_profile_picture = serializers.SerializerMethodField(read_only=True)
     images = serializers.SerializerMethodField(read_only=True)
     images_base64 = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
 
     class Meta:
         model = Comment
-        fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'created_at', 'images', 'images_base64']
+        fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'images', 'images_base64']
         read_only_fields = ['id', 'author', 'author_username', 'created_at', 'images']
 
     def get_images(self, obj):
@@ -315,6 +377,13 @@ class CommentSerializer(serializers.ModelSerializer):
                 'created_at': im.created_at,
             })
         return result
+
+    def get_author_profile_picture(self, obj):
+        if hasattr(obj.author, 'profile') and obj.author.profile.profile_picture_data:
+            b64 = base64.b64encode(obj.author.profile.profile_picture_data).decode('ascii')
+            mime = getattr(obj.author.profile, 'profile_picture_mime_type', 'image/jpeg')
+            return f"data:{mime};base64,{b64}"
+        return None
 
     def create(self, validated_data):
         images_b64 = validated_data.pop('images_base64', [])

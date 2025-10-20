@@ -2,6 +2,7 @@ import { Tabs, router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import { GlobalAccessibilityToggle } from '../../components/GlobalAccessibilityToggle';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -79,7 +80,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      
+      <GlobalAccessibilityToggle />
     </AuthGate>
   );
 }

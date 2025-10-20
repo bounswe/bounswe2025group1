@@ -4,8 +4,11 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Switch, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { createGarden } from '../../services/garden';
-import { COLORS } from '../../constants/Config';
+import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
+import { useTranslation } from 'react-i18next';
 import ImagePicker from '../../components/ui/ImagePicker';
+import { COLORS } from '../../constants/Config';
+
 
 interface ImageData {
   base64: string;
@@ -24,10 +27,12 @@ export default function CreateGardenScreen() {
   const [galleryImages, setGalleryImages] = useState<ImageData[]>([]);
 
   const router = useRouter();
+  const colors = useAccessibleColors();
+  const { t } = useTranslation();
 
   const handleSubmit = async () => {
     if (!name) {
-      Alert.alert('Validation', 'Garden name is required.');
+      Alert.alert(t('garden.create.validation'), t('garden.create.nameRequired'));
       return;
     }
 
@@ -56,42 +61,58 @@ export default function CreateGardenScreen() {
       router.replace('/(tabs)/gardens');
     } catch (error) {
       console.error('Error creating garden:', error);
-      Alert.alert('Error', 'Failed to create garden.');
+      Alert.alert(t('garden.create.error'), t('garden.create.error'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.title}>Create New Garden</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
+      <Text style={[styles.title, { color: colors.text }]}>{t('garden.create.title')}</Text>
 
       <TextInput
-        placeholder="Garden Name"
-        style={styles.input}
+        placeholder={t('garden.create.namePlaceholder')}
+        style={[styles.input, {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          color: colors.text
+        }]}
+        placeholderTextColor={colors.textSecondary}
         value={name}
         onChangeText={setName}
       />
       <TextInput
-        placeholder="Description"
-        style={[styles.input, styles.multiline]}
+        placeholder={t('garden.create.descriptionPlaceholder')}
+        style={[styles.input, styles.multiline, {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          color: colors.text
+        }]}
+        placeholderTextColor={colors.textSecondary}
         value={description}
         onChangeText={setDescription}
         multiline
       />
       <TextInput
-        placeholder="Location"
-        style={styles.input}
+        placeholder={t('garden.create.locationPlaceholder')}
+        style={[styles.input, {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          color: colors.text
+        }]}
+        placeholderTextColor={colors.textSecondary}
         value={location}
         onChangeText={setLocation}
       />
 
       <View style={styles.switchRow}>
-        <Text style={styles.switchLabel}>Make this garden public</Text>
+        <Text style={[styles.switchLabel, { color: colors.text }]}>{t('garden.create.isPublic')}</Text>
         <Switch
           value={isPublic}
           onValueChange={setIsPublic}
-          thumbColor={isPublic ? COLORS.primary : '#ccc'}
+          thumbColor={isPublic ? colors.primary : colors.textSecondary}
+          trackColor={{ false: colors.border, true: colors.primary }}
         />
       </View>
 
@@ -114,11 +135,11 @@ export default function CreateGardenScreen() {
       />
 
       <TouchableOpacity
-        style={[styles.button, loading && styles.disabled]}
+        style={[styles.button, { backgroundColor: colors.primary }, loading && styles.disabled]}
         onPress={handleSubmit}
         disabled={loading}
       >
-        {loading ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.buttonText}>Create</Text>}
+        {loading ? <ActivityIndicator color={colors.white} /> : <Text style={[styles.buttonText, { color: colors.white }]}>{t('garden.create.createButton')}</Text>}
       </TouchableOpacity>
 
       {/* Bottom padding for scroll */}
@@ -128,15 +149,13 @@ export default function CreateGardenScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: COLORS.background },
-  title: { fontSize: 22, fontWeight: 'bold', color: COLORS.primaryDark, marginBottom: 20 },
+  container: { flex: 1, padding: 20 },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
-    backgroundColor: '#fff',
   },
   multiline: {
     minHeight: 80,
@@ -150,10 +169,8 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontSize: 16,
-    color: COLORS.text,
   },
   button: {
-    backgroundColor: COLORS.primary,
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
@@ -162,7 +179,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: COLORS.white,
     fontWeight: 'bold',
     fontSize: 16,
   },
