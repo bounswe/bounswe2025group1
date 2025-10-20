@@ -973,10 +973,10 @@ const GardenDetail = () => {
               <Box sx={{ 
                 p: 4, 
                 textAlign: 'center', 
-                backgroundColor: 'grey.50', 
+                backgroundColor: 'background.paper', 
                 borderRadius: 2,
                 border: '2px dashed',
-                borderColor: 'grey.300'
+                borderColor: 'divider'
               }}>
                 <Typography variant="h6" color="text.secondary" gutterBottom>
                   {t('gardens.noImagesYet')}

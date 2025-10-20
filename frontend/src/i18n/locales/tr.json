@@ -335,7 +335,8 @@
     "taskCreatedSuccessfully": "Görev başarıyla oluşturuldu!",
     "taskUpdatedSuccessfully": "Görev başarıyla güncellendi!",
     "in_progress": "Devam Ediyor",
-    "taskDescriptionPlaceholder": "Görev detaylarını açıklayın..."
+    "taskDescriptionPlaceholder": "Görev detaylarını açıklayın...",
+    "saveChanges": "Değişiklikleri Kaydet"
   },
   "weather": {
     "title": "Hava Durumu Tahmini",

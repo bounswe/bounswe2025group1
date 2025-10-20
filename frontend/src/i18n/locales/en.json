@@ -336,7 +336,8 @@
     "taskCreatedSuccessfully": "Task created successfully!",
     "taskUpdatedSuccessfully": "Task updated successfully!",
     "in_progress": "In Progress",
-    "taskDescriptionPlaceholder": "Describe the task details..."
+    "taskDescriptionPlaceholder": "Describe the task details...",
+    "saveChanges": "Save Changes"
   },
   "weather": {
     "title": "Weather Forecast",
