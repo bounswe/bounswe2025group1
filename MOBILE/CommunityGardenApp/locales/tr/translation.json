@@ -212,5 +212,11 @@
   "weather": {
     "not_available": "Hava durumu verisi mevcut değil",
     "update": "Hava Durumu Güncellemesi"
+  },
+  "accessibility": {
+    "accessibilitySettings": "Erişilebilirlik Ayarları",
+    "closeSettings": "Erişilebilirlik ayarlarını kapat",
+    "accessibilityDescription": "Bu ayarlar tüm uygulamaya uygulanır ve görme engelli kullanıcılar için görünürlüğü artırır.",
+    "highContrastInfo": "Yüksek kontrast modu, renk kontrast oranlarını WCAG 2.1 AA erişilebilirlik standartlarına uygun hale getirir."
   }
 }
