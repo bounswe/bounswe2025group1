@@ -21,6 +21,8 @@ import CommentIcon from '@mui/icons-material/Comment';
 import SendIcon from '@mui/icons-material/Send';
 import ImageGallery from './ImageGallery';
 import InlineImageUpload from './InlineImageUpload';
+import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const PostCard = ({
   post,
@@ -29,12 +31,23 @@ const PostCard = ({
   onDelete,
   currentUser,
   isOwner = false,
+  token,
 }) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [commentImages, setCommentImages] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  
+  // Edit mode states
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedContent, setEditedContent] = useState(post.content || '');
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
+  const [deleteImageIds, setDeleteImageIds] = useState([]);
+
+  // Translation hook
+  const { t } = useTranslation();
 
   // Check if post has comments
   const hasComments = post.comments && post.comments.length > 0;
@@ -63,6 +76,81 @@ const PostCard = ({
       setCommentText('');
       setCommentImages([]);
       setCommentDialogOpen(false);
+    }
+  };
+
+  const handleEditClick = () => {
+    setIsEditMode(true);
+    setEditedContent(post.content || '');
+    setExistingImages(post.images || []);
+    setNewImages([]);
+    setDeleteImageIds([]);
+    handleMenuClose();
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditedContent(post.content || '');
+    setExistingImages([]);
+    setNewImages([]);
+    setDeleteImageIds([]);
+  };
+
+  const handleRemoveExistingImage = (imageId) => {
+    setExistingImages(existingImages.filter(img => img.id !== imageId));
+    setDeleteImageIds([...deleteImageIds, imageId]);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editedContent.trim()) {
+      toast.error(t('forum.contentCannotBeEmpty'));
+      return;
+    }
+
+    try {
+      const requestBody = {
+        title: editedContent.substring(0, 100) + (editedContent.length > 100 ? '...' : ''),
+        content: editedContent,
+      };
+
+      // Add new images if any
+      if (newImages.length > 0) {
+        requestBody.images_base64 = newImages;
+      }
+
+      // Add deleted image IDs if any
+      if (deleteImageIds.length > 0) {
+        requestBody.delete_image_ids = deleteImageIds;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/${post.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        toast.error(t('forum.failedToUpdatePost'));
+        return;
+      }
+
+      const updatedPost = await response.json();
+      setIsEditMode(false);
+      setExistingImages([]);
+      setNewImages([]);
+      setDeleteImageIds([]);
+      toast.success(t('forum.postUpdatedSuccessfully'));
+      
+      // Call onEdit callback to update parent
+      if (onEdit) {
+        onEdit(updatedPost);
+      }
+    } catch (error) {
+      console.error('Error updating post:', error);
+      toast.error(t('forum.failedToUpdatePostTryAgain'));
     }
   };
 
@@ -131,31 +219,140 @@ const PostCard = ({
         </Box>
 
         {/* Post Content */}
-        <Box sx={{ mt: 2, mb: 2 }}>
-          <Typography 
-            variant="body1" 
-            sx={{ 
-              fontSize: '0.95rem', 
-              lineHeight: 1.4,
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              textAlign: 'left',
-            }}
-          >
-            {post.content}
-          </Typography>
-        </Box>
-
-        {/* Post Images */}
-        {post.images && post.images.length > 0 && (
-          <Box sx={{ mb: 2 }}>
-            <ImageGallery 
-              images={post.images}
-              maxColumns={1}
-              imageHeight={300}
-              showCoverBadge={false}
+        {isEditMode ? (
+          // Edit Mode
+          <Box sx={{ mt: 2, mb: 2 }}>
+            <TextField
+              fullWidth
+              label={t('forum.editYourPost')}
+              placeholder={t('forum.whatsOnYourMind')}
+              multiline
+              rows={4}
+              value={editedContent}
+              onChange={(e) => setEditedContent(e.target.value)}
+              sx={{ mb: 2 }}
+              size="small"
             />
+            
+            {/* Existing Images */}
+            {existingImages.length > 0 && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                  {t('forum.currentImages')}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {existingImages.map((image) => (
+                    <Box 
+                      key={image.id} 
+                      sx={{ 
+                        position: 'relative', 
+                        width: 100, 
+                        height: 100,
+                        borderRadius: 1,
+                        overflow: 'hidden',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    >
+                      <img 
+                        src={image.image_base64} 
+                        alt="Post" 
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover' 
+                        }} 
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRemoveExistingImage(image.id)}
+                        sx={{
+                          position: 'absolute',
+                          top: 2,
+                          right: 2,
+                          bgcolor: 'rgba(0, 0, 0, 0.6)',
+                          color: 'white',
+                          '&:hover': {
+                            bgcolor: 'rgba(0, 0, 0, 0.8)',
+                          },
+                          width: 24,
+                          height: 24,
+                        }}
+                      >
+                        ✕
+                      </IconButton>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
+
+            {/* Add New Images */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                {t('forum.addNewImages')}
+              </Typography>
+              <InlineImageUpload
+                onImagesChange={setNewImages}
+                maxImages={3}
+                maxSizeMB={5}
+                initialImages={newImages.map((img, index) => ({ 
+                  base64: img, 
+                  name: `image-${index + 1}.jpg` 
+                }))}
+                disabled={false}
+                compact={true}
+              />
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+              <Button 
+                variant="outlined" 
+                size="small"
+                onClick={handleCancelEdit}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleSaveEdit}
+                sx={{ bgcolor: '#558b2f', '&:hover': { bgcolor: '#33691e' } }}
+              >
+                {t('forum.saveChanges')}
+              </Button>
+            </Box>
           </Box>
+        ) : (
+          // View Mode
+          <>
+            <Box sx={{ mt: 2, mb: 2 }}>
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  fontSize: '0.95rem', 
+                  lineHeight: 1.4,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  textAlign: 'left',
+                }}
+              >
+                {post.content}
+              </Typography>
+            </Box>
+
+            {/* Post Images */}
+            {post.images && post.images.length > 0 && (
+              <Box sx={{ mb: 2 }}>
+                <ImageGallery 
+                  images={post.images}
+                  maxColumns={1}
+                  imageHeight={300}
+                  showCoverBadge={false}
+                />
+              </Box>
+            )}
+          </>
         )}
 
         {/* Engagement Stats */}
@@ -347,11 +544,11 @@ const PostCard = ({
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => { onEdit && onEdit(post); handleMenuClose(); }}>
-          Edit Post
+        <MenuItem onClick={handleEditClick}>
+          {t('forum.editPost')}
         </MenuItem>
         <MenuItem onClick={() => { onDelete && onDelete(post.id); handleMenuClose(); }} sx={{ color: 'error.main' }}>
-          Delete Post
+          {t('forum.deletePost')}
         </MenuItem>
       </Menu>
     </Card>
