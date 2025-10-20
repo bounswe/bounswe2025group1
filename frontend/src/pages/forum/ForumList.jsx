@@ -450,39 +450,25 @@ const ForumList = () => {
                           e.stopPropagation();
                           navigate(`/forum/${post.id}`);
                         }}
-                        sx={{ color: '#558b2f' }}
+                        onKeyDown={createButtonKeyboardHandler((e) => {
+                          e.stopPropagation();
+                          navigate(`/forum/${post.id}`);
+                        })}
+                        sx={{ 
+                          color: '#558b2f',
+                          '&:focus': {
+                            outline: '2px solid #558b2f',
+                            outlineOffset: '2px',
+                          },
+                        }}
+                        aria-label={`Read full post: ${post.title}`}
                       >
-                        {t('comments.comment')}
+                        {t('forum.readMore')}
                       </Button>
-                    )}
-                    <Button
-                      variant="text"
-                      startIcon={<ReadMoreIcon />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/forum/${post.id}`);
-                      }}
-                      onKeyDown={createButtonKeyboardHandler((e) => {
-                        e.stopPropagation();
-                        navigate(`/forum/${post.id}`);
-                      })}
-                      sx={{ 
-                        color: '#558b2f',
-                        '&:focus': {
-                          outline: '2px solid #558b2f',
-                          outlineOffset: '2px',
-                        },
-                      }}
-                      aria-label={`Read full post: ${post.title}`}
-                    >
-                      {t('forum.readMore')}
-                    </Button>
-                  </Box>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-          ))}
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))}
             </Box>
           )}
         </Box>
