@@ -43,7 +43,10 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`);
 
         if (!response.ok) {
-          toast.error(t('errors.failedToFetchPosts'));
+          // Only show error for authenticated users
+          if (token) {
+            toast.error(t('errors.failedToFetchPosts'));
+          }
           setLoading(false);
           return;
         }
@@ -52,7 +55,11 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
         setPosts(data || []);
         setLoading(false);
       } catch (error) {
-        console.error(t('errors.failedToFetchPosts'), error);
+        console.error('Failed to fetch posts:', error);
+        // Only show error for authenticated users
+        if (token) {
+          toast.error(t('errors.failedToFetchPosts'));
+        }
         setLoading(false);
       }
     };
