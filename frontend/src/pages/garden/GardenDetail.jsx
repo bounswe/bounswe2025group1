@@ -201,17 +201,17 @@ const GardenDetail = () => {
   };
 
   const handleTaskDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    if (!window.confirm(t('gardens.confirmDeleteTask'))) return;
     try {
       await fetch(`${import.meta.env.VITE_API_URL}/tasks/${selectedTask.id}/`, {
         method: 'DELETE',
         headers: { Authorization: `Token ${token}` },
       });
       setTasks((prev) => prev.filter((t) => t.id !== selectedTask.id));
-      toast.success('Task deleted');
+      toast.success(t('gardens.taskDeleted'));
       setEditTaskModalOpen(false);
     } catch {
-      toast.error('Failed to delete task');
+      toast.error(t('gardens.failedToDeleteTask'));
     }
   };
 
@@ -230,20 +230,20 @@ const GardenDetail = () => {
       });
 
       if (!joinRes.ok) {
-        toast.error('Failed to join garden');
+        toast.error(t('gardens.failedToJoinGarden'));
         return;
       }
-      toast.success('Request to join garden sent!');
+      toast.success(t('gardens.requestToJoinSent'));
 
       await refreshMembers();
     } catch (err) {
       console.error('Join garden error:', err);
-      toast.error('Failed to join garden');
+      toast.error(t('gardens.failedToJoinGarden'));
     }
   };
 
   const handleLeaveGarden = async () => {
-    if (!window.confirm('Are you sure you want to leave this garden?')) return;
+    if (!window.confirm(t('gardens.confirmLeaveGarden'))) return;
 
     try {
       if (userMembership) {
@@ -259,11 +259,11 @@ const GardenDetail = () => {
         );
 
         if (!leaveRes.ok) {
-          toast.error('Failed to leave garden');
+          toast.error(t('gardens.failedToLeaveGarden'));
           return;
         }
 
-        toast.success('You have left the garden');
+        toast.success(t('gardens.youHaveLeftGarden'));
         // Update state
         setIsMember(false);
         setIsManager(false);
@@ -273,12 +273,12 @@ const GardenDetail = () => {
       }
     } catch (err) {
       console.error('Leave garden error:', err);
-      toast.error('Failed to leave garden');
+      toast.error(t('gardens.failedToLeaveGarden'));
     }
   };
 
   const handleRemoveMember = async (membershipId) => {
-    if (!window.confirm('Are you sure you want to remove this member?')) return;
+    if (!window.confirm(t('gardens.confirmRemoveMember'))) return;
 
     try {
       const removeRes = await fetch(
@@ -293,15 +293,15 @@ const GardenDetail = () => {
       );
 
       if (!removeRes.ok) {
-        toast.error('Failed to remove member');
+        toast.error(t('gardens.failedToRemoveMember'));
         return;
       }
-      toast.success('Member removed from garden');
+      toast.success(t('gardens.memberRemovedFromGarden'));
 
       await refreshMembers();
     } catch (err) {
       console.error('Remove member error:', err);
-      toast.error('Failed to remove member');
+      toast.error(t('gardens.failedToRemoveMember'));
     }
   };
 
@@ -322,15 +322,15 @@ const GardenDetail = () => {
       );
 
       if (!updateRes.ok) {
-        toast.error('Failed to update member role');
+        toast.error(t('gardens.failedToUpdateMemberRole'));
         return;
       }
-      toast.success('Member role updated');
+      toast.success(t('gardens.memberRoleUpdated'));
 
       await refreshMembers();
     } catch (err) {
       console.error('Change role error:', err);
-      toast.error('Failed to update member role');
+      toast.error(t('gardens.failedToUpdateMemberRole'));
     }
   };
 
@@ -349,16 +349,16 @@ const GardenDetail = () => {
       );
 
       if (!acceptRes.ok) {
-        toast.error('Failed to accept member');
+        toast.error(t('gardens.failedToAcceptMember'));
         return;
       }
 
-      toast.success('Member accepted');
+      toast.success(t('gardens.memberAccepted'));
 
       await refreshMembers();
     } catch (err) {
       console.error('Accept member error:', err);
-      toast.error('Failed to accept member');
+      toast.error(t('gardens.failedToAcceptMember'));
     }
   };
 
@@ -538,15 +538,15 @@ const GardenDetail = () => {
       });
 
       if (res.status === 204) {
-        toast.success('Garden deleted');
+        toast.success(t('gardens.gardenDeleted'));
         navigate('/gardens');
       } else {
-        toast.error('Failed to delete');
+        toast.error(t('gardens.failedToDelete'));
         return;
       }
     } catch (err) {
       console.error('Error deleting garden:', err);
-      toast.error('Could not delete garden.');
+      toast.error(t('gardens.couldNotDeleteGarden'));
     }
   };
 
@@ -707,7 +707,7 @@ const GardenDetail = () => {
               isMember ? (
                 userMembership?.status === 'PENDING' ? (
                   <Button variant="outlined" disabled sx={{ mr: 1 }}>
-                    Request Pending
+                    {t('gardens.requestPending')}
                   </Button>
                 ) : (
                   <Button
@@ -725,7 +725,7 @@ const GardenDetail = () => {
                   onClick={handleJoinGarden}
                   sx={{ mr: 1 }}
                 >
-                  Join Garden
+                  {t('gardens.joinGarden')}
                 </Button>
               )
             ) : (
@@ -734,7 +734,7 @@ const GardenDetail = () => {
                 onClick={() => navigate('/auth/login')}
                 sx={{ mr: 1 }}
               >
-                Login to Join
+                {t('gardens.loginToJoin')}
               </Button>
             )}
             {isManager && (
@@ -873,7 +873,7 @@ const GardenDetail = () => {
                             onClick={() => handleAcceptMember(member.id)}
                             sx={{ mr: 1 }}
                           >
-                            Accept
+                            {t('gardens.accept')}
                           </Button>
                         ) : (
                           <Button
@@ -888,7 +888,7 @@ const GardenDetail = () => {
                             }
                             sx={{ mr: 1 }}
                           >
-                            {member.role === 'MANAGER' ? 'Demote' : 'Promote'}
+                            {member.role === 'MANAGER' ? t('gardens.demote') : t('gardens.promote')}
                           </Button>
                         )}
                         <Button
@@ -897,7 +897,7 @@ const GardenDetail = () => {
                           color="error"
                           onClick={() => handleRemoveMember(member.id)}
                         >
-                          Remove
+                          {t('gardens.remove')}
                         </Button>
                       </>
                     )}
@@ -910,7 +910,7 @@ const GardenDetail = () => {
                   color="textSecondary"
                   sx={{ textAlign: 'center', mt: 3 }}
                 >
-                  No members found
+                  {t('gardens.noMembersFound')}
                 </Typography>
               )}
               </List>
@@ -959,7 +959,7 @@ const GardenDetail = () => {
         {activeTab === 3 && (
           <Box>
             <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, mb: 3 }}>
-              Garden Gallery
+              {t('gardens.gardenGallery')}
             </Typography>
             {garden?.images && garden.images.length > 0 ? (
               <ImageGallery 
@@ -979,10 +979,10 @@ const GardenDetail = () => {
                 borderColor: 'grey.300'
               }}>
                 <Typography variant="h6" color="text.secondary" gutterBottom>
-                  No Images Yet
+                  {t('gardens.noImagesYet')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Garden managers can add images using the "Manage Garden" button.
+                  {t('gardens.managersCanAddImages')}
                 </Typography>
               </Box>
             )}

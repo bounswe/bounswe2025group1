@@ -14,6 +14,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ImageIcon from '@mui/icons-material/Image';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import { useTranslation } from 'react-i18next';
 
 const InlineImageUpload = ({
   onImagesChange,
@@ -24,6 +25,7 @@ const InlineImageUpload = ({
   disabled = false,
   compact = false,
 }) => {
+  const { t } = useTranslation();
   const [images, setImages] = useState(initialImages);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
@@ -31,11 +33,11 @@ const InlineImageUpload = ({
 
   const validateFile = (file) => {
     if (!acceptedTypes.includes(file.type)) {
-      throw new Error(`File type ${file.type} is not supported. Please use: ${acceptedTypes.join(', ')}`);
+      throw new Error(t('imageUpload.fileTypeError', { types: acceptedTypes.join(', ') }));
     }
     
     if (file.size > maxSizeMB * 1024 * 1024) {
-      throw new Error(`File size must be less than ${maxSizeMB}MB`);
+      throw new Error(t('imageUpload.fileSizeError', { size: maxSizeMB }));
     }
     
     return true;
@@ -128,7 +130,7 @@ const InlineImageUpload = ({
           disabled={disabled || uploading}
         />
         
-        <Tooltip title={`Upload images (${images.length}/${maxImages})`}>
+        <Tooltip title={`${t('imageUpload.addImages')} (${images.length}/${maxImages})`}>
           <IconButton
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || uploading || images.length >= maxImages}
@@ -146,7 +148,7 @@ const InlineImageUpload = ({
 
         {images.length > 0 && (
           <Typography variant="caption" color="text.secondary">
-            {images.length} image{images.length > 1 ? 's' : ''}
+            {images.length} {images.length === 1 ? t('imageUpload.image') : t('imageUpload.images')}
           </Typography>
         )}
 
@@ -194,7 +196,7 @@ const InlineImageUpload = ({
             },
           }}
         >
-          {uploading ? 'Uploading...' : `Add Images (${images.length}/${maxImages})`}
+          {uploading ? t('imageUpload.uploading') : `${t('imageUpload.addImages')} (${images.length}/${maxImages})`}
         </Button>
       </Box>
 
