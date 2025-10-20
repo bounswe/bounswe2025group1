@@ -6,6 +6,7 @@ import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 // Add a type for community members
 interface CommunityMember {
@@ -20,6 +21,7 @@ export default function CommunityScreen() {
   const [members, setMembers] = useState<CommunityMember[]>([]);
   const [followingIds, setFollowingIds] = useState<number[]>([]);
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchCommunityUsers = async () => {
@@ -82,16 +84,16 @@ export default function CommunityScreen() {
           headers: { Authorization: `Token ${token}` },
         }
       );
-      Alert.alert('Followed successfully!');
+      Alert.alert(t('common.success'), t('community.followSuccess'));
       setFollowingIds(prev => [...prev, userId]);
     } catch (err) {
-      Alert.alert('Error following user.');
+      Alert.alert(t('common.error'), t('community.followError'));
     }
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.header, { color: colors.text }]}>Community Members</Text>
+      <Text style={[styles.header, { color: colors.text }]}>{t('community.title')}</Text>
       <FlatList
         data={members}
         keyExtractor={(item: CommunityMember) => item.user_id.toString()}
@@ -110,13 +112,13 @@ export default function CommunityScreen() {
                     handleFollow(item.user_id);
                 }}
                 >
-                <Text style={[styles.followText, { color: colors.white }]}>Follow</Text>
+                <Text style={[styles.followText, { color: colors.white }]}>{t('community.follow')}</Text>
                 </TouchableOpacity>
             )}
             </TouchableOpacity>
             
         )}
-        ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>No members found.</Text>}
+        ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('community.noMembers')}</Text>}
       />
     </SafeAreaView>
   );

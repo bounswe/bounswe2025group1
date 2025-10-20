@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 interface Garden {
   id: number;
@@ -25,6 +26,7 @@ export default function GardensScreen() {
   const colors = useAccessibleColors();
   const navigation = useNavigation();
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchGardens();
@@ -62,7 +64,7 @@ export default function GardensScreen() {
           })
         }
       >
-        <Text style={[styles.detailButtonText, { color: colors.white }]}>Go to Detail</Text>
+        <Text style={[styles.detailButtonText, { color: colors.white }]}>{t('gardens.goToDetail')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -76,7 +78,7 @@ export default function GardensScreen() {
         data={gardens}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderGarden}
-        ListEmptyComponent={<Text style={[styles.empty, { color: colors.textSecondary }]}>No public gardens found.</Text>}
+        ListEmptyComponent={<Text style={[styles.empty, { color: colors.textSecondary }]}>{t('gardens.noGardens')}</Text>}
       />
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: colors.primary }]}

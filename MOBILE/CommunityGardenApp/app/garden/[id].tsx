@@ -13,7 +13,13 @@ import { useNavigation } from 'expo-router';
 import { useLayoutEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import { Calendar } from 'react-native-calendars';
-const TABS = ['Tasks', 'Members', 'Calendar'];
+import { useTranslation } from 'react-i18next';
+
+const TABS = [
+  { key: 'Tasks', label: 'garden.detail.tabs.tasks' },
+  { key: 'Members', label: 'garden.detail.tabs.members' },
+  { key: 'Calendar', label: 'garden.detail.tabs.calendar' }
+];
 
 export default function GardenDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -21,6 +27,7 @@ export default function GardenDetailScreen() {
   const { token, user } = useAuth();
   const colors = useAccessibleColors();
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const [garden, setGarden] = useState<any>(null);
   const [tasks, setTasks] = useState([]);
@@ -36,12 +43,12 @@ export default function GardenDetailScreen() {
     navigation.setOptions({
       headerLeft: () => (
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
-          <Text style={{ color: colors.white, fontWeight: 'bold' }}>Back</Text>
+          <Text style={{ color: colors.white, fontWeight: 'bold' }}>{t('garden.detail.back')}</Text>
         </TouchableOpacity>
       ),
-      headerTitle: 'Garden Detail',
+      headerTitle: t('garden.detail.title'),
     });
-  }, [navigation, colors]);
+  }, [navigation, colors, t]);
 
   useEffect(() => {
     fetchGarden();
@@ -279,78 +286,78 @@ export default function GardenDetailScreen() {
             </View>
           </View>
           <Text style={[styles.gardenDesc, { color: colors.textSecondary }]}>{(garden as any).description}</Text>
-          {membershipStatus && <Text style={[styles.status, { color: colors.primary }]}>Membership Status: {membershipStatus}</Text>}
+          {membershipStatus && <Text style={[styles.status, { color: colors.primary }]}>{t('garden.detail.membershipStatus')}: {membershipStatus}</Text>}
           {garden.is_public && !membershipStatus && (
             <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={handleJoin} disabled={joining}>
-              <Text style={[styles.buttonText, { color: colors.white }]}>{joining ? 'Sending Request...' : 'Join Garden'}</Text>
+              <Text style={[styles.buttonText, { color: colors.white }]}>{joining ? t('garden.detail.sendingRequest') : t('garden.detail.joinGarden')}</Text>
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      <View style={[styles.tabsRow, { borderColor: colors.border }]}>
-        {TABS.map((label, idx) => (
-          <TouchableOpacity
-            key={label}
-            style={[styles.tab, tab === idx && { borderBottomColor: colors.primary }]}
-            onPress={() => setTab(idx)}
-          >
-            <Text style={[styles.tabText, { 
-              color: tab === idx ? colors.primary : colors.text,
-              fontWeight: tab === idx ? 'bold' : 'normal'
-            }]}>{label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+          <View style={[styles.tabsRow, { borderColor: colors.border }]}>
+            {TABS.map((tabItem, idx) => (
+              <TouchableOpacity
+                key={tabItem.key}
+                style={[styles.tab, tab === idx && { borderBottomColor: colors.primary }]}
+                onPress={() => setTab(idx)}
+              >
+                <Text style={[styles.tabText, {
+                  color: tab === idx ? colors.primary : colors.text,
+                  fontWeight: tab === idx ? 'bold' : 'normal'
+                }]}>{t(tabItem.label)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
       <View style={styles.tabContent}>
         {tab === 0 && (
           <View>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Garden Tasks</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('garden.detail.gardenTasks')}</Text>
             {membershipStatus === 'ACCEPTED' && userIsManager && (
             <TouchableOpacity
                 onPress={() => router.push({ pathname: '/tasks/create-task', params: { gardenId: id.toString() } })}
                 style={{ backgroundColor: colors.primary, padding: 10, borderRadius: 8, marginBottom: 16 }}
             >
-                <Text style={{ color: colors.white, fontWeight: 'bold', textAlign: 'center' }}>+ Create Task</Text>
+                <Text style={{ color: colors.white, fontWeight: 'bold', textAlign: 'center' }}>+ {t('garden.detail.createTask')}</Text>
             </TouchableOpacity>
             )}
-            <Text style={[styles.statusTitle, { color: colors.primary }]}>Pending ({pendingTasks.length})</Text>
+            <Text style={[styles.statusTitle, { color: colors.primary }]}>{t('garden.detail.pending')} ({pendingTasks.length})</Text>
             <FlatList data={pendingTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color={colors.surface} />} />
-            <Text style={[styles.statusTitle, { color: colors.primary }]}>In Progress ({inProgressTasks.length})</Text>
+            <Text style={[styles.statusTitle, { color: colors.primary }]}>{t('garden.detail.inProgress')} ({inProgressTasks.length})</Text>
             <FlatList data={inProgressTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color={colors.surface} />} />
-            <Text style={[styles.statusTitle, { color: colors.primary }]}>Completed ({completedTasks.length})</Text>
+            <Text style={[styles.statusTitle, { color: colors.primary }]}>{t('garden.detail.completed')} ({completedTasks.length})</Text>
             <FlatList data={completedTasks} keyExtractor={item => item.id.toString()} renderItem={({ item }) => <TaskCard task={item} color={colors.surface} />} />
           </View>
         )}
         {tab === 1 && (
         <View>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Garden Members</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('garden.detail.gardenMembers')}</Text>
             <FlatList
             data={members}
             keyExtractor={(item: any) => item.id.toString()}
             renderItem={({ item }: { item: any }) => (
                 <View style={[taskCardStyles.card, { backgroundColor: colors.surface }]}>
                 <Text style={[taskCardStyles.title, { color: colors.text }]}>Username: {item.username}</Text>
-                <Text style={{ color: colors.textSecondary }}>Role: {item.role}</Text>
-                <Text style={{ color: colors.textSecondary }}>Status: {item.status}</Text>
+                <Text style={{ color: colors.textSecondary }}>{t('garden.detail.role')}: {t(`garden.detail.roles.${item.role}`)}</Text>
+                <Text style={{ color: colors.textSecondary }}>{t('garden.detail.status')}: {t(`garden.detail.statuses.${item.status}`)}</Text>
 
                 {/* Follow/Unfollow and Block/Unblock button for each member except self */}
                 {user && String(item.user_id) !== String(user.id) && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
                     {blockedIds.includes(Number(item.user_id)) ? (
                       <TouchableOpacity style={[styles.unfollowButtonSmall, { backgroundColor: colors.surface }]} onPress={() => handleUnblock(Number(item.user_id))}>
-                        <Text style={[styles.unfollowButtonTextSmall, { color: colors.error }]}>Unblock</Text>
+                        <Text style={[styles.unfollowButtonTextSmall, { color: colors.error }]}>{t('garden.detail.unblock')}</Text>
                       </TouchableOpacity>
                     ) : (
                       <>
                         {followingIds.includes(Number(item.user_id)) ? (
                           <TouchableOpacity style={[styles.unfollowButtonSmall, { backgroundColor: colors.surface }]} onPress={() => handleUnfollow(Number(item.user_id))}>
-                            <Text style={[styles.unfollowButtonTextSmall, { color: colors.error }]}>Unfollow</Text>
+                            <Text style={[styles.unfollowButtonTextSmall, { color: colors.error }]}>{t('garden.detail.unfollow')}</Text>
                           </TouchableOpacity>
                         ) : (
                           <TouchableOpacity style={[styles.followButtonSmall, { backgroundColor: colors.primary }]} onPress={() => handleFollow(Number(item.user_id))}>
-                            <Text style={[styles.followButtonTextSmall, { color: colors.white }]}>Follow</Text>
+                            <Text style={[styles.followButtonTextSmall, { color: colors.white }]}>{t('garden.detail.follow')}</Text>
                           </TouchableOpacity>
                         )}
                         <TouchableOpacity style={[styles.blockIconButton, { backgroundColor: colors.error }]} onPress={() => handleBlock(Number(item.user_id))}>
@@ -368,7 +375,7 @@ export default function GardenDetailScreen() {
                         onPress={() => handleMembershipAccept(item.id)}
                         style={{ backgroundColor: colors.success, padding: 6, borderRadius: 4 }}
                     >
-                        <Text style={{ color: colors.white }}>Accept</Text>
+                        <Text style={{ color: colors.white }}>{t('garden.detail.accept')}</Text>
                     </TouchableOpacity>
                     </View>
                 )}
