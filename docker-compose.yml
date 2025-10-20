@@ -69,6 +69,7 @@ services:
       - "19001:19001"  # Metro
       - "19002:19002"  # DevTools
       - "8081:8081" # React Native Web
+      - "8082:8082" # Alternative port for tunnel
     volumes:
       - ./MOBILE/CommunityGardenApp:/app
       - /app/node_modules
@@ -76,6 +77,9 @@ services:
       - ./MOBILE/CommunityGardenApp/.env
     environment:
       - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - CI=1
+    command: >
+      sh -c "npm install -g @expo/ngrok@^4.1.0 && npx expo start --tunnel"
     networks:
       - app-network
 
