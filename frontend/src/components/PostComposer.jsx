@@ -92,12 +92,12 @@ const PostComposer = ({
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: 3,
-                backgroundColor: '#f5f5f5',
+                backgroundColor: 'background.default',
                 '&:hover': {
-                  backgroundColor: '#eeeeee',
+                  backgroundColor: 'action.hover',
                 },
                 '&.Mui-focused': {
-                  backgroundColor: 'white',
+                  backgroundColor: 'background.paper',
                 },
                 '& fieldset': {
                   border: 'none',
