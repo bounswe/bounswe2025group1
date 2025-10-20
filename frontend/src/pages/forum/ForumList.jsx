@@ -16,6 +16,11 @@ import {
   Fab,
   Tooltip,
   ButtonBase,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -45,7 +50,9 @@ const ForumList = () => {
   // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
+  const [postToDelete, setPostToDelete] = useState(null);
   
   // Modern UI state
   const [useModernStyle, setUseModernStyle] = useState(true);
@@ -212,6 +219,54 @@ const ForumList = () => {
     } catch (error) {
       console.error('Error posting comment:', error);
       toast.error('Failed to post comment. Please try again.');
+    }
+  };
+
+  const handlePostEdit = (updatedPost) => {
+    // Update the post in both posts and filteredPosts arrays
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === updatedPost.id ? updatedPost : post
+      )
+    );
+    setFilteredPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === updatedPost.id ? updatedPost : post
+      )
+    );
+  };
+
+  const handleDeletePost = (postId) => {
+    setPostToDelete(postId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeletePost = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/${postToDelete}/`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        toast.error(t('forum.failedToDeletePost'));
+        setDeleteDialogOpen(false);
+        return;
+      }
+
+      // Remove the post from the local state
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== postToDelete));
+      setFilteredPosts(prevPosts => prevPosts.filter(post => post.id !== postToDelete));
+      
+      toast.success(t('forum.postDeletedSuccessfully'));
+      setDeleteDialogOpen(false);
+      setPostToDelete(null);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast.error(t('forum.failedToDeletePostTryAgain'));
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -382,8 +437,9 @@ const ForumList = () => {
                 post={post}
                 currentUser={user}
                 isOwner={post.author === user?.id}
+                token={token}
                 onComment={handlePostComment}
-                onEdit={(post) => navigate(`/forum/${post.id}`)}
+                onEdit={handlePostEdit}
                 onDelete={(postId) => handleDeletePost(postId)}
               />
             ))
@@ -526,6 +582,33 @@ const ForumList = () => {
         postId={selectedPostId}
         onCommentCreated={handleCommentCreated}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog 
+        open={deleteDialogOpen} 
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setPostToDelete(null);
+        }}
+      >
+        <DialogTitle>{t('forum.deletePost')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('forum.deletePostConfirmation')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setDeleteDialogOpen(false);
+            setPostToDelete(null);
+          }}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={confirmDeletePost} color="error">
+            {t('common.delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

@@ -202,7 +202,17 @@
     "content": "Content",
     "comments": "Comments",
     "postNotFound": "Post not found",
-    "readMore": "Read More"
+    "readMore": "Read More",
+    "editPost": "Edit Post",
+    "editYourPost": "Edit your post",
+    "whatsOnYourMind": "What's on your mind?",
+    "contentCannotBeEmpty": "Content cannot be empty",
+    "failedToUpdatePost": "Failed to update post",
+    "failedToUpdatePostTryAgain": "Failed to update post. Please try again.",
+    "currentImages": "Current Images (click X to remove)",
+    "addNewImages": "Add New Images",
+    "commentPostedSuccessfully": "Comment posted successfully!",
+    "failedToPostComment": "Failed to post comment"
   },
   "profile": {
     "title": "Profile",

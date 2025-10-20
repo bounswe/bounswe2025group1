@@ -202,7 +202,17 @@
     "content": "İçerik",
     "comments": "Yorumlar",
     "postNotFound": "Gönderi bulunamadı",
-    "readMore": "Devamını Oku"
+    "readMore": "Devamını Oku",
+    "editPost": "Gönderiyi Düzenle",
+    "editYourPost": "Gönderinizi düzenleyin",
+    "whatsOnYourMind": "Aklınızdan neler geçiyor?",
+    "contentCannotBeEmpty": "İçerik boş olamaz",
+    "failedToUpdatePost": "Gönderi güncellenemedi",
+    "failedToUpdatePostTryAgain": "Gönderi güncellenemedi. Lütfen tekrar deneyin.",
+    "currentImages": "Mevcut Görseller (kaldırmak için X'e tıklayın)",
+    "addNewImages": "Yeni Görseller Ekle",
+    "commentPostedSuccessfully": "Yorum başarıyla gönderildi!",
+    "failedToPostComment": "Yorum gönderilemedi"
   },
   "profile": {
     "title": "Profil",
