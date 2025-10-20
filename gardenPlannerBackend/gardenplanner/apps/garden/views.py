@@ -239,66 +239,7 @@ class BlockUnblockView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PasswordResetAPIView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request):
-        email = request.data.get('email')
-        if not email:
-            return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        users = User.objects.filter(email=email)
-        if users.exists():
-            for user in users:
-                token = default_token_generator.make_token(user)
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-
-                reset_url = f"{request.scheme}://{request.get_host()}/api/reset/{uid}/{token}/"
-
-                # You can use a template instead of plain string
-                message = f"Hi {user.username},\n\nClick the link below to reset your password:\n{reset_url}"
-
-                # Send email
-                send_mail(
-                    'Password Reset Request',
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email],
-                    fail_silently=False,
-                )
-
-            return Response(
-                {'message': 'Password reset link has been sent to your email address.'},
-                status=status.HTTP_200_OK
-            )
-        else:
-            # Not leaking information about whether the email exists
-            return Response(
-                {'message': 'If a user with this email exists, a password reset link will be sent.'},
-                status=status.HTTP_200_OK
-            )
-
-
-class PasswordResetConfirmView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request, uidb64, token):
-        try:
-            uid = urlsafe_base64_decode(uidb64).decode()
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            return Response({'error': 'Invalid reset link.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if default_token_generator.check_token(user, token):
-            new_password = request.data.get('new_password')
-            if not new_password:
-                return Response({'error': 'New password is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            user.set_password(new_password)
-            user.save()
-            return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
-
-        return Response({'error': 'Invalid reset link or it has expired.'}, status=status.HTTP_400_BAD_REQUEST)
+# Password reset views are now in views/userauth.py to avoid duplication
 
 
 class GardenViewSet(viewsets.ModelViewSet):

@@ -12,7 +12,7 @@ import {
   InputAdornment,
   useTheme,
 } from '@mui/material';
-import EmailIcon from '@mui/icons-material/Email';
+import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
@@ -153,7 +153,7 @@ const Login = () => {
                 required
                 fullWidth
                 id="username"
-                label={t('auth.login.email')}
+                label="Username"
                 name="username"
                 autoComplete="username"
                 autoFocus
@@ -162,11 +162,11 @@ const Login = () => {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <EmailIcon />
+                      <PersonIcon />
                     </InputAdornment>
                   ),
                 }}
-                aria-label={t('auth.login.email')}
+                aria-label={t('auth.login.username')}
               />
               <TextField
                 margin="normal"

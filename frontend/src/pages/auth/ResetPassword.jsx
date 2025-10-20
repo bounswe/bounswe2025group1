@@ -19,7 +19,7 @@ import LockResetIcon from '@mui/icons-material/LockReset';
 import LockIcon from '@mui/icons-material/Lock';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTranslation } from 'react-i18next';
@@ -27,7 +27,14 @@ import { useTranslation } from 'react-i18next';
 const ResetPassword = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const { uid: pathUid, token: pathToken } = useParams();
+  
+  // Get uid and token from either URL params or query params
+  const token = pathToken || searchParams.get('token');
+  const uid = pathUid || searchParams.get('uid');
+  
+  // Debug logging
+  console.log('Reset password params:', { uid, token, allParams: Object.fromEntries(searchParams) });
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -42,16 +49,16 @@ const ResetPassword = () => {
   const allValid = hasUpper && hasLower && hasNumber && hasSpecial && isLongEnough;
 
   useEffect(() => {
-    if (!token) {
+    if (!token || !uid) {
       setError(t('auth.resetPassword.invalidToken'));
     }
-  }, [token]);
+  }, [token, uid]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!token) {
+    if (!token || !uid) {
       toast.error(t('auth.resetPassword.tokenMissing'), { position: 'top-right' });
       return setError(t('auth.resetPassword.tokenMissing'));
     }
@@ -67,10 +74,10 @@ const ResetPassword = () => {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/reset-password/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/reset/${uid}/${token}/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ new_password: password }),
       });
 
       if (!response.ok) {

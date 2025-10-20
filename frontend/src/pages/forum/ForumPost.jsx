@@ -367,15 +367,14 @@ const ForumPost = () => {
               )}
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              {' '}
-              <Avatar sx={{ bgcolor: '#558b2f', width: 40, height: 40, mr: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3, width: '100%' }}>
+              <Avatar sx={{ bgcolor: '#558b2f', width: 40, height: 40, mr: 2, flexShrink: 0 }}>
                 {post.author_username && post.author_username.charAt(0)}
               </Avatar>
-              <Box>
+              <Box sx={{ flex: 1, textAlign: 'left' }}>
                 <Typography
                   variant="subtitle2"
-                  sx={{ cursor: 'pointer' }}
+                  sx={{ cursor: 'pointer', textAlign: 'left', margin: 0 }}
                   onClick={() => navigate(`/profile/${post.author}`)}
                 >
                   {post.author_username}

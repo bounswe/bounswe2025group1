@@ -68,7 +68,7 @@ const TaskModal = ({
 
   // Fetch data when component mounts or when gardenId changes
   useEffect(() => {
-    if (!gardenId) return;
+    if (!gardenId || !token) return;
 
     const fetchGardenMembers = async () => {
       setLoadingMembers(true);
@@ -287,11 +287,14 @@ const TaskModal = ({
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 500,
+            width: { xs: '95%', sm: '90%', md: 600 },
+            maxWidth: '90vw',
+            maxHeight: '90vh',
             bgcolor: 'background.paper',
             borderRadius: 2,
             boxShadow: 24,
-            p: 4,
+            p: { xs: 2, sm: 3, md: 4 },
+            overflow: 'auto',
             '&:focus': {
               outline: 'none',
             },
@@ -427,12 +430,19 @@ const TaskModal = ({
             </Box>
           )}
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'flex-end', 
+            mt: 3, 
+            gap: 2 
+          }}>
             {user && task?.assigned_to === user.user_id && task?.status === 'PENDING' && (
               <>
                 <Button
                   variant="outlined"
                   color="success"
+                  fullWidth={{ xs: true, sm: false }}
                   onClick={() => {
                     handleAcceptTask(task);
                   }}
@@ -451,6 +461,7 @@ const TaskModal = ({
                 <Button
                   variant="outlined"
                   color="error"
+                  fullWidth={{ xs: true, sm: false }}
                   onClick={() => {
                     handleDeclineTask(task);
                   }}
@@ -472,6 +483,7 @@ const TaskModal = ({
               <Button 
                 variant="contained" 
                 color="error" 
+                fullWidth={{ xs: true, sm: false }}
                 onClick={onDelete}
                 onKeyDown={createButtonKeyboardHandler(onDelete)}
                 sx={{
@@ -486,6 +498,7 @@ const TaskModal = ({
             )}
             <Button 
               variant="outlined" 
+              fullWidth={{ xs: true, sm: false }}
               onClick={onClose}
               onKeyDown={createButtonKeyboardHandler(onClose)}
               sx={{
@@ -500,6 +513,7 @@ const TaskModal = ({
             <Button 
               type="submit" 
               variant="contained" 
+              fullWidth={{ xs: true, sm: false }}
               sx={{ 
                 backgroundColor: '#558b2f',
                 '&:focus': {
