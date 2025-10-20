@@ -367,8 +367,11 @@ const ForumPost = () => {
               )}
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3, width: '100%' }}>
-              <Avatar sx={{ bgcolor: '#558b2f', width: 40, height: 40, mr: 2, flexShrink: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, width: '100%' }}>
+              <Avatar 
+                src={post.author_profile_picture || '/default-avatar.png'}
+                sx={{ bgcolor: '#558b2f', width: 40, height: 40, mr: 2, flexShrink: 0 }}
+              >
                 {post.author_username && post.author_username.charAt(0)}
               </Avatar>
               <Box sx={{ flex: 1, textAlign: 'left' }}>
@@ -503,7 +506,10 @@ const ForumPost = () => {
           <Card key={comment.id} sx={{ mb: 2 }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                <Avatar sx={{ bgcolor: '#8bc34a', width: 32, height: 32, mr: 2 }}>
+                <Avatar 
+                  src={comment.author_profile_picture || '/default-avatar.png'}
+                  sx={{ bgcolor: '#8bc34a', width: 32, height: 32, mr: 2 }}
+                >
                   {comment.author_username && comment.author_username.charAt(0)}
                 </Avatar>
                 <Box sx={{ width: '100%' }}>

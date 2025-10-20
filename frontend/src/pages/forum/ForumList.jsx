@@ -422,7 +422,10 @@ const ForumList = () => {
                 >
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Avatar sx={{ bgcolor: '#558b2f', width: 32, height: 32, mr: 1 }}>
+                      <Avatar 
+                        src={post.author_profile_picture || '/default-avatar.png'}
+                        sx={{ bgcolor: '#558b2f', width: 32, height: 32, mr: 1 }}
+                      >
                         {post.author_username && post.author_username.charAt(0)}
                       </Avatar>
                       <Typography variant="subtitle2" color="text.secondary">
