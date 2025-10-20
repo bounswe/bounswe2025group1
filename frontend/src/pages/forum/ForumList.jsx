@@ -343,7 +343,7 @@ const ForumList = () => {
         <PostComposer
           currentUser={user}
           onSubmit={handleModernPostSubmit}
-          placeholder="What's on your mind?"
+          placeholder={t('forum.whatsOnYourMind')}
         />
       )}
 

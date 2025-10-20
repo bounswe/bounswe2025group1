@@ -10,13 +10,15 @@ import {
   Chip,
   Divider,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import InlineImageUpload from './InlineImageUpload';
 
 const PostComposer = ({
   currentUser,
   onSubmit,
-  placeholder = "What's on your mind?",
+  placeholder,
 }) => {
+  const { t } = useTranslation();
   const [postText, setPostText] = useState('');
   const [images, setImages] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -79,7 +81,7 @@ const PostComposer = ({
           </Avatar>
           <TextField
             fullWidth
-            placeholder={placeholder}
+            placeholder={placeholder || t('forum.whatsOnYourMind')}
             value={postText}
             onChange={handleTextChange}
             onFocus={handleTextFocus}
@@ -146,7 +148,7 @@ const PostComposer = ({
               px: 3,
             }}
           >
-            {isSubmitting ? 'Posting...' : 'Post'}
+            {isSubmitting ? t('forum.posting') : t('forum.post')}
           </Button>
         </Box>
       </CardContent>
