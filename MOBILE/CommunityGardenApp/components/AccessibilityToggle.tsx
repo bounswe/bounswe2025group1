@@ -6,6 +6,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Switch } from 'react-native';
 import { useAccessibility, useAccessibleColors } from '../contexts/AccessibilityContextSimple';
+import { useTranslation } from 'react-i18next';
 
 interface HighContrastToggleProps {
   style?: any;
@@ -13,13 +14,14 @@ interface HighContrastToggleProps {
   variant?: 'switch' | 'button';
 }
 
-export function HighContrastToggle({ 
-  style, 
-  showLabel = true, 
-  variant = 'switch' 
+export function HighContrastToggle({
+  style,
+  showLabel = true,
+  variant = 'switch'
 }: HighContrastToggleProps) {
   const { isHighContrast, toggleHighContrast } = useAccessibility();
   const colors = useAccessibleColors();
+  const { t } = useTranslation();
 
   // Debug: Log toggle state
   console.log('HighContrastToggle - isHighContrast:', isHighContrast);
@@ -29,7 +31,7 @@ export function HighContrastToggle({
       <View style={[styles.container, style]}>
         {showLabel && (
           <Text style={[styles.label, { color: colors.text }]}>
-            High Contrast Mode
+            {t('accessibility.highContrastMode')}
           </Text>
         )}
         <Switch
@@ -38,9 +40,9 @@ export function HighContrastToggle({
             console.log('Switch toggled! Current state:', isHighContrast);
             toggleHighContrast();
           }}
-          trackColor={{ 
-            false: colors.border, 
-            true: colors.primary 
+          trackColor={{
+            false: colors.border,
+            true: colors.primary
           }}
           thumbColor={isHighContrast ? colors.white : colors.textSecondary}
           accessibilityLabel="Toggle high contrast mode"
@@ -54,7 +56,7 @@ export function HighContrastToggle({
     <TouchableOpacity
       style={[
         styles.button,
-        { 
+        {
           backgroundColor: isHighContrast ? colors.primary : colors.surface,
           borderColor: colors.border,
         },
@@ -112,25 +114,25 @@ export function AccessibilitySettings() {
   const colors = useAccessibleColors();
 
   const themeOptions: { key: ThemeKey; label: string; description: string }[] = [
-    { 
-      key: 'standard', 
-      label: 'Standard Theme', 
-      description: 'Default theme with WCAG AA compliance' 
+    {
+      key: 'standard',
+      label: 'Standard Theme',
+      description: 'Default theme with WCAG AA compliance'
     },
-    { 
-      key: 'highContrast', 
-      label: 'High Contrast Light', 
-      description: 'High contrast theme for light backgrounds' 
+    {
+      key: 'highContrast',
+      label: 'High Contrast Light',
+      description: 'High contrast theme for light backgrounds'
     },
-    { 
-      key: 'dark', 
-      label: 'Dark Theme', 
-      description: 'Dark theme with WCAG AA compliance' 
+    {
+      key: 'dark',
+      label: 'Dark Theme',
+      description: 'Dark theme with WCAG AA compliance'
     },
-    { 
-      key: 'highContrastDark', 
-      label: 'High Contrast Dark', 
-      description: 'High contrast theme for dark backgrounds' 
+    {
+      key: 'highContrastDark',
+      label: 'High Contrast Dark',
+      description: 'High contrast theme for dark backgrounds'
     },
   ];
 
@@ -139,7 +141,7 @@ export function AccessibilitySettings() {
       <Text style={[styles.title, { color: colors.text }]}>
         Accessibility Settings
       </Text>
-      
+
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
           High Contrast Mode
@@ -157,13 +159,13 @@ export function AccessibilitySettings() {
         <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
           Choose a theme that works best for you
         </Text>
-        
+
         {themeOptions.map((option) => (
           <TouchableOpacity
             key={option.key}
             style={[
               styles.themeOption,
-              { 
+              {
                 backgroundColor: themeKey === option.key ? colors.primary : colors.surface,
                 borderColor: colors.border,
               }
