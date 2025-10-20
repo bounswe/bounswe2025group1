@@ -6,11 +6,25 @@ from rest_framework.decorators import action
 from django.contrib.contenttypes.models import ContentType
 from ..models import Report
 from ..serializers import ReportSerializer
+from ..permissions import IsMember, IsSystemAdministrator
 
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        """
+        Return permissions based on action.
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [IsSystemAdministrator]  # only admins can view reports
+        elif self.action == 'create':
+            permission_classes = [IsMember]  # only members can report
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            permission_classes = [IsSystemAdministrator]  # only managers/admins
+        else:
+            permission_classes = [IsMember]
+        return [permission() for permission in permission_classes]
 
     def create(self, request, *args, **kwargs):
         content_type_str = request.data.get('content_type')
@@ -43,7 +57,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 class AdminReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all().select_related('reporter')
     serializer_class = ReportSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSystemAdministrator]
 
     @action(detail=True, methods=['post'])
     def review(self, request, pk=None):
