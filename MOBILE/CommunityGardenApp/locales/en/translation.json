@@ -201,5 +201,12 @@
     "current": "Current Language",
     "english": "English",
     "turkish": "Turkish"
+  },
+  "layout": {
+    "home": "Home",
+    "gardens": "Gardens",
+    "forum": "Forum",
+    "profile": "Profile",
+    "myTasks": "My Tasks"
   }
 }
