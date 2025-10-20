@@ -95,7 +95,8 @@
       "tabs": {
         "tasks": "Görevler",
         "members": "Üyeler",
-        "calendar": "Takvim"
+        "calendar": "Takvim",
+        "gallery": "Galeri"
       },
       "joinGarden": "Bahçeye Katıl",
       "sendingRequest": "İstek Gönderiliyor...",
