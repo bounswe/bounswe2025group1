@@ -2,14 +2,25 @@ import React, { useState } from 'react';
 import dayjs from 'dayjs';
 import { Box, Typography, Paper, Chip, Button, useTheme } from '@mui/material';
 import { bgForStatus } from '../utils/taskUtils';
+import { useTranslation } from 'react-i18next';
 import isoWeek from 'dayjs/plugin/isoWeek';
 dayjs.extend(isoWeek);
 
 const CalendarTab = ({ tasks, handleTaskClick, onEmptyDayClick }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const startOfMonth = currentMonth.startOf('month').startOf('week');
   const endOfMonth = currentMonth.endOf('month').endOf('week');
+
+  const getTranslatedMonthYear = (date) => {
+    const monthNames = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'
+    ];
+    const monthKey = monthNames[date.month()];
+    return `${t(`calendar.${monthKey}`)} ${date.year()}`;
+  };
 
   const generateCalendarGrid = () => {
     const days = [];
@@ -37,7 +48,7 @@ const CalendarTab = ({ tasks, handleTaskClick, onEmptyDayClick }) => {
           &lt;
         </Button>
         <Typography variant="h5" sx={{ color: '#2e7d32', fontWeight: 'bold' }}>
-          {currentMonth.format('MMMM YYYY')}
+          {getTranslatedMonthYear(currentMonth)}
         </Typography>
         <Button onClick={() => setCurrentMonth((prev) => prev.add(1, 'month'))} variant="outlined">
           &gt;
@@ -53,8 +64,16 @@ const CalendarTab = ({ tasks, handleTaskClick, onEmptyDayClick }) => {
           mb: 1,
         }}
       >
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-          <Typography key={day} variant="subtitle2" align="center" fontWeight="bold">
+        {[
+          t('calendar.sun'), 
+          t('calendar.mon'), 
+          t('calendar.tue'), 
+          t('calendar.wed'), 
+          t('calendar.thu'), 
+          t('calendar.fri'), 
+          t('calendar.sat')
+        ].map((day, index) => (
+          <Typography key={index} variant="subtitle2" align="center" fontWeight="bold">
             {day}
           </Typography>
         ))}

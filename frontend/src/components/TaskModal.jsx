@@ -22,6 +22,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { createFormKeyboardHandler, createButtonKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
+import { useTranslation } from 'react-i18next';
 
 const TaskModal = ({
   open,
@@ -34,6 +35,7 @@ const TaskModal = ({
   task,
   gardenId, // Current garden ID for creating tasks
 }) => {
+  const { t } = useTranslation();
   const { user, token } = useAuth();
   // Initialize with default empty values
   const [taskForm, setTaskForm] = useState({
@@ -83,7 +85,7 @@ const TaskModal = ({
         );
 
         if (!response.ok) {
-          toast.error('Failed to fetch garden members');
+          toast.error(t('errors.failedToFetchMembers'));
           setLoadingMembers(false);
           return;
         }
@@ -115,7 +117,7 @@ const TaskModal = ({
         );
 
         if (!response.ok) {
-          toast.error('Failed to fetch custom task types');
+          toast.error(t('errors.failedToFetchTaskTypes'));
           setLoadingTaskTypes(false);
           return;
         }
@@ -171,12 +173,12 @@ const TaskModal = ({
         body: JSON.stringify({
           garden: gardenId,
           name: newTaskTypeName,
-          description: newTaskTypeDescription || `Tasks related to ${newTaskTypeName}`,
+          description: newTaskTypeDescription || t('tasks.tasksRelatedTo', { name: newTaskTypeName }),
         }),
       });
 
       if (!response.ok) {
-        toast.error('Failed to create custom task type');
+        toast.error(t('tasks.failedToCreateTaskType'));
         return null;
       }
 
@@ -299,11 +301,11 @@ const TaskModal = ({
           aria-labelledby="task-modal-title"
         >
           <Typography id="task-modal-title" variant="h6" gutterBottom>
-            {mode === 'edit' ? 'Edit Task' : 'Add Task'}
+            {mode === 'edit' ? t('tasks.editTask') : t('tasks.addTask')}
           </Typography>
 
           <TextField
-            label="Title"
+            label={t('tasks.taskTitle')}
             name="title"
             fullWidth
             margin="normal"
@@ -312,7 +314,7 @@ const TaskModal = ({
             required
           />
           <TextField
-            label="Description"
+            label={t('tasks.description')}
             name="description"
             fullWidth
             margin="normal"
@@ -320,26 +322,27 @@ const TaskModal = ({
             rows={3}
             value={taskForm.description}
             onChange={handleFormChange}
+            placeholder={t('tasks.taskDescriptionPlaceholder')}
           />
 
           <FormControl fullWidth margin="normal">
-            <InputLabel>Status</InputLabel>
+            <InputLabel>{t('tasks.status')}</InputLabel>
             <Select
               name="status"
               value={taskForm.status || 'PENDING'}
               onChange={handleFormChange}
               input={<OutlinedInput label="Status" />}
             >
-              <MenuItem value="PENDING">Pending</MenuItem>
-              <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
-              <MenuItem value="COMPLETED">Completed</MenuItem>
+              <MenuItem value="PENDING">{t('tasks.pending')}</MenuItem>
+              <MenuItem value="IN_PROGRESS">{t('tasks.inProgress')}</MenuItem>
+              <MenuItem value="COMPLETED">{t('tasks.completed')}</MenuItem>
             </Select>
           </FormControl>
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box sx={{ mt: 2 }}>
               <DateTimePicker
-                label="Deadline"
+                label={t('tasks.deadline')}
                 value={deadline}
                 onChange={(newValue) => setDeadline(newValue)}
                 slotProps={{
@@ -355,7 +358,7 @@ const TaskModal = ({
           </LocalizationProvider>
 
           <FormControl fullWidth margin="normal">
-            <InputLabel>Assignee</InputLabel>
+            <InputLabel>{t('tasks.assignee')}</InputLabel>
             {loadingMembers ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
                 <CircularProgress size={24} />
@@ -367,7 +370,7 @@ const TaskModal = ({
                 input={<OutlinedInput label="Assignee" />}
               >
                 <MenuItem value="Not Assigned">
-                  <em>Not Assigned</em>
+                  <em>{t('tasks.notAssigned')}</em>
                 </MenuItem>
                 {gardenMembers.map((user) => (
                   <MenuItem key={user.id} value={user.id}>
@@ -379,7 +382,7 @@ const TaskModal = ({
           </FormControl>
 
           <FormControl fullWidth margin="normal">
-            <InputLabel>Task Type</InputLabel>
+            <InputLabel>{t('tasks.taskType')}</InputLabel>
             {loadingTaskTypes ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
                 <CircularProgress size={24} />
@@ -392,14 +395,14 @@ const TaskModal = ({
                 input={<OutlinedInput label="Task Type" />}
               >
                 <MenuItem value="No Type">
-                  <em>No Type</em>
+                  <em>{t('tasks.noType')}</em>
                 </MenuItem>
                 {customTaskTypes.map((type) => (
                   <MenuItem key={type.id} value={type.id}>
                     {type.name}
                   </MenuItem>
                 ))}
-                <MenuItem value="new">+ Create New Type</MenuItem>
+                <MenuItem value="new">{t('tasks.createNewType')}</MenuItem>
               </Select>
             )}
           </FormControl>
@@ -407,7 +410,7 @@ const TaskModal = ({
           {taskForm.custom_type === 'new' && (
             <Box sx={{ mt: 2 }}>
               <TextField
-                label="New Task Type Name"
+                label={t('tasks.newTaskTypeName')}
                 fullWidth
                 margin="normal"
                 value={newTaskTypeName}
@@ -415,7 +418,7 @@ const TaskModal = ({
                 required
               />
               <TextField
-                label="Description (optional)"
+                label={t('tasks.descriptionOptional')}
                 fullWidth
                 margin="normal"
                 value={newTaskTypeDescription}
@@ -443,7 +446,7 @@ const TaskModal = ({
                     },
                   }}
                 >
-                  Accept Task
+                  {t('tasks.acceptTask')}
                 </Button>
                 <Button
                   variant="outlined"
@@ -461,7 +464,7 @@ const TaskModal = ({
                     },
                   }}
                 >
-                  Decline Task
+                  {t('tasks.declineTask')}
                 </Button>
               </>
             )}
@@ -478,7 +481,7 @@ const TaskModal = ({
                   },
                 }}
               >
-                Delete Task
+                {t('tasks.deleteTask')}
               </Button>
             )}
             <Button 
@@ -492,7 +495,7 @@ const TaskModal = ({
                 },
               }}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button 
               type="submit" 
@@ -505,7 +508,7 @@ const TaskModal = ({
                 },
               }}
             >
-              {mode === 'edit' ? 'Save Changes' : 'Create Task'}
+              {mode === 'edit' ? t('tasks.saveChanges') : t('tasks.createTask')}
             </Button>
           </Box>
         </Box>

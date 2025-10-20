@@ -5,8 +5,10 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import React from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 
 const WeatherWidget = () => {
+  const { t, i18n } = useTranslation();
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -21,8 +23,8 @@ const WeatherWidget = () => {
 
       const response = await fetch(url);
       if (!response.ok) {
-        toast.error('Weather service unavailable');
-        setError('Weather service is currently unavailable. Please try again later.');
+        toast.error(t('weather.serviceUnavailable'));
+        setError(t('weather.serviceUnavailableMessage'));
         return;
       }
 
@@ -40,37 +42,37 @@ const WeatherWidget = () => {
   const getWeatherCondition = (weatherCode) => {
     // WMO Weather interpretation codes
     const weatherConditions = {
-      0: 'Clear sky',
-      1: 'Mainly clear',
-      2: 'Partly cloudy',
-      3: 'Overcast',
-      45: 'Fog',
-      48: 'Depositing rime fog',
-      51: 'Light drizzle',
-      53: 'Moderate drizzle',
-      55: 'Dense drizzle',
-      56: 'Light freezing drizzle',
-      57: 'Dense freezing drizzle',
-      61: 'Slight rain',
-      63: 'Moderate rain',
-      65: 'Heavy rain',
-      66: 'Light freezing rain',
-      67: 'Heavy freezing rain',
-      71: 'Slight snow fall',
-      73: 'Moderate snow fall',
-      75: 'Heavy snow fall',
-      77: 'Snow grains',
-      80: 'Slight rain showers',
-      81: 'Moderate rain showers',
-      82: 'Violent rain showers',
-      85: 'Slight snow showers',
-      86: 'Heavy snow showers',
-      95: 'Thunderstorm',
-      96: 'Thunderstorm with slight hail',
-      99: 'Thunderstorm with heavy hail',
+      0: t('weather.clearSky'),
+      1: t('weather.mainlyClear'),
+      2: t('weather.partlyCloudy'),
+      3: t('weather.overcast'),
+      45: t('weather.fog'),
+      48: t('weather.depositingRimeFog'),
+      51: t('weather.lightDrizzle'),
+      53: t('weather.moderateDrizzle'),
+      55: t('weather.denseDrizzle'),
+      56: t('weather.lightFreezingDrizzle'),
+      57: t('weather.denseFreezingDrizzle'),
+      61: t('weather.slightRain'),
+      63: t('weather.moderateRain'),
+      65: t('weather.heavyRain'),
+      66: t('weather.lightFreezingRain'),
+      67: t('weather.heavyFreezingRain'),
+      71: t('weather.slightSnowFall'),
+      73: t('weather.moderateSnowFall'),
+      75: t('weather.heavySnowFall'),
+      77: t('weather.snowGrains'),
+      80: t('weather.slightRainShowers'),
+      81: t('weather.moderateRainShowers'),
+      82: t('weather.violentRainShowers'),
+      85: t('weather.slightSnowShowers'),
+      86: t('weather.heavySnowShowers'),
+      95: t('weather.thunderstorm'),
+      96: t('weather.thunderstormSlightHail'),
+      99: t('weather.thunderstormHeavyHail'),
     };
 
-    return weatherConditions[weatherCode] || 'Unknown';
+    return weatherConditions[weatherCode] || t('weather.unknown');
   };
 
   const processWeatherData = (data) => {
@@ -87,8 +89,9 @@ const WeatherWidget = () => {
     };
 
     // Process forecast for next 3 days
+    const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
     const forecast = data.daily.time.slice(0, 3).map((date, index) => ({
-      date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: new Date(date).toLocaleDateString(locale, { month: 'short', day: 'numeric' }),
       high: Math.round(data.daily.temperature_2m_max[index]),
       low: Math.round(data.daily.temperature_2m_min[index]),
       condition: getWeatherCondition(data.daily.weather_code[index]),
@@ -190,7 +193,7 @@ const WeatherWidget = () => {
         }}
       >
         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-          <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
+          <WbSunnyIcon sx={{ mr: 1 }} /> {t('weather.title')}
         </Typography>
         <Alert severity="info" sx={{ mb: 2 }}>
           {error || 'Weather data requires location access'}
@@ -203,7 +206,7 @@ const WeatherWidget = () => {
             color="primary"
             fullWidth
           >
-            Enable Location Access
+            {t('weather.enableLocationAccess')}
           </Button>
         </Box>
       </Paper>
@@ -228,10 +231,10 @@ const WeatherWidget = () => {
           gutterBottom
           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
+          <WbSunnyIcon sx={{ mr: 1 }} /> {t('weather.title')}
         </Typography>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          Get local weather updates for your garden
+          {t('weather.description')}
         </Typography>
         <Box sx={{ mt: 'auto' }}>
           <Button
@@ -241,7 +244,7 @@ const WeatherWidget = () => {
             color="primary"
             fullWidth
           >
-            Share Location
+            {t('weather.shareLocation')}
           </Button>
         </Box>
       </Paper>
@@ -263,7 +266,7 @@ const WeatherWidget = () => {
         }}
       >
         <Typography variant="body1" color="text.secondary">
-          Weather data unavailable
+          {t('weather.dataUnavailable')}
         </Typography>
       </Paper>
     );
@@ -282,7 +285,7 @@ const WeatherWidget = () => {
       }}
     >
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-        <WbSunnyIcon sx={{ mr: 1 }} /> Weather Update
+        <WbSunnyIcon sx={{ mr: 1 }} /> {t('weather.title')}
       </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Typography variant="h3" sx={{ mr: 2 }}>
@@ -297,12 +300,12 @@ const WeatherWidget = () => {
         </Box>
       </Box>
       <Typography variant="body2" sx={{ mb: 1 }}>
-        Feels like: {weatherData.current.feelsLike}°C | Humidity: {weatherData.current.humidity}% |
-        Wind: {weatherData.current.wind} km/h
+        {t('weather.feelsLike')}: {weatherData.current.feelsLike}°C | {t('weather.humidity')}: {weatherData.current.humidity}% |
+        {t('weather.wind')}: {weatherData.current.wind} km/h
       </Typography>
       <Divider sx={{ my: 2 }} />
       <Typography variant="body2" gutterBottom>
-        3-Day Forecast:
+        {t('weather.threeDayForecast')}:
       </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', flexGrow: 1 }}>
         {weatherData.forecast.map((day, index) => (

@@ -27,6 +27,7 @@ import {
 import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useTranslation } from 'react-i18next';
 
 // Fix for default markers in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -81,6 +82,7 @@ const LocationPicker = ({
   showCurrentLocation = true,
   ...props
 }) => {
+  const { t } = useTranslation();
   const [isMapMode, setIsMapMode] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [locationText, setLocationText] = useState(value);
@@ -281,7 +283,7 @@ const LocationPicker = ({
   // Get current location
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by this browser.');
+      setLocationError(t('location.geolocationNotSupported'));
       return;
     }
 
@@ -291,7 +293,7 @@ const LocationPicker = ({
     // Set a timeout to show progress
     const timeoutId = setTimeout(() => {
       if (isLoadingLocation) {
-        setLocationError('Location detection is taking longer than expected. Please wait...');
+        setLocationError(t('location.locationDetectionSlow'));
       }
     }, 5000);
 
@@ -306,20 +308,20 @@ const LocationPicker = ({
       (error) => {
         clearTimeout(timeoutId);
         console.error('Error getting location:', error);
-        let errorMessage = 'Unable to retrieve your location. ';
+        let errorMessage = t('location.unableToRetrieve') + ' ';
         
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage += 'Location access denied. Please enable location permissions and try again.';
+            errorMessage += t('location.permissionDenied');
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage += 'Location information is unavailable. Please try again.';
+            errorMessage += t('location.positionUnavailable');
             break;
           case error.TIMEOUT:
-            errorMessage += 'Location request timed out. Please try again.';
+            errorMessage += t('location.timeout');
             break;
           default:
-            errorMessage += 'Please try again or enter manually.';
+            errorMessage += t('location.tryAgain');
             break;
         }
         
@@ -358,7 +360,7 @@ const LocationPicker = ({
               disabled={disabled}
             />
           }
-          label={isMapMode ? 'Map Mode' : 'Text Mode'}
+          label={isMapMode ? t('location.mapMode') : t('location.textMode')}
           labelPlacement="start"
         />
       </Box>
@@ -384,7 +386,7 @@ const LocationPicker = ({
                 >
                   <Popup>
                     <Typography variant="body2">
-                      Selected Location
+                      {t('location.selectedLocation')}
                       <br />
                       {locationText || `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`}
                     </Typography>
@@ -395,7 +397,7 @@ const LocationPicker = ({
           </Box>
           
           {showCurrentLocation && (
-            <Tooltip title="Use my current location">
+            <Tooltip title={t('location.useCurrentLocation')}>
               <IconButton
                 onClick={getCurrentLocation}
                 disabled={isLoadingLocation || disabled}
@@ -435,7 +437,7 @@ const LocationPicker = ({
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <LocationIcon color="action" sx={{ mr: 1 }} />
                 <Typography variant="body2" color="text.secondary">
-                  Click on the map to select a location, or use the top right button to get your current location.
+                  {t('location.mapInstructions')}
                 </Typography>
               </Box>
             </Box>
@@ -443,7 +445,7 @@ const LocationPicker = ({
               fullWidth
               value={locationText}
               onChange={handleTextChange}
-              placeholder="Selected location will appear here..."
+              placeholder={t('location.selectedLocationPlaceholder')}
               disabled={disabled}
               variant="outlined"
               InputProps={{
@@ -462,8 +464,8 @@ const LocationPicker = ({
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
-                    label="Country"
-                    placeholder="e.g., Turkey"
+                    label={t('location.country')}
+                    placeholder={t('location.countryPlaceholder')}
                     value={country}
                     onChange={(e) => {
                       setCountry(e.target.value);
@@ -486,8 +488,8 @@ const LocationPicker = ({
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
-                    label="City"
-                    placeholder="e.g., Ankara"
+                    label={t('location.city')}
+                    placeholder={t('location.cityPlaceholder')}
                     value={city}
                     onChange={(e) => {
                       setCity(e.target.value);
@@ -510,8 +512,8 @@ const LocationPicker = ({
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
-                    label="District/Neighborhood"
-                    placeholder="e.g., Sincan"
+                    label={t('location.district')}
+                    placeholder={t('location.districtPlaceholder')}
                     value={district}
                     onChange={(e) => {
                       setDistrict(e.target.value);
@@ -534,8 +536,8 @@ const LocationPicker = ({
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
-                    label="Street"
-                    placeholder="e.g., Cemal Sokağı"
+                    label={t('location.street')}
+                    placeholder={t('location.streetPlaceholder')}
                     value={street}
                     onChange={(e) => {
                       setStreet(e.target.value);
@@ -558,8 +560,8 @@ const LocationPicker = ({
                 <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
-                    label="Description (Optional)"
-                    placeholder="e.g., Near the main entrance, 2nd floor, etc."
+                    label={t('location.description')}
+                    placeholder={t('location.descriptionPlaceholder')}
                     value={description}
                     onChange={(e) => {
                       setDescription(e.target.value);
@@ -596,8 +598,8 @@ const LocationPicker = ({
           <CircularProgress size={16} sx={{ mr: 1 }} />
           <Typography variant="body2" color="text.secondary">
             {locationText && locationText.includes(',') 
-              ? 'Getting address details...' 
-              : 'Getting your location...'}
+              ? t('location.gettingAddressDetails') 
+              : t('location.gettingLocation')}
           </Typography>
         </Box>
       )}

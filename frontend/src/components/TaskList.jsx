@@ -15,14 +15,16 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { bgForStatus, iconColorForStatus } from '../utils/taskUtils';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { createListNavigation, createButtonKeyboardHandler } from '../utils/keyboardNavigation';
+import { useTranslation } from 'react-i18next';
 
 const TaskList = ({
   tasks = [],
-  title = 'Tasks',
+  title = useTranslation().t('tasks.title'),
   handleTaskClick,
   handleAcceptTask,
   handleDeclineTask,
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const theme = useTheme();
   const listRef = useRef(null);
@@ -207,7 +209,7 @@ const TaskList = ({
       ) : (
         <Box sx={{ py: 2, textAlign: 'center', flexGrow: 1 }}>
           <Typography variant="body2" color="text.secondary">
-            No tasks available.
+            {t('tasks.noTasksAvailable')}
           </Typography>
         </Box>
       )}

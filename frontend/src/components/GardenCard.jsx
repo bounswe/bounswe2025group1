@@ -3,8 +3,10 @@ import { Card, CardContent, CardMedia, Typography, Box, Button } from '@mui/mate
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import GroupIcon from '@mui/icons-material/Group';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const GardenCard = ({ garden, variant = 'default' }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   // Different style variants for different usages
@@ -88,7 +90,7 @@ const GardenCard = ({ garden, variant = 'default' }) => {
             },
           }}
         >
-          View Garden
+          {t('gardens.viewGarden')}
         </Button>
       </Box>
     </Card>

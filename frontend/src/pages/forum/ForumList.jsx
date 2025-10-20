@@ -31,10 +31,12 @@ import PostCard from '../../components/PostCard';
 import PostComposer from '../../components/PostComposer';
 import React from 'react';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import 'react-toastify/dist/ReactToastify.css';
 import { createListNavigation, createButtonKeyboardHandler, createLinkKeyboardHandler } from '../../utils/keyboardNavigation';
 
 const ForumList = () => {
+  const { t, i18n } = useTranslation();
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -69,7 +71,7 @@ const ForumList = () => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/forum?include_comments=true`, { headers });
 
         if (!response.ok) {
-          toast.error('Failed to fetch posts');
+          toast.error(t('errors.failedToFetchPosts'));
           setLoading(false);
           return;
         }
@@ -79,7 +81,7 @@ const ForumList = () => {
         setFilteredPosts(data);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching forum posts:', error);
+        console.error(t('errors.errorFetchingPosts'), error);
         setLoading(false);
       }
     };
@@ -215,7 +217,8 @@ const ForumList = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
+    const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+    return new Intl.DateTimeFormat(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -263,7 +266,7 @@ const ForumList = () => {
             variant="h4"
             sx={{ fontWeight: 'bold', color: '#2e7d32', display: 'flex', alignItems: 'center' }}
           >
-            <ForumIcon sx={{ mr: 1 }} /> Community Forum
+            <ForumIcon sx={{ mr: 1 }} /> {t('forum.title')}
           </Typography>
           <Button
             variant="outlined"
@@ -279,43 +282,84 @@ const ForumList = () => {
           </Button>
         </Box>
         <Typography variant="subtitle1" color="text.secondary" paragraph sx={{ textAlign: 'left' }}>
-          Join discussions, share gardening tips, and connect with fellow garden enthusiasts.
+          {t('forum.subtitle')}
         </Typography>
       </Box>
 
-      {/* Search Bar */}
+      {/* Search and Filter */}
       <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <TextField
-          ref={searchRef}
-          fullWidth
-          placeholder="Search posts..."
-          value={searchTerm}
-          onChange={handleSearch}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: 'text.secondary' }} />
-              </InputAdornment>
-            ),
-          }}
-          variant="outlined"
-          size="small"
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 3,
-              backgroundColor: '#f5f5f5',
-              '&:hover': {
-                backgroundColor: '#eeeeee',
-              },
-              '&.Mui-focused': {
-                backgroundColor: 'white',
-              },
-              '& fieldset': {
-                border: 'none',
-              },
-            },
-          }}
-        />
+        <Grid container spacing={2} alignItems="center">
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              ref={searchRef}
+              fullWidth
+              placeholder={t('forum.searchPlaceholder')}
+              value={searchTerm}
+              onChange={handleSearch}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+              }}
+              variant="outlined"
+              size="small"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 3,
+                  backgroundColor: '#f5f5f5',
+                  '&:hover': {
+                    backgroundColor: '#eeeeee',
+                  },
+                  '&.Mui-focused': {
+                    backgroundColor: 'white',
+                  },
+                  '& fieldset': {
+                    border: 'none',
+                  },
+                  '&:focus-within': {
+                    outline: '2px solid #558b2f',
+                    outlineOffset: '2px',
+                  },
+                },
+              }}
+              inputProps={{
+                'aria-label': 'Search forum posts',
+                'aria-describedby': 'search-help-text'
+              }}
+            />
+          </Grid>
+          <Grid
+            size={{ xs: 12, md: 6 }}
+            sx={{
+              display: 'flex',
+              justifyContent: { xs: 'flex-start', md: 'flex-end' },
+              alignItems: 'center',
+            }}
+          >
+            {user && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setCreateDialogOpen(true)}
+                onKeyDown={createButtonKeyboardHandler(() => setCreateDialogOpen(true))}
+                sx={{
+                  ml: 2,
+                  bgcolor: '#558b2f',
+                  '&:hover': { bgcolor: '#33691e' },
+                  '&:focus': {
+                    outline: '2px solid #558b2f',
+                    outlineOffset: '2px',
+                  },
+                }}
+                aria-label="Create new forum post"
+              >
+                {t('forum.newPost')}
+              </Button>
+            )}
+          </Grid>
+        </Grid>
       </Paper>
 
       {/* Modern Post Composer */}
@@ -408,29 +452,54 @@ const ForumList = () => {
                         }}
                         sx={{ color: '#558b2f' }}
                       >
-                        Read More
+                        {t('comments.comment')}
                       </Button>
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
+                    )}
+                    <Button
+                      variant="text"
+                      startIcon={<ReadMoreIcon />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/forum/${post.id}`);
+                      }}
+                      onKeyDown={createButtonKeyboardHandler((e) => {
+                        e.stopPropagation();
+                        navigate(`/forum/${post.id}`);
+                      })}
+                      sx={{ 
+                        color: '#558b2f',
+                        '&:focus': {
+                          outline: '2px solid #558b2f',
+                          outlineOffset: '2px',
+                        },
+                      }}
+                      aria-label={`Read full post: ${post.title}`}
+                    >
+                      {t('forum.readMore')}
+                    </Button>
+                  </Box>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+          ))}
             </Box>
           )}
         </Box>
       ) : (
         <Box sx={{ py: 5, textAlign: 'center' }}>
           <Typography variant="h6" color="text.secondary">
-            No posts found
+            {t('forum.noPostsFound')}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            {searchTerm ? 'Try a different search term' : 'Be the first to create a post!'}
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 3 }}>
+            {searchTerm ? t('forum.tryDifferentSearchTerm') : t('forum.beFirstToCreatePost')}
           </Typography>
         </Box>
       )}
 
       {/* Create Post Floating Action Button (for classic view) */}
       {user && !useModernStyle && (
-        <Tooltip title="Create new post" arrow placement="left">
+        <Tooltip title={t('forum.newPost')} arrow placement="left">
           <Fab
             color="primary"
             aria-label="create post"

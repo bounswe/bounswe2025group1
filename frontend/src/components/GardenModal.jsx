@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Modal, Fade, Backdrop, Box, Typography, TextField, Switch, Button, Divider } from '@mui/material';
 import { createFormKeyboardHandler, createButtonKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
 import LocationPicker from './LocationPicker';
+import { useTranslation } from 'react-i18next';
 import ImageUpload from './ImageUpload';
 
 const GardenModal = ({
@@ -15,6 +16,7 @@ const GardenModal = ({
   mode = 'create',
   existingImages = null,
 }) => {
+  const { t } = useTranslation();
   const modalRef = useRef(null);
   const focusableElementsRef = useRef([]);
   const [coverImage, setCoverImage] = useState('');
@@ -127,7 +129,39 @@ const GardenModal = ({
           {/* Header - Fixed */}
           <Box sx={{ p: 4, pb: 2, flexShrink: 0 }}>
             <Typography id="garden-modal-title" variant="h6" gutterBottom>
-              {mode === 'edit' ? 'Edit Garden' : 'Create New Garden'}
+              {mode === 'edit' ? t('gardens.editGarden') : t('gardens.createGarden')}
+            </Typography>
+          </Box>
+          <TextField
+            label={t('gardens.gardenName')}
+            name="name"
+            fullWidth
+            margin="normal"
+            value={form.name}
+            onChange={handleChange}
+            required
+          />
+          <TextField
+            label={t('gardens.description')}
+            name="description"
+            fullWidth
+            margin="normal"
+            multiline
+            rows={3}
+            value={form.description}
+            onChange={handleChange}
+          />
+          <LocationPicker
+            value={form.location}
+            onChange={(value) => handleChange({ target: { name: 'location', value } })}
+            label={t('gardens.gardenLocation')}
+            required
+            height={250}
+            sx={{ mt: 2, mb: 2 }}
+          />
+          <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+            <Typography variant="body1" sx={{ mr: 2 }}>
+              {t('gardens.makeGardenPublic')}
             </Typography>
           </Box>
 
@@ -266,8 +300,36 @@ const GardenModal = ({
                   },
                 }}
               >
-                {mode === 'edit' ? 'Save Changes' : 'Create Garden'}
+                {t('gardens.deleteGarden')}
               </Button>
+            )}
+            <Button 
+              variant="outlined" 
+              onClick={onClose}
+              onKeyDown={createButtonKeyboardHandler(onClose)}
+              sx={{
+                '&:focus': {
+                  outline: '2px solid #1976d2',
+                  outlineOffset: '2px',
+                },
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{ 
+                backgroundColor: '#558b2f', 
+                '&:hover': { backgroundColor: '#33691e' },
+                '&:focus': {
+                  outline: '2px solid #558b2f',
+                  outlineOffset: '2px',
+                },
+              }}
+            >
+              {mode === 'edit' ? t('gardens.saveChanges') : t('gardens.createGarden')}
+            </Button>
             </Box>
           </Box>
         </Box>

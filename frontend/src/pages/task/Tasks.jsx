@@ -8,11 +8,13 @@ import TaskList from '../../components/TaskList';
 import TaskModal from '../../components/TaskModal';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const Tasks = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
+  const { t } = useTranslation();
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,17 +40,17 @@ const Tasks = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Update failed:', errorText);
-        toast.error('Update failed');
+        toast.error(t('tasks.updateFailed'));
         return;
       }
 
       const updated = await response.json();
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-      toast.success('Task updated!');
+      toast.success(t('tasks.taskUpdated'));
       setTaskModalOpen(false);
     } catch (err) {
       console.error('Error updating task:', err);
-      toast.error('Could not update task.');
+      toast.error(t('tasks.couldNotUpdateTask'));
     }
   };
 
@@ -60,10 +62,10 @@ const Tasks = () => {
         headers: { Authorization: `Token ${token}` },
       });
       setTasks((prev) => prev.filter((t) => t.id !== selectedTask.id));
-      toast.success('Task deleted');
+      toast.success(t('tasks.taskDeleted'));
       setTaskModalOpen(false);
     } catch {
-      toast.error('Failed to delete task');
+      toast.error(t('tasks.failedToDeleteTask'));
     }
   };
 
@@ -81,16 +83,16 @@ const Tasks = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Accept failed:', errorText);
-        toast.error('Accept failed');
+        toast.error(t('tasks.acceptFailed'));
         return;
       }
 
       const updated = await response.json();
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-      toast.success('Task accepted!');
+      toast.success(t('tasks.taskAccepted'));
     } catch (err) {
       console.error('Error accepting task:', err);
-      toast.error('Could not accept task.');
+      toast.error(t('tasks.couldNotAcceptTask'));
     }
   };
 
@@ -108,16 +110,16 @@ const Tasks = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Decline failed:', errorText);
-        toast.error('Decline failed');
+        toast.error(t('tasks.declineFailed'));
         return;
       }
 
       const updated = await response.json();
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-      toast.success('Task declined!');
+      toast.success(t('tasks.taskDeclined'));
     } catch (err) {
       console.error('Error declining task:', err);
-      toast.error('Could not decline task.');
+      toast.error(t('tasks.couldNotDeclineTask'));
     }
   };
 
@@ -139,14 +141,14 @@ const Tasks = () => {
           setTasks(tasksData);
         } else {
           console.error('Failed to fetch tasks');
-          toast.error('Failed to fetch tasks');
+          toast.error(t('tasks.failedToFetchTasks'));
           setTasks([]);
           setLoading(false);
           return;
         }
       } catch (error) {
         console.error('Error fetching tasks:', error);
-        toast.error('Error fetching tasks');
+        toast.error(t('tasks.errorFetchingTasks'));
       }
       setLoading(false);
     };
@@ -168,10 +170,10 @@ const Tasks = () => {
         }}
       >
         <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-          Please log in to see your tasks.
+          {t('tasks.pleaseLogIn')}
         </Typography>
         <Button variant="contained" color="primary" onClick={() => navigate('/auth/login')}>
-          Log In
+          {t('tasks.logIn')}
         </Button>
       </Box>
     );
@@ -200,7 +202,7 @@ const Tasks = () => {
           </Box>
           <Box>
             <Typography variant="h4" sx={{ mt: 1, mb: 2, color: theme.palette.primary.main }}>
-              Task Calendar
+              {t('tasks.taskCalendar')}
             </Typography>
             <CalendarTab tasks={tasks} handleTaskClick={handleTaskClick} />
           </Box>

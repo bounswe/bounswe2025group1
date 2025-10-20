@@ -11,9 +11,11 @@ import {
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 import TaskList from './TaskList';
 
 const TaskWidget = () => {
+  const { t } = useTranslation();
   const { user, token } = useAuth();
 
   const [tasks, setTasks] = useState([]);
@@ -33,7 +35,7 @@ const TaskWidget = () => {
           );
 
           if (!response.ok) {
-            toast.error('Failed to fetch tasks');
+            toast.error(t('tasks.failedToFetchTasks'));
             setLoading(false);
             return;
           }
@@ -61,7 +63,7 @@ const TaskWidget = () => {
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <TaskList tasks={tasks} title="Your Tasks" />
+      <TaskList tasks={tasks} title={t('tasks.title')} />
     </Box>
   );
 };
