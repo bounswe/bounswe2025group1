@@ -201,5 +201,11 @@
     "current": "Mevcut Dil",
     "english": "İngilizce",
     "turkish": "Türkçe"
+  },
+  "layout": {
+    "home": "Ana Sayfa",
+    "gardens": "Bahçeler",
+    "forum": "Forum",
+    "profile": "Profil"
   }
 }
