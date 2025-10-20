@@ -19,6 +19,7 @@ import {
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CommentIcon from '@mui/icons-material/Comment';
 import SendIcon from '@mui/icons-material/Send';
+import { useTranslation } from 'react-i18next';
 import ImageGallery from './ImageGallery';
 import InlineImageUpload from './InlineImageUpload';
 import { toast } from 'react-toastify';
@@ -33,6 +34,7 @@ const PostCard = ({
   isOwner = false,
   token,
 }) => {
+  const { t } = useTranslation();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [commentImages, setCommentImages] = useState([]);
@@ -159,10 +161,10 @@ const PostCard = ({
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
     
-    if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`;
-    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d`;
+    if (diffInSeconds < 60) return t('forum.justNow');
+    if (diffInSeconds < 3600) return t('forum.minutesAgo', { count: Math.floor(diffInSeconds / 60) });
+    if (diffInSeconds < 86400) return t('forum.hoursAgo', { count: Math.floor(diffInSeconds / 3600) });
+    if (diffInSeconds < 2592000) return t('forum.daysAgo', { count: Math.floor(diffInSeconds / 86400) });
     return date.toLocaleDateString();
   };
 
@@ -198,11 +200,11 @@ const PostCard = ({
             </Avatar>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.95rem', textAlign: 'left' }}>
-                {post.author_username || 'Unknown User'}
+                {post.author_username || t('forum.unknownUser')}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                 {formatTimeAgo(post.created_at)}
-                {post.updated_at !== post.created_at && ' • Edited'}
+                {post.updated_at !== post.created_at && ` • ${t('forum.edited')}`}
               </Typography>
             </Box>
           </Box>
@@ -373,7 +375,7 @@ const PostCard = ({
                 },
               }}
             >
-              {showComments ? 'Hide' : 'See'} {post.comments_count} comment{post.comments_count !== 1 ? 's' : ''}
+              {showComments ? t('forum.hideComments') : t('forum.showComments', { count: post.comments_count })}
             </Button>
           </Box>
         )}
@@ -395,7 +397,7 @@ const PostCard = ({
               },
             }}
           >
-            Comment
+            {t('forum.comment')}
           </Button>
         </Box>
 
@@ -420,7 +422,7 @@ const PostCard = ({
               <Box sx={{ flex: 1 }}>
                 <TextField
                   fullWidth
-                  placeholder="Write a comment..."
+                  placeholder={t('forum.writeComment')}
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   variant="outlined"
@@ -464,7 +466,7 @@ const PostCard = ({
                       fontSize: '0.8rem',
                     }}
                   >
-                    Post
+                    {t('forum.post')}
                   </Button>
                 </Box>
               </Box>
@@ -501,7 +503,7 @@ const PostCard = ({
                           mb: 0.2,
                           textAlign: 'left',
                         }}>
-                          {comment.author_username || 'Unknown User'}
+                          {comment.author_username || t('forum.unknownUser')}
                         </Typography>
                         <Typography variant="body2" sx={{ 
                           fontSize: '0.8rem',

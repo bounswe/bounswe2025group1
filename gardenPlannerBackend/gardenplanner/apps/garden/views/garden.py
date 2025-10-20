@@ -5,6 +5,7 @@ from rest_framework import viewsets, permissions, filters
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
+from django.db.models import Q
 from ..serializers import (
     GardenSerializer, GardenMembershipSerializer, UserGardenSerializer
 )
@@ -21,6 +22,26 @@ class GardenViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'created_at']
 
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Garden.objects.prefetch_related('images')
+
+        # Unauthenticated users can only see public gardens
+        if not user.is_authenticated:
+            return queryset.filter(is_public=True)
+
+        # Authenticated users can see public gardens and gardens they are members of
+        member_garden_ids = GardenMembership.objects.filter(
+            user=user,
+            status='ACCEPTED'  # make sure only accepted memberships
+        ).values_list('garden_id', flat=True)
+
+        # Return public gardens OR gardens user is a member of
+        return queryset.filter(
+            Q(is_public=True) | Q(id__in=list(member_garden_ids))
+        )
+    
+    
     def get_permissions(self):
         """
         Instantiates and returns the list of permissions that this view requires.

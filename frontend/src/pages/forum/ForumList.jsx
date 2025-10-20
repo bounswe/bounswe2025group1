@@ -4,14 +4,10 @@ import {
   Typography,
   Box,
   Grid,
-  Card,
-  CardContent,
   Button,
   TextField,
   InputAdornment,
   CircularProgress,
-  Divider,
-  Avatar,
   Paper,
   Fab,
   Tooltip,
@@ -25,8 +21,6 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import ForumIcon from '@mui/icons-material/Forum';
-import AddCommentIcon from '@mui/icons-material/AddComment';
-import ReadMoreIcon from '@mui/icons-material/ReadMore';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import ForumCreateDialog from '../../components/ForumCreateDialog';
@@ -38,7 +32,7 @@ import React from 'react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import 'react-toastify/dist/ReactToastify.css';
-import { createListNavigation, createButtonKeyboardHandler, createLinkKeyboardHandler } from '../../utils/keyboardNavigation';
+import { createButtonKeyboardHandler } from '../../utils/keyboardNavigation';
 
 const ForumList = () => {
   const { t, i18n } = useTranslation();
@@ -54,12 +48,9 @@ const ForumList = () => {
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [postToDelete, setPostToDelete] = useState(null);
   
-  // Modern UI state
-  const [useModernStyle, setUseModernStyle] = useState(true);
 
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const postRefs = useRef([]);
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -78,7 +69,10 @@ const ForumList = () => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/forum?include_comments=true`, { headers });
 
         if (!response.ok) {
-          toast.error(t('errors.failedToFetchPosts'));
+          // Only show error for authenticated users
+          if (token) {
+            toast.error(t('errors.failedToFetchPosts'));
+          }
           setLoading(false);
           return;
         }
@@ -88,7 +82,11 @@ const ForumList = () => {
         setFilteredPosts(data);
         setLoading(false);
       } catch (error) {
-        console.error(t('errors.errorFetchingPosts'), error);
+        console.error('Error fetching posts:', error);
+        // Only show error for authenticated users
+        if (token) {
+          toast.error(t('errors.failedToFetchPosts'));
+        }
         setLoading(false);
       }
     };
@@ -280,29 +278,6 @@ const ForumList = () => {
     }).format(date);
   };
 
-  // Create keyboard navigation for the forum posts
-  const listNavigation = createListNavigation(
-    filteredPosts,
-    (post, index) => {
-      navigate(`/forum/${post.id}`);
-    },
-    (post, index) => {
-      // Focus the post item
-      if (postRefs.current[index]) {
-        postRefs.current[index].focus();
-      }
-    }
-  );
-
-  // Handle keyboard navigation for the entire forum list
-  const handleListKeyDown = (event) => {
-    listNavigation.handleKeyDown(event);
-  };
-
-  // Set up refs for each post item
-  useEffect(() => {
-    postRefs.current = postRefs.current.slice(0, filteredPosts.length);
-  }, [filteredPosts.length]);
 
   if (loading) {
     return (
@@ -316,26 +291,12 @@ const ForumList = () => {
     <Container maxWidth="md" sx={{ mt: 2, mb: 6 }}>
       {/* Header */}
       <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography
-            variant="h4"
-            sx={{ fontWeight: 'bold', color: '#2e7d32', display: 'flex', alignItems: 'center' }}
-          >
-            <ForumIcon sx={{ mr: 1 }} /> {t('forum.title')}
-          </Typography>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => setUseModernStyle(!useModernStyle)}
-            sx={{
-              borderColor: '#558b2f',
-              color: '#558b2f',
-              textTransform: 'none',
-            }}
-          >
-            {useModernStyle ? 'Classic View' : 'Modern Style'}
-          </Button>
-        </Box>
+        <Typography
+          variant="h4"
+          sx={{ fontWeight: 'bold', color: '#2e7d32', display: 'flex', alignItems: 'center', mb: 2 }}
+        >
+          <ForumIcon sx={{ mr: 1 }} /> {t('forum.title')}
+        </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph sx={{ textAlign: 'left' }}>
           {t('forum.subtitle')}
         </Typography>
@@ -363,12 +324,12 @@ const ForumList = () => {
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 3,
-                  backgroundColor: '#f5f5f5',
+                  backgroundColor: 'background.default',
                   '&:hover': {
-                    backgroundColor: '#eeeeee',
+                    backgroundColor: 'action.hover',
                   },
                   '&.Mui-focused': {
-                    backgroundColor: 'white',
+                    backgroundColor: 'background.paper',
                   },
                   '& fieldset': {
                     border: 'none',
@@ -417,12 +378,12 @@ const ForumList = () => {
         </Grid>
       </Paper>
 
-      {/* Modern Post Composer */}
-      {useModernStyle && user && (
-            <PostComposer
+      {/* Post Composer */}
+      {user && (
+        <PostComposer
           currentUser={user}
           onSubmit={handleModernPostSubmit}
-          placeholder="What's on your mind?"
+          placeholder={t('forum.whatsOnYourMind')}
         />
       )}
 
@@ -542,32 +503,6 @@ const ForumList = () => {
         </Box>
       )}
 
-      {/* Create Post Floating Action Button (for classic view) */}
-      {user && !useModernStyle && (
-        <Tooltip title={t('forum.newPost')} arrow placement="left">
-          <Fab
-            color="primary"
-            aria-label="create post"
-            onClick={() => setCreateDialogOpen(true)}
-            onKeyDown={createButtonKeyboardHandler(() => setCreateDialogOpen(true))}
-            sx={{
-              position: 'fixed',
-              bottom: 24,
-              right: 24,
-              backgroundColor: '#558b2f',
-              '&:hover': {
-                backgroundColor: '#33691e',
-              },
-              '&:focus': {
-                outline: '2px solid #558b2f',
-                outlineOffset: '2px',
-              },
-            }}
-          >
-            <AddIcon />
-          </Fab>
-        </Tooltip>
-      )}
 
       {/* Dialog Components */}
       <ForumCreateDialog
