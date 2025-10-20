@@ -39,6 +39,7 @@
       "title": "Giriş Yap",
       "subtitle": "Topluluk Bahçe Planlayıcısına tekrar hoş geldiniz",
       "email": "E-posta Adresi",
+      "username": "Kullanıcı Adı",
       "password": "Şifre",
       "rememberMe": "Beni hatırla",
       "forgotPassword": "Şifrenizi mi unuttunuz?",

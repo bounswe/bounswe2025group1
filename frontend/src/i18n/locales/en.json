@@ -39,6 +39,7 @@
       "title": "Sign In",
       "subtitle": "Welcome back to Community Garden Planner",
       "email": "Email Address",
+      "username": "Username",
       "password": "Password",
       "rememberMe": "Remember me",
       "forgotPassword": "Forgot your password?",
