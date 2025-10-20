@@ -98,6 +98,7 @@ const PostCard = ({
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Avatar 
+              src={post.author_profile_picture || '/default-avatar.png'}
               sx={{ 
                 width: 40, 
                 height: 40, 
@@ -211,6 +212,7 @@ const PostCard = ({
             {/* Comment Input */}
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 2 }}>
               <Avatar 
+                src={currentUser?.profile?.profile_picture || '/default-avatar.png'}
                 sx={{ 
                   width: 32, 
                   height: 32,
@@ -279,6 +281,7 @@ const PostCard = ({
                 {post.comments.map((comment) => (
                   <Box key={comment.id} sx={{ display: 'flex', gap: 0.5, mb: 1, alignItems: 'flex-start' }}>
                     <Avatar 
+                      src={comment.author_profile_picture || '/default-avatar.png'}
                       sx={{ 
                         width: 24, 
                         height: 24,

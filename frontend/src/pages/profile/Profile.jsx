@@ -31,7 +31,7 @@ import { useTranslation } from 'react-i18next';
 const Profile = () => {
   const { t } = useTranslation();
   let { userId } = useParams();
-  const { user, token } = useAuth();
+  const { user, token, updateUser } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -258,8 +258,30 @@ const Profile = () => {
         ...profile,
         username: updatedProfile.username,
         email: updatedProfile.email,
-        profile: updatedProfile.profile,
+        profile: {
+          ...profile.profile,
+          profile_picture: updatedProfile.profile.profile_picture,
+          location: updatedProfile.profile.location,
+          receives_notifications: updatedProfile.profile.receives_notifications,
+        },
       });
+
+      // Update AuthContext user state to sync with navbar
+      if (isOwnProfile) {
+        const updatedUserData = {
+          ...user,
+          username: updatedProfile.username,
+          email: updatedProfile.email,
+          profile: {
+            ...user.profile,
+            profile_picture: updatedProfile.profile.profile_picture,
+            location: updatedProfile.profile.location,
+            receives_notifications: updatedProfile.profile.receives_notifications,
+          },
+        };
+        
+        updateUser(updatedUserData);
+      }
 
       setIsEditing(false);
       toast.success(t('profile.profileUpdatedSuccessfully'));

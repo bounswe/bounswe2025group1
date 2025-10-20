@@ -100,7 +100,12 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
                   onClick={() => navigate(`/forum/${post.id}`)}
                 >
                   <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: '#558b2f' }}>{post.author_username}</Avatar>
+                    <Avatar 
+                      src={post.author_profile_picture || '/default-avatar.png'}
+                      sx={{ bgcolor: '#558b2f' }}
+                    >
+                      {post.author_username?.charAt(0) || 'U'}
+                    </Avatar>
                   </ListItemAvatar>
                   <ListItemText
                     primary={

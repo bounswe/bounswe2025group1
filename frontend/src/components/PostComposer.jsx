@@ -69,6 +69,7 @@ const PostComposer = ({
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <Avatar 
+            src={currentUser?.profile?.profile_picture || '/default-avatar.png'}
             sx={{ 
               width: 40, 
               height: 40,
