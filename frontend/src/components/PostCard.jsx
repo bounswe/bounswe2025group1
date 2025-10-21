@@ -23,7 +23,6 @@ import { useTranslation } from 'react-i18next';
 import ImageGallery from './ImageGallery';
 import InlineImageUpload from './InlineImageUpload';
 import { toast } from 'react-toastify';
-import { useTranslation } from 'react-i18next';
 
 const PostCard = ({
   post,
@@ -47,9 +46,6 @@ const PostCard = ({
   const [existingImages, setExistingImages] = useState([]);
   const [newImages, setNewImages] = useState([]);
   const [deleteImageIds, setDeleteImageIds] = useState([]);
-
-  // Translation hook
-  const { t } = useTranslation();
 
   // Check if post has comments
   const hasComments = post.comments && post.comments.length > 0;
