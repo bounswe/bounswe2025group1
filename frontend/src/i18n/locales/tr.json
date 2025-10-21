@@ -26,7 +26,8 @@
     "register": "Kayıt Ol",
     "logout": "Çıkış Yap",
     "loggedOut": "Çıkış yapıldı.",
-    "dashboard": "Kontrol Paneli"
+    "dashboard": "Kontrol Paneli",
+    "userSettings": "Kullanıcı Ayarları"
   },
   "language": {
     "english": "English",

@@ -26,7 +26,8 @@
     "register": "Register",
     "logout": "Logout",
     "loggedOut": "You've been logged out.",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "userSettings": "User Settings"
   },
   "language": {
     "english": "English",

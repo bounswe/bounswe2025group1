@@ -18,6 +18,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
+import 'dayjs/locale/tr';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../contexts/AuthContextUtils';
@@ -35,7 +36,7 @@ const TaskModal = ({
   task,
   gardenId, // Current garden ID for creating tasks
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, token } = useAuth();
   // Initialize with default empty values
   const [taskForm, setTaskForm] = useState({
@@ -148,6 +149,11 @@ const TaskModal = ({
     }));
     setDeadline(task?.due_date ? dayjs(task.due_date) : dayjs());
   }, [task]);
+
+  // Set dayjs locale based on current language
+  useEffect(() => {
+    dayjs.locale(i18n.language === 'tr' ? 'tr' : 'en');
+  }, [i18n.language]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -342,7 +348,10 @@ const TaskModal = ({
             </Select>
           </FormControl>
 
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <LocalizationProvider 
+            dateAdapter={AdapterDayjs} 
+            adapterLocale={i18n.language === 'tr' ? 'tr' : 'en'}
+          >
             <Box sx={{ mt: 2 }}>
               <DateTimePicker
                 label={t('tasks.deadline')}

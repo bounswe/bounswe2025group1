@@ -192,11 +192,11 @@ const GardenDetail = () => {
 
       const updated = await response.json();
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-      toast.success('Task updated!');
+      toast.success(t('tasks.taskUpdatedSuccessfully'));
       setEditTaskModalOpen(false);
     } catch (err) {
       console.error('Error updating task:', err);
-      toast.error('Could not update task.');
+      toast.error(t('tasks.failedToUpdateTask'));
     }
   };
 
