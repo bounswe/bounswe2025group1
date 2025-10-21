@@ -173,7 +173,7 @@ const WeatherWidget = () => {
       >
         <CircularProgress color="success" size={40} />
         <Typography variant="body2" sx={{ mt: 2 }}>
-          {t('weather.loading')}
+          Loading weather data...
         </Typography>
       </Paper>
     );

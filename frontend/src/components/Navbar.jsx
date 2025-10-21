@@ -102,7 +102,7 @@ function Navbar() {
 
     if (action === 'logout') {
       logout();
-      toast.success(t('navigation.loggedOut'), {
+      toast.success("You've been logged out.", {
         position: 'top-right',
         theme: 'colored',
       });
@@ -279,7 +279,7 @@ function Navbar() {
           {user && (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               {/* Profile menu */}
-              <Tooltip title={t('navigation.userSettings')}>
+              <Tooltip title="Open settings">
                 <IconButton
                   onClick={handleOpenUserMenu}
                   onKeyDown={createButtonKeyboardHandler(handleOpenUserMenu)}
@@ -495,7 +495,7 @@ function Navbar() {
               variant="subtitle2"
               sx={{ px: 2, py: 1, fontWeight: 'bold', color: 'text.secondary' }}
             >
-              {t('navigation.userSettings')}
+              User Settings
             </Typography>
             <List sx={{ pt: 0 }}>
               {settings.map((setting, index) => (
@@ -507,7 +507,7 @@ function Navbar() {
 
                       if (setting.action === 'logout') {
                         logout();
-                        toast.info(t('navigation.loggedOut'), {
+                        toast.info("You've been logged out.", {
                           position: 'top-right',
                           theme: 'colored',
                         });
@@ -521,7 +521,7 @@ function Navbar() {
 
                       if (setting.action === 'logout') {
                         logout();
-                        toast.info(t('navigation.loggedOut'), {
+                        toast.info("You've been logged out.", {
                           position: 'top-right',
                           theme: 'colored',
                         });

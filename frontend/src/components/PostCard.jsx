@@ -15,13 +15,11 @@ import {
   DialogContent,
   TextField,
   DialogActions,
-  useTheme,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CommentIcon from '@mui/icons-material/Comment';
 import SendIcon from '@mui/icons-material/Send';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import ImageGallery from './ImageGallery';
 import InlineImageUpload from './InlineImageUpload';
 import { toast } from 'react-toastify';
@@ -36,8 +34,6 @@ const PostCard = ({
   token,
 }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
-  const navigate = useNavigate();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [commentImages, setCommentImages] = useState([]);
@@ -60,18 +56,6 @@ const PostCard = ({
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-  };
-
-  const handleProfileClick = () => {
-    if (post.author) {
-      navigate(`/profile/${post.author}`);
-    }
-  };
-
-  const handleCommentAuthorClick = (authorId) => {
-    if (authorId) {
-      navigate(`/profile/${authorId}`);
-    }
   };
 
 
@@ -199,7 +183,6 @@ const PostCard = ({
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Avatar 
               src={post.author_profile_picture || '/default-avatar.png'}
-              onClick={handleProfileClick}
               sx={{ 
                 width: 40, 
                 height: 40, 
@@ -207,29 +190,12 @@ const PostCard = ({
                 bgcolor: '#558b2f',
                 fontSize: '1.2rem',
                 fontWeight: 'bold',
-                cursor: 'pointer',
-                '&:hover': {
-                  opacity: 0.8,
-                },
               }}
             >
               {post.author_username?.charAt(0) || 'U'}
             </Avatar>
             <Box>
-              <Typography 
-                variant="subtitle1" 
-                onClick={handleProfileClick}
-                sx={{ 
-                  fontWeight: 600, 
-                  fontSize: '0.95rem', 
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    textDecoration: 'underline',
-                    color: 'primary.main',
-                  },
-                }}
-              >
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.95rem', textAlign: 'left' }}>
                 {post.author_username || t('forum.unknownUser')}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
@@ -462,12 +428,12 @@ const PostCard = ({
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 3,
-                      backgroundColor: theme.palette.action.hover,
+                      backgroundColor: '#f5f5f5',
                       '&:hover': {
-                        backgroundColor: theme.palette.action.selected,
+                        backgroundColor: '#eeeeee',
                       },
                       '&.Mui-focused': {
-                        backgroundColor: theme.palette.background.paper,
+                        backgroundColor: 'white',
                       },
                     },
                   }}
@@ -509,43 +475,30 @@ const PostCard = ({
                   <Box key={comment.id} sx={{ display: 'flex', gap: 0.5, mb: 1, alignItems: 'flex-start' }}>
                     <Avatar 
                       src={comment.author_profile_picture || '/default-avatar.png'}
-                      onClick={() => handleCommentAuthorClick(comment.author)}
                       sx={{ 
                         width: 24, 
                         height: 24,
                         bgcolor: '#8bc34a',
                         fontSize: '0.7rem',
                         flexShrink: 0,
-                        cursor: 'pointer',
-                        '&:hover': {
-                          opacity: 0.8,
-                        },
                       }}
                     >
                       {comment.author_username?.charAt(0) || 'U'}
                     </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Box sx={{ 
-                        backgroundColor: theme.palette.action.hover, 
+                        backgroundColor: '#f0f2f5', 
                         borderRadius: 1.5, 
                         p: 0.8,
                         mb: 0.3,
                       }}>
-                        <Typography 
-                          variant="subtitle2" 
-                          onClick={() => handleCommentAuthorClick(comment.author)}
-                          sx={{ 
-                            fontWeight: 600, 
-                            fontSize: '0.75rem',
-                            color: theme.palette.primary.main,
-                            mb: 0.2,
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            '&:hover': {
-                              textDecoration: 'underline',
-                            },
-                          }}
-                        >
+                        <Typography variant="subtitle2" sx={{ 
+                          fontWeight: 600, 
+                          fontSize: '0.75rem',
+                          color: '#1976d2',
+                          mb: 0.2,
+                          textAlign: 'left',
+                        }}>
                           {comment.author_username || t('forum.unknownUser')}
                         </Typography>
                         <Typography variant="body2" sx={{ 

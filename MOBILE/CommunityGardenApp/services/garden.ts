@@ -9,14 +9,6 @@ export interface Garden {
   description?: string;
   location?: string;
   is_public: boolean;
-  cover_image?: {
-    id: number;
-    image_base64: string;
-  };
-  gallery?: Array<{
-    id: number;
-    image_base64: string;
-  }>;
 }
 
 // Get all gardens for the logged-in user
@@ -26,19 +18,13 @@ export const fetchMyGardens = async (): Promise<Garden[]> => {
 };
 
 // Create a new garden
-export const createGarden = async (gardenData: Garden & {
-  cover_image_base64?: string;
-  gallery_base64?: string[];
-}): Promise<Garden> => {
+export const createGarden = async (gardenData: Garden): Promise<Garden> => {
   const response = await axios.post(`${API_URL}/gardens/`, gardenData);
   return response.data;
 };
 
 // Update an existing garden
-export const updateGarden = async (id: number, gardenData: Partial<Garden> & {
-  cover_image_base64?: string;
-  gallery_base64?: string[];
-}): Promise<Garden> => {
+export const updateGarden = async (id: number, gardenData: Partial<Garden>): Promise<Garden> => {
   const response = await axios.patch(`${API_URL}/gardens/${id}/`, gardenData);
   return response.data;
 };
@@ -49,7 +35,8 @@ export const deleteGarden = async (id: number): Promise<void> => {
 };
 // List only public gardens (client-side filtering)
 export const listPublicGardens = async (): Promise<Garden[]> => {
-  const response = await axios.get(`${API_URL}/gardens/`);
-  return response.data.filter((garden: Garden) => garden.is_public);
-};
+    const response = await axios.get(`${API_URL}/gardens/`);
+    return response.data.filter((garden: Garden) => garden.is_public);
+  };
 
+  

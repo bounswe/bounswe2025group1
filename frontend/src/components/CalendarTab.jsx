@@ -103,7 +103,7 @@ const CalendarTab = ({ tasks, handleTaskClick, onEmptyDayClick }) => {
                 flexDirection: 'column',
                 cursor: tasksForDay.length === 0 ? 'pointer' : 'default',
                 '&:hover': {
-                  backgroundColor: tasksForDay.length === 0 ? theme.palette.action.hover : undefined,
+                  backgroundColor: tasksForDay.length === 0 ? '#f1f8e9' : undefined,
                 },
               }}
               onClick={() => {

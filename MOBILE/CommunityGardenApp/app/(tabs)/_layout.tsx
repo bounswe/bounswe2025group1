@@ -10,7 +10,6 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTranslation } from 'react-i18next';
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -28,7 +27,6 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { t } = useTranslation();
 
   return (
     <AuthGate>
@@ -49,35 +47,35 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: t('layout.home'),
+            title: 'Home',
             tabBarIcon: ({ color }) => <FontAwesome name="home" size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            title: t('layout.profile'),
+            title: 'Profile',
             tabBarIcon: ({ color }) => <FontAwesome name="user" size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="gardens"
           options={{
-            title: t('layout.gardens'),
+            title: 'Gardens',
             tabBarIcon: ({ color }) => <FontAwesome name="leaf" size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="forum"
           options={{
-            title: t('layout.forum'),
+            title: 'Forum',
             tabBarIcon: ({ color }) => <FontAwesome name="comments" size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="my-tasks"
           options={{
-            title: t('layout.myTasks'),
+            title: 'My Tasks',
             tabBarIcon: ({ color }) => <FontAwesome name="tasks" size={24} color={color} />,
           }}
         />

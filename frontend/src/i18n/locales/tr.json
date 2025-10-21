@@ -25,9 +25,7 @@
     "login": "Giriş Yap",
     "register": "Kayıt Ol",
     "logout": "Çıkış Yap",
-    "loggedOut": "Çıkış yapıldı.",
-    "dashboard": "Kontrol Paneli",
-    "userSettings": "Kullanıcı Ayarları"
+    "dashboard": "Kontrol Paneli"
   },
   "language": {
     "english": "English",
@@ -40,7 +38,6 @@
       "title": "Giriş Yap",
       "subtitle": "Topluluk Bahçe Planlayıcısına tekrar hoş geldiniz",
       "email": "E-posta Adresi",
-      "username": "Kullanıcı Adı",
       "password": "Şifre",
       "rememberMe": "Beni hatırla",
       "forgotPassword": "Şifrenizi mi unuttunuz?",
@@ -169,10 +166,7 @@
     "managersCanAddImages": "Bahçe yöneticileri \"Bahçeyi Yönet\" düğmesini kullanarak resim ekleyebilir.",
     "noMembersFound": "Üye bulunamadı",
     "remove": "Kaldır",
-    "coverImage": "Kapak Fotoğrafı",
-    "galleryImages": "Galeri Fotoğrafları",
     "accept": "Kabul Et",
-    "decline": "Reddet",
     "demote": "Düşür",
     "promote": "Yükselt",
     "joinGarden": "Bahçeye Katıl",
@@ -193,8 +187,7 @@
     "couldNotDeleteGarden": "Bahçe silinemedi.",
     "confirmDeleteTask": "Bu görevi silmek istediğinizden emin misiniz?",
     "confirmLeaveGarden": "Bu bahçeden ayrılmak istediğinizden emin misiniz?",
-    "confirmRemoveMember": "Bu üyeyi kaldırmak istediğinizden emin misiniz?",
-    "gardenCreatedSuccessfully": "Bahçe başarıyla oluşturuldu!"
+    "confirmRemoveMember": "Bu üyeyi kaldırmak istediğinizden emin misiniz?"
   },
   "forum": {
     "title": "Topluluk Forumu",
@@ -331,8 +324,7 @@
     "taskCreatedSuccessfully": "Görev başarıyla oluşturuldu!",
     "taskUpdatedSuccessfully": "Görev başarıyla güncellendi!",
     "in_progress": "Devam Ediyor",
-    "taskDescriptionPlaceholder": "Görev detaylarını açıklayın...",
-    "saveChanges": "Değişiklikleri Kaydet"
+    "taskDescriptionPlaceholder": "Görev detaylarını açıklayın..."
   },
   "weather": {
     "title": "Hava Durumu Tahmini",
@@ -377,8 +369,7 @@
     "thunderstorm": "Gök gürültülü fırtına",
     "thunderstormSlightHail": "Hafif dolu ile gök gürültülü fırtına",
     "thunderstormHeavyHail": "Şiddetli dolu ile gök gürültülü fırtına",
-    "unknown": "Bilinmeyen",
-    "loading": "Hava durumu verisi yükleniyor..."
+    "unknown": "Bilinmeyen"
   },
   "location": {
     "mapMode": "Harita Modu",

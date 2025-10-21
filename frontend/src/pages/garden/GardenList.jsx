@@ -28,11 +28,10 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTranslation } from 'react-i18next';
 import { Switch } from '@mui/material';
-import { translateLocationString } from '../../utils/locationUtils';
 import GardenModal from '../../components/GardenModal';
 
 const GardenList = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [gardens, setGardens] = useState([]);
   const [filteredGardens, setFilteredGardens] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -140,7 +139,7 @@ const GardenList = () => {
 
       const data = await response.json();
 
-      toast.success(t('gardens.gardenCreatedSuccessfully'), {
+      toast.success('Garden created successfully!', {
         position: 'top-right',
         theme: 'colored',
       });
@@ -267,7 +266,7 @@ const GardenList = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <LocationOnIcon fontSize="small" color="action" sx={{ mr: 1 }} />
                     <Typography variant="body2" color="text.secondary">
-                      {translateLocationString(garden.location, i18n.language)}
+                      {garden.location}
                     </Typography>
                   </Box>
                 </CardContent>

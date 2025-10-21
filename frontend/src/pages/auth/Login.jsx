@@ -153,7 +153,7 @@ const Login = () => {
                 required
                 fullWidth
                 id="username"
-                label={t('auth.login.username')}
+                label="Username"
                 name="username"
                 autoComplete="username"
                 autoFocus

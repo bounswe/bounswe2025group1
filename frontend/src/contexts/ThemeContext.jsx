@@ -12,27 +12,30 @@ export const useTheme = () => {
   return context;
 };
 
-const getInitialTheme = () => {
-  // First check localStorage for saved preference
-  const savedTheme = localStorage.getItem('garden-planner-theme');
-  if (savedTheme && themes[savedTheme]) {
-    return savedTheme;
-  }
-  
-  // If no saved preference, check system preference for dark mode
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  return prefersDark ? 'dark' : 'light';
-};
-
 export const ThemeProvider = ({ children }) => {
-  const [currentTheme, setCurrentTheme] = useState(getInitialTheme);
+  const [currentTheme, setCurrentTheme] = useState('light');
 
-  // Save theme preference to localStorage and update CSS whenever theme changes
+  // Load theme preference from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('garden-planner-theme');
+    if (savedTheme && themes[savedTheme]) {
+      setCurrentTheme(savedTheme);
+    } else {
+      // Check system preference for dark mode
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) {
+        setCurrentTheme('dark');
+      }
+    }
+  }, []);
+
+  // Save theme preference to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('garden-planner-theme', currentTheme);
     
     // Update CSS custom properties for theme
     const root = document.documentElement;
+    const theme = themes[currentTheme];
     
     if (currentTheme === 'dark') {
       root.style.setProperty('--scrollbar-track', 'rgba(124, 179, 66, 0.1)');

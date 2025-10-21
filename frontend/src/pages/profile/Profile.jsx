@@ -27,10 +27,9 @@ import React from 'react';
 import { createButtonKeyboardHandler, createLinkKeyboardHandler, createRovingTabindex } from '../../utils/keyboardNavigation';
 import LocationPicker from '../../components/LocationPicker';
 import { useTranslation } from 'react-i18next';
-import { translateLocationString } from '../../utils/locationUtils';
 
 const Profile = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   let { userId } = useParams();
   const { user, token, updateUser } = useAuth();
   const navigate = useNavigate();
@@ -410,7 +409,7 @@ const Profile = () => {
             </Typography>
 
             <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-              {profile.profile?.location ? translateLocationString(profile.profile.location, i18n.language) : t('profile.noLocationSet')}
+              {profile.profile?.location || t('profile.noLocationSet')}
             </Typography>
 
             {!isOwnProfile && (
@@ -703,7 +702,7 @@ const Profile = () => {
                                 <Box>
                                   <Typography variant="subtitle1">{follower.username}</Typography>
                                   <Typography variant="body2" color="text.secondary">
-                                    {follower.location ? translateLocationString(follower.location, i18n.language) : 'No location'}
+                                    {follower.location || 'No location'}
                                   </Typography>
                                 </Box>
                               </Paper>
@@ -750,7 +749,7 @@ const Profile = () => {
                                     {followedUser.username}
                                   </Typography>
                                   <Typography variant="body2" color="text.secondary">
-                                    {followedUser.location ? translateLocationString(followedUser.location, i18n.language) : 'No location'}
+                                    {followedUser.location || 'No location'}
                                   </Typography>
                                 </Box>
                               </Paper>

@@ -332,15 +332,7 @@ const ForumList = () => {
                     backgroundColor: 'background.paper',
                   },
                   '& fieldset': {
-                    borderColor: 'divider',
-                    borderWidth: '1px',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'text.secondary',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#558b2f',
-                    borderWidth: '2px',
+                    border: 'none',
                   },
                   '&:focus-within': {
                     outline: '2px solid #558b2f',

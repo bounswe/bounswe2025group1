@@ -32,10 +32,9 @@ import GardenModal from '../../components/GardenModal';
 import TaskBoard from '../../components/TaskBoard';
 import { useTranslation } from 'react-i18next';
 import ImageGallery from '../../components/ImageGallery';
-import { translateLocationString } from '../../utils/locationUtils';
 
 const GardenDetail = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [garden, setGarden] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [members, setMembers] = useState([]);
@@ -193,11 +192,11 @@ const GardenDetail = () => {
 
       const updated = await response.json();
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-      toast.success(t('tasks.taskUpdatedSuccessfully'));
+      toast.success('Task updated!');
       setEditTaskModalOpen(false);
     } catch (err) {
       console.error('Error updating task:', err);
-      toast.error(t('tasks.failedToUpdateTask'));
+      toast.error('Could not update task.');
     }
   };
 
@@ -612,7 +611,7 @@ const GardenDetail = () => {
                     fontWeight: 400
                   }}
                 >
-                  {translateLocationString(garden.location, i18n.language)}
+                  {garden.location}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -628,7 +627,7 @@ const GardenDetail = () => {
                 }}>
                   <GroupIcon sx={{ color: 'white', fontSize: '1rem' }} />
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
-                    {t('gardens.members', { count: members.length })}
+                    {members.length} Members
                   </Typography>
                 </Box>
                 <Box sx={{ 
@@ -643,7 +642,7 @@ const GardenDetail = () => {
                 }}>
                   <TaskIcon sx={{ color: 'white', fontSize: '1rem' }} />
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
-                    {t('gardens.tasks', { count: tasks.length })}
+                    {tasks.length} Tasks
                   </Typography>
                 </Box>
               </Box>
@@ -669,7 +668,7 @@ const GardenDetail = () => {
               <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 <Chip
                   icon={<LocationOnIcon />}
-                  label={translateLocationString(garden.location, i18n.language)}
+                  label={garden.location}
                   size="small"
                   sx={{ 
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
@@ -974,10 +973,10 @@ const GardenDetail = () => {
               <Box sx={{ 
                 p: 4, 
                 textAlign: 'center', 
-                backgroundColor: 'background.paper', 
+                backgroundColor: 'grey.50', 
                 borderRadius: 2,
                 border: '2px dashed',
-                borderColor: 'divider'
+                borderColor: 'grey.300'
               }}>
                 <Typography variant="h6" color="text.secondary" gutterBottom>
                   {t('gardens.noImagesYet')}
@@ -996,7 +995,6 @@ const GardenDetail = () => {
         onSubmit={handleTaskSubmit}
         initialData={taskForm}
         gardenId={gardenId}
-        members={members}
       />
       <GardenModal
         open={openGardenEditModal}
@@ -1018,7 +1016,6 @@ const GardenDetail = () => {
         handleDeclineTask={handleDeclineTask}
         task={selectedTask}
         gardenId={gardenId}
-        members={members}
         mode="edit"
       />
     </Container>

@@ -46,7 +46,7 @@ const Tasks = () => {
 
       const updated = await response.json();
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-      toast.success(t('tasks.taskUpdatedSuccessfully'));
+      toast.success(t('tasks.taskUpdated'));
       setTaskModalOpen(false);
     } catch (err) {
       console.error('Error updating task:', err);
