@@ -179,7 +179,7 @@ const TaskList = ({
                     aria-label={`Accept task: ${task.title}`}
                   />
                   <Chip
-                    label={t('tasks.decline')}
+                    label={t('gardens.decline')}
                     size="small"
                     color="error"
                     component={ButtonBase}
