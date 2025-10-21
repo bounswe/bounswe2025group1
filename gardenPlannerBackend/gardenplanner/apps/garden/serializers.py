@@ -304,12 +304,13 @@ class ForumPostSerializer(serializers.ModelSerializer):
     author_profile_picture = serializers.SerializerMethodField(read_only=True)
     images = serializers.SerializerMethodField(read_only=True)
     images_base64 = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    delete_image_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     comments = serializers.SerializerMethodField(read_only=True)
     comments_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ForumPost
-        fields = ['id', 'title', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'updated_at', 'images', 'images_base64', 'comments', 'comments_count']
+        fields = ['id', 'title', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'updated_at', 'images', 'images_base64', 'delete_image_ids', 'comments', 'comments_count']
         read_only_fields = ['id', 'created_at', 'updated_at', 'author', 'images', 'comments', 'comments_count']
 
     def get_images(self, obj):
@@ -329,12 +330,12 @@ class ForumPostSerializer(serializers.ModelSerializer):
         # Check if include_comments is requested
         request = self.context.get('request')
         if request and request.query_params.get('include_comments', '').lower() == 'true':
-            comments = obj.comments.all().order_by('created_at')
+            comments = obj.comments.filter(is_deleted=False).order_by('created_at')
             return CommentSerializer(comments, many=True, context=self.context).data
         return []
 
     def get_comments_count(self, obj):
-        return obj.comments.count()
+        return obj.comments.filter(is_deleted=False).count()
 
     def get_author_profile_picture(self, obj):
         if hasattr(obj.author, 'profile') and obj.author.profile.profile_picture_data:
@@ -345,6 +346,7 @@ class ForumPostSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         images_b64 = validated_data.pop('images_base64', [])
+        validated_data.pop('delete_image_ids', [])  # Ignore on create
         post = super().create(validated_data)
         for img_b64 in images_b64:
             if not img_b64:
@@ -353,16 +355,34 @@ class ForumPostSerializer(serializers.ModelSerializer):
             ForumPostImage.objects.create(post=post, data=data_bytes, mime_type=mime)
         return post
 
+    def update(self, instance, validated_data):
+        # Handle image deletion
+        delete_image_ids = validated_data.pop('delete_image_ids', [])
+        if delete_image_ids:
+            ForumPostImage.objects.filter(id__in=delete_image_ids, post=instance).delete()
+        
+        # Handle new images
+        images_b64 = validated_data.pop('images_base64', [])
+        for img_b64 in images_b64:
+            if not img_b64:
+                continue
+            data_bytes, mime = _decode_base64_image(img_b64)
+            ForumPostImage.objects.create(post=instance, data=data_bytes, mime_type=mime)
+        
+        # Update other fields
+        return super().update(instance, validated_data)
+
 
 class CommentSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source='author.username', read_only=True)
     author_profile_picture = serializers.SerializerMethodField(read_only=True)
     images = serializers.SerializerMethodField(read_only=True)
     images_base64 = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    delete_image_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
 
     class Meta:
         model = Comment
-        fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'images', 'images_base64']
+        fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'images', 'images_base64', 'delete_image_ids']
         read_only_fields = ['id', 'author', 'author_username', 'created_at', 'images']
 
     def get_images(self, obj):
@@ -387,6 +407,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         images_b64 = validated_data.pop('images_base64', [])
+        validated_data.pop('delete_image_ids', [])  # Ignore on create
         comment = super().create(validated_data)
         for img_b64 in images_b64:
             if not img_b64:
@@ -394,6 +415,23 @@ class CommentSerializer(serializers.ModelSerializer):
             data_bytes, mime = _decode_base64_image(img_b64)
             CommentImage.objects.create(comment=comment, data=data_bytes, mime_type=mime)
         return comment
+
+    def update(self, instance, validated_data):
+        # Handle image deletion
+        delete_image_ids = validated_data.pop('delete_image_ids', [])
+        if delete_image_ids:
+            CommentImage.objects.filter(id__in=delete_image_ids, comment=instance).delete()
+        
+        # Handle new images
+        images_b64 = validated_data.pop('images_base64', [])
+        for img_b64 in images_b64:
+            if not img_b64:
+                continue
+            data_bytes, mime = _decode_base64_image(img_b64)
+            CommentImage.objects.create(comment=instance, data=data_bytes, mime_type=mime)
+        
+        # Update other fields
+        return super().update(instance, validated_data)
         
         
 class UserGardenSerializer(serializers.ModelSerializer):
