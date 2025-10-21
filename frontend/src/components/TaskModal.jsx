@@ -18,6 +18,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
+import 'dayjs/locale/tr';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../contexts/AuthContextUtils';
@@ -34,8 +35,9 @@ const TaskModal = ({
   mode = 'create',
   task,
   gardenId, // Current garden ID for creating tasks
+  members, // Optional: pass members from parent to avoid refetching
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, token } = useAuth();
   // Initialize with default empty values
   const [taskForm, setTaskForm] = useState({
@@ -66,8 +68,19 @@ const TaskModal = ({
   // NOTE: fetch helpers moved into the useEffect below to avoid changing the
   // useEffect dependency array on every render (fixes react-hooks/exhaustive-deps).
 
-  // Fetch data when component mounts or when gardenId changes
+  // Update garden members when members prop changes
   useEffect(() => {
+    if (members) {
+      // Use members passed from parent (already filtered and formatted)
+      const formattedMembers = members
+        .filter((member) => member.status === 'ACCEPTED')
+        .map((member) => ({ id: member.user_id, name: member.username }));
+      setGardenMembers(formattedMembers);
+      setLoadingMembers(false);
+      return;
+    }
+
+    // Fallback: fetch members if not provided
     if (!gardenId || !token) return;
 
     const fetchGardenMembers = async () => {
@@ -91,10 +104,10 @@ const TaskModal = ({
         }
 
         const data = await response.json();
-        const members = data
+        const fetchedMembers = data
           .filter((member) => member.status === 'ACCEPTED')
           .map((member) => ({ id: member.user_id, name: member.username }));
-        setGardenMembers(members);
+        setGardenMembers(fetchedMembers);
       } catch (error) {
         console.error('Error fetching garden members:', error);
       } finally {
@@ -138,7 +151,7 @@ const TaskModal = ({
 
     fetchGardenMembers();
     fetchCustomTaskTypes();
-  }, [gardenId, token]);
+  }, [gardenId, token, members]);
 
   // Update the form state whenever task changes
   useEffect(() => {
@@ -148,6 +161,11 @@ const TaskModal = ({
     }));
     setDeadline(task?.due_date ? dayjs(task.due_date) : dayjs());
   }, [task]);
+
+  // Set dayjs locale based on current language
+  useEffect(() => {
+    dayjs.locale(i18n.language === 'tr' ? 'tr' : 'en');
+  }, [i18n.language]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -342,7 +360,10 @@ const TaskModal = ({
             </Select>
           </FormControl>
 
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <LocalizationProvider 
+            dateAdapter={AdapterDayjs} 
+            adapterLocale={i18n.language === 'tr' ? 'tr' : 'en'}
+          >
             <Box sx={{ mt: 2 }}>
               <DateTimePicker
                 label={t('tasks.deadline')}

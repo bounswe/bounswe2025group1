@@ -163,6 +163,37 @@ const GardenModal = ({
             </Typography>
             <Switch checked={form.isPublic} onChange={handleTogglePublic} color="success" />
           </Box>
+          
+          <Divider sx={{ my: 3 }} />
+          
+          {/* Cover Image Upload */}
+          <ImageUpload
+            label={t('gardens.coverImage')}
+            maxImages={1}
+            maxSizeMB={5}
+            onImagesChange={(images) => {
+              setCoverImage(images[0] || '');
+            }}
+            initialImages={coverImage ? [{ base64: coverImage, name: 'cover.jpg', size: 0, type: 'image/jpeg' }] : []}
+          />
+          
+          <Divider sx={{ my: 3 }} />
+          
+          {/* Gallery Images Upload */}
+          <ImageUpload
+            label={t('gardens.galleryImages')}
+            maxImages={10}
+            maxSizeMB={5}
+            onImagesChange={(images) => {
+              setGalleryImages(images);
+            }}
+            initialImages={galleryImages.map((img, idx) => ({ 
+              base64: img, 
+              name: `gallery-${idx}.jpg`, 
+              size: 0, 
+              type: 'image/jpeg' 
+            }))}
+          />
           <Box sx={{ 
             display: 'flex', 
             flexDirection: { xs: 'column', sm: 'row' },

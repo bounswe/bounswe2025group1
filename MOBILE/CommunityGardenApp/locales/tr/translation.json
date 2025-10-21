@@ -95,7 +95,8 @@
       "tabs": {
         "tasks": "Görevler",
         "members": "Üyeler",
-        "calendar": "Takvim"
+        "calendar": "Takvim",
+        "gallery": "Galeri"
       },
       "joinGarden": "Bahçeye Katıl",
       "sendingRequest": "İstek Gönderiliyor...",
@@ -200,5 +201,12 @@
     "current": "Mevcut Dil",
     "english": "İngilizce",
     "turkish": "Türkçe"
+  },
+  "layout": {
+    "home": "Ana Sayfa",
+    "gardens": "Bahçeler",
+    "forum": "Forum",
+    "profile": "Profil",
+    "myTasks": "Görevlerim"
   }
 }

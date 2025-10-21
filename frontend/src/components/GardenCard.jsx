@@ -4,9 +4,10 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import GroupIcon from '@mui/icons-material/Group';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { translateLocationString } from '../utils/locationUtils';
 
 const GardenCard = ({ garden, variant = 'default' }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   // Different style variants for different usages
@@ -71,7 +72,7 @@ const GardenCard = ({ garden, variant = 'default' }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
           <LocationOnIcon fontSize="small" color="action" sx={{ mr: 1 }} />
           <Typography variant="body2" color="text.secondary">
-            {garden.location}
+            {translateLocationString(garden.location, i18n.language)}
           </Typography>
         </Box>
       </CardContent>

@@ -91,20 +91,20 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   }
 
   return (
-    <Paper elevation={2} sx={{ p: 3, height: 300 }}>
-      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+    <Paper elevation={2} sx={{ p: 3, height: 300, display: 'flex', flexDirection: 'column' }}>
+      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
         <ForumIcon sx={{ mr: 1 }} /> {t('forum.title')}
       </Typography>
 
       {displayPosts.length > 0 ? (
         <>
-          <List sx={{ py: 0 }}>
+          <List sx={{ py: 0, flex: 1, overflow: 'auto', minHeight: 0 }}>
             {displayPosts.map((post) => (
               <React.Fragment key={post.id}>
                 <ListItem
                   alignItems="flex-start"
                   sx={{ px: 0, cursor: 'pointer' }}
-                  onClick={() => navigate(`/forum/${post.id}`)}
+                  onClick={() => navigate('/forum')}
                 >
                   <ListItemAvatar>
                     <Avatar 
@@ -142,7 +142,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
             ))}
           </List>
           {showViewAll && (
-            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
               <Button
                 variant="outlined"
                 color="primary"

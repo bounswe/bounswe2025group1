@@ -24,7 +24,7 @@ const TaskList = ({
   handleAcceptTask,
   handleDeclineTask,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const theme = useTheme();
   const listRef = useRef(null);
@@ -138,7 +138,7 @@ const TaskList = ({
               </ListItemIcon>
               <ListItemText
                 primary={task.title}
-                secondary={`Due: ${new Date(task.due_date).toLocaleDateString('en-US', {
+                secondary={`${t('tasks.due')}: ${new Date(task.due_date).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
@@ -156,7 +156,7 @@ const TaskList = ({
               {user && task.assigned_to === user.user_id && task.status === 'PENDING' && (
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Chip
-                    label="Accept"
+                    label={t('gardens.accept')}
                     size="small"
                     color="success"
                     component={ButtonBase}
@@ -179,7 +179,7 @@ const TaskList = ({
                     aria-label={`Accept task: ${task.title}`}
                   />
                   <Chip
-                    label="Decline"
+                    label={t('gardens.decline')}
                     size="small"
                     color="error"
                     component={ButtonBase}
