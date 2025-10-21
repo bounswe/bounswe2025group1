@@ -384,7 +384,8 @@
     "thunderstorm": "Gök gürültülü fırtına",
     "thunderstormSlightHail": "Hafif dolu ile gök gürültülü fırtına",
     "thunderstormHeavyHail": "Şiddetli dolu ile gök gürültülü fırtına",
-    "unknown": "Bilinmeyen"
+    "unknown": "Bilinmeyen",
+    "loading": "Hava durumu verisi yükleniyor..."
   },
   "location": {
     "mapMode": "Harita Modu",

@@ -385,7 +385,8 @@
     "thunderstorm": "Thunderstorm",
     "thunderstormSlightHail": "Thunderstorm with slight hail",
     "thunderstormHeavyHail": "Thunderstorm with heavy hail",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "loading": "Loading weather data..."
   },
   "location": {
     "mapMode": "Map Mode",

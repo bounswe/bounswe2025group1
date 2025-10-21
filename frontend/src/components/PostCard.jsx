@@ -15,6 +15,7 @@ import {
   DialogContent,
   TextField,
   DialogActions,
+  useTheme,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CommentIcon from '@mui/icons-material/Comment';
@@ -33,6 +34,7 @@ const PostCard = ({
   isOwner = false,
 }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
   const navigate = useNavigate();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -267,12 +269,12 @@ const PostCard = ({
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 3,
-                      backgroundColor: '#f5f5f5',
+                      backgroundColor: theme.palette.action.hover,
                       '&:hover': {
-                        backgroundColor: '#eeeeee',
+                        backgroundColor: theme.palette.action.selected,
                       },
                       '&.Mui-focused': {
-                        backgroundColor: 'white',
+                        backgroundColor: theme.palette.background.paper,
                       },
                     },
                   }}
@@ -331,7 +333,7 @@ const PostCard = ({
                     </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Box sx={{ 
-                        backgroundColor: '#f0f2f5', 
+                        backgroundColor: theme.palette.action.hover, 
                         borderRadius: 1.5, 
                         p: 0.8,
                         mb: 0.3,
@@ -342,7 +344,7 @@ const PostCard = ({
                           sx={{ 
                             fontWeight: 600, 
                             fontSize: '0.75rem',
-                            color: '#1976d2',
+                            color: theme.palette.primary.main,
                             mb: 0.2,
                             textAlign: 'left',
                             cursor: 'pointer',
