@@ -20,6 +20,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CommentIcon from '@mui/icons-material/Comment';
 import SendIcon from '@mui/icons-material/Send';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import ImageGallery from './ImageGallery';
 import InlineImageUpload from './InlineImageUpload';
 
@@ -32,6 +33,7 @@ const PostCard = ({
   isOwner = false,
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [commentImages, setCommentImages] = useState([]);
@@ -47,6 +49,18 @@ const PostCard = ({
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleProfileClick = () => {
+    if (post.author) {
+      navigate(`/profile/${post.author}`);
+    }
+  };
+
+  const handleCommentAuthorClick = (authorId) => {
+    if (authorId) {
+      navigate(`/profile/${authorId}`);
+    }
   };
 
 
@@ -99,6 +113,7 @@ const PostCard = ({
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Avatar 
               src={post.author_profile_picture || '/default-avatar.png'}
+              onClick={handleProfileClick}
               sx={{ 
                 width: 40, 
                 height: 40, 
@@ -106,12 +121,29 @@ const PostCard = ({
                 bgcolor: '#558b2f',
                 fontSize: '1.2rem',
                 fontWeight: 'bold',
+                cursor: 'pointer',
+                '&:hover': {
+                  opacity: 0.8,
+                },
               }}
             >
               {post.author_username?.charAt(0) || 'U'}
             </Avatar>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.95rem', textAlign: 'left' }}>
+              <Typography 
+                variant="subtitle1" 
+                onClick={handleProfileClick}
+                sx={{ 
+                  fontWeight: 600, 
+                  fontSize: '0.95rem', 
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    textDecoration: 'underline',
+                    color: 'primary.main',
+                  },
+                }}
+              >
                 {post.author_username || t('forum.unknownUser')}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
@@ -282,12 +314,17 @@ const PostCard = ({
                   <Box key={comment.id} sx={{ display: 'flex', gap: 0.5, mb: 1, alignItems: 'flex-start' }}>
                     <Avatar 
                       src={comment.author_profile_picture || '/default-avatar.png'}
+                      onClick={() => handleCommentAuthorClick(comment.author)}
                       sx={{ 
                         width: 24, 
                         height: 24,
                         bgcolor: '#8bc34a',
                         fontSize: '0.7rem',
                         flexShrink: 0,
+                        cursor: 'pointer',
+                        '&:hover': {
+                          opacity: 0.8,
+                        },
                       }}
                     >
                       {comment.author_username?.charAt(0) || 'U'}
@@ -299,13 +336,21 @@ const PostCard = ({
                         p: 0.8,
                         mb: 0.3,
                       }}>
-                        <Typography variant="subtitle2" sx={{ 
-                          fontWeight: 600, 
-                          fontSize: '0.75rem',
-                          color: '#1976d2',
-                          mb: 0.2,
-                          textAlign: 'left',
-                        }}>
+                        <Typography 
+                          variant="subtitle2" 
+                          onClick={() => handleCommentAuthorClick(comment.author)}
+                          sx={{ 
+                            fontWeight: 600, 
+                            fontSize: '0.75rem',
+                            color: '#1976d2',
+                            mb: 0.2,
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            '&:hover': {
+                              textDecoration: 'underline',
+                            },
+                          }}
+                        >
                           {comment.author_username || t('forum.unknownUser')}
                         </Typography>
                         <Typography variant="body2" sx={{ 
