@@ -530,7 +530,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         return Response(TaskSerializer(task).data)
 
 class ForumPostListCreateView(generics.ListCreateAPIView):
-    queryset = ForumPost.objects.all().order_by('-created_at')
+    queryset = ForumPost.objects.filter(is_deleted=False).order_by('-created_at')
     serializer_class = ForumPostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -546,7 +546,7 @@ class ForumPostListCreateView(generics.ListCreateAPIView):
 
 
 class ForumPostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = ForumPost.objects.all()
+    queryset = ForumPost.objects.filter(is_deleted=False)
     serializer_class = ForumPostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -573,7 +573,7 @@ class ForumPostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CommentListCreateView(generics.ListCreateAPIView):
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.filter(is_deleted=False)
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -596,7 +596,7 @@ class CommentListCreateView(generics.ListCreateAPIView):
 
 
 class CommentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.filter(is_deleted=False)
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 

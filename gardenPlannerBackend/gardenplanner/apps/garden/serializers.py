@@ -329,12 +329,12 @@ class ForumPostSerializer(serializers.ModelSerializer):
         # Check if include_comments is requested
         request = self.context.get('request')
         if request and request.query_params.get('include_comments', '').lower() == 'true':
-            comments = obj.comments.all().order_by('created_at')
+            comments = obj.comments.filter(is_deleted=False).order_by('created_at')
             return CommentSerializer(comments, many=True, context=self.context).data
         return []
 
     def get_comments_count(self, obj):
-        return obj.comments.count()
+        return obj.comments.filter(is_deleted=False).count()
 
     def get_author_profile_picture(self, obj):
         if hasattr(obj.author, 'profile') and obj.author.profile.profile_picture_data:
