@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
     View,
     Text,
@@ -43,6 +43,16 @@ export default function ImageGallery({
     const [modalVisible, setModalVisible] = useState(false);
     const [imageLoading, setImageLoading] = useState<{ [key: number]: boolean }>({});
 
+    const setImageLoadingStatus = useCallback((index: number, value: boolean) => {
+        setImageLoading(prev => {
+            if (prev[index] === value) {
+                return prev;
+            }
+            const next = { ...prev, [index]: value };
+            return next;
+        });
+    }, []);
+
     const handleImagePress = (image: ImageData, index: number) => {
         if (onImagePress) {
             onImagePress(image, index);
@@ -60,6 +70,35 @@ export default function ImageGallery({
     const getImageUri = (image: ImageData): string => {
         return image.image_base64 || image.base64 || image.uri || '';
     };
+
+    useEffect(() => {
+        if (!images || images.length === 0) {
+            setImageLoading(current => (Object.keys(current).length ? {} : current));
+            return;
+        }
+
+        setImageLoading(prev => {
+            const next: { [key: number]: boolean } = {};
+            let hasChanged = false;
+
+            images.forEach((_, idx) => {
+                const prevValue = prev[idx];
+                if (prevValue === undefined) {
+                    hasChanged = true;
+                    next[idx] = true;
+                } else {
+                    next[idx] = prevValue;
+                }
+            });
+
+            const prevKeys = Object.keys(prev);
+            if (prevKeys.length !== images.length) {
+                hasChanged = true;
+            }
+
+            return hasChanged ? next : prev;
+        });
+    }, [images]);
 
     const isCoverImage = (image: ImageData): boolean => {
         if (!showCoverBadge || !coverImage) return false;
@@ -110,13 +149,12 @@ export default function ImageGallery({
                                 <Image
                                     source={{ uri: imageUri }}
                                     style={styles.image}
-                                    onLoadStart={() => setImageLoading(prev => ({ ...prev, [index]: true }))}
-                                    onLoad={() => setImageLoading(prev => ({ ...prev, [index]: false }))}
-                                    onError={() => setImageLoading(prev => ({ ...prev, [index]: false }))}
+                                    onLoad={() => setImageLoadingStatus(index, false)}
+                                    onError={() => setImageLoadingStatus(index, false)}
                                 />
 
                                 {/* Loading Indicator */}
-                                {imageLoading[index] && (
+                                {(imageLoading[index] ?? true) && (
                                     <View style={styles.loadingOverlay}>
                                         <ActivityIndicator size="small" color={COLORS.white} />
                                     </View>
