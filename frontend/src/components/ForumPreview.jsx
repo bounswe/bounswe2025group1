@@ -104,7 +104,7 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
                 <ListItem
                   alignItems="flex-start"
                   sx={{ px: 0, cursor: 'pointer' }}
-                  onClick={() => navigate(`/forum/${post.id}`)}
+                  onClick={() => navigate('/forum')}
                 >
                   <ListItemAvatar>
                     <Avatar 
