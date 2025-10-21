@@ -627,7 +627,7 @@ const GardenDetail = () => {
                 }}>
                   <GroupIcon sx={{ color: 'white', fontSize: '1rem' }} />
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
-                    {members.length} Members
+                    {t('gardens.members', { count: members.length })}
                   </Typography>
                 </Box>
                 <Box sx={{ 
@@ -642,7 +642,7 @@ const GardenDetail = () => {
                 }}>
                   <TaskIcon sx={{ color: 'white', fontSize: '1rem' }} />
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
-                    {tasks.length} Tasks
+                    {t('gardens.tasks', { count: tasks.length })}
                   </Typography>
                 </Box>
               </Box>
