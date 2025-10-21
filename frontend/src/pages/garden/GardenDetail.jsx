@@ -995,6 +995,7 @@ const GardenDetail = () => {
         onSubmit={handleTaskSubmit}
         initialData={taskForm}
         gardenId={gardenId}
+        members={members}
       />
       <GardenModal
         open={openGardenEditModal}
@@ -1016,6 +1017,7 @@ const GardenDetail = () => {
         handleDeclineTask={handleDeclineTask}
         task={selectedTask}
         gardenId={gardenId}
+        members={members}
         mode="edit"
       />
     </Container>
