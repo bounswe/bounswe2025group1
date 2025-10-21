@@ -32,9 +32,10 @@ import GardenModal from '../../components/GardenModal';
 import TaskBoard from '../../components/TaskBoard';
 import { useTranslation } from 'react-i18next';
 import ImageGallery from '../../components/ImageGallery';
+import { translateLocationString } from '../../utils/locationUtils';
 
 const GardenDetail = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [garden, setGarden] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [members, setMembers] = useState([]);
@@ -611,7 +612,7 @@ const GardenDetail = () => {
                     fontWeight: 400
                   }}
                 >
-                  {garden.location}
+                  {translateLocationString(garden.location, i18n.language)}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -668,7 +669,7 @@ const GardenDetail = () => {
               <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 <Chip
                   icon={<LocationOnIcon />}
-                  label={garden.location}
+                  label={translateLocationString(garden.location, i18n.language)}
                   size="small"
                   sx={{ 
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',

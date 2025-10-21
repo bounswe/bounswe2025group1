@@ -82,7 +82,7 @@ const LocationPicker = ({
   showCurrentLocation = true,
   ...props
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isMapMode, setIsMapMode] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [locationText, setLocationText] = useState(value);
@@ -98,6 +98,28 @@ const LocationPicker = ({
   const [street, setStreet] = useState('');
   const [description, setDescription] = useState('');
 
+  // Function to translate country names
+  const translateCountryName = (countryName) => {
+    if (!countryName) return '';
+    
+    // Handle Turkey/Türkiye translation
+    if (countryName.toLowerCase().includes('turkey') || countryName.toLowerCase().includes('türkiye')) {
+      return i18n.language === 'tr' ? 'Türkiye' : 'Turkey';
+    }
+    
+    // Add more country translations as needed
+    const countryTranslations = {
+      'Turkey': i18n.language === 'tr' ? 'Türkiye' : 'Turkey',
+      'Türkiye': i18n.language === 'tr' ? 'Türkiye' : 'Turkey',
+      'United States': i18n.language === 'tr' ? 'Amerika Birleşik Devletleri' : 'United States',
+      'Germany': i18n.language === 'tr' ? 'Almanya' : 'Germany',
+      'France': i18n.language === 'tr' ? 'Fransa' : 'France',
+      'United Kingdom': i18n.language === 'tr' ? 'Birleşik Krallık' : 'United Kingdom',
+    };
+    
+    return countryTranslations[countryName] || countryName;
+  };
+
   // Parse address into individual components
   const parseAddress = (address, structuredData = null) => {
     if (!address) return { country: '', city: '', district: '', street: '', description: '' };
@@ -112,7 +134,7 @@ const LocationPicker = ({
     if (structuredData && structuredData.address) {
       const addr = structuredData.address;
       return {
-        country: addr.country || '',
+        country: translateCountryName(addr.country || ''),
         city: addr.city || addr.town || addr.village || addr.municipality || '',
         district: addr.suburb || addr.neighbourhood || addr.quarter || addr.district || '',
         street: addr.road || addr.street || addr.pedestrian || '',
@@ -137,7 +159,7 @@ const LocationPicker = ({
     // Enhanced parsing logic for Turkish addresses
     if (parts.length >= 1) {
       // Last part is usually country
-      result.country = parts[parts.length - 1] || '';
+      result.country = translateCountryName(parts[parts.length - 1] || '');
     }
     
     // Find city by looking for non-numeric parts that aren't obviously districts
@@ -207,6 +229,23 @@ const LocationPicker = ({
     }
   }, [value]);
 
+  // Update country name when language changes
+  useEffect(() => {
+    if (country) {
+      const translatedCountry = translateCountryName(country);
+      if (translatedCountry !== country) {
+        setCountry(translatedCountry);
+        
+        // Update the full address text if it contains the country
+        if (locationText && locationText.includes(country)) {
+          const updatedLocationText = locationText.replace(country, translatedCountry);
+          setLocationText(updatedLocationText);
+          onChange?.(updatedLocationText);
+        }
+      }
+    }
+  }, [i18n.language]);
+
   // Handle location selection from map
   const handleLocationSelect = async (latlng) => {
     const { lat, lng } = latlng;
@@ -225,12 +264,14 @@ const LocationPicker = ({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
+      const language = i18n.language === 'tr' ? 'tr' : 'en';
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18`,
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18&accept-language=${language}`,
         { 
           signal: controller.signal,
           headers: {
-            'User-Agent': 'CommunityGardenApp/1.0'
+            'User-Agent': 'CommunityGardenApp/1.0',
+            'Accept-Language': language
           }
         }
       );
@@ -239,7 +280,13 @@ const LocationPicker = ({
       const data = await response.json();
       
       if (data && data.display_name) {
-        const address = data.display_name;
+        let address = data.display_name;
+        
+        // Apply country name translation to the display address
+        if (address.includes('Turkey')) {
+          address = address.replace(/Turkey/g, translateCountryName('Turkey'));
+        }
+        
         setLocationText(address);
         onChange?.(address);
         onLocationChange?.({ lat, lng, address });
