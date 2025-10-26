@@ -2,9 +2,16 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import './App.css';
+import { useTranslation } from 'react-i18next';
 
 // Initialize i18n
 import './i18n/config';
+
+// Helper to check if current language is RTL
+const isRTLLanguage = (lang) => {
+  const RTL_LANGUAGES = ['ar', 'fa', 'ur'];
+  return RTL_LANGUAGES.includes(lang);
+};
 
 // Components
 import Navbar from './components/Navbar';
@@ -29,12 +36,15 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
 function AppContent() {
   const { currentTheme } = useTheme();
+  const { i18n } = useTranslation();
   
   const getToastTheme = () => {
     if (currentTheme === 'dark') return 'dark';
     if (currentTheme === 'highContrast') return 'light';
     return 'light';
   };
+
+  const isRTL = isRTLLanguage(i18n.language);
 
   return (
     <>
@@ -44,7 +54,7 @@ function AppContent() {
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
-        rtl={false}
+        rtl={isRTL}
         pauseOnFocusLoss
         draggable
         pauseOnHover

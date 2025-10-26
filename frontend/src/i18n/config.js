@@ -5,6 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 // Import translation resources
 import enTranslations from './locales/en.json';
 import trTranslations from './locales/tr.json';
+import arTranslations from './locales/ar.json';
 
 const resources = {
   en: {
@@ -12,7 +13,19 @@ const resources = {
   },
   tr: {
     translation: trTranslations
+  },
+  ar: {
+    translation: arTranslations
   }
+};
+
+// RTL language codes
+const RTL_LANGUAGES = ['ar', 'fa', 'ur'];
+
+// Helper function to update document direction
+const updateDocumentDirection = (language) => {
+  const isRTL = RTL_LANGUAGES.includes(language);
+  document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
 };
 
 i18n
@@ -39,6 +52,9 @@ i18n
     // Fallback language if detection fails
     fallbackLng: 'en',
     
+    // Supported languages
+    supportedLngs: ['en', 'tr', 'ar'],
+    
     // Debug mode (disable in production)
     debug: process.env.NODE_ENV === 'development',
     
@@ -63,9 +79,16 @@ i18n
     nsSeparator: ':',
   });
 
-// Update HTML lang attribute when language changes
+// Initialize direction on load
+updateDocumentDirection(i18n.language);
+
+// Update HTML lang attribute and direction when language changes
 i18n.on('languageChanged', (lng) => {
   document.documentElement.lang = lng;
+  updateDocumentDirection(lng);
 });
+
+// Export helper to check if current language is RTL
+export const isRTLLanguage = (lang) => RTL_LANGUAGES.includes(lang);
 
 export default i18n;

@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import { themes } from '../themes/themeConfig';
+import { lightTheme, darkTheme, highContrastTheme } from '../themes/themeConfig';
+
+// Helper to check if current language is RTL
+const isRTLLanguage = (lang) => {
+  const RTL_LANGUAGES = ['ar', 'fa', 'ur'];
+  return RTL_LANGUAGES.includes(lang);
+};
 
 const ThemeContext = createContext();
 
@@ -15,7 +21,7 @@ export const useTheme = () => {
 const getInitialTheme = () => {
   // First check localStorage for saved preference
   const savedTheme = localStorage.getItem('garden-planner-theme');
-  if (savedTheme && themes[savedTheme]) {
+  if (savedTheme && ['light', 'dark', 'highContrast'].includes(savedTheme)) {
     return savedTheme;
   }
   
@@ -26,6 +32,39 @@ const getInitialTheme = () => {
 
 export const ThemeProvider = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState(getInitialTheme);
+  const [direction, setDirection] = useState('ltr');
+  
+  // Get language from localStorage or window object
+  const getCurrentLanguage = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('i18nextLng') || window.navigator?.language?.split('-')[0] || 'en';
+    }
+    return 'en';
+  };
+
+  // Initialize direction on mount and listen for changes
+  useEffect(() => {
+    const handleLanguageChange = () => {
+      const currentLanguage = getCurrentLanguage();
+      const isRTL = isRTLLanguage(currentLanguage);
+      setDirection(isRTL ? 'rtl' : 'ltr');
+    };
+
+    // Set initial direction
+    handleLanguageChange();
+
+    // Check periodically for language changes
+    const interval = setInterval(handleLanguageChange, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Create themes with current direction
+  const themes = {
+    light: { ...lightTheme, direction },
+    dark: { ...darkTheme, direction },
+    highContrast: { ...highContrastTheme, direction },
+  };
+
 
   // Save theme preference to localStorage and update CSS whenever theme changes
   useEffect(() => {
