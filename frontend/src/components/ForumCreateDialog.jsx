@@ -205,7 +205,7 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 3 }}>
+      <DialogActions sx={{ p: 3, gap: 2 }}>
         <Button 
           onClick={handleClose} 
           variant="outlined"
@@ -237,7 +237,7 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
         >
           {loading ? (
             <>
-              <CircularProgress size={20} sx={{ mr: 1 }} />
+              <CircularProgress size={20} sx={{ mr: 1.5, ml: 1.5 }} />
               {t('forum.posting')}
             </>
           ) : (

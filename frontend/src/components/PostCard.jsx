@@ -119,7 +119,8 @@ const PostCard = ({
               sx={{ 
                 width: 40, 
                 height: 40, 
-                mr: 2,
+                mr: 2.5,
+                ml: 2.5,
                 bgcolor: '#558b2f',
                 fontSize: '1.2rem',
                 fontWeight: 'bold',
@@ -229,6 +230,10 @@ const PostCard = ({
               fontWeight: 400,
               fontSize: '0.9rem',
               textTransform: 'none',
+              '& .MuiButton-startIcon': {
+                marginRight: 1,
+                marginLeft: 1,
+              },
               '&:hover': {
                 backgroundColor: 'rgba(25, 118, 210, 0.08)',
               },
@@ -250,6 +255,8 @@ const PostCard = ({
                 sx={{ 
                   width: 32, 
                   height: 32,
+                  mr: 1.5,
+                  ml: 1.5,
                   bgcolor: '#558b2f',
                   fontSize: '0.9rem',
                 }}

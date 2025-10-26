@@ -222,6 +222,10 @@ const GardenList = () => {
                 '&:hover': { backgroundColor: '#33691e' },
                 ml: 2,
                 whiteSpace: 'nowrap',
+                '& .MuiButton-startIcon': {
+                  marginRight: 1,
+                  marginLeft: 1,
+                },
               }}
             >
               {t('gardens.addGarden')}
