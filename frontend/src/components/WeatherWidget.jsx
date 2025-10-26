@@ -276,45 +276,60 @@ const WeatherWidget = () => {
     <Paper
       elevation={2}
       sx={{
-        p: 3,
+        p: { xs: 2, md: 3 },
         mb: 4,
-        height: 300,
+        height: { xs: 'auto', md: 300 },
+        minHeight: { xs: 250, md: 300 },
         textAlign: 'center',
         display: 'flex',
         flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
-      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: { xs: '1rem', md: '1.25rem' } }}>
         <WbSunnyIcon sx={{ mr: 1 }} /> {t('weather.title')}
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h3" sx={{ mr: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1, md: 1.5 }, flexDirection: { xs: 'column', sm: 'row' } }}>
+        <Typography variant="h3" sx={{ mr: { xs: 0, sm: 2 }, fontSize: { xs: '2rem', md: '3rem' } }}>
           {weatherData.current.temp}°C
         </Typography>
         <Box>
-          <Typography variant="body1">{weatherData.current.condition}</Typography>
-          <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography variant="body1" sx={{ fontSize: { xs: '0.875rem', md: '1rem' } }}>{weatherData.current.condition}</Typography>
+          <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
             <LocationOnIcon fontSize="small" sx={{ mr: 0.5 }} />
             {weatherData.location}
           </Typography>
         </Box>
       </Box>
-      <Typography variant="body2" sx={{ mb: 1 }}>
+      <Typography variant="body2" sx={{ mb: { xs: 0.5, md: 1 }, fontSize: { xs: '0.7rem', md: '0.75rem' } }}>
         {t('weather.feelsLike')}: {weatherData.current.feelsLike}°C | {t('weather.humidity')}: {weatherData.current.humidity}% |
         {t('weather.wind')}: {weatherData.current.wind} km/h
       </Typography>
-      <Divider sx={{ my: 2 }} />
-      <Typography variant="body2" gutterBottom>
+      <Divider sx={{ my: { xs: 0.5, md: 1 } }} />
+      <Typography variant="body2" gutterBottom sx={{ fontSize: { xs: '0.7rem', md: '0.75rem' } }}>
         {t('weather.threeDayForecast')}:
       </Typography>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', flexGrow: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', flexGrow: 1, gap: { xs: 0.5, md: 1 }, alignItems: 'flex-end' }}>
         {weatherData.forecast.map((day, index) => (
-          <Box key={index} sx={{ textAlign: 'center' }}>
-            <Typography variant="body2">{day.date}</Typography>
-            <Typography variant="body2">
+          <Box key={index} sx={{ textAlign: 'center', flex: 1, minWidth: 0, px: 0.25 }}>
+            <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>{day.date}</Typography>
+            <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
               {day.high}° / {day.low}°
             </Typography>
-            <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                fontSize: { xs: '0.7rem', md: '0.75rem' },
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word',
+                maxHeight: '3em',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+              }}
+            >
               {day.condition}
             </Typography>
           </Box>
