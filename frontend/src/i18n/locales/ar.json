@@ -82,6 +82,7 @@
     "featuredGardens": "الحدائق المميزة",
     "viewGarden": "عرض الحديقة",
     "createGarden": "إنشاء حديقة",
+    "addGarden": "إضافة حديقة",
     "gardenName": "اسم الحديقة",
     "gardenDescription": "وصف الحديقة",
     "location": "الموقع"
@@ -89,7 +90,28 @@
   "forum": {
     "title": "المنتدى",
     "exploreForum": "استكشف المنتدى",
-    "subtitle": "شارك أفكارك مع المجتمع"
+    "subtitle": "شارك أفكارك مع المجتمع",
+    "searchPlaceholder": "البحث في المنتدى...",
+    "newPost": "منشور جديد",
+    "noPostsFound": "لم يتم العثور على منشورات",
+    "tryDifferentSearchTerm": "جرب مصطلح بحث مختلف",
+    "beFirstToCreatePost": "كن أول من ينشئ منشوراً",
+    "whatsOnYourMind": "ماذا يدور في ذهنك؟",
+    "posting": "جاري النشر...",
+    "post": "نشر",
+    "edited": "تم التعديل",
+    "justNow": "الآن",
+    "comment": "تعليق",
+    "comments": "تعليقات",
+    "see": "عرض",
+    "hide": "إخفاء",
+    "writeComment": "اكتب تعليقاً...",
+    "unknownUser": "مستخدم غير معروف",
+    "editPost": "تعديل المنشور",
+    "deletePost": "حذف المنشور",
+    "readMore": "اقرأ المزيد",
+    "content": "المحتوى",
+    "deletePostConfirmation": "هل أنت متأكد من حذف هذا المنشور؟ لا يمكن التراجع عن هذا الإجراء."
   },
   "tasks": {
     "title": "المهام",
