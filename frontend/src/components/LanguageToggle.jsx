@@ -33,6 +33,12 @@ const LanguageToggle = () => {
       nativeName: 'Türkçe',
       flag: '🇹🇷',
     },
+    {
+      code: 'ar',
+      name: 'Arabic',
+      nativeName: 'العربية',
+      flag: '🇸🇦',
+    },
   ];
 
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];

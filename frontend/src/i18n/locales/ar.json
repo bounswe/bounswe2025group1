@@ -1,0 +1,121 @@
+{
+  "common": {
+    "loading": "جارٍ التحميل...",
+    "error": "خطأ",
+    "success": "نجاح",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "search": "بحث",
+    "filter": "تصفية",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "close": "إغلاق",
+    "submit": "إرسال",
+    "reset": "إعادة تعيين"
+  },
+  "navigation": {
+    "home": "الرئيسية",
+    "gardens": "الحدائق",
+    "forum": "المنتدى",
+    "profile": "الملف الشخصي",
+    "login": "تسجيل الدخول",
+    "register": "التسجيل",
+    "logout": "تسجيل الخروج",
+    "loggedOut": "تم تسجيل خروجك.",
+    "dashboard": "لوحة التحكم",
+    "userSettings": "إعدادات المستخدم"
+  },
+  "language": {
+    "english": "الإنجليزية",
+    "turkish": "التركية",
+    "arabic": "العربية",
+    "hebrew": "العبرية",
+    "languageSelector": "اختر اللغة",
+    "currentLanguage": "اللغة الحالية: {{language}}"
+  },
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "subtitle": "مرحباً بعودتك إلى منسق حدائق المجتمع",
+      "email": "البريد الإلكتروني",
+      "username": "اسم المستخدم",
+      "password": "كلمة المرور",
+      "rememberMe": "تذكرني",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "signInButton": "تسجيل الدخول",
+      "noAccount": "ليس لديك حساب؟",
+      "signUpLink": "سجل هنا",
+      "loginFailed": "فشل تسجيل الدخول",
+      "welcomeBack": "مرحباً بعودتك!",
+      "failedToLogin": "فشل تسجيل الدخول"
+    },
+    "register": {
+      "title": "إنشاء حساب",
+      "subtitle": "انضم إلى مجتمعنا",
+      "email": "البريد الإلكتروني",
+      "username": "اسم المستخدم",
+      "password": "كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "signUpButton": "التسجيل",
+      "hasAccount": "لديك حساب بالفعل؟",
+      "signInLink": "سجل الدخول هنا"
+    }
+  },
+  "home": {
+    "welcome": "مرحباً{{username}} في منسق حدائق المجتمع!",
+    "welcomeGuest": "مرحباً بك في منسق حدائق المجتمع!",
+    "subtitle": "نظراً للمليارات من السنين، وصل الإنسان إلى القمر.",
+    "joinCommunity": "انضم إلى المجتمع",
+    "aboutTitle": "حول منسق حدائق المجتمع",
+    "aboutDescription": "منصتنا تساعد المجتمعات على إدارة الحدائق المشتركة بكفاءة.",
+    "createFirstGarden": "أنشئ حديقتك الأولى"
+  },
+  "gardens": {
+    "title": "الحدائق",
+    "noGardensYet": "لا توجد حدائق حتى الآن",
+    "noGardensAvailable": "لا توجد حدائق متاحة حالياً",
+    "myGardens": "حدائقي",
+    "featuredGardens": "الحدائق المميزة",
+    "viewGarden": "عرض الحديقة",
+    "createGarden": "إنشاء حديقة",
+    "gardenName": "اسم الحديقة",
+    "gardenDescription": "وصف الحديقة",
+    "location": "الموقع"
+  },
+  "forum": {
+    "title": "المنتدى",
+    "exploreForum": "استكشف المنتدى",
+    "subtitle": "شارك أفكارك مع المجتمع"
+  },
+  "tasks": {
+    "title": "المهام",
+    "noTasksYet": "لا توجد مهام حتى الآن",
+    "pleaseLogIn": "يرجى تسجيل الدخول لعرض المهام",
+    "logIn": "تسجيل الدخول",
+    "pending": "قيد الانتظار",
+    "in_progress": "قيد التنفيذ",
+    "completed": "مكتمل",
+    "declined": "مرفوض",
+    "due": "مستحق",
+    "unassigned": "غير مُسند",
+    "details": "التفاصيل",
+    "taskCalendar": "تقويم المهام"
+  },
+  "profile": {
+    "edit": "تعديل",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "loading": "جاري التحميل...",
+    "error": "خطأ في تحميل الملف الشخصي",
+    "noGardensYet": "لا توجد حدائق حتى الآن",
+    "followers": "المتابعون",
+    "following": "المتابَع",
+    "noFollowers": "لا يوجد متابعون",
+    "noFollowing": "لا تتابع أحداً"
+  }
+}
+
