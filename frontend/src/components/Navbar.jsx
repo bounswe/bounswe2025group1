@@ -179,7 +179,8 @@ function Navbar() {
                 },
               }}
             >
-              <YardIcon sx={{ mr: 1, fontSize: 28, color: '#ffffff' }} />
+              <YardIcon sx={{ fontSize: 28, color: '#ffffff' }} />
+              <Box sx={{ ml: 1 }} />
               <span style={{ borderBottom: '2px solid rgba(255,255,255,0.7)' }}>
                 Community Garden Planner
               </span>
@@ -223,7 +224,9 @@ function Navbar() {
               alignItems: 'center',
             }}
           >
-            <YardIcon sx={{ mr: 1, fontSize: 24 }} /> CGP
+            <YardIcon sx={{ fontSize: 24 }} />
+            <Box sx={{ width: 8 }} />
+            CGP
           </Typography>
 
           {/* Desktop menu */}

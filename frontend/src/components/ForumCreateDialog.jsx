@@ -132,7 +132,9 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
         id="forum-create-title"
         sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}
       >
-        <ForumIcon sx={{ mr: 1 }} /> {t('forum.createPost')}
+        <ForumIcon />
+        <Box component="span" sx={{ ml: 1 }} />
+        {t('forum.createPost')}
       </DialogTitle>
 
       <DialogContent>

@@ -193,7 +193,9 @@ const WeatherWidget = () => {
         }}
       >
         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-          <WbSunnyIcon sx={{ mr: 1 }} /> {t('weather.title')}
+          <WbSunnyIcon />
+          <Box component="span" sx={{ ml: 1 }} />
+          {t('weather.title')}
         </Typography>
         <Alert severity="info" sx={{ mb: 2 }}>
           {error || 'Weather data requires location access'}
@@ -231,7 +233,9 @@ const WeatherWidget = () => {
           gutterBottom
           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <WbSunnyIcon sx={{ mr: 1 }} /> {t('weather.title')}
+          <WbSunnyIcon />
+          <Box component="span" sx={{ ml: 1 }} />
+          {t('weather.title')}
         </Typography>
         <Typography variant="body1" sx={{ mb: 2 }}>
           {t('weather.description')}
@@ -287,7 +291,9 @@ const WeatherWidget = () => {
       }}
     >
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: { xs: '1rem', md: '1.25rem' } }}>
-        <WbSunnyIcon sx={{ mr: 1 }} /> {t('weather.title')}
+        <WbSunnyIcon />
+        <Box sx={{ ml: 1 }} />
+        {t('weather.title')}
       </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1, md: 1.5 }, flexDirection: { xs: 'column', sm: 'row' } }}>
         <Typography variant="h3" sx={{ mr: { xs: 0, sm: 2 }, fontSize: { xs: '2rem', md: '3rem' } }}>
@@ -296,7 +302,8 @@ const WeatherWidget = () => {
         <Box>
           <Typography variant="body1" sx={{ fontSize: { xs: '0.875rem', md: '1rem' } }}>{weatherData.current.condition}</Typography>
           <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
-            <LocationOnIcon fontSize="small" sx={{ mr: 0.5 }} />
+            <LocationOnIcon fontSize="small" />
+            <Box component="span" sx={{ mx: 0.5 }} />
             {weatherData.location}
           </Typography>
         </Box>

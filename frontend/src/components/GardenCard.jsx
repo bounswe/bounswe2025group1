@@ -82,8 +82,8 @@ const GardenCard = ({ garden, variant = 'default' }) => {
             : garden.description}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <LocationOnIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-          <Typography variant="body2" color="text.secondary">
+          <LocationOnIcon fontSize="small" color="action" />
+          <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
             {translateLocationString(garden.location, i18n.language)}
           </Typography>
         </Box>
