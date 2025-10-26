@@ -190,8 +190,18 @@ const Tasks = () => {
   return (
     <>
       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: 3 }}>
-          <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+        <Container maxWidth="lg" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 2, sm: 3 } }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: '1fr',
+                md: '1fr 2fr',
+              },
+              gap: { xs: 2, md: 2 },
+            }}
+          >
             <WeatherWidget />
             <TaskList
               tasks={tasks}
@@ -201,7 +211,15 @@ const Tasks = () => {
             />
           </Box>
           <Box>
-            <Typography variant="h4" sx={{ mt: 1, mb: 2, color: theme.palette.primary.main }}>
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                mt: { xs: 2, md: 3 }, 
+                mb: { xs: 1.5, md: 2 }, 
+                color: theme.palette.primary.main,
+                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+              }}
+            >
               {t('tasks.taskCalendar')}
             </Typography>
             <CalendarTab tasks={tasks} handleTaskClick={handleTaskClick} />

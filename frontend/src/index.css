@@ -60,8 +60,8 @@ html {
 }
 
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1.2;
 }
 
 button {
@@ -75,6 +75,15 @@ button {
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Responsive button sizing */
+@media (max-width: 600px) {
+  button {
+    font-size: 0.95em;
+    padding: 0.55em 1em;
+  }
+}
+
 button:hover {
   border-color: #646cff;
   transform: translateY(-1px);
@@ -153,4 +162,63 @@ button:focus-visible {
 /* Small utility so content isn't hidden beneath the thumb */
 .nice-scroll {
   padding-right: 4px;
+}
+
+/* Responsive and accessible image scaling */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Ensure text wrapping for accessibility (200% zoom support) */
+* {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Responsive typography scaling */
+@media (min-width: 1200px) {
+  html {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 0.9rem;
+  }
+}
+
+/* Orientation support for landscape/portrait */
+@media (orientation: landscape) and (max-height: 600px) {
+  html {
+    font-size: 0.9rem;
+  }
+}
+
+/* Ensure containers don't overflow on zoom */
+.container,
+.container-fluid {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Prevent text truncation at higher zoom levels */
+.MuiTypography-root {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 600px) {
+  .MuiGrid-item {
+    padding: 8px !important;
+  }
 }

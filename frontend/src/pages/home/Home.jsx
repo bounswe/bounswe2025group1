@@ -15,13 +15,13 @@ const Home = () => {
 
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: 3 }}>
+      <Container maxWidth="lg" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 2, sm: 3 } }}>
         {/* Welcome Banner */}
         <Paper
           elevation={3}
           sx={{
-            p: 4,
-            mb: 5,
+            p: { xs: 2, sm: 3, md: 4 },
+            mb: { xs: 3, md: 5 },
             background: theme.palette.custom?.buttonGradient || `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
             color: theme.palette.primary.contrastText,
             border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
@@ -46,7 +46,7 @@ const Home = () => {
           )}
         </Paper>
 
-        <Grid container spacing={4} sx={{ mb: 4 }}>
+        <Grid container spacing={{ xs: 2, md: 4 }} sx={{ mb: 4 }}>
           <Grid size={{ xs: 12 }}>
             <GardensPreview limit={2} />
           </Grid>
@@ -65,8 +65,8 @@ const Home = () => {
           <Paper 
             elevation={1} 
             sx={{ 
-              mt: 6, 
-              p: 4,
+              mt: { xs: 4, md: 6 }, 
+              p: { xs: 2, sm: 3, md: 4 },
               backgroundColor: theme.palette.background.paper,
               border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
                 ? '2px solid #000000' 

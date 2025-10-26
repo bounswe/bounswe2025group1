@@ -61,9 +61,10 @@ const TaskList = ({
     <Paper
       elevation={2}
       sx={{
-        p: 3,
-        mb: 4,
-        height: 300,
+        p: { xs: 2, sm: 3 },
+        mb: { xs: 3, md: 4 },
+        height: { xs: 'auto', sm: 300 },
+        minHeight: { xs: 250, sm: 300 },
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',

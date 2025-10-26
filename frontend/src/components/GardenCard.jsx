@@ -57,7 +57,19 @@ const GardenCard = ({ garden, variant = 'default' }) => {
 
   return (
     <Card sx={cardStyles[variant]}>
-      <CardMedia component="img" height={imageHeight} image={getImageSrc()} alt={garden.name} />
+      <CardMedia 
+        component="img" 
+        height={imageHeight} 
+        image={getImageSrc()} 
+        alt={garden.name}
+        sx={{
+          width: '100%',
+          height: 'auto',
+          maxHeight: `${imageHeight}px`,
+          objectFit: 'cover',
+          display: 'block',
+        }}
+      />
       <CardContent sx={{ flexGrow: 1, pt: 2 }}>
         <Typography gutterBottom variant="h6" component="h2">
           {garden.name}
