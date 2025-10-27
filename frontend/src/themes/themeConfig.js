@@ -3,34 +3,74 @@ import { createTheme } from '@mui/material/styles';
 // Base theme configuration shared across all themes
 const baseTheme = {
   typography: {
-    fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
+    fontFamily: "'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    h1: {
+      fontWeight: 700,
+      letterSpacing: '-0.02em',
+    },
+    h2: {
+      fontWeight: 700,
+      letterSpacing: '-0.02em',
+    },
+    h3: {
+      fontWeight: 700,
+      letterSpacing: '-0.01em',
+    },
     h4: {
       fontWeight: 600,
+      letterSpacing: '-0.01em',
     },
     h5: {
+      fontWeight: 600,
+      letterSpacing: '-0.01em',
+    },
+    h6: {
+      fontWeight: 600,
+      letterSpacing: '-0.01em',
+    },
+    body1: {
+      fontWeight: 400,
+    },
+    body2: {
+      fontWeight: 400,
+    },
+    button: {
       fontWeight: 500,
+      letterSpacing: '0.01em',
     },
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 6,
+          borderRadius: 12,
           textTransform: 'none',
+          fontSize: '0.9375rem',
+          fontWeight: 500,
+          padding: '10px 24px',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)',
+          '&:hover': {
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
+            transform: 'translateY(-1px)',
+          },
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 16,
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 16,
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         },
       },
     },
@@ -51,6 +91,31 @@ const baseTheme = {
       styleOverrides: {
         root: {
           width: '100%',
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 12,
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          },
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          fontWeight: 500,
+        },
+      },
+    },
+    MuiAvatar: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
         },
       },
     },
@@ -211,11 +276,18 @@ export const highContrastTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 6,
+          borderRadius: 12,
           textTransform: 'none',
+          fontSize: '0.9375rem',
+          fontWeight: 600,
+          padding: '10px 24px',
           border: '2px solid #000000',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)',
           '&:hover': {
             backgroundColor: '#f0f0f0',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
+            transform: 'translateY(-1px)',
           },
           '&:focus': {
             outline: '3px solid #ffff00',
@@ -228,6 +300,8 @@ export const highContrastTheme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
+            borderRadius: 12,
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             '& fieldset': {
               borderColor: '#000000',
               borderWidth: '2px',
@@ -246,16 +320,19 @@ export const highContrastTheme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 16,
           border: '2px solid #000000',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 16,
           border: '2px solid #000000',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         },
       },
     },

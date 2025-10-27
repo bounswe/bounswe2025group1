@@ -132,7 +132,9 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
         id="forum-create-title"
         sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}
       >
-        <ForumIcon sx={{ mr: 1 }} /> {t('forum.createPost')}
+        <ForumIcon />
+        <Box component="span" sx={{ ml: 1 }} />
+        {t('forum.createPost')}
       </DialogTitle>
 
       <DialogContent>
@@ -203,7 +205,7 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 3 }}>
+      <DialogActions sx={{ p: 3, gap: 2 }}>
         <Button 
           onClick={handleClose} 
           variant="outlined"
@@ -235,7 +237,7 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
         >
           {loading ? (
             <>
-              <CircularProgress size={20} sx={{ mr: 1 }} />
+              <CircularProgress size={20} sx={{ mr: 1.5, ml: 1.5 }} />
               {t('forum.posting')}
             </>
           ) : (

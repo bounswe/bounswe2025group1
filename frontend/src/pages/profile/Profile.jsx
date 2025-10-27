@@ -634,6 +634,9 @@ const Profile = () => {
                               <Box
                                 ref={(el) => (gardenRefs.current[index] = el)}
                                 sx={{
+                                  height: '100%',
+                                  display: 'flex',
+                                  flexDirection: 'column',
                                   '&:focus': {
                                     outline: '2px solid #558b2f',
                                     outlineOffset: '2px',

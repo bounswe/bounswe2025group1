@@ -176,20 +176,20 @@ const GardenList = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="lg" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 2, sm: 3 } }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: { xs: 3, md: 4 } }}>
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
           {t('gardens.title')}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph>
           {t('gardens.subtitle')}
         </Typography>
-        <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: { xs: 1, md: 2 } }} />
       </Box>
 
       {/* Search and Filter */}
-      <Paper elevation={1} sx={{ p: 2, mb: 4 }}>
+      <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 3, md: 4 } }}>
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
@@ -222,6 +222,10 @@ const GardenList = () => {
                 '&:hover': { backgroundColor: '#33691e' },
                 ml: 2,
                 whiteSpace: 'nowrap',
+                '& .MuiButton-startIcon': {
+                  marginRight: 1,
+                  marginLeft: 1,
+                },
               }}
             >
               {t('gardens.addGarden')}
@@ -231,7 +235,7 @@ const GardenList = () => {
       </Paper>
 
       {/* Garden List */}
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
         {filteredGardens.length > 0 ? (
           filteredGardens.map((garden) => (
             <Grid key={garden.id} size={{ xs: 12, sm: 6, md: 4 }}>
@@ -253,7 +257,10 @@ const GardenList = () => {
                   alt={garden.name}
                   sx={{
                     width: '100%',
-                    height: 180,
+                    height: { xs: 160, sm: 180 },
+                    maxHeight: 180,
+                    objectFit: 'cover',
+                    display: 'block',
                   }}
                 />
 

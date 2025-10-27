@@ -93,7 +93,9 @@ const ForumPreview = ({ limit = 3, showViewAll = true }) => {
   return (
     <Paper elevation={2} sx={{ p: 3, height: 300, display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-        <ForumIcon sx={{ mr: 1 }} /> {t('forum.title')}
+        <ForumIcon />
+        <Box sx={{ ml: 1 }} />
+        {t('forum.title')}
       </Typography>
 
       {displayPosts.length > 0 ? (

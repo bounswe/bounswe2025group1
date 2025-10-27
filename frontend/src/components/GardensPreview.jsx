@@ -140,9 +140,21 @@ const GardensPreview = ({ limit = 2 }) => {
       <Typography variant="h5" gutterBottom>
         {token ? t('gardens.myGardens') : t('gardens.featuredGardens')}
       </Typography>
-      <Box display="flex" justifyContent="center" gap={2}>
+      <Box 
+        display="flex" 
+        justifyContent="center" 
+        gap={2}
+        sx={{
+          flexWrap: 'wrap',
+          '& > *': {
+            flex: '1 1 auto',
+            minWidth: { xs: '100%', sm: '280px' },
+            maxWidth: { xs: '100%', sm: '350px' },
+          },
+        }}
+      >
         {gardens.slice(0, limit).map((garden) => (
-          <Box key={garden.id} width="300px">
+          <Box key={garden.id}>
             <GardenCard
               garden={{ ...garden, image: `/gardens/garden${garden.id % 5}.png` }}
               variant="compact"

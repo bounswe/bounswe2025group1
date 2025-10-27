@@ -262,7 +262,9 @@ const ForumList = () => {
           variant="h4"
           sx={{ fontWeight: 'bold', color: '#2e7d32', display: 'flex', alignItems: 'center', mb: 2 }}
         >
-          <ForumIcon sx={{ mr: 1 }} /> {t('forum.title')}
+          <ForumIcon />
+          <Box sx={{ ml: 2 }} />
+          {t('forum.title')}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph sx={{ textAlign: 'left' }}>
           {t('forum.subtitle')}
@@ -339,6 +341,10 @@ const ForumList = () => {
                   ml: 2,
                   bgcolor: '#558b2f',
                   '&:hover': { bgcolor: '#33691e' },
+                  '& .MuiButton-startIcon': {
+                    marginRight: 1,
+                    marginLeft: 1,
+                  },
                   '&:focus': {
                     outline: '2px solid #558b2f',
                     outlineOffset: '2px',

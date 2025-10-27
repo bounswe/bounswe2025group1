@@ -57,7 +57,19 @@ const GardenCard = ({ garden, variant = 'default' }) => {
 
   return (
     <Card sx={cardStyles[variant]}>
-      <CardMedia component="img" height={imageHeight} image={getImageSrc()} alt={garden.name} />
+      <CardMedia 
+        component="img" 
+        height={imageHeight} 
+        image={getImageSrc()} 
+        alt={garden.name}
+        sx={{
+          width: '100%',
+          height: 'auto',
+          maxHeight: `${imageHeight}px`,
+          objectFit: 'cover',
+          display: 'block',
+        }}
+      />
       <CardContent sx={{ flexGrow: 1, pt: 2 }}>
         <Typography gutterBottom variant="h6" component="h2">
           {garden.name}
@@ -70,8 +82,8 @@ const GardenCard = ({ garden, variant = 'default' }) => {
             : garden.description}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <LocationOnIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-          <Typography variant="body2" color="text.secondary">
+          <LocationOnIcon fontSize="small" color="action" />
+          <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
             {translateLocationString(garden.location, i18n.language)}
           </Typography>
         </Box>

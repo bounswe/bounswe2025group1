@@ -166,18 +166,21 @@ function Navbar() {
               href="/"
               sx={{
                 mr: 2,
-                fontFamily: 'monospace',
+                fontFamily: "'Inter', sans-serif",
                 fontWeight: 700,
+                letterSpacing: '-0.02em',
                 color: 'inherit',
                 textDecoration: 'none',
                 display: 'flex',
                 alignItems: 'center',
+                transition: 'opacity 0.2s ease',
                 '&:hover': {
-                  color: 'inherit',
+                  opacity: 0.9,
                 },
               }}
             >
-              <YardIcon sx={{ mr: 1, fontSize: 28, color: '#ffffff' }} />
+              <YardIcon sx={{ fontSize: 28, color: '#ffffff' }} />
+              <Box sx={{ ml: 1 }} />
               <span style={{ borderBottom: '2px solid rgba(255,255,255,0.7)' }}>
                 Community Garden Planner
               </span>
@@ -213,14 +216,17 @@ function Navbar() {
             sx={{
               flexGrow: 1,
               display: { xs: 'flex', md: 'none' },
-              fontFamily: 'monospace',
+              fontFamily: "'Inter', sans-serif",
               fontWeight: 700,
+              letterSpacing: '-0.02em',
               color: 'inherit',
               textDecoration: 'none',
               alignItems: 'center',
             }}
           >
-            <YardIcon sx={{ mr: 1, fontSize: 24 }} /> CGP
+            <YardIcon sx={{ fontSize: 24 }} />
+            <Box sx={{ width: 8 }} />
+            CGP
           </Typography>
 
           {/* Desktop menu */}
@@ -236,11 +242,14 @@ function Navbar() {
                   color: 'white',
                   display: 'flex',
                   alignItems: 'center',
-                  borderRadius: '8px',
-                  padding: '6px 16px',
+                  borderRadius: '10px',
+                  padding: '8px 16px',
                   position: 'relative',
+                  fontWeight: 500,
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    transform: 'translateY(-1px)',
                   },
                   '&:focus': {
                     outline: '2px solid white',
@@ -372,9 +381,12 @@ function Navbar() {
                 sx={{
                   borderColor: 'white',
                   color: 'white',
+                  fontWeight: 500,
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
                     borderColor: 'white',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    transform: 'translateY(-1px)',
                   },
                   '&:focus': {
                     outline: '2px solid white',
@@ -391,9 +403,12 @@ function Navbar() {
                 sx={{
                   borderColor: 'white',
                   color: 'white',
+                  fontWeight: 500,
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
                     borderColor: 'white',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    transform: 'translateY(-1px)',
                   },
                   '&:focus': {
                     outline: '2px solid white',

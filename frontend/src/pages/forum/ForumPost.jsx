@@ -370,7 +370,7 @@ const ForumPost = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, width: '100%' }}>
               <Avatar 
                 src={post.author_profile_picture || '/default-avatar.png'}
-                sx={{ bgcolor: '#558b2f', width: 40, height: 40, mr: 2, flexShrink: 0 }}
+                sx={{ bgcolor: '#558b2f', width: 40, height: 40, mr: 2.5, ml: 2.5, flexShrink: 0 }}
               >
                 {post.author_username && post.author_username.charAt(0)}
               </Avatar>
@@ -412,7 +412,14 @@ const ForumPost = () => {
                     variant="outlined"
                     startIcon={<AddCommentIcon />}
                     onClick={() => setShowInlineComment(!showInlineComment)}
-                    sx={{ color: '#558b2f', borderColor: '#558b2f' }}
+                    sx={{ 
+                      color: '#558b2f', 
+                      borderColor: '#558b2f',
+                      '& .MuiButton-startIcon': {
+                        marginRight: 1,
+                        marginLeft: 1,
+                      },
+                    }}
                   >
                     {showInlineComment ? t('common.cancel') : t('forum.addComment')}
                   </Button>
@@ -420,7 +427,13 @@ const ForumPost = () => {
                     variant="text"
                     startIcon={<AddCommentIcon />}
                     onClick={() => setCommentDialogOpen(true)}
-                    sx={{ color: '#558b2f' }}
+                    sx={{ 
+                      color: '#558b2f',
+                      '& .MuiButton-startIcon': {
+                        marginRight: 1,
+                        marginLeft: 1,
+                      },
+                    }}
                   >
                     {t('forum.dialog')}
                   </Button>
@@ -508,7 +521,7 @@ const ForumPost = () => {
               <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
                 <Avatar 
                   src={comment.author_profile_picture || '/default-avatar.png'}
-                  sx={{ bgcolor: '#8bc34a', width: 32, height: 32, mr: 2 }}
+                  sx={{ bgcolor: '#8bc34a', width: 32, height: 32, mr: 2, ml: 2 }}
                 >
                   {comment.author_username && comment.author_username.charAt(0)}
                 </Avatar>
