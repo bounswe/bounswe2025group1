@@ -44,8 +44,8 @@ const TaskModal = ({
     title: '',
     description: '',
     status: 'PENDING',
-    assigned_to: null,
-    custom_type: null,
+    assigned_to: "",
+    custom_type: "",
     garden: parseInt(gardenId),
     ...(task || {}),
   });
@@ -77,7 +77,6 @@ const TaskModal = ({
         .map((member) => ({ id: member.user_id, name: member.username }));
       setGardenMembers(formattedMembers);
       setLoadingMembers(false);
-      return;
     }
 
     // Fallback: fetch members if not provided
@@ -151,7 +150,7 @@ const TaskModal = ({
 
     fetchGardenMembers();
     fetchCustomTaskTypes();
-  }, [gardenId, token, members]);
+  }, [gardenId, token, members, t]);
 
   // Update the form state whenever task changes
   useEffect(() => {
@@ -254,9 +253,7 @@ const TaskModal = ({
       custom_type:
         updatedForm.custom_type === 'new'
           ? null
-          : updatedForm.custom_type === 'No Type'
-          ? null
-          : updatedForm.custom_type,
+          : updatedForm.custom_type || null,
     };
 
     onSubmit(finalForm);
@@ -357,6 +354,7 @@ const TaskModal = ({
               <MenuItem value="PENDING">{t('tasks.pending')}</MenuItem>
               <MenuItem value="IN_PROGRESS">{t('tasks.inProgress')}</MenuItem>
               <MenuItem value="COMPLETED">{t('tasks.completed')}</MenuItem>
+              <MenuItem value="DECLINED">{t('tasks.declined')}</MenuItem>
             </Select>
           </FormControl>
 
@@ -418,9 +416,6 @@ const TaskModal = ({
                 onChange={handleFormChange}
                 input={<OutlinedInput label="Task Type" />}
               >
-                <MenuItem value="No Type">
-                  <em>{t('tasks.noType')}</em>
-                </MenuItem>
                 {customTaskTypes.map((type) => (
                   <MenuItem key={type.id} value={type.id}>
                     {type.name}
