@@ -23,6 +23,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import GardenCard from '../../components/GardenCard';
+import DirectMessageButton from '../../components/DirectMessageButton';
 import React from 'react';
 import { createButtonKeyboardHandler, createLinkKeyboardHandler, createRovingTabindex } from '../../utils/keyboardNavigation';
 import LocationPicker from '../../components/LocationPicker';
@@ -414,23 +415,29 @@ const Profile = () => {
             </Typography>
 
             {!isOwnProfile && (
-              <Button
-                variant={isFollowing ? 'outlined' : 'contained'}
-                color={isFollowing ? 'error' : 'primary'}
-                startIcon={isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
-                onClick={handleFollowToggle}
-                onKeyDown={createButtonKeyboardHandler(handleFollowToggle)}
-                sx={{ 
-                  mb: 2,
-                  '&:focus': {
-                    outline: '2px solid #558b2f',
-                    outlineOffset: '2px',
-                  },
-                }}
-                aria-label={isFollowing ? t('profile.unfollowUser') : t('profile.followUser')}
-              >
-                {isFollowing ? t('profile.unfollow') : t('profile.follow')}
-              </Button>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                <Button
+                  variant={isFollowing ? 'outlined' : 'contained'}
+                  color={isFollowing ? 'error' : 'primary'}
+                  startIcon={isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
+                  onClick={handleFollowToggle}
+                  onKeyDown={createButtonKeyboardHandler(handleFollowToggle)}
+                  sx={{ 
+                    '&:focus': {
+                      outline: '2px solid #558b2f',
+                      outlineOffset: '2px',
+                    },
+                  }}
+                  aria-label={isFollowing ? t('profile.unfollowUser') : t('profile.followUser')}
+                >
+                  {isFollowing ? t('profile.unfollow') : t('profile.follow')}
+                </Button>
+                <DirectMessageButton 
+                  targetUserId={parseInt(userId)}
+                  variant="contained"
+                  size="medium"
+                />
+              </Box>
             )}
 
             {isOwnProfile && !isEditing && (

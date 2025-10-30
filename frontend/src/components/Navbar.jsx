@@ -106,7 +106,7 @@ function Navbar() {
         position: 'top-right',
         theme: 'colored',
       });
-      setTimeout(() => navigate('/'), 2000);
+      navigate('/')
     } else if (path) {
       navigate(path);
     }
