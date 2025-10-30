@@ -128,12 +128,62 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError("You already have a membership or request pending for this garden.")
 
         serializer.save(user=user)
+    
+    def perform_update(self, serializer):
+        """Update membership and sync chat members if status changes to ACCEPTED"""
+        old_status = serializer.instance.status
+        membership = serializer.save()
+        
+        # If membership was just accepted, sync chat members
+        if old_status != 'ACCEPTED' and membership.status == 'ACCEPTED':
+            self._sync_garden_chat_members(membership.garden.id)
+    
+    def perform_destroy(self, instance):
+        """Remove membership and sync chat members"""
+        garden_id = instance.garden.id
+        instance.delete()
+        self._sync_garden_chat_members(garden_id)
+    
+    def _sync_garden_chat_members(self, garden_id):
+        """Sync garden chat members with accepted memberships"""
+        try:
+            from chat.firebase_config import get_firestore_client
+            from google.cloud.firestore import SERVER_TIMESTAMP
+            
+            db = get_firestore_client()
+            if not db:
+                return
+            
+            # Get all accepted members
+            accepted_memberships = GardenMembership.objects.filter(
+                garden_id=garden_id,
+                status='ACCEPTED'
+            ).select_related('user')
+            
+            member_uids = [f"django_{m.user.id}" for m in accepted_memberships]
+            
+            # Update chat document
+            chat_ref = db.collection('chats').document(f'garden_{garden_id}')
+            chat_doc = chat_ref.get()
+            
+            if chat_doc.exists:
+                chat_ref.update({
+                    'members': member_uids,
+                    'updatedAt': SERVER_TIMESTAMP
+                })
+                print(f"Synced chat members for garden {garden_id}: {len(member_uids)} members")
+        except Exception as e:
+            print(f"Warning: Could not sync garden chat members: {e}")
         
     @action(detail=True, methods=['post'], url_path='accept')
     def accept(self, request, pk=None):
         membership = self.get_object()
         membership.status = 'ACCEPTED'
         membership.save()
+        
+        # Sync chat members after accepting
+        self._sync_garden_chat_members(membership.garden.id)
+        
         return Response({'status': 'Membership accepted'})
         
     @action(detail=False, methods=['get'], url_path='my-gardens')
