@@ -65,6 +65,37 @@ class GardenViewSet(viewsets.ModelViewSet):
             role='MANAGER',
             status='ACCEPTED'
         )
+        
+        # Create a chat for this garden in Firebase
+        try:
+            from chat.firebase_config import get_firestore_client
+            from google.cloud.firestore import SERVER_TIMESTAMP
+            
+            db = get_firestore_client()
+            if db:
+                # Create Firebase UID for the creator
+                firebase_uid = f"django_{self.request.user.id}"
+                
+                # Create chat document
+                chat_ref = db.collection('chats').document(f'garden_{garden.id}')
+                chat_data = {
+                    'type': 'group',
+                    'gardenId': str(garden.id),
+                    'groupName': garden.name,
+                    'members': [firebase_uid],  # Creator is the first member
+                    'createdAt': SERVER_TIMESTAMP,
+                    'updatedAt': SERVER_TIMESTAMP,
+                    'lastMessage': {
+                        'text': 'Garden chat created',
+                        'createdAt': SERVER_TIMESTAMP,
+                        'senderId': 'system'
+                    }
+                }
+                chat_ref.set(chat_data)
+                print(f"Garden chat created for garden: {garden.name} (ID: {garden.id})")
+        except Exception as e:
+            # Don't fail garden creation if chat creation fails
+            print(f"Warning: Could not create garden chat: {e}")
 
     @action(detail=True, methods=['get'], url_path='members')
     def members(self, request, pk=None):
