@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getMessaging } from 'firebase/messaging';
 
 // Firebase configuration - these should be stored in environment variables
 const firebaseConfig = {
@@ -11,16 +12,19 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 // Initialize Firebase
 let app;
 let db;
+let messaging;
 
 try {
   app = initializeApp(firebaseConfig);
   db = getFirestore(app);
+  messaging = getMessaging(app);
   console.log('Firebase initialized successfully');
 } catch (error) {
   console.error('Error initializing Firebase:', error);
 }
 
-export { app, db };
+export { app, db, messaging, VAPID_KEY };

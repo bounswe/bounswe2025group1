@@ -5,7 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from ..models import Notification
-from ..serializers import NotificationSerializer
+from ..serializers import NotificationSerializer, GCMDeviceSerializer
+from push_notifications.models import GCMDevice
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -38,4 +39,32 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         """Marks all of the user's notifications as read."""
         self.get_queryset().update(read=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
+
+class GCMDeviceViewSet(viewsets.ModelViewSet):
+    """
+    A ViewSet for registering and un-registering GCM devices.
+    """
+    queryset = GCMDevice.objects.all()
+    serializer_class = GCMDeviceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        registration_id = serializer.validated_data['registration_id']
+
+        # This links the device to the logged-in user
+        # Use update_or_create to link the device to the logged-in user
+        GCMDevice.objects.update_or_create(
+            user=request.user,
+            registration_id=registration_id,
+            defaults={
+                'active': True,
+            }
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -2,14 +2,30 @@ import { Container, Typography, Box, Grid, Button, Paper, useTheme } from '@mui/
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { useTranslation } from 'react-i18next';
+import React, { useEffect } from 'react';
+
 import WeatherWidget from '../../components/WeatherWidget';
 import ForumPreview from '../../components/ForumPreview';
 import GardensPreview from '../../components/GardensPreview';
 import TaskWidget from '../../components/TaskWidget';
 
+import { registerForPushNotifications, setupForegroundMessageListener } from '../../utils/notificationUtils';
+
 const Home = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth ? auth.user : null;
+
+  useEffect(() => {
+    // Only run if 'auth' is not null AND 'auth.token' exists
+    if (auth && auth.token) {
+      console.log("User is logged in, registering for push notifications...");
+      
+      registerForPushNotifications(auth.token); // Pass the token
+      setupForegroundMessageListener();
+    }
+  }, [auth]);
+
   const navigate = useNavigate();
   const theme = useTheme();
 

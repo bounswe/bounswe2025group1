@@ -1,6 +1,7 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from .models import Notification, NotificationCategory, Task, Profile, Comment
+from push_notifications.models import GCMDevice
 
 @receiver(post_save, sender=Task)
 def task_update_notification(sender, instance, created, **kwargs):
@@ -23,6 +24,16 @@ def task_update_notification(sender, instance, created, **kwargs):
         category=NotificationCategory.TASK,
     )
 
+    devices = GCMDevice.objects.filter(user=instance.assigned_to, active=True)
+    devices.send_message(
+        message=None,  # Set this to None to force data-only
+        extra={
+            "data_title": "Task Update",      # Move title here
+            "data_body": message,             # Move body here
+            "type": "TASK_UPDATE",
+        }
+    )
+
 @receiver(m2m_changed, sender=Profile.following.through)
 def new_follower_notification(sender, instance, action, pk_set, **kwargs):
     """
@@ -43,6 +54,16 @@ def new_follower_notification(sender, instance, action, pk_set, **kwargs):
             recipient=recipient_user,
             message=message,
             category=NotificationCategory.SOCIAL,
+        )
+
+        devices = GCMDevice.objects.filter(user=recipient_user, active=True)
+        devices.send_message(
+            message=None,  # Set this to None to force data-only
+            extra={
+                "data_title": "New Follower",      # Move title here
+                "data_body": message,             # Move body here
+                "type": "NEW_FOLLOWER",
+            }
         )
 
 @receiver(post_save, sender=Comment)
@@ -70,3 +91,12 @@ def new_comment_notification(sender, instance, created, **kwargs):
         category=NotificationCategory.FORUM,
     )
 
+    devices = GCMDevice.objects.filter(user=post_author, active=True)
+    devices.send_message(
+        message=None,  # Set this to None to force data-only
+        extra={
+            "data_title": "New Comment",      # Move title here
+            "data_body": message,             # Move body here
+            "type": "NEW_COMMENT",
+        }
+    )

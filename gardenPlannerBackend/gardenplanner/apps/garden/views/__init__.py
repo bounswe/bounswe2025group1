@@ -35,7 +35,7 @@ from .task import (
     TaskViewSet,
     TaskUpdateView
 )
-from .notification import NotificationViewSet
+from .notification import NotificationViewSet, GCMDeviceViewSet
 from .weatherdata import WeatherDataView
 
 from .report import (
@@ -76,6 +76,7 @@ __all__ = [
     "TaskViewSet",
     # Notification Views
     "NotificationViewSet",
+    "GCMDeviceViewSet",
     "TaskUpdateView",
     # Report Vİews
     "ReportViewSet",

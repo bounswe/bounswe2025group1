@@ -6,6 +6,7 @@ from django.conf import settings
 import requests
 from django.contrib.auth import authenticate
 import base64
+from push_notifications.models import GCMDevice
 
 def _decode_base64_image(data_str):
     """Return (bytes, mime_type) from data URL or raw base64 string."""
@@ -478,9 +479,16 @@ class ReportSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
     
 
-
-
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ('id', 'message', 'category', 'read', 'timestamp')
+
+
+class GCMDeviceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GCMDevice
+        fields = ['registration_id']
+        extra_kwargs = {
+            'registration_id': {'required': True},
+        }

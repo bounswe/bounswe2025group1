@@ -1,6 +1,7 @@
 asgiref==3.8.1
 Django==4.2.20
 django-cors-headers==4.7.0
+django-push-notifications==3.2.1
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
 PyJWT==2.9.0

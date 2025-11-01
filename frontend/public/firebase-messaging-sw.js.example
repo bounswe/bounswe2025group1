@@ -1,0 +1,29 @@
+// public/firebase-messaging-sw.js
+
+// Import the Firebase scripts
+importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
+
+const firebaseConfig = {
+    apiKey: "PASTE_YOUR_VITE_FIREBASE_API_KEY_HERE",
+    authDomain: "PASTE_YOUR_VITE_FIREBASE_AUTH_DOMAIN_HERE",
+    projectId: "PASTE_YOUR_VITE_FIREBASE_PROJECT_ID_HERE",
+    storageBucket: "PASTE_YOUR_VITE_FIREBASE_STORAGE_BUCKET_HERE",
+    messagingSenderId: "PASTE_YOUR_VITE_FIREBASE_MESSAGING_SENDER_ID_HERE",
+    appId: "PASTE_YOUR_VITE_FIREBASE_APP_ID_HERE"
+};
+
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message: ', JSON.stringify(payload, null, 2));
+
+  const notificationTitle = payload.data.data_title;
+  const notificationOptions = {
+    body: payload.data.data_body,
+    data: payload.data 
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
