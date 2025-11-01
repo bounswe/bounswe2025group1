@@ -37,10 +37,12 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { useTheme } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
 const ChatWidget = () => {
   const theme = useTheme();
   const { user, token } = useAuth();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [currentView, setCurrentView] = useState('list'); // 'list' or 'chat'
   const [selectedChat, setSelectedChat] = useState(null);
@@ -162,7 +164,7 @@ const ChatWidget = () => {
       });
 
       // Fetch user profiles from backend
-      if (userIdsToFetch.size > 0) {
+    if (userIdsToFetch.size > 0) {
         const newUserProfiles = { ...userProfiles };
         
         for (const userId of userIdsToFetch) {
@@ -179,14 +181,14 @@ const ChatWidget = () => {
             if (response.ok) {
               const data = await response.json();
               newUserProfiles[userId] = {
-                username: data.username || `User ${userId}`,
+                username: data.username || t('chat.user_with_id', { id: userId }),
                 profile_picture: data.profile?.profile_picture || null,
               };
             }
           } catch (error) {
             console.error(`Error fetching profile for user ${userId}:`, error);
             newUserProfiles[userId] = {
-              username: `User ${userId}`,
+              username: t('chat.user_with_id', { id: userId }),
               profile_picture: null,
             };
           }
@@ -197,7 +199,7 @@ const ChatWidget = () => {
     };
 
     fetchUserProfiles();
-  }, [chats, messages, firebaseUid, token, userProfiles]);
+  }, [chats, messages, firebaseUid, token, userProfiles, t]);
 
   // Subscribe to messages for selected chat
   useEffect(() => {
@@ -346,15 +348,15 @@ const ChatWidget = () => {
 
   const getChatDisplayName = (chat) => {
     if (chat.type === 'group') {
-      return chat.groupName || 'Garden Chat';
+      return chat.groupName || t('chat.garden_chat');
     }
     // For direct messages, show the other user's username
     const otherUserId = chat.members.find((id) => id !== firebaseUid);
-    if (!otherUserId) return 'Direct Message';
+    if (!otherUserId) return t('chat.direct_message');
     
     // Extract Django user ID from Firebase UID (format: django_{userId})
     const djangoUserId = otherUserId.replace('django_', '');
-    return userProfiles[djangoUserId]?.username || `User ${djangoUserId}`;
+    return userProfiles[djangoUserId]?.username || t('chat.user_with_id', { id: djangoUserId });
   };
 
   const formatTimestamp = (timestamp) => {
@@ -366,10 +368,10 @@ const ChatWidget = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) return t('chat.just_now');
+    if (diffMins < 60) return `${diffMins}${t('chat.time_m')}`;
+    if (diffHours < 24) return `${diffHours}${t('chat.time_h')}`;
+    if (diffDays < 7) return `${diffDays}${t('chat.time_d')}`;
     return date.toLocaleDateString();
   };
 
@@ -422,10 +424,10 @@ const ChatWidget = () => {
           </Badge>
           <Typography variant="h6">
             {currentView === 'list' || !isOpen
-              ? 'Messages'
+              ? t('chat.header')
               : selectedChat
                 ? getChatDisplayName(selectedChat)
-                : 'Chat'}
+                : t('chat.chatTitle')}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -463,7 +465,7 @@ const ChatWidget = () => {
               {chats.length === 0 ? (
                 <Box sx={{ p: 3, textAlign: 'center' }}>
                   <Typography variant="body2" color="text.secondary">
-                    No chats yet. Join a garden to start chatting!
+                    {t('chat.no_chats')}
                   </Typography>
                 </Box>
               ) : (
@@ -492,7 +494,7 @@ const ChatWidget = () => {
                         secondary={
                           <Box>
                             <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
-                              {chat.lastMessage?.text || 'No messages yet'}
+                              {chat.lastMessage?.text || t('chat.no_messages')}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                               {formatTimestamp(chat.lastMessage?.createdAt)}
@@ -521,7 +523,7 @@ const ChatWidget = () => {
                   const isOwn = message.senderId === firebaseUid;
                   const djangoUserId = message.senderId.replace('django_', '');
                   const userProfile = userProfiles[djangoUserId] || {};
-                  const senderUsername = userProfile.username || `User ${djangoUserId}`;
+                  const senderUsername = userProfile.username || t('chat.user_with_id', { id: djangoUserId });
                   const senderProfilePicture = userProfile.profile_picture;
 
                   return (
@@ -655,7 +657,7 @@ const ChatWidget = () => {
                 <TextField
                   fullWidth
                   size="small"
-                  placeholder="Type a message..."
+                  placeholder={t('chat.type_message')}
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={(e) => {
