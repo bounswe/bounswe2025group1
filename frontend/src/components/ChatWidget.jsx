@@ -11,6 +11,7 @@ import {
   Avatar,
   Divider,
   InputAdornment,
+  Badge,
 } from '@mui/material';
 import {
   Chat as ChatIcon,
@@ -18,6 +19,7 @@ import {
   ArrowBack as ArrowBackIcon,
   Person as PersonIcon,
   Group as GroupIcon,
+  DoneAll as DoneAllIcon,
   ExpandLess,
   ExpandMore,
 } from '@mui/icons-material';
@@ -47,6 +49,7 @@ const ChatWidget = () => {
   const [newMessage, setNewMessage] = useState('');
   const [firebaseUid, setFirebaseUid] = useState(null);
   const [userProfiles, setUserProfiles] = useState({}); // Cache for user profiles (username + picture)
+  const [unreadCounts, setUnreadCounts] = useState({}); // Unread message counts per chat
   const messagesEndRef = useRef(null);
 
   // Get Firebase UID for the current user
@@ -84,6 +87,49 @@ const ChatWidget = () => {
 
     return () => unsubscribe();
   }, [firebaseUid]);
+
+  // Calculate unread counts for all chats
+  useEffect(() => {
+    if (!firebaseUid || !db || chats.length === 0) return;
+
+    const unsubscribes = [];
+    
+    chats.forEach((chat) => {
+      const messagesQuery = query(
+        collection(db, 'chats', chat.id, 'messages'),
+        where('senderId', '!=', firebaseUid) // Only count messages from others
+      );
+
+      const unsubscribe = onSnapshot(
+        messagesQuery,
+        (snapshot) => {
+          const unreadCount = snapshot.docs.filter((doc) => {
+            const data = doc.data();
+            // Message is unread if readBy array doesn't include current user
+            return !data.readBy || !data.readBy.includes(firebaseUid);
+          }).length;
+
+          if(unreadCount){
+            console.log(`Chat ${chat.id} has ${unreadCount} unread messages.`);
+          }
+
+          setUnreadCounts((prev) => ({
+            ...prev,
+            [chat.id]: unreadCount,
+          }));
+        },
+        (error) => {
+          console.error(`Error fetching unread count for chat ${chat.id}:`, error);
+        }
+      );
+
+      unsubscribes.push(unsubscribe);
+    });
+
+    return () => {
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [chats, firebaseUid]);
 
   // Fetch user profiles (username + profile picture) for chats
   useEffect(() => {
@@ -179,6 +225,44 @@ const ChatWidget = () => {
     return () => unsubscribe();
   }, [selectedChat]);
 
+  // Mark messages as read when chat is opened
+  useEffect(() => {
+    if (!selectedChat || !firebaseUid || !db || messages.length === 0) return;
+
+    const markMessagesAsRead = async () => {
+      try {
+        const batch = writeBatch(db);
+        let batchCount = 0;
+
+        messages.forEach((message) => {
+          // Skip messages sent by current user
+          if (message.senderId === firebaseUid) return;
+          
+          // Skip messages already read by current user
+          if (message.readBy && message.readBy.includes(firebaseUid)) return;
+
+          const messageRef = doc(db, 'chats', selectedChat.id, 'messages', message.id);
+          const updatedReadBy = message.readBy ? [...message.readBy, firebaseUid] : [firebaseUid];
+          
+          batch.update(messageRef, {
+            readBy: updatedReadBy,
+          });
+          
+          batchCount++;
+        });
+
+        // Only commit if there are updates
+        if (batchCount > 0) {
+          await batch.commit();
+        }
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+    };
+
+    markMessagesAsRead();
+  }, [selectedChat, messages, firebaseUid]);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -229,6 +313,7 @@ const ChatWidget = () => {
         text: newMessage,
         senderId: firebaseUid,
         createdAt: serverTimestamp(),
+        readBy: [firebaseUid], // Mark as read by sender
       });
 
       // Update chat's lastMessage and updatedAt
@@ -288,6 +373,9 @@ const ChatWidget = () => {
     return date.toLocaleDateString();
   };
 
+  // Calculate total unread count across all chats
+  const totalUnreadCount = Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
+
   if (!user || !firebaseUid) return null;
 
   return (
@@ -325,7 +413,13 @@ const ChatWidget = () => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <ChatIcon />
+          <Badge 
+            badgeContent={totalUnreadCount} 
+            color="error"
+            max={99}
+          >
+            <ChatIcon />
+          </Badge>
           <Typography variant="h6">
             {currentView === 'list' || !isOpen
               ? 'Messages'
@@ -385,6 +479,14 @@ const ChatWidget = () => {
                             sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                           >
                             <Typography variant="subtitle2">{getChatDisplayName(chat)}</Typography>
+                            {unreadCounts[chat.id] > 0 && (
+                              <Badge 
+                                badgeContent={unreadCounts[chat.id]} 
+                                color="error"
+                                max={99}
+                                sx={{ ml: 1 }}
+                              />
+                            )}
                           </Box>
                         }
                         secondary={
@@ -446,7 +548,13 @@ const ChatWidget = () => {
                           {senderUsername.charAt(0).toUpperCase()}
                         </Avatar>
                       )}
-                      <Box sx={{ maxWidth: '70%', minWidth: 0 }}>
+                      <Box sx={{ 
+                        maxWidth: '70%', 
+                        minWidth: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: isOwn ? 'flex-end' : 'flex-start',
+                      }}>
                         <Paper
                           elevation={1}
                           sx={{
@@ -494,20 +602,46 @@ const ChatWidget = () => {
                               {senderUsername} ·
                             </Typography>
                           )}
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              fontSize: "small",
-                              fontWeight: 400,
-                              color: theme.palette.text.secondary,
-                              textAlign: isOwn ? 'right' : 'left',
-                              ml: isOwn ? 'auto' : 0,
-                              whiteSpace: 'nowrap',
-                              flexShrink: 0,
-                            }}
-                          >
-                            {formatTimestamp(message.createdAt)}
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', ml: isOwn ? 'auto' : 0, gap: 0.5 }}>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontSize: "small",
+                                fontWeight: 400,
+                                color: theme.palette.text.secondary,
+                                textAlign: isOwn ? 'right' : 'left',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {formatTimestamp(message.createdAt)}
+                            </Typography>
+
+                            {/* Read indicator for own messages */}
+                            {isOwn && (() => {
+                              const readBy = message.readBy || [];
+                              let isRead = false;
+                              if (selectedChat?.type === 'group') {
+                                // For garden/group chats, require everyone to have read
+                                const members = selectedChat.members || [];
+                                isRead = members.length > 0 && members.every((m) => readBy.includes(m));
+                              } else {
+                                // Direct chat: read if the other member is in readBy
+                                const other = selectedChat?.members?.find((m) => m !== firebaseUid);
+                                isRead = other ? readBy.includes(other) : false;
+                              }
+
+                              return (
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  {isRead ? (
+                                    <DoneAllIcon sx={{ fontSize: 16, color: theme.palette.primary.light }} />
+                                  ) : (
+                                    <DoneAllIcon sx={{ fontSize: 16, color: theme.palette.text.disabled, opacity: 0.4 }} />
+                                  )}
+                                </Box>
+                              );
+                            })()}
+                          </Box>
                         </Box>
                       </Box>
                     </Box>

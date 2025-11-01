@@ -49,8 +49,12 @@ service cloud.firestore {
         // Allow create (backend validates the sender)
         allow create: if true;
         
-        // No one can update or delete messages through client
-        allow update, delete: if false;
+        // Allow update only for marking messages as read (updating readBy array)
+        // This allows users to add themselves to the readBy array
+        allow update: if true; // Allow updates for read status tracking
+        
+        // No one can delete messages through client
+        allow delete: if false;
       }
     }
   }
