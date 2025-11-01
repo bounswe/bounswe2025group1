@@ -46,7 +46,7 @@ const ChatWidget = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [firebaseUid, setFirebaseUid] = useState(null);
-  const [usernames, setUsernames] = useState({}); // Cache for usernames by Django user ID
+  const [userProfiles, setUserProfiles] = useState({}); // Cache for user profiles (username + picture)
   const messagesEndRef = useRef(null);
 
   // Get Firebase UID for the current user
@@ -85,11 +85,11 @@ const ChatWidget = () => {
     return () => unsubscribe();
   }, [firebaseUid]);
 
-  // Fetch usernames for direct message chats
+  // Fetch user profiles (username + profile picture) for chats
   useEffect(() => {
-    if (!token || chats.length === 0) return;
+    if (!token) return;
 
-    const fetchUsernames = async () => {
+    const fetchUserProfiles = async () => {
       const userIdsToFetch = new Set();
       
       // Collect all user IDs from direct message chats
@@ -98,16 +98,26 @@ const ChatWidget = () => {
           const otherUserId = chat.members.find((id) => id !== firebaseUid);
           if (otherUserId) {
             const djangoUserId = otherUserId.replace('django_', '');
-            if (!usernames[djangoUserId]) {
+            if (!userProfiles[djangoUserId]) {
               userIdsToFetch.add(djangoUserId);
             }
           }
         }
       });
 
-      // Fetch usernames from backend
+      // Also collect user IDs from messages
+      messages.forEach((message) => {
+        if (message.senderId !== firebaseUid) {
+          const djangoUserId = message.senderId.replace('django_', '');
+          if (!userProfiles[djangoUserId]) {
+            userIdsToFetch.add(djangoUserId);
+          }
+        }
+      });
+
+      // Fetch user profiles from backend
       if (userIdsToFetch.size > 0) {
-        const newUsernames = { ...usernames };
+        const newUserProfiles = { ...userProfiles };
         
         for (const userId of userIdsToFetch) {
           try {
@@ -122,20 +132,26 @@ const ChatWidget = () => {
             
             if (response.ok) {
               const data = await response.json();
-              newUsernames[userId] = data.username || `User ${userId}`;
+              newUserProfiles[userId] = {
+                username: data.username || `User ${userId}`,
+                profile_picture: data.profile?.profile_picture || null,
+              };
             }
           } catch (error) {
-            console.error(`Error fetching username for user ${userId}:`, error);
-            newUsernames[userId] = `User ${userId}`;
+            console.error(`Error fetching profile for user ${userId}:`, error);
+            newUserProfiles[userId] = {
+              username: `User ${userId}`,
+              profile_picture: null,
+            };
           }
         }
         
-        setUsernames(newUsernames);
+        setUserProfiles(newUserProfiles);
       }
     };
 
-    fetchUsernames();
-  }, [chats, firebaseUid, token, usernames]);
+    fetchUserProfiles();
+  }, [chats, messages, firebaseUid, token, userProfiles]);
 
   // Subscribe to messages for selected chat
   useEffect(() => {
@@ -253,7 +269,7 @@ const ChatWidget = () => {
     
     // Extract Django user ID from Firebase UID (format: django_{userId})
     const djangoUserId = otherUserId.replace('django_', '');
-    return usernames[djangoUserId] || `User ${djangoUserId}`;
+    return userProfiles[djangoUserId]?.username || `User ${djangoUserId}`;
   };
 
   const formatTimestamp = (timestamp) => {
@@ -401,6 +417,11 @@ const ChatWidget = () => {
               >
                 {messages.map((message) => {
                   const isOwn = message.senderId === firebaseUid;
+                  const djangoUserId = message.senderId.replace('django_', '');
+                  const userProfile = userProfiles[djangoUserId] || {};
+                  const senderUsername = userProfile.username || `User ${djangoUserId}`;
+                  const senderProfilePicture = userProfile.profile_picture;
+
                   return (
                     <Box
                       key={message.id}
@@ -408,34 +429,87 @@ const ChatWidget = () => {
                         display: 'flex',
                         justifyContent: isOwn ? 'flex-end' : 'flex-start',
                         mb: 1,
+                        alignItems: 'flex-start',
                       }}
                     >
-                      <Paper
-                        elevation={1}
-                        sx={{
-                          py: 1,
-                          px: 1.5,
-                          maxWidth: '70%',
-                          bgcolor: isOwn ? theme.palette.primary.main : theme.palette.grey[100],
-                          color: isOwn ? 'white' : 'text.primary'
-                        }}
-                      >
-                        <Typography variant="body2" sx={{ textAlign: 'left' }}>
-                          {message.text}
-                        </Typography>
-                        <Typography
-                          variant="caption"
+                      {!isOwn && (
+                        <Avatar
+                          src={senderProfilePicture || '/default-avatar.png'}
                           sx={{
-                            display: 'block',
-                            mt: 0.5,
-                            opacity: 0.7,
-                            fontSize: '0.7rem',
-                            textAlign: 'right',
+                            width: 32,
+                            height: 32,
+                            mr: 1,
+                            bgcolor: '#8bc34a',
+                            fontSize: '0.9rem',
                           }}
                         >
-                          {formatTimestamp(message.createdAt)}
-                        </Typography>
-                      </Paper>
+                          {senderUsername.charAt(0).toUpperCase()}
+                        </Avatar>
+                      )}
+                      <Box sx={{ maxWidth: '70%', minWidth: 0 }}>
+                        <Paper
+                          elevation={1}
+                          sx={{
+                            py: 1,
+                            px: 1.5,
+                            bgcolor: isOwn 
+                              ? theme.palette.primary.main 
+                              : theme.palette.mode === 'dark' 
+                                ? theme.palette.grey[800] 
+                                : theme.palette.grey[100],
+                            color: isOwn ? 'white' : 'text.primary',
+                            width: 'fit-content',
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ textAlign: 'left', fontSize: "medium" }}>
+                            {message.text}
+                          </Typography>
+                        </Paper>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            mt: 0.3,
+                            px: 0.5,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {!isOwn && (
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontSize: "small",
+                                fontWeight: 400,
+                                color: theme.palette.text.secondary,
+                                textAlign: 'left',
+                                mr: 0,
+                                p: 0,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                flexShrink: 1,
+                              }}
+                            >
+                              {senderUsername} ·
+                            </Typography>
+                          )}
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontSize: "small",
+                              fontWeight: 400,
+                              color: theme.palette.text.secondary,
+                              textAlign: isOwn ? 'right' : 'left',
+                              ml: isOwn ? 'auto' : 0,
+                              whiteSpace: 'nowrap',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {formatTimestamp(message.createdAt)}
+                          </Typography>
+                        </Box>
+                      </Box>
                     </Box>
                   );
                 })}
@@ -456,18 +530,19 @@ const ChatWidget = () => {
                       handleSendMessage();
                     }
                   }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={handleSendMessage}
-                          disabled={!newMessage.trim()}
-                          color="primary"
-                        >
-                          <SendIcon />
-                        </IconButton>
-                      </InputAdornment>
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={handleSendMessage}
+                            disabled={!newMessage.trim()}
+                          >
+                            <SendIcon />
+                          </IconButton>
+                        </InputAdornment>
                     ),
+                    }
                   }}
                 />
               </Box>
