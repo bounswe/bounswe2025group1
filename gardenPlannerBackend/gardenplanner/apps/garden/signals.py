@@ -41,10 +41,19 @@ def new_follower_notification(sender, instance, action, pk_set, **kwargs):
     'instance' is the Profile that is being followed.
     """
     if action == "post_add":
-        follower_profile_pk = list(pk_set)[0] 
-        follower_profile = Profile.objects.get(pk=follower_profile_pk)
+        # The 'instance' is the profile of the person who clicked "follow".
+        follower_profile = instance 
         
-        recipient_user = instance.user
+        # The 'pk_set' contains the PK of the person who was followed.
+        # This is the person who should receive the notification.
+        pk_list = list(pk_set)
+        if not pk_list: # if already follows, pk_set can be empty
+            return
+        followed_profile_pk = pk_list[0]
+        followed_profile = Profile.objects.get(pk=followed_profile_pk)
+        
+        # The recipient is the user who WAS followed.
+        recipient_user = followed_profile.user
 
         if not recipient_user.profile.receives_notifications:
             return

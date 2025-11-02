@@ -2,6 +2,7 @@ import datetime
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from garden.models import Task, Notification, NotificationCategory
+from push_notifications.models import GCMDevice
 
 
 class Command(BaseCommand):
@@ -41,6 +42,17 @@ class Command(BaseCommand):
                 recipient=recipient,
                 message=message,
                 category=NotificationCategory.TASK,
+            )
+
+            # Send push notification
+            devices = GCMDevice.objects.filter(user=recipient, active=True)
+            devices.send_message(
+                message=None,  # Set this to None to force data-only
+                extra={
+                    "data_title": "Task Deadline Reminder",
+                    "data_body": message,
+                    "type": "TASK_DEADLINE_REMINDER",
+                }
             )
             
         self.stdout.write(self.style.SUCCESS(f"Successfully sent all deadline reminders."))
