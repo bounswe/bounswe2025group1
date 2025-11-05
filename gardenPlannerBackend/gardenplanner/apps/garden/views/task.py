@@ -63,13 +63,8 @@ class TaskViewSet(viewsets.ModelViewSet):
         if not membership:
             return Task.objects.none()
 
-        if membership.role == 'MANAGER':
-            return Task.objects.filter(garden_id=garden_id)
-
-        return Task.objects.filter(
-            (models.Q(assigned_to=user) | models.Q(assigned_to=None)|models.Q(status='DECLINED')) &
-            models.Q(garden_id=garden_id)
-        )
+        return Task.objects.filter(garden_id=garden_id)
+    
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated, IsGardenMember | IsGardenPublic]
