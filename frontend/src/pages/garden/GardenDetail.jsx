@@ -71,6 +71,8 @@ const GardenDetail = () => {
     isPublic: false,
   });
 
+  const isAccepted = isMember && userMembership?.status === 'ACCEPTED';
+
   const { gardenId } = useParams();
   const navigate = useNavigate();
 
@@ -776,7 +778,7 @@ const GardenDetail = () => {
               <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
                 {t('gardens.gardenTasks')}
               </Typography>
-              {isMember && (
+              {isMember && isAccepted && (
                 <Button
                   variant="contained"
                   onClick={() => {
