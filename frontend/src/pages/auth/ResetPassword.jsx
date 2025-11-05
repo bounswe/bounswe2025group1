@@ -88,7 +88,7 @@ const ResetPassword = () => {
 
       toast.success(t('auth.resetPassword.resetSuccessful'), { position: 'top-right' });
       setSubmitted(true);
-      setTimeout(() => navigate('/auth/login'), 2000);
+      navigate('/auth/login');
     } catch (err) {
       toast.error(err.message, { position: 'top-right' });
       return setError(err.message);
