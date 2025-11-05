@@ -166,6 +166,26 @@ const TaskModal = ({
     dayjs.locale(i18n.language === 'tr' ? 'tr' : 'en');
   }, [i18n.language]);
 
+  // Reset form when modal is closed so the form is empty next time it's opened
+  useEffect(() => {
+    if (!open) {
+      setTaskForm({
+        title: '',
+        description: '',
+        status: 'PENDING',
+        assigned_to: '',
+        custom_type: '',
+        garden: parseInt(gardenId),
+      });
+      setDeadline(dayjs());
+      setNewTaskTypeName('');
+      setNewTaskTypeDescription('');
+    }
+    // We intentionally only reset when modal closes. When in edit mode,
+    // the `task` prop effect above will repopulate the form when a task
+    // is provided by the parent.
+  }, [open, gardenId]);
+
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setTaskForm((prev) => ({ ...prev, [name]: value }));
@@ -219,8 +239,14 @@ const TaskModal = ({
     }
   };
 
+  // Add validation to ensure task type is mandatory
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!taskForm.custom_type) {
+      toast.error(t('tasks.taskTypeRequired'));
+      return;
+    }
+
     const updatedForm = { ...taskForm };
 
     // Ensure deadline is a valid dayjs object before calling toISOString
@@ -230,7 +256,6 @@ const TaskModal = ({
     } else {
       updatedForm.due_date = dayjs().toISOString();
     }
-
 
     // If we have a new task type to create
     if (taskForm.custom_type === 'new' && newTaskTypeName) {

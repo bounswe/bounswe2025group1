@@ -187,7 +187,7 @@ const GardenDetail = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Update failed:', errorText);
-        toast.error('Update failed');
+        toast.error(t('tasks.failedToUpdateTask'));
         return;
       }
 
@@ -512,7 +512,7 @@ const GardenDetail = () => {
       });
 
       if (!response.ok) {
-        toast.error('Update failed');
+        toast.error(t('tasks.failedToUpdateTask'));
         return;
       }
 
