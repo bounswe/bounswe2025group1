@@ -11,7 +11,7 @@ from ..serializers import (
 )
 from ..models import Garden, GardenMembership
 from ..permissions import (
-    IsSystemAdministrator, IsMember, IsGardenManager
+    IsSystemAdministrator, IsMember, IsGardenManager, CanDeleteMembership
 )
 
 
@@ -83,8 +83,10 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['create', 'my_gardens']:
             permission_classes = [IsAuthenticated]
-        elif self.action in ['update', 'partial_update', 'destroy']:
+        elif self.action in ['update', 'partial_update']:
             permission_classes = [IsGardenManager | IsSystemAdministrator]
+        elif self.action in ['destroy']:
+            permission_classes = [IsAuthenticated, CanDeleteMembership]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
@@ -97,6 +99,27 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError("You already have a membership or request pending for this garden.")
 
         serializer.save(user=user)
+    
+    def perform_destroy(self, instance):
+        """
+        Delete the membership and check if the garden should be deleted.
+        If this is the last accepted member leaving, delete the garden.
+        """
+        garden = instance.garden
+        
+        # Delete the membership first
+        instance.delete()
+        
+        # Check if there are any remaining accepted members
+        remaining_accepted_members = GardenMembership.objects.filter(
+            garden=garden,
+            status='ACCEPTED'
+        ).count()
+        
+        # If no accepted members remain, delete the garden
+        # (This will cascade delete all remaining pending memberships, tasks, etc.)
+        if remaining_accepted_members == 0:
+            garden.delete()
         
     @action(detail=True, methods=['post'], url_path='accept')
     def accept(self, request, pk=None):

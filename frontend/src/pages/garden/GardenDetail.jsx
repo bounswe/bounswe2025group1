@@ -272,6 +272,25 @@ const GardenDetail = () => {
         setIsManager(false);
         setUserMembership(null);
 
+        // Check if the garden still exists (if user was the last member, garden was deleted)
+        const gardenCheckRes = await fetch(
+          `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
+
+        // If garden doesn't exist (404), it was deleted because user was the last member
+        if (gardenCheckRes.status === 404) {
+          toast.success(t('gardens.gardenDeleted'));
+          navigate('/gardens');
+          return;
+        }
+
         await refreshMembers();
       }
     } catch (err) {
