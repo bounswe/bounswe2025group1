@@ -102,24 +102,43 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
     
     def perform_destroy(self, instance):
         """
-        Delete the membership and check if the garden should be deleted.
-        If this is the last accepted member leaving, delete the garden.
+        Delete the membership and handle manager promotion if needed.
+        If the last manager leaves, promote a random accepted member to manager.
+        If no accepted members remain, delete the garden.
         """
         garden = instance.garden
+        was_manager = instance.role == 'MANAGER'
+        was_accepted = instance.status == 'ACCEPTED'
         
         # Delete the membership first
         instance.delete()
         
-        # Check if there are any remaining accepted members
+        # Only proceed with checks if the deleted membership was accepted
+        if not was_accepted:
+            return
+        
+        # Check remaining accepted members
         remaining_accepted_members = GardenMembership.objects.filter(
             garden=garden,
             status='ACCEPTED'
-        ).count()
+        )
         
         # If no accepted members remain, delete the garden
-        # (This will cascade delete all remaining pending memberships, tasks, etc.)
-        if remaining_accepted_members == 0:
+        if not remaining_accepted_members.exists():
             garden.delete()
+            return
+        
+        # If the deleted member was a manager, check if any managers remain
+        if was_manager:
+            remaining_managers = remaining_accepted_members.filter(role='MANAGER')
+            
+            # If no managers remain, promote a random accepted member to manager
+            if not remaining_managers.exists():
+                # Get a random accepted member (excluding the one we just deleted)
+                random_member = remaining_accepted_members.order_by('?').first()
+                if random_member:
+                    random_member.role = 'MANAGER'
+                    random_member.save()
         
     @action(detail=True, methods=['post'], url_path='accept')
     def accept(self, request, pk=None):
