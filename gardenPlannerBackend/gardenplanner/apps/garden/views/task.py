@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets, status, filters, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from ..serializers import (
     CustomTaskTypeSerializer, TaskSerializer
@@ -84,7 +85,27 @@ class TaskViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
-        serializer.save(assigned_by=self.request.user)
+        garden = serializer.validated_data.get('garden')
+        user = self.request.user
+        assigned_to = serializer.validated_data.get('assigned_to')
+        
+        
+        # Check if user has an ACCEPTED membership for this garden
+        membership = GardenMembership.objects.filter(
+            user=user,
+            garden=garden,
+            status='ACCEPTED'
+        ).first()
+        
+        if not membership:
+            raise PermissionDenied("You must be an accepted member of this garden to create tasks.")
+        
+        # If assigning to someone, verify they are also an accepted member
+        if assigned_to:
+            if not GardenMembership.objects.filter(user=assigned_to, garden=garden, status='ACCEPTED').exists():
+                raise ValidationError({"assigned_to": "The assigned user must be an accepted member of this garden."})
+        
+        serializer.save(assigned_by=user)
     
     @action(detail=True, methods=['post'], url_path='accept')
     def accept_task(self, request, pk=None):
