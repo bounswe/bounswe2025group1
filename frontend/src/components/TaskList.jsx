@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next';
 
 const TaskList = ({
   tasks = [],
-  title = useTranslation().t('tasks.title'),
+  title,
   handleTaskClick,
   handleAcceptTask,
   handleDeclineTask,
@@ -76,7 +76,7 @@ const TaskList = ({
         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <TaskAltIcon sx={{ mr: 1 }} /> {title}
+          <TaskAltIcon sx={{ mr: 1 }} /> {title || t('tasks.title')}
         </Box>
         {tasks.length > 0 && (
           <Chip
@@ -102,7 +102,15 @@ const TaskList = ({
           role="listbox"
           aria-label="Task list"
         >
-          {tasks.map((task, index) => (
+          {tasks
+          .sort((a, b) => {
+            const statusOrder = { 'PENDING': 1, 'IN_PROGRESS': 2, 'COMPLETED': 3 };
+            if (statusOrder[a.status] !== statusOrder[b.status]) {
+              return statusOrder[a.status] - statusOrder[b.status];
+            }
+            return new Date(a.due_date) - new Date(b.due_date);
+          })
+          .map((task, index) => (
             <ListItem
               key={task.id}
               ref={(el) => (taskRefs.current[index] = el)}

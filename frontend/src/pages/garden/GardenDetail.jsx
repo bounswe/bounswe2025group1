@@ -53,11 +53,11 @@ const GardenDetail = () => {
   const [isManager, setIsManager] = useState(false);
   const [userMembership, setUserMembership] = useState(null);
   const [taskForm, setTaskForm] = useState({
-    type: 'Custom',
+    type: 'CUSTOM',
     title: '',
     description: '',
     deadline: '',
-    status: 'Pending',
+    status: 'PENDING',
     assignment_status: 'Unassigned',
     assignees: [],
     harvest_amounts: {},
@@ -169,7 +169,7 @@ const GardenDetail = () => {
     // Format the task data to ensure consistent structure for the modal
     setSelectedTask({
       status: task.status || 'PENDING',
-      custom_type: task.custom_type ? task.custom_type?.toString() : null,
+      custom_type: task.custom_type || task.task_type,
       ...task,
     });
     setEditTaskModalOpen(true);
@@ -189,7 +189,7 @@ const GardenDetail = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Update failed:', errorText);
-        toast.error('Update failed');
+        toast.error(t('tasks.failedToUpdateTask'));
         return;
       }
 
@@ -533,7 +533,7 @@ const GardenDetail = () => {
       });
 
       if (!response.ok) {
-        toast.error('Update failed');
+        toast.error(t('tasks.failedToUpdateTask'));
         return;
       }
 

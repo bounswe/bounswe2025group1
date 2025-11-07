@@ -125,7 +125,9 @@
     "due": "مستحق",
     "unassigned": "غير مُسند",
     "details": "التفاصيل",
-    "taskCalendar": "تقويم المهام"
+    "taskCalendar": "تقويم المهام",
+    "taskTypeRequired": "يرجى اختيار نوع المهمة.",
+    "saveChanges": "حفظ التغييرات"
   },
   "profile": {
     "edit": "تعديل",

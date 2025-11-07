@@ -342,7 +342,9 @@
     "taskUpdatedSuccessfully": "Task updated successfully!",
     "in_progress": "In Progress",
     "taskDescriptionPlaceholder": "Describe the task details...",
-    "saveChanges": "Save Changes"
+    "saveChanges": "Save Changes",
+    "taskTypeRequired": "Please select a task type.",
+    "failedToUpdateTask": "Failed to update task."
   },
   "weather": {
     "title": "Weather Forecast",
