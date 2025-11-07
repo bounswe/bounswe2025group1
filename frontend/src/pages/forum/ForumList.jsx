@@ -13,6 +13,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import ForumIcon from '@mui/icons-material/Forum';
+import PeopleIcon from '@mui/icons-material/People';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import ForumCreateDialog from '../../components/ForumCreateDialog';
@@ -32,6 +33,7 @@ const ForumList = () => {
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [followedOnly, setFollowedOnly] = useState(false);
 
   // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -56,7 +58,11 @@ const ForumList = () => {
           headers['Authorization'] = `Token ${token.trim()}`;
         }
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/forum?include_comments=true`, { headers });
+        const url = followedOnly 
+          ? `${import.meta.env.VITE_API_URL}/forum?include_comments=true&following=true`
+          : `${import.meta.env.VITE_API_URL}/forum?include_comments=true`;
+
+        const response = await fetch(url, { headers });
 
         if (!response.ok) {
           // Only show error for authenticated users
@@ -82,7 +88,7 @@ const ForumList = () => {
     };
 
     fetchPosts();
-  }, [token]);
+  }, [token, followedOnly, t]);
 
   const handleSearch = (event) => {
     const value = event.target.value.toLowerCase();
@@ -329,31 +335,60 @@ const ForumList = () => {
               display: 'flex',
               justifyContent: { xs: 'flex-start', md: 'flex-end' },
               alignItems: 'center',
+              gap: 1,
             }}
           >
             {user && (
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setCreateDialogOpen(true)}
-                onKeyDown={createButtonKeyboardHandler(() => setCreateDialogOpen(true))}
-                sx={{
-                  ml: 2,
-                  bgcolor: '#558b2f',
-                  '&:hover': { bgcolor: '#33691e' },
-                  '& .MuiButton-startIcon': {
-                    marginRight: 1,
-                    marginLeft: 1,
-                  },
-                  '&:focus': {
-                    outline: '2px solid #558b2f',
-                    outlineOffset: '2px',
-                  },
-                }}
-                aria-label="Create new forum post"
-              >
-                {t('forum.newPost')}
-              </Button>
+              <>
+                <Button
+                  variant={followedOnly ? 'contained' : 'outlined'}
+                  startIcon={<PeopleIcon />}
+                  onClick={() => setFollowedOnly(!followedOnly)}
+                  onKeyDown={createButtonKeyboardHandler(() => setFollowedOnly(!followedOnly))}
+                  sx={{
+                    bgcolor: followedOnly ? '#558b2f' : 'transparent',
+                    color: followedOnly ? 'white' : '#558b2f',
+                    borderColor: '#558b2f',
+                    '&:hover': { 
+                      bgcolor: followedOnly ? '#33691e' : 'rgba(85, 139, 47, 0.08)',
+                      borderColor: '#33691e',
+                    },
+                    '& .MuiButton-startIcon': {
+                      marginRight: 1,
+                      marginLeft: 1,
+                    },
+                    '&:focus': {
+                      outline: '2px solid #558b2f',
+                      outlineOffset: '2px',
+                    },
+                  }}
+                  aria-label={followedOnly ? "Show all posts" : "Show posts from followed users only"}
+                  aria-pressed={followedOnly}
+                >
+                  {followedOnly ? t('forum.showAll') : t('forum.following')}
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setCreateDialogOpen(true)}
+                  onKeyDown={createButtonKeyboardHandler(() => setCreateDialogOpen(true))}
+                  sx={{
+                    bgcolor: '#558b2f',
+                    '&:hover': { bgcolor: '#33691e' },
+                    '& .MuiButton-startIcon': {
+                      marginRight: 1,
+                      marginLeft: 1,
+                    },
+                    '&:focus': {
+                      outline: '2px solid #558b2f',
+                      outlineOffset: '2px',
+                    },
+                  }}
+                  aria-label="Create new forum post"
+                >
+                  {t('forum.newPost')}
+                </Button>
+              </>
             )}
           </Grid>
         </Grid>
