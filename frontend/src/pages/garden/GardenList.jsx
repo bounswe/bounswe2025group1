@@ -303,26 +303,6 @@ const GardenList = () => {
           </Box>
         )}
       </Grid>
-
-      {/* Create Garden Button (for logged in users) */}
-      {user && (
-        <Fab
-          color="primary"
-          aria-label="create garden"
-          sx={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            backgroundColor: '#558b2f',
-            '&:hover': {
-              backgroundColor: '#33691e',
-            },
-          }}
-          onClick={handleOpenModal} // <-- update here
-        >
-          <AddIcon />
-        </Fab>
-      )}
       <GardenModal
         open={openModal}
         onClose={handleCloseModal}
