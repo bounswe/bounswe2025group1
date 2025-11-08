@@ -52,6 +52,7 @@ services:
       - DB_PASSWORD=postgres
       - DB_HOST=postgres
       - DB_PORT=5432
+      - PYTHONUNBUFFERED=1
       - FIREBASE_SERVICE_ACCOUNT_KEY=firebase-service-account.json
     command: >
       sh -c "python manage.py migrate && 
