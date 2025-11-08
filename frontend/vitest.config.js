@@ -7,7 +7,7 @@ export default defineConfig({
     globals: true,            
     setupFiles: './src/setupTests.js',
     coverage: {
-      provider: 'v8',
+      provider: 'istanbul',
       include: ['src/**/*.{js,jsx,ts,tsx}'],
       exclude: [
         'src/**/*.test.{js,jsx,ts,tsx}',
@@ -20,6 +20,8 @@ export default defineConfig({
       ],
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: './coverage',
+      enabled: true,
+      reportOnFailure: true,
     }
   },
 });
