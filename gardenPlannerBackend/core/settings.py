@@ -202,3 +202,23 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 # Ensure trailing slashes are handled correctly
 APPEND_SLASH = True
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',  # Change this to 'INFO', 'WARNING', 'ERROR', or 'CRITICAL' as needed
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',  # Specifically for Django's internal logs
+            'propagate': False,
+        },
+    },
+}
