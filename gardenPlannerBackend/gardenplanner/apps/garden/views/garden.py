@@ -11,7 +11,7 @@ from ..serializers import (
 )
 from ..models import Garden, GardenMembership
 from ..permissions import (
-    IsSystemAdministrator, IsMember, IsGardenManager
+    IsSystemAdministrator, IsMember, IsGardenManager, CanDeleteMembership
 )
 
 
@@ -114,8 +114,10 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['create', 'my_gardens']:
             permission_classes = [IsAuthenticated]
-        elif self.action in ['update', 'partial_update', 'destroy']:
+        elif self.action in ['update', 'partial_update']:
             permission_classes = [IsGardenManager | IsSystemAdministrator]
+        elif self.action in ['destroy']:
+            permission_classes = [IsAuthenticated, CanDeleteMembership]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
@@ -139,10 +141,44 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
             self._sync_garden_chat_members(membership.garden.id)
     
     def perform_destroy(self, instance):
-        """Remove membership and sync chat members"""
-        garden_id = instance.garden.id
+        """
+        Delete the membership and handle manager promotion if needed.
+        If the last manager leaves, promote a random accepted member to manager.
+        If no accepted members remain, delete the garden.
+        """
+        garden = instance.garden
+        was_manager = instance.role == 'MANAGER'
+        was_accepted = instance.status == 'ACCEPTED'
+        
+        # Delete the membership first
         instance.delete()
-        self._sync_garden_chat_members(garden_id)
+        
+        # Only proceed with checks if the deleted membership was accepted
+        if not was_accepted:
+            return
+        
+        # Check remaining accepted members
+        remaining_accepted_members = GardenMembership.objects.filter(
+            garden=garden,
+            status='ACCEPTED'
+        )
+        
+        # If no accepted members remain, delete the garden
+        if not remaining_accepted_members.exists():
+            garden.delete()
+            return
+        
+        # If the deleted member was a manager, check if any managers remain
+        if was_manager:
+            remaining_managers = remaining_accepted_members.filter(role='MANAGER')
+            
+            # If no managers remain, promote a random accepted member to manager
+            if not remaining_managers.exists():
+                # Get a random accepted member (excluding the one we just deleted)
+                random_member = remaining_accepted_members.order_by('?').first()
+                if random_member:
+                    random_member.role = 'MANAGER'
+                    random_member.save()
     
     def _sync_garden_chat_members(self, garden_id):
         """Sync garden chat members with accepted memberships"""

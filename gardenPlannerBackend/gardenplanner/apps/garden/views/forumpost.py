@@ -1,6 +1,7 @@
 """Views for managing forum posts and comments.""" 
 
 from django.contrib.auth.models import User
+from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -42,8 +43,11 @@ class ForumPostListCreateView(generics.ListCreateAPIView):
             followed_user_ids = followed_profiles.values_list('user_id', flat=True)
 
             if not followed_user_ids:
-                return queryset.none()
-            queryset = queryset.filter(author_id__in=followed_user_ids)
+                # If user doesn't follow anyone, only show their own posts
+                return queryset.filter(author_id=user.id)
+
+            # Include user's own posts in the following filter using Q objects
+            queryset = queryset.filter(Q(author_id__in=followed_user_ids) | Q(author_id=user.id))
 
         return queryset
 
