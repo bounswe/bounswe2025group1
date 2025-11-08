@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenImage, ForumPostImage, CommentImage
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenImage, ForumPostImage, CommentImage, GardenEvent, EventAttendance, AttendanceStatus
 from django.contrib.auth import get_user_model
 from django.conf import settings
 import requests
@@ -484,3 +484,58 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ('id', 'message', 'category', 'read', 'timestamp')
+
+
+class EventAttendanceSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = EventAttendance
+        fields = ['id', 'event', 'user', 'username', 'status', 'responded_at']
+        read_only_fields = ['id', 'user', 'responded_at']
+
+
+class GardenEventSerializer(serializers.ModelSerializer):
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
+    garden_name = serializers.CharField(source='garden.name', read_only=True)
+    going_count = serializers.SerializerMethodField()
+    not_going_count = serializers.SerializerMethodField()
+    maybe_count = serializers.SerializerMethodField()
+    my_attendance = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GardenEvent
+        fields = [
+            'id', 'garden', 'garden_name', 'title', 'description', 'start_at',
+            'visibility', 'created_by', 'created_by_username', 'created_at', 'updated_at',
+            'going_count', 'not_going_count', 'maybe_count', 'my_attendance'
+        ]
+        read_only_fields = ['id', 'created_by', 'created_by_username', 'created_at', 'updated_at',
+                            'going_count', 'not_going_count', 'maybe_count', 'my_attendance']
+
+    def validate_visibility(self, value):
+        if value not in ('PRIVATE', 'PUBLIC'):
+            raise serializers.ValidationError('Visibility must be PRIVATE or PUBLIC')
+        return value
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            validated_data['created_by'] = request.user
+        return super().create(validated_data)
+
+    def get_going_count(self, obj):
+        return obj.attendances.filter(status=AttendanceStatus.GOING).count()
+
+    def get_not_going_count(self, obj):
+        return obj.attendances.filter(status=AttendanceStatus.NOT_GOING).count()
+
+    def get_maybe_count(self, obj):
+        return obj.attendances.filter(status=AttendanceStatus.MAYBE).count()
+
+    def get_my_attendance(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return None
+        vote = obj.attendances.filter(user=request.user).first()
+        return vote.status if vote else None
