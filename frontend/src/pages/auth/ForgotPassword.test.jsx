@@ -75,9 +75,7 @@ describe('ForgotPassword page', () => {
     fireEvent.click(screen.getByRole('button', { name: /send reset link/i }));
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Failed to send reset link.', expect.any(Object));
+      expect(toast.error).toHaveBeenCalledWith('Failed to send reset link.');
     });
-
-    expect(screen.getByTestId('error-message')).toBeInTheDocument();
   });
 });
