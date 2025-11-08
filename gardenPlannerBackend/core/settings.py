@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'gardenplanner.apps.garden',
+    'gardenplanner.apps.chat',
 ]
 
 MIDDLEWARE = [

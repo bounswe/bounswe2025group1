@@ -238,6 +238,8 @@
     "readMore": "Devamını Oku",
     "whatsOnYourMind": "Aklından neler geçiyor?",
     "posting": "Gönderiliyor...",
+    "following": "Takip Edilenler",
+    "showAll": "Tümünü Göster",
     "post": "Gönder",
     "edited": "Düzenlendi",
     "justNow": "Az önce",
@@ -341,7 +343,9 @@
     "taskUpdatedSuccessfully": "Görev başarıyla güncellendi!",
     "in_progress": "Devam Ediyor",
     "taskDescriptionPlaceholder": "Görev detaylarını açıklayın...",
-    "saveChanges": "Değişiklikleri Kaydet"
+    "saveChanges": "Değişiklikleri Kaydet",
+    "taskTypeRequired": "Görev türü seçiniz.",
+    "failedToUpdateTask": "Görev güncellenemedi."
   },
   "weather": {
     "title": "Hava Durumu Tahmini",
@@ -505,6 +509,20 @@
     "dark": "Koyu Tema",
     "highContrast": "Yüksek Kontrast",
     "themeSelector": "Tema Seçici"
+  },
+  "chat": {
+    "header": "Mesajlar",
+    "chatTitle": "Sohbet",
+    "garden_chat": "Bahçe Sohbeti",
+    "direct_message": "Özel Mesaj",
+    "no_chats": "Henüz mesaj yok. Sohbet başlatmak için bir bahçeye katılın!",
+    "no_messages": "Henüz mesaj yok",
+    "type_message": "Mesaj yaz...",
+    "just_now": "Az önce",
+    "time_m": " dk önce",
+    "time_h": " saat önce",
+    "time_d": " gün önce",
+    "user_with_id": "Kullanıcı {{id}}"
   },
   "accessibility": {
     "skipToContent": "Ana içeriğe atla",

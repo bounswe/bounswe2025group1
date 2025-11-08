@@ -30,6 +30,7 @@ import TaskModal from '../../components/TaskModal';
 import CalendarTab from '../../components/CalendarTab';
 import GardenModal from '../../components/GardenModal';
 import TaskBoard from '../../components/TaskBoard';
+import DirectMessageButton from '../../components/DirectMessageButton';
 import { useTranslation } from 'react-i18next';
 import ImageGallery from '../../components/ImageGallery';
 import { translateLocationString } from '../../utils/locationUtils';
@@ -53,11 +54,11 @@ const GardenDetail = () => {
   const [isManager, setIsManager] = useState(false);
   const [userMembership, setUserMembership] = useState(null);
   const [taskForm, setTaskForm] = useState({
-    type: 'Custom',
+    type: 'CUSTOM',
     title: '',
     description: '',
     deadline: '',
-    status: 'Pending',
+    status: 'PENDING',
     assignment_status: 'Unassigned',
     assignees: [],
     harvest_amounts: {},
@@ -169,7 +170,7 @@ const GardenDetail = () => {
     // Format the task data to ensure consistent structure for the modal
     setSelectedTask({
       status: task.status || 'PENDING',
-      custom_type: task.custom_type ? task.custom_type?.toString() : null,
+      custom_type: task.custom_type || task.task_type,
       ...task,
     });
     setEditTaskModalOpen(true);
@@ -189,7 +190,7 @@ const GardenDetail = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Update failed:', errorText);
-        toast.error('Update failed');
+        toast.error(t('tasks.failedToUpdateTask'));
         return;
       }
 
@@ -533,7 +534,7 @@ const GardenDetail = () => {
       });
 
       if (!response.ok) {
-        toast.error('Update failed');
+        toast.error(t('tasks.failedToUpdateTask'));
         return;
       }
 
@@ -885,6 +886,15 @@ const GardenDetail = () => {
                       }
                       secondary={`${t('gardens.role')}: ${t(`gardens.${member.role.toLowerCase()}`)} • ${t('gardens.status')}: ${t(`gardens.${member.status.toLowerCase()}`)}`}
                     />{' '}
+                    {/* Show Direct Message button for accepted members (except yourself) */}
+                    {member.status === 'ACCEPTED' && user && member.user_id !== user.id && (
+                      <DirectMessageButton 
+                        targetUserId={member.user_id}
+                        variant="outlined"
+                        size="small"
+                        sx={{ mr: 1 }}
+                      />
+                    )}
                     {isManager && member.id !== userMembership?.id && (
                       <>
                         {member.status === 'PENDING' ? (

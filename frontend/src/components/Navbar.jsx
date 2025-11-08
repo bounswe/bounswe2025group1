@@ -106,7 +106,7 @@ function Navbar() {
         position: 'top-right',
         theme: 'colored',
       });
-      setTimeout(() => navigate('/'), 2000);
+      navigate('/');
     } else if (path) {
       navigate(path);
     }
@@ -526,7 +526,7 @@ function Navbar() {
                           position: 'top-right',
                           theme: 'colored',
                         });
-                        setTimeout(() => navigate('/'), 2000);
+                        navigate('/');
                       } else if (setting.path) {
                         navigate(setting.path);
                       }
@@ -540,7 +540,7 @@ function Navbar() {
                           position: 'top-right',
                           theme: 'colored',
                         });
-                        setTimeout(() => navigate('/'), 2000);
+                        navigate('/');
                       } else if (setting.path) {
                         navigate(setting.path);
                       }

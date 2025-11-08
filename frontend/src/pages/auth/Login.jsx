@@ -59,7 +59,7 @@ const Login = () => {
         theme: 'colored',
       });
 
-      setTimeout(() => navigate('/'), 2000);
+      navigate('/');
     } catch (error) {
       toast.error(t('auth.login.failedToLogin'), {
         position: 'top-right',

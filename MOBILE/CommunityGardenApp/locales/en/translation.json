@@ -202,11 +202,24 @@
     "english": "English",
     "turkish": "Turkish"
   },
+  "messages": {
+    "title": "Messages",
+    "chat": "Chat",
+    "noChats": "No chats yet",
+    "noChatsDescription": "Join a garden to start chatting!",
+    "noMessages": "No messages yet",
+    "typeMessage": "Type a message...",
+    "justNow": "Just now",
+    "minutesAgo": "m ago",
+    "hoursAgo": "h ago",
+    "daysAgo": "d ago"
+  },
   "layout": {
     "home": "Home",
     "gardens": "Gardens",
     "forum": "Forum",
     "profile": "Profile",
+    "messages": "Messages",
     "myTasks": "My Tasks"
   }
 }
