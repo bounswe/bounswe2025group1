@@ -8,11 +8,14 @@ import { View, TouchableOpacity, StyleSheet, Modal, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAccessibility, useAccessibleColors } from '../contexts/AccessibilityContextSimple';
 import { HighContrastToggle } from './AccessibilityToggle';
+import { useTranslation } from 'react-i18next';
+
 
 export function GlobalAccessibilityToggle() {
   const [showModal, setShowModal] = useState(false);
   const { isHighContrast } = useAccessibility();
   const colors = useAccessibleColors();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -20,7 +23,7 @@ export function GlobalAccessibilityToggle() {
       <TouchableOpacity
         style={[
           styles.fab,
-          { 
+          {
             backgroundColor: isHighContrast ? colors.primary : colors.secondary,
             borderColor: colors.border,
           }
@@ -29,10 +32,10 @@ export function GlobalAccessibilityToggle() {
         accessibilityLabel="Open accessibility settings"
         accessibilityHint="Opens accessibility options for the entire app"
       >
-        <Ionicons 
-          name={isHighContrast ? "eye" : "eye-off"} 
-          size={24} 
-          color={isHighContrast ? colors.white : colors.text} 
+        <Ionicons
+          name={isHighContrast ? "eye" : "eye-off"}
+          size={24}
+          color={isHighContrast ? colors.white : colors.text}
         />
       </TouchableOpacity>
 
@@ -47,31 +50,31 @@ export function GlobalAccessibilityToggle() {
           <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>
-                Accessibility Settings
+                {t('accessibility.accessibilitySettings')}
               </Text>
               <TouchableOpacity
                 onPress={() => setShowModal(false)}
                 style={styles.closeButton}
-                accessibilityLabel="Close accessibility settings"
+                accessibilityLabel={t('accessibility.closeSettings')}
               >
                 <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.modalBody}>
               <Text style={[styles.description, { color: colors.textSecondary }]}>
-                These settings apply to the entire app and improve visibility for users with visual impairments.
+                {t('accessibility.accessibilityDescription')}
               </Text>
-              
-              <HighContrastToggle 
-                variant="switch" 
+
+              <HighContrastToggle
+                variant="switch"
                 style={styles.toggleContainer}
               />
-              
+
               <View style={styles.infoBox}>
                 <Ionicons name="information-circle" size={20} color={colors.primary} />
                 <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                  High contrast mode increases color contrast ratios to meet WCAG 2.1 AA accessibility standards.
+                  {t('accessibility.highContrastInfo')}
                 </Text>
               </View>
             </View>
