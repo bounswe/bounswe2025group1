@@ -3,7 +3,7 @@ from django.apps import AppConfig
 
 class ChatConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'chat'
+    name = 'gardenplanner.apps.chat'
     
     def ready(self):
         """

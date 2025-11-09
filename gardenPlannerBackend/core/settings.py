@@ -21,9 +21,6 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Add the gardenplanner/apps directory to Python path
-APPS_DIR = os.path.join(BASE_DIR, 'gardenplanner', 'apps')
-sys.path.insert(0, APPS_DIR)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -54,8 +51,9 @@ INSTALLED_APPS = [
     'corsheaders',
     
     # Local apps
-    'garden',
-    'chat',
+    'gardenplanner.apps.garden',
+    'gardenplanner.apps.chat',
+
     'push_notifications',
 ]
 
@@ -208,4 +206,24 @@ APPEND_SLASH = True
 
 PUSH_NOTIFICATIONS_SETTINGS = {
     "FCM_SERVICE_ACCOUNT_FILE": os.path.join(BASE_DIR, "firebase-service-account.json"), 
+}
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',  # Change this to 'INFO', 'WARNING', 'ERROR', or 'CRITICAL' as needed
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',  # Specifically for Django's internal logs
+            'propagate': False,
+        },
+    },
 }

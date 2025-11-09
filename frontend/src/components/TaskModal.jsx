@@ -44,8 +44,8 @@ const TaskModal = ({
     title: '',
     description: '',
     status: 'PENDING',
-    assigned_to: null,
-    custom_type: null,
+    assigned_to: "",
+    custom_type: "",
     garden: parseInt(gardenId),
     ...(task || {}),
   });
@@ -77,7 +77,6 @@ const TaskModal = ({
         .map((member) => ({ id: member.user_id, name: member.username }));
       setGardenMembers(formattedMembers);
       setLoadingMembers(false);
-      return;
     }
 
     // Fallback: fetch members if not provided
@@ -151,7 +150,7 @@ const TaskModal = ({
 
     fetchGardenMembers();
     fetchCustomTaskTypes();
-  }, [gardenId, token, members]);
+  }, [gardenId, token, members, t]);
 
   // Update the form state whenever task changes
   useEffect(() => {
@@ -166,6 +165,26 @@ const TaskModal = ({
   useEffect(() => {
     dayjs.locale(i18n.language === 'tr' ? 'tr' : 'en');
   }, [i18n.language]);
+
+  // Reset form when modal is closed so the form is empty next time it's opened
+  useEffect(() => {
+    if (!open) {
+      setTaskForm({
+        title: '',
+        description: '',
+        status: 'PENDING',
+        assigned_to: '',
+        custom_type: '',
+        garden: parseInt(gardenId),
+      });
+      setDeadline(dayjs());
+      setNewTaskTypeName('');
+      setNewTaskTypeDescription('');
+    }
+    // We intentionally only reset when modal closes. When in edit mode,
+    // the `task` prop effect above will repopulate the form when a task
+    // is provided by the parent.
+  }, [open, gardenId]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -220,8 +239,14 @@ const TaskModal = ({
     }
   };
 
+  // Add validation to ensure task type is mandatory
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!taskForm.custom_type) {
+      toast.error(t('tasks.taskTypeRequired'));
+      return;
+    }
+
     const updatedForm = { ...taskForm };
 
     // Ensure deadline is a valid dayjs object before calling toISOString
@@ -231,7 +256,6 @@ const TaskModal = ({
     } else {
       updatedForm.due_date = dayjs().toISOString();
     }
-
 
     // If we have a new task type to create
     if (taskForm.custom_type === 'new' && newTaskTypeName) {
@@ -254,9 +278,7 @@ const TaskModal = ({
       custom_type:
         updatedForm.custom_type === 'new'
           ? null
-          : updatedForm.custom_type === 'No Type'
-          ? null
-          : updatedForm.custom_type,
+          : updatedForm.custom_type || null,
     };
 
     onSubmit(finalForm);
@@ -357,6 +379,7 @@ const TaskModal = ({
               <MenuItem value="PENDING">{t('tasks.pending')}</MenuItem>
               <MenuItem value="IN_PROGRESS">{t('tasks.inProgress')}</MenuItem>
               <MenuItem value="COMPLETED">{t('tasks.completed')}</MenuItem>
+              <MenuItem value="DECLINED">{t('tasks.declined')}</MenuItem>
             </Select>
           </FormControl>
 
@@ -418,9 +441,6 @@ const TaskModal = ({
                 onChange={handleFormChange}
                 input={<OutlinedInput label="Task Type" />}
               >
-                <MenuItem value="No Type">
-                  <em>{t('tasks.noType')}</em>
-                </MenuItem>
                 {customTaskTypes.map((type) => (
                   <MenuItem key={type.id} value={type.id}>
                     {type.name}

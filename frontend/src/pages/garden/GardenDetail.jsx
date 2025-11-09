@@ -54,11 +54,11 @@ const GardenDetail = () => {
   const [isManager, setIsManager] = useState(false);
   const [userMembership, setUserMembership] = useState(null);
   const [taskForm, setTaskForm] = useState({
-    type: 'Custom',
+    type: 'CUSTOM',
     title: '',
     description: '',
     deadline: '',
-    status: 'Pending',
+    status: 'PENDING',
     assignment_status: 'Unassigned',
     assignees: [],
     harvest_amounts: {},
@@ -71,6 +71,8 @@ const GardenDetail = () => {
     location: '',
     isPublic: false,
   });
+
+  const isAccepted = isMember && userMembership?.status === 'ACCEPTED';
 
   const { gardenId } = useParams();
   const navigate = useNavigate();
@@ -168,7 +170,7 @@ const GardenDetail = () => {
     // Format the task data to ensure consistent structure for the modal
     setSelectedTask({
       status: task.status || 'PENDING',
-      custom_type: task.custom_type ? task.custom_type?.toString() : null,
+      custom_type: task.custom_type || task.task_type,
       ...task,
     });
     setEditTaskModalOpen(true);
@@ -188,7 +190,7 @@ const GardenDetail = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Update failed:', errorText);
-        toast.error('Update failed');
+        toast.error(t('tasks.failedToUpdateTask'));
         return;
       }
 
@@ -270,6 +272,25 @@ const GardenDetail = () => {
         setIsMember(false);
         setIsManager(false);
         setUserMembership(null);
+
+        // Check if the garden still exists (if user was the last member, garden was deleted)
+        const gardenCheckRes = await fetch(
+          `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
+
+        // If garden doesn't exist (404), it was deleted because user was the last member
+        if (gardenCheckRes.status === 404) {
+          toast.success(t('gardens.gardenDeleted'));
+          navigate('/gardens');
+          return;
+        }
 
         await refreshMembers();
       }
@@ -513,7 +534,7 @@ const GardenDetail = () => {
       });
 
       if (!response.ok) {
-        toast.error('Update failed');
+        toast.error(t('tasks.failedToUpdateTask'));
         return;
       }
 
@@ -777,7 +798,7 @@ const GardenDetail = () => {
               <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
                 {t('gardens.gardenTasks')}
               </Typography>
-              {isMember && (
+              {isMember && isAccepted && (
                 <Button
                   variant="contained"
                   onClick={() => {
