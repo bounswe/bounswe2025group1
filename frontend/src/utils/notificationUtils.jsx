@@ -1,5 +1,6 @@
 import { getToken, onMessage } from 'firebase/messaging';
 import { messaging, VAPID_KEY } from '../config/firebaseConfig';
+import { toast } from 'react-toastify';
 
 
 // Requests permission and sends the token to your Django backend.
@@ -50,7 +51,14 @@ export const setupForegroundMessageListener = () => {
       const title = payload.data.data_title;
       const body = payload.data.data_body;
 
-      alert(`New Notification: ${title}\n${body}`);
+      toast.info(<div>
+        <strong>{title}</strong>
+        <br />
+        {body}
+      </div>);
+
+      const event = new CustomEvent('new-notification');
+      document.dispatchEvent(event);
     });
   }
 };

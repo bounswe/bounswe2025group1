@@ -3,36 +3,64 @@ from django.dispatch import receiver
 from .models import Notification, NotificationCategory, Task, Profile, Comment
 from push_notifications.models import GCMDevice
 
-@receiver(post_save, sender=Task)
-def task_update_notification(sender, instance, created, **kwargs):
-    # Skip if there's no one assigned
-    if not instance.assigned_to:
+
+def _send_notification(notification_receiver, notification_title, notification_message, notification_category):
+
+    if notification_receiver == None:
         return
 
-    # Skip if the assigned user has disabled notifications
-    if not instance.assigned_to.profile.receives_notifications:
+    if not notification_receiver.profile.receives_notifications:
         return
     
-    if created:
-        message = f"You have been assigned a new task: '{instance.title}'."
-    else:
-        message = f"Task updated: '{instance.title}' status is now '{instance.get_status_display()}'."
-
     Notification.objects.create(
-        recipient=instance.assigned_to,
-        message=message,
-        category=NotificationCategory.TASK,
+        recipient=notification_receiver,
+        message=notification_message,
+        category=notification_category,
     )
 
-    devices = GCMDevice.objects.filter(user=instance.assigned_to, active=True)
+    devices = GCMDevice.objects.filter(user=notification_receiver, active=True)
     devices.send_message(
         message=None,  # Set this to None to force data-only
         extra={
-            "data_title": "Task Update",      # Move title here
-            "data_body": message,             # Move body here
-            "type": "TASK_UPDATE",
+            "data_title": notification_title,      # Move title here
+            "data_body": notification_message,             # Move body here
+            "type": notification_category.value,
         }
     )
+
+
+@receiver(post_save, sender=Task)
+def task_update_notification(sender, instance, created, **kwargs):
+    assignee = instance.assigned_to
+    assigner = instance.assigned_by
+    
+    if created:
+        # Skip if there's no one assigned
+        if not assignee:
+            return
+        
+        message = f"You have been assigned a new task: '{instance.title}'."
+
+        _send_notification(
+            notification_receiver=assignee,
+            notification_title="Task Update",
+            notification_message=message,
+            notification_category=NotificationCategory.TASK,
+        )
+        
+    else: # Task update
+        new_status = instance.status
+
+        if new_status in ['ACCEPTED', 'DECLINED']:
+            if assigner != assignee:
+                message = f"{instance.title} Your task has been {instance.get_status_display()}."
+                _send_notification(
+                    notification_receiver=assigner,
+                    notification_title="Task Response",
+                    notification_message=message,
+                    notification_category=NotificationCategory.TASK,
+                )
+        
 
 @receiver(m2m_changed, sender=Profile.following.through)
 def new_follower_notification(sender, instance, action, pk_set, **kwargs):
@@ -54,26 +82,16 @@ def new_follower_notification(sender, instance, action, pk_set, **kwargs):
         
         # The recipient is the user who WAS followed.
         recipient_user = followed_profile.user
-
-        if not recipient_user.profile.receives_notifications:
-            return
         
         message = f"{follower_profile.user.username} started following you."
-        Notification.objects.create(
-            recipient=recipient_user,
-            message=message,
-            category=NotificationCategory.SOCIAL,
+
+        _send_notification(
+            notification_receiver=recipient_user,
+            notification_title="New Follower",
+            notification_message=message,
+            notification_category=NotificationCategory.SOCIAL,
         )
 
-        devices = GCMDevice.objects.filter(user=recipient_user, active=True)
-        devices.send_message(
-            message=None,  # Set this to None to force data-only
-            extra={
-                "data_title": "New Follower",      # Move title here
-                "data_body": message,             # Move body here
-                "type": "NEW_FOLLOWER",
-            }
-        )
 
 @receiver(post_save, sender=Comment)
 def new_comment_notification(sender, instance, created, **kwargs):
@@ -90,22 +108,11 @@ def new_comment_notification(sender, instance, created, **kwargs):
     if post_author == comment_author:
         return
 
-    if not post_author.profile.receives_notifications:
-        return
-
     message = f"{comment_author.username} commented on your post: '{instance.forum_post.title}'."
-    Notification.objects.create(
-        recipient=post_author,
-        message=message,
-        category=NotificationCategory.FORUM,
-    )
 
-    devices = GCMDevice.objects.filter(user=post_author, active=True)
-    devices.send_message(
-        message=None,  # Set this to None to force data-only
-        extra={
-            "data_title": "New Comment",      # Move title here
-            "data_body": message,             # Move body here
-            "type": "NEW_COMMENT",
-        }
+    _send_notification(
+        notification_receiver=post_author,
+        notification_title="New Comment",
+        notification_message=message,
+        notification_category=NotificationCategory.FORUM,
     )

@@ -9,7 +9,7 @@ import ForumPreview from '../../components/ForumPreview';
 import GardensPreview from '../../components/GardensPreview';
 import TaskWidget from '../../components/TaskWidget';
 
-import { registerForPushNotifications, setupForegroundMessageListener } from '../../utils/notificationUtils';
+import { registerForPushNotifications, setupForegroundMessageListener } from '../../utils/notificationUtils.jsx';
 
 const Home = () => {
   const { t } = useTranslation();

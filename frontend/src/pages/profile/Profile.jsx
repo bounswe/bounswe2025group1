@@ -29,6 +29,7 @@ import { createButtonKeyboardHandler, createLinkKeyboardHandler, createRovingTab
 import LocationPicker from '../../components/LocationPicker';
 import { useTranslation } from 'react-i18next';
 import { translateLocationString } from '../../utils/locationUtils';
+import { Switch, FormControlLabel } from '@mui/material';
 
 const Profile = () => {
   const { t, i18n } = useTranslation();
@@ -224,10 +225,12 @@ const Profile = () => {
   }, [tabValue, followerRefs.current.length]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+
     setEditedProfile((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: newValue,
     }));
   };
 
@@ -237,6 +240,7 @@ const Profile = () => {
       formData.append('username', editedProfile.username);
       formData.append('email', editedProfile.email);
       formData.append('location', editedProfile.location);
+      formData.append('receives_notifications', editedProfile.receives_notifications);
 
       if (selectedFile) {
         formData.append('profile_picture', selectedFile);
@@ -532,6 +536,19 @@ const Profile = () => {
                   value={editedProfile.email}
                   onChange={handleInputChange}
                 />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={editedProfile.receives_notifications}
+                      onChange={handleInputChange}
+                      name="receives_notifications"
+                      type="checkbox"
+                    />
+                  }
+                  label={t('Would you like to receive notifications?')}
+                  sx={{ mt: 1, mb: 1, display: 'block' }}
+                />
+                {}
                 <LocationPicker
                   value={editedProfile.location}
                   onChange={(value) => setEditedProfile({ ...editedProfile, location: value })}
