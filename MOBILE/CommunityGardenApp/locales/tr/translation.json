@@ -202,11 +202,35 @@
     "english": "İngilizce",
     "turkish": "Türkçe"
   },
+  "messages": {
+    "title": "Mesajlar",
+    "chat": "Sohbet",
+    "noChats": "Henüz sohbet yok",
+    "noChatsDescription": "Sohbet başlatmak için bir bahçeye katılın!",
+    "noMessages": "Henüz mesaj yok",
+    "typeMessage": "Bir mesaj yazın...",
+    "justNow": "Şimdi",
+    "minutesAgo": "d önce",
+    "hoursAgo": "s önce",
+    "daysAgo": "g önce"
+  },
   "layout": {
     "home": "Ana Sayfa",
     "gardens": "Bahçeler",
     "forum": "Forum",
     "profile": "Profil",
+    "messages": "Mesajlar",
     "myTasks": "Görevlerim"
+  },
+  "weather": {
+    "not_available": "Hava durumu verisi mevcut değil",
+    "update": "Hava Durumu Güncellemesi"
+  },
+  "accessibility": {
+    "accessibilitySettings": "Erişilebilirlik Ayarları",
+    "closeSettings": "Erişilebilirlik ayarlarını kapat",
+    "accessibilityDescription": "Bu ayarlar tüm uygulamaya uygulanır ve görme engelli kullanıcılar için görünürlüğü artırır.",
+    "highContrastMode": "Yüksek Kontrast Modu",
+    "highContrastInfo": "Yüksek kontrast modu, renk kontrast oranlarını WCAG 2.1 AA erişilebilirlik standartlarına uygun hale getirir."
   }
 }

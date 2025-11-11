@@ -75,6 +75,13 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="messages"
+          options={{
+            title: t('layout.messages'),
+            tabBarIcon: ({ color }) => <Ionicons name="chatbubbles" size={24} color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="my-tasks"
           options={{
             title: t('layout.myTasks'),

@@ -143,5 +143,20 @@
     "noFollowers": "لا يوجد متابعون",
     "noFollowing": "لا تتابع أحداً"
   }
+  ,
+  "chat": {
+    "header": "الرسائل",
+    "chatTitle": "دردشة",
+    "garden_chat": "دردشة الحديقة",
+    "direct_message": "رسالة خاصة",
+    "no_chats": "لا توجد محادثات بعد. انضم إلى حديقة لبدء الدردشة!",
+    "no_messages": "لا توجد رسائل بعد",
+    "type_message": "اكتب رسالة...",
+    "just_now": "الآن",
+    "time_m": "دق مضت",
+    "time_h": "س مضت",
+    "time_d": "يوم مضى",
+    "user_with_id": "المستخدم {{id}}"
+  }
 }
 

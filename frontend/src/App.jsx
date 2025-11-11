@@ -15,6 +15,7 @@ const isRTLLanguage = (lang) => {
 
 // Components
 import Navbar from './components/Navbar';
+import ChatWidget from './components/ChatWidget';
 // Pages
 import Home from './pages/home/Home';
 import Login from './pages/auth/Login';
@@ -109,6 +110,10 @@ function AppContent() {
                 <Route path="*" element={<Home />} />
               </Routes>
             </Box>
+            
+            {/* Chat Widget - appears on all pages when user is logged in */}
+            <ChatWidget />
+            
             <Box
               component="footer"
               sx={{

@@ -511,6 +511,20 @@
     "highContrast": "High Contrast",
     "themeSelector": "Theme Selector"
   },
+  "chat": {
+    "header": "Messages",
+    "chatTitle": "Chat",
+    "garden_chat": "Garden Chat",
+    "direct_message": "Direct Message",
+    "no_chats": "No chats yet. Join a garden to start chatting!",
+    "no_messages": "No messages yet",
+    "type_message": "Type a message...",
+    "just_now": "Just now",
+    "time_m": "m ago",
+    "time_h": "h ago",
+    "time_d": "d ago",
+    "user_with_id": "User {{id}}"
+  },
   "accessibility": {
     "skipToContent": "Skip to main content",
     "openMenu": "Open menu",

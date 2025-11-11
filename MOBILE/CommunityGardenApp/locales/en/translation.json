@@ -202,11 +202,35 @@
     "english": "English",
     "turkish": "Turkish"
   },
+  "messages": {
+    "title": "Messages",
+    "chat": "Chat",
+    "noChats": "No chats yet",
+    "noChatsDescription": "Join a garden to start chatting!",
+    "noMessages": "No messages yet",
+    "typeMessage": "Type a message...",
+    "justNow": "Just now",
+    "minutesAgo": "m ago",
+    "hoursAgo": "h ago",
+    "daysAgo": "d ago"
+  },
   "layout": {
     "home": "Home",
     "gardens": "Gardens",
     "forum": "Forum",
     "profile": "Profile",
+    "messages": "Messages",
     "myTasks": "My Tasks"
+  },
+  "weather": {
+    "not_available": "Weather data not available",
+    "update": "Weather Update"
+  },
+  "accessibility": {
+    "accessibilitySettings": "Accessibility Settings",
+    "closeSettings": "Close accessibility settings",
+    "accessibilityDescription": "These settings apply to the entire app and improve visibility for users with visual impairments.",
+    "highContrastMode": "High Contrast Mode",
+    "highContrastInfo": "High contrast mode increases color contrast ratios to meet WCAG 2.1 AA accessibility standards."
   }
 }

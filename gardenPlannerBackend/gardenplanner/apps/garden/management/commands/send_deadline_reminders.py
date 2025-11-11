@@ -1,7 +1,7 @@
 import datetime
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from garden.models import Task, Notification, NotificationCategory
+from gardenplanner.apps.garden.models import Task, Notification, NotificationCategory
 
 
 class Command(BaseCommand):

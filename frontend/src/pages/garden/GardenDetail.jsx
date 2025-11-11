@@ -30,6 +30,7 @@ import TaskModal from '../../components/TaskModal';
 import CalendarTab from '../../components/CalendarTab';
 import GardenModal from '../../components/GardenModal';
 import TaskBoard from '../../components/TaskBoard';
+import DirectMessageButton from '../../components/DirectMessageButton';
 import { useTranslation } from 'react-i18next';
 import ImageGallery from '../../components/ImageGallery';
 import { translateLocationString } from '../../utils/locationUtils';
@@ -885,6 +886,15 @@ const GardenDetail = () => {
                       }
                       secondary={`${t('gardens.role')}: ${t(`gardens.${member.role.toLowerCase()}`)} • ${t('gardens.status')}: ${t(`gardens.${member.status.toLowerCase()}`)}`}
                     />{' '}
+                    {/* Show Direct Message button for accepted members (except yourself) */}
+                    {member.status === 'ACCEPTED' && user && member.user_id !== user.id && (
+                      <DirectMessageButton 
+                        targetUserId={member.user_id}
+                        variant="outlined"
+                        size="small"
+                        sx={{ mr: 1 }}
+                      />
+                    )}
                     {isManager && member.id !== userMembership?.id && (
                       <>
                         {member.status === 'PENDING' ? (

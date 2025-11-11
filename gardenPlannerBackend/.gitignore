@@ -33,6 +33,10 @@ media
 venv/
 ENV/
 
+# Firebase
+firebase-service-account.json
+*-firebase-adminsdk-*.json
+
 # IDE
 .idea/
 .vscode/
