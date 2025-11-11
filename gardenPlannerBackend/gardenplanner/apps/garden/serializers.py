@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenImage, ForumPostImage, CommentImage
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenImage, ForumPostImage, CommentImage, Badge, UserBadge
 from django.contrib.auth import get_user_model
 from django.conf import settings
 import requests
@@ -484,3 +484,15 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ('id', 'message', 'category', 'read', 'timestamp')
+
+class BadgeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Badge
+        fields = ['key', 'name', 'description', 'category', 'requirement']
+
+class UserBadgeSerializer(serializers.ModelSerializer):
+    badge = BadgeSerializer(read_only=True)  
+
+    class Meta:
+        model = UserBadge
+        fields = ['badge', 'earned_at']

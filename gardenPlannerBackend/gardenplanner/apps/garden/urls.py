@@ -53,4 +53,8 @@ urlpatterns = [
     
     # External API integrations
     path('weather/', views.WeatherDataView.as_view(), name='weather'),
+
+    # Badge endpoints
+    path('badges/', views.BadgeListView.as_view(), name='badge-list'),
+    path('user/<int:user_id>/badges/', views.UserBadgeListView.as_view(), name='user-badges'),
 ] 
