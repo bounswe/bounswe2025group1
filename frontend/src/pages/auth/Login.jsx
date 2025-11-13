@@ -15,7 +15,8 @@ import {
 import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { createFormKeyboardHandler, trapFocus } from '../../utils/keyboardNavigation';
 import { useTranslation } from 'react-i18next';
