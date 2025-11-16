@@ -1,8 +1,16 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { vi } from 'vitest';
+import { vi, describe, beforeEach, test, expect } from 'vitest';
 import ThemeToggle from './ThemeToggle';
 import { ThemeProvider } from '../contexts/ThemeContext';
+
+// Mock MUI icons to avoid EMFILE errors
+vi.mock('@mui/icons-material', () => ({
+  LightMode: () => <div data-testid="light-mode-icon">LightMode</div>,
+  DarkMode: () => <div data-testid="dark-mode-icon">DarkMode</div>,
+  Contrast: () => <div data-testid="contrast-icon">Contrast</div>,
+  Palette: () => <div data-testid="palette-icon">Palette</div>,
+}));
 
 // Mock the theme context
 const mockThemeContext = {
@@ -24,14 +32,14 @@ describe('ThemeToggle', () => {
     vi.clearAllMocks();
   });
 
-  it('renders theme toggle button', () => {
+  test('renders theme toggle button', () => {
     render(<ThemeToggle />);
     
     const themeButton = screen.getByRole('button', { name: /change theme/i });
     expect(themeButton).toBeInTheDocument();
   });
 
-  it('opens theme menu when clicked', () => {
+  test('opens theme menu when clicked', () => {
     render(<ThemeToggle />);
     
     const themeButton = screen.getByRole('button', { name: /change theme/i });
@@ -43,7 +51,7 @@ describe('ThemeToggle', () => {
     expect(screen.getByText('High Contrast')).toBeInTheDocument();
   });
 
-  it('calls changeTheme when theme option is selected', () => {
+  test('calls changeTheme when theme option is selected', () => {
     render(<ThemeToggle />);
     
     const themeButton = screen.getByRole('button', { name: /change theme/i });
@@ -55,15 +63,15 @@ describe('ThemeToggle', () => {
     expect(mockThemeContext.changeTheme).toHaveBeenCalledWith('dark');
   });
 
-  it('calls toggleHighContrast when toggle option is selected', () => {
+  test('calls changeTheme when High Contrast is selected', () => {
     render(<ThemeToggle />);
     
     const themeButton = screen.getByRole('button', { name: /change theme/i });
     fireEvent.click(themeButton);
     
-    const toggleOption = screen.getByText('Toggle High Contrast');
-    fireEvent.click(toggleOption);
+    const highContrastOption = screen.getByText('High Contrast');
+    fireEvent.click(highContrastOption);
     
-    expect(mockThemeContext.toggleHighContrast).toHaveBeenCalled();
+    expect(mockThemeContext.changeTheme).toHaveBeenCalledWith('highContrast');
   });
 });
