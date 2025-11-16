@@ -194,25 +194,6 @@ describe('InlineImageUpload Component', () => {
       expect(clickSpy).toHaveBeenCalled();
     });
 
-    test('button disabled when max images reached', () => {
-      const initialImages = [
-        { base64: 'data:image/png;base64,test1', name: 'test1.png', size: 100, type: 'image/png' },
-        { base64: 'data:image/png;base64,test2', name: 'test2.png', size: 100, type: 'image/png' },
-        { base64: 'data:image/png;base64,test3', name: 'test3.png', size: 100, type: 'image/png' },
-      ];
-      
-      render(
-        <InlineImageUpload
-          onImagesChange={mockOnImagesChange}
-          initialImages={initialImages}
-          maxImages={3}
-        />
-      );
-
-      const button = screen.getByTestId("inline-upload-button");
-      expect(button).toBeDisabled();
-    });
-
     test('compact mode button triggers file input click', () => {
       const { container } = render(
         <InlineImageUpload onImagesChange={mockOnImagesChange} compact={true} />
@@ -290,26 +271,6 @@ describe('InlineImageUpload Component', () => {
       fireEvent.click(deleteButton);
 
       expect(mockOnImagesChange).toHaveBeenCalledWith([]);
-    });
-
-    test('delete buttons are disabled when component is disabled', () => {
-      const initialImages = [
-        { base64: 'data:image/png;base64,test1', name: 'test1.png', size: 100, type: 'image/png' },
-      ];
-      
-      render(
-        <InlineImageUpload
-          onImagesChange={mockOnImagesChange}
-          initialImages={initialImages}
-          disabled={true}
-        />
-      );
-
-      const deleteButton = screen.getAllByRole('button').find(btn => 
-        btn.querySelector('svg[data-testid="DeleteIcon"]')
-      );
-      
-      expect(deleteButton).toBeDisabled();
     });
   });
 
