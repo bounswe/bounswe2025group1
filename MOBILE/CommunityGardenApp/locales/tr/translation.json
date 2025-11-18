@@ -232,5 +232,20 @@
     "accessibilityDescription": "Bu ayarlar tüm uygulamaya uygulanır ve görme engelli kullanıcılar için görünürlüğü artırır.",
     "highContrastMode": "Yüksek Kontrast Modu",
     "highContrastInfo": "Yüksek kontrast modu, renk kontrast oranlarını WCAG 2.1 AA erişilebilirlik standartlarına uygun hale getirir."
+  },
+  "location": {
+    "mapMode": "Harita",
+    "textMode": "Metin",
+    "mapInstructions": "Konum seçmek için haritaya dokunun",
+    "useCurrentLocation": "Mevcut Konumu Kullan",
+    "gettingLocation": "Konum alınıyor...",
+    "gettingAddressDetails": "Adres detayları alınıyor...",
+    "permissionDenied": "Konum izni reddedildi",
+    "unableToRetrieve": "Konum alınamadı",
+    "countryPlaceholder": "Ülke",
+    "cityPlaceholder": "Şehir",
+    "districtPlaceholder": "İlçe",
+    "streetPlaceholder": "Sokak",
+    "descriptionPlaceholder": "Ek açıklama (isteğe bağlı)"
   }
 }
