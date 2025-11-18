@@ -248,7 +248,7 @@ class GardenSerializer(serializers.ModelSerializer):
 class GardenMembershipSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     garden_name = serializers.CharField(source='garden.name', read_only=True)
-    garden = serializers.PrimaryKeyRelatedField(queryset=Garden.objects.all(), required=True)
+    garden = serializers.PrimaryKeyRelatedField(queryset=Garden.objects.all(), required=False)
     user_id = serializers.IntegerField(source='user.id', read_only=True)  # ✅ ADD THIS LINE
 
     class Meta:
@@ -257,9 +257,16 @@ class GardenMembershipSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'joined_at', 'updated_at']
         
     def validate(self, data):
-        if not data.get('garden'):
+        # Garden is required only on create, not on update
+        if self.instance is None and not data.get('garden'):
             raise serializers.ValidationError({"garden": "Garden ID is required"})
         return data
+    
+    def update(self, instance, validated_data):
+        # If garden is not provided in update, use the instance's garden
+        if 'garden' not in validated_data:
+            validated_data['garden'] = instance.garden
+        return super().update(instance, validated_data)
 
 class CustomTaskTypeSerializer(serializers.ModelSerializer):
     garden_name = serializers.CharField(source='garden.name', read_only=True)

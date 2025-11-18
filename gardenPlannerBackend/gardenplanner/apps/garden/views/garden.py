@@ -13,6 +13,8 @@ from ..models import Garden, GardenMembership
 from ..permissions import (
     IsSystemAdministrator, IsMember, IsGardenManager, CanDeleteMembership
 )
+from gardenplanner.apps.chat.firebase_config import get_firestore_client
+from google.cloud.firestore import SERVER_TIMESTAMP
 
 
 class GardenViewSet(viewsets.ModelViewSet):
@@ -67,10 +69,7 @@ class GardenViewSet(viewsets.ModelViewSet):
         )
         
         # Create a chat for this garden in Firebase
-        try:
-            from chat.firebase_config import get_firestore_client
-            from google.cloud.firestore import SERVER_TIMESTAMP
-            
+        try:         
             db = get_firestore_client()
             if db:
                 # Create Firebase UID for the creator
@@ -85,11 +84,6 @@ class GardenViewSet(viewsets.ModelViewSet):
                     'members': [firebase_uid],  # Creator is the first member
                     'createdAt': SERVER_TIMESTAMP,
                     'updatedAt': SERVER_TIMESTAMP,
-                    'lastMessage': {
-                        'text': 'Garden chat created',
-                        'createdAt': SERVER_TIMESTAMP,
-                        'senderId': 'system'
-                    }
                 }
                 chat_ref.set(chat_data)
                 print(f"Garden chat created for garden: {garden.name} (ID: {garden.id})")
@@ -182,10 +176,7 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
     
     def _sync_garden_chat_members(self, garden_id):
         """Sync garden chat members with accepted memberships"""
-        try:
-            from chat.firebase_config import get_firestore_client
-            from google.cloud.firestore import SERVER_TIMESTAMP
-            
+        try:            
             db = get_firestore_client()
             if not db:
                 return

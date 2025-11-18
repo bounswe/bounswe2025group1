@@ -64,15 +64,16 @@ describe('Login page', () => {
 
   it('renders username and password inputs', () => {
     renderWithProviders();
-    expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByTestId(/username/i)).toBeInTheDocument();
+    expect(screen.getByTestId(/password/i)).toBeInTheDocument();
   });
+
   it('calls login and shows success toast on submit', async () => {
     renderWithProviders();
-    fireEvent.change(screen.getByLabelText(/username/i), {
+    fireEvent.change(screen.getByTestId(/username/i), {
       target: { value: 'testuser' },
     });
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByTestId(/password/i), {
       target: { value: 'securepass' },
     });
 
@@ -104,10 +105,10 @@ describe('Login page', () => {
     });
 
     renderWithProviders();
-    fireEvent.change(screen.getByLabelText(/username/i), {
+    fireEvent.change(screen.getByTestId(/username/i), {
       target: { value: 'fail' },
     });
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByTestId(/password/i), {
       target: { value: 'wrong' },
     });
 

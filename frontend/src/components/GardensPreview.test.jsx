@@ -33,11 +33,17 @@ const mockGardens = [
 
 describe('GardensPreview component', () => {
   beforeEach(() => {
-    window.fetch = vi.fn();
-    vi.resetAllMocks();
+    // align fetch mocking with other tests: provide a default resolved value
+    // individual tests may override with mockResolvedValueOnce or mockRejectedValueOnce
+    vi.clearAllMocks();
     useAuth.mockReturnValue({
       token: 'mock-token',
       user: { id: 1, username: 'testuser' },
+    });
+
+    window.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGardens,
     });
   });
 
@@ -50,12 +56,6 @@ describe('GardensPreview component', () => {
   });
 
   it('renders gardens when data is loaded', async () => {
-    // Mock profile response
-    window.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ username: 'testuser' }),
-    });
-
     // Mock memberships response
     window.fetch.mockResolvedValueOnce({
       ok: true,
@@ -85,13 +85,8 @@ describe('GardensPreview component', () => {
       expect(screen.getByText('Test Garden 2')).toBeInTheDocument();
     });
   });
-  it('respects the limit prop', async () => {
-    // Mock profile response
-    window.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ username: 'testuser' }),
-    });
 
+  it('respects the limit prop', async () => {
     // Mock memberships response
     window.fetch.mockResolvedValueOnce({
       ok: true,
@@ -138,12 +133,6 @@ describe('GardensPreview component', () => {
   });
 
   it('displays message when no gardens are available', async () => {
-    // Mock profile response
-    window.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ username: 'testuser' }),
-    });
-
     // Mock memberships response with empty array
     window.fetch.mockResolvedValueOnce({
       ok: true,
@@ -179,7 +168,7 @@ describe('GardensPreview component', () => {
   });
 
   it('handles error state gracefully', async () => {
-    // Mock failed profile fetch
+    // Mock failed memberships fetch
     window.fetch.mockRejectedValueOnce(new Error('Failed to fetch'));
     console.error = vi.fn(); // Silence console errors in test
 
