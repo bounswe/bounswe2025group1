@@ -220,7 +220,22 @@
     "forum": "Forum",
     "profile": "Profil",
     "messages": "Mesajlar",
+    "notifications": "Bildirimler",
     "myTasks": "Görevlerim"
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "markAllRead": "Tümünü Okundu İşaretle",
+    "markAsRead": "Okundu İşaretle",
+    "noNotifications": "Henüz bildirim yok",
+    "unreadCount": "okunmamış",
+    "markAllError": "Tümü okundu işaretlenemedi",
+    "categories": {
+      "TASK": "Görev Güncellemesi",
+      "SOCIAL": "Sosyal Aktivite",
+      "FORUM": "Forum Aktivitesi",
+      "WEATHER": "Hava Durumu Uyarısı"
+    }
   },
   "weather": {
     "not_available": "Hava durumu verisi mevcut değil",

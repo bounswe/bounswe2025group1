@@ -220,7 +220,22 @@
     "forum": "Forum",
     "profile": "Profile",
     "messages": "Messages",
+    "notifications": "Notifications",
     "myTasks": "My Tasks"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark All Read",
+    "markAsRead": "Mark as Read",
+    "noNotifications": "No notifications yet",
+    "unreadCount": "unread",
+    "markAllError": "Failed to mark all as read",
+    "categories": {
+      "TASK": "Task Update",
+      "SOCIAL": "Social Activity",
+      "FORUM": "Forum Activity",
+      "WEATHER": "Weather Alert"
+    }
   },
   "weather": {
     "not_available": "Weather data not available",
