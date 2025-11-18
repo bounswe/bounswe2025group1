@@ -15,6 +15,7 @@ export const registerForPushNotifications = async (authToken) => {
     }
     // print vapid key in console
     const currentToken = await getToken(messaging, { vapidKey: VAPID_KEY });
+    console.log("Firebase notification token:", currentToken);
     if (!currentToken) {
       console.log("No registration token available.");
       return;
