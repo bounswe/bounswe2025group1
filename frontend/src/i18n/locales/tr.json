@@ -510,6 +510,14 @@
     "highContrast": "Yüksek Kontrast",
     "themeSelector": "Tema Seçici"
   },
+  "notifications": {
+    "title": "Bildirimler",
+    "markAllRead": "Tümünü Okundu İşaretle",
+    "noNotifications": "Hiç bildiriminiz yok.",
+    "failedToMarkAsRead": "Okundu olarak işaretlenemedi",
+    "allMarkedAsRead": "Tüm bildirimler okundu olarak işaretlendi",
+    "failedToMarkAllAsRead": "Tümü okundu olarak işaretlenemedi"
+  },
   "chat": {
     "header": "Mesajlar",
     "chatTitle": "Sohbet",

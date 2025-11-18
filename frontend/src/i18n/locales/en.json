@@ -511,6 +511,14 @@
     "highContrast": "High Contrast",
     "themeSelector": "Theme Selector"
   },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark All Read",
+    "noNotifications": "You have no notifications.",
+    "failedToMarkAsRead": "Failed to mark as read",
+    "allMarkedAsRead": "All notifications marked as read",
+    "failedToMarkAllAsRead": "Failed to mark all as read"
+  },
   "chat": {
     "header": "Messages",
     "chatTitle": "Chat",
