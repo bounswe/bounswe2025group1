@@ -46,6 +46,7 @@ services:
     env_file:
       - ./gardenPlannerBackend/.env
     environment:
+      - TZ=Europe/Istanbul
       - DEBUG=True
       - DB_NAME=gardenplanner
       - DB_USER=postgres
@@ -56,7 +57,9 @@ services:
       - FIREBASE_SERVICE_ACCOUNT_KEY=firebase-service-account.json
     command: >
       sh -c "python manage.py migrate && 
+             (python manage.py run_scheduler &) &&
              python manage.py runserver 0.0.0.0:8000"
+    # run migrations, start scheduler in background, then start server
     depends_on:
       postgres:
         condition: service_healthy

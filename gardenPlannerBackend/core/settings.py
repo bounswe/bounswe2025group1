@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'gardenplanner.apps.chat',
 
     'push_notifications',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -227,3 +228,5 @@ LOGGING = {
         },
     },
 }
+
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
