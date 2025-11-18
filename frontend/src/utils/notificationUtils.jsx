@@ -1,3 +1,4 @@
+import React from 'react';
 import { getToken, onMessage } from 'firebase/messaging';
 import { messaging, VAPID_KEY } from '../config/firebaseConfig';
 import { toast } from 'react-toastify';
