@@ -56,14 +56,12 @@ const Login = () => {
 
       toast.success(t('auth.login.welcomeBack'), {
         position: 'top-right',
-        theme: 'colored',
       });
 
       navigate('/');
     } catch (error) {
       toast.error(t('auth.login.failedToLogin'), {
         position: 'top-right',
-        theme: 'colored',
       });
       console.error(error);
       return;
@@ -88,12 +86,12 @@ const Login = () => {
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       );
       focusableElementsRef.current = Array.from(focusableElements);
-      
+
       // Focus the first element
       if (focusableElementsRef.current.length > 0) {
         focusableElementsRef.current[0].focus();
       }
-      
+
       // Set up focus trap
       const cleanup = trapFocus(formRef.current, focusableElementsRef.current);
       return cleanup;
@@ -112,7 +110,6 @@ const Login = () => {
         justifyContent: 'center',
       }}
     >
-      <ToastContainer />
       <Box sx={{ mt: -10 }}>
         <Paper
           elevation={4}
@@ -120,29 +117,29 @@ const Login = () => {
             p: 4,
             borderRadius: 3,
             backgroundColor: theme.palette.custom?.loginPaper || theme.palette.background.paper,
-            boxShadow: theme.palette.mode === 'dark' 
-              ? '0px 6px 20px rgba(35, 134, 54, 0.3)' 
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0px 6px 20px rgba(35, 134, 54, 0.3)'
               : theme.palette.mode === 'light'
               ? '0px 6px 20px rgba(85, 139, 47, 0.2)'
               : '0px 6px 20px rgba(0, 0, 0, 0.5)',
-            border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
-              ? '2px solid #000000' 
+            border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+              ? '2px solid #000000'
               : 'none',
           }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Avatar sx={{ 
-              m: 1, 
+            <Avatar sx={{
+              m: 1,
               bgcolor: theme.palette.custom?.avatar || theme.palette.primary.light,
               color: theme.palette.mode === 'dark' ? '#ffffff' : 'inherit',
             }}>🌿</Avatar>
             <Typography component="h1" variant="h5" fontWeight="bold">
               {t('auth.login.title')}
             </Typography>
-            <Box 
+            <Box
               ref={formRef}
-              component="form" 
-              onSubmit={handleSubmit} 
+              component="form"
+              onSubmit={handleSubmit}
               onKeyDown={formKeyboardHandler}
               sx={{ mt: 1, width: '100%' }}
               role="form"
@@ -153,6 +150,7 @@ const Login = () => {
                 required
                 fullWidth
                 id="username"
+                data-testid="username"
                 label={t('auth.login.username')}
                 name="username"
                 autoComplete="username"
@@ -176,6 +174,7 @@ const Login = () => {
                 label={t('auth.login.password')}
                 type="password"
                 id="password"
+                data-testid="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -198,8 +197,8 @@ const Login = () => {
                   mb: 2,
                   background: theme.palette.custom?.buttonGradient || theme.palette.primary.main,
                   color: theme.palette.primary.contrastText,
-                  border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
-                    ? '2px solid #000000' 
+                  border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+                    ? '2px solid #000000'
                     : 'none',
                   '&:hover': {
                     background: theme.palette.custom?.buttonGradientHover || theme.palette.primary.dark,
@@ -221,8 +220,8 @@ const Login = () => {
                   variant="body2"
                   underline="hover"
                   color="text.secondary"
-                  sx={{ 
-                    display: 'block', 
+                  sx={{
+                    display: 'block',
                     mb: 1,
                     '&:focus': {
                       outline: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
@@ -245,9 +244,9 @@ const Login = () => {
                 </Link>
                 <Typography variant="body2" color="text.secondary">
                   {t('auth.login.noAccount')}{' '}
-                  <Link 
-                    href="/auth/register" 
-                    underline="hover" 
+                  <Link
+                    href="/auth/register"
+                    underline="hover"
                     color="primary"
                     sx={{
                       '&:focus': {

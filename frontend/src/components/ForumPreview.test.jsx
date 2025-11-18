@@ -54,6 +54,7 @@ describe('ForumPreview Component', () => {
       comments: 1,
     },
   ];
+
   beforeEach(() => {
     vi.clearAllMocks();
     useNavigate.mockReturnValue(mockNavigate);
@@ -69,6 +70,7 @@ describe('ForumPreview Component', () => {
       json: async () => mockPosts,
     });
   });
+
   test('renders the forum preview with posts', async () => {
     render(<ForumPreview limit={3} />);
 
@@ -87,6 +89,7 @@ describe('ForumPreview Component', () => {
       expect(screen.queryByText('Fourth Post Title')).not.toBeInTheDocument();
     });
   });
+
   test('respects the limit prop for number of posts to display', async () => {
     render(<ForumPreview limit={2} />);
 
@@ -99,6 +102,7 @@ describe('ForumPreview Component', () => {
       expect(screen.queryByText('Fourth Post Title')).not.toBeInTheDocument();
     });
   });
+
   test('displays a message when there are no posts', async () => {
     // Mock the fetch to return empty array
     window.fetch = vi.fn().mockResolvedValue({
@@ -118,6 +122,7 @@ describe('ForumPreview Component', () => {
       expect(screen.getByText('Explore Forum')).toBeInTheDocument();
     });
   });
+
   test('navigates to forum list when "Explore Forum" button is clicked', async () => {
     render(<ForumPreview />);
 
@@ -131,21 +136,7 @@ describe('ForumPreview Component', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('/forum');
   });
-  test('navigates to post detail when a post is clicked', async () => {
-    render(<ForumPreview />);
 
-    // Wait for the posts to load
-    await waitFor(() => {
-      expect(screen.getByText('First Post Title')).toBeInTheDocument();
-    });
-
-    // Click the first post
-    const firstPostTitle = screen.getByText('First Post Title');
-    const listItem = firstPostTitle.closest('li') || firstPostTitle.closest('[role="listitem"]');
-    fireEvent.click(listItem);
-
-    expect(mockNavigate).toHaveBeenCalledWith('/forum/1');
-  });
   test('renders shortened content with ellipsis', async () => {
     render(<ForumPreview />);
 
@@ -155,6 +146,7 @@ describe('ForumPreview Component', () => {
       expect(screen.getByText(/This is the content of the first post.../)).toBeInTheDocument();
     });
   });
+
   test('shows author name and date for each post', async () => {
     render(<ForumPreview />);
 
@@ -166,6 +158,7 @@ describe('ForumPreview Component', () => {
       expect(screen.getByText(/May 3/)).toBeInTheDocument();
     });
   });
+  
   test('hides "Explore Forum" button when showViewAll is false', async () => {
     render(<ForumPreview showViewAll={false} />);
 

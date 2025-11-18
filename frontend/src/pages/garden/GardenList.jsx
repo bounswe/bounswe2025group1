@@ -16,6 +16,10 @@ import {
   Paper,
   Divider,
   Fab,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Modal, Fade, Backdrop } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -28,7 +32,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTranslation } from 'react-i18next';
 import { Switch } from '@mui/material';
-import { translateLocationString } from '../../utils/locationUtils';
+import { translateLocationString, geocodeAddress, calculateDistance, getUserCurrentLocation } from '../../utils/locationUtils';
 import GardenModal from '../../components/GardenModal';
 
 const GardenList = () => {
@@ -43,6 +47,11 @@ const GardenList = () => {
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
   const { token } = useAuth();
+  const [showNearby, setShowNearby] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [gardensWithDistance, setGardensWithDistance] = useState([]);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [radiusFilter, setRadiusFilter] = useState('all'); // 'all', '5', '10', '25', '50', '100'
 
   const [form, setForm] = useState({
     type: '',
@@ -52,6 +61,49 @@ const GardenList = () => {
     size: '',
     isPublic: true,
   });
+
+  // Fetch user location from profile or geolocation
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      if (!user) return;
+
+      setLoadingLocation(true);
+      let locationCoords = null;
+
+      // Try to get location from user profile first
+      if (token) {
+        try {
+          const profileResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
+            headers: {
+              'Authorization': `Token ${token.trim()}`,
+            },
+          });
+
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            const profileLocation = profileData?.profile?.location || profileData?.location;
+            
+            if (profileLocation) {
+              // Geocode the profile location
+              locationCoords = await geocodeAddress(profileLocation);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching profile location:', error);
+        }
+      }
+
+      // If profile location not available, try browser geolocation
+      if (!locationCoords) {
+        locationCoords = await getUserCurrentLocation();
+      }
+
+      setUserLocation(locationCoords);
+      setLoadingLocation(false);
+    };
+
+    fetchUserLocation();
+  }, [user, token]);
 
   useEffect(() => {
     const fetchGardens = async () => {
@@ -80,18 +132,146 @@ const GardenList = () => {
     fetchGardens();
   }, []);
 
+  // Helper function to apply filters and sorting
+  const applyFilters = (gardensToFilter, searchValue, radiusValue, nearbyMode) => {
+    let filtered = gardensToFilter;
+
+    // Apply search filter
+    if (searchValue) {
+      const searchLower = searchValue.toLowerCase();
+      filtered = filtered.filter(
+        (garden) =>
+          garden.name.toLowerCase().includes(searchLower) ||
+          garden.description?.toLowerCase().includes(searchLower) ||
+          garden.location?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply radius filter (only in nearby mode)
+    if (nearbyMode && radiusValue !== 'all') {
+      const radiusKm = parseFloat(radiusValue);
+      filtered = filtered.filter((garden) => {
+        if (garden.distance === null) return false;
+        return garden.distance <= radiusKm;
+      });
+    }
+
+    // Sort by distance if in nearby mode (always sort nearest first)
+    if (nearbyMode) {
+      filtered = [...filtered].sort((a, b) => {
+        if (a.distance === null) return 1;
+        if (b.distance === null) return -1;
+        return a.distance - b.distance;
+      });
+    }
+
+    return filtered;
+  };
+
+  // Calculate distances automatically when gardens and user location are available
+  useEffect(() => {
+    const calculateDistances = async () => {
+      if (!userLocation || gardens.length === 0) {
+        setGardensWithDistance([]);
+        return;
+      }
+
+      setLoadingLocation(true);
+      
+      // Geocode addresses with delay to respect rate limits (1 request per second)
+      const gardensWithDist = [];
+      for (let i = 0; i < gardens.length; i++) {
+        const garden = gardens[i];
+        
+        if (!garden.location) {
+          gardensWithDist.push({ ...garden, distance: null });
+          continue;
+        }
+
+        // Add delay between requests (except for the first one)
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1100)); // 1.1 seconds delay
+        }
+
+        const gardenCoords = await geocodeAddress(garden.location);
+        if (gardenCoords) {
+          const distance = calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            gardenCoords.lat,
+            gardenCoords.lng
+          );
+          gardensWithDist.push({ ...garden, distance: Math.round(distance * 10) / 10 }); // Round to 1 decimal
+        } else {
+          gardensWithDist.push({ ...garden, distance: null });
+        }
+      }
+
+      // Sort by distance (null distances last)
+      gardensWithDist.sort((a, b) => {
+        if (a.distance === null) return 1;
+        if (b.distance === null) return -1;
+        return a.distance - b.distance;
+      });
+
+      setGardensWithDistance(gardensWithDist);
+      setLoadingLocation(false);
+    };
+
+    calculateDistances();
+  }, [gardens, userLocation]);
+
+  // Apply filters when filters or nearby mode changes
+  useEffect(() => {
+    if (showNearby && gardensWithDistance.length > 0) {
+      const nearbyGardens = gardensWithDistance.filter(g => g.distance !== null);
+      const filtered = applyFilters(nearbyGardens, searchTerm, radiusFilter, true);
+      setFilteredGardens(filtered);
+    } else if (!showNearby) {
+      const filtered = applyFilters(gardens, searchTerm, 'all', false);
+      setFilteredGardens(filtered);
+    }
+  }, [showNearby, searchTerm, radiusFilter, gardensWithDistance, gardens]);
+
   const handleSearch = (event) => {
-    const value = event.target.value.toLowerCase();
+    const value = event.target.value;
     setSearchTerm(value);
 
-    const filtered = gardens.filter(
-      (garden) =>
-        garden.name.toLowerCase().includes(value) ||
-        garden.description.toLowerCase().includes(value) ||
-        garden.location.toLowerCase().includes(value)
-    );
+    const sourceGardens = showNearby && gardensWithDistance.length > 0 
+      ? gardensWithDistance 
+      : gardens;
 
+    const filtered = applyFilters(sourceGardens, value, radiusFilter, showNearby);
     setFilteredGardens(filtered);
+  };
+
+  const handleRadiusChange = (event) => {
+    const newRadius = event.target.value;
+    setRadiusFilter(newRadius);
+
+    const sourceGardens = showNearby && gardensWithDistance.length > 0 
+      ? gardensWithDistance 
+      : gardens;
+
+    const filtered = applyFilters(sourceGardens, searchTerm, newRadius, showNearby);
+    setFilteredGardens(filtered);
+  };
+
+  const handleToggleNearby = () => {
+    const newShowNearby = !showNearby;
+    setShowNearby(newShowNearby);
+    
+    if (newShowNearby) {
+      // Filter out gardens without distance and apply radius filter
+      const nearbyGardens = gardensWithDistance.filter(g => g.distance !== null);
+      const filtered = applyFilters(nearbyGardens, searchTerm, radiusFilter, true);
+      setFilteredGardens(filtered);
+    } else {
+      // Reset to all gardens
+      const filtered = applyFilters(gardens, searchTerm, 'all', false);
+      setFilteredGardens(filtered);
+      setRadiusFilter('all');
+    }
   };
 
   const handleChange = (e) => {
@@ -191,7 +371,7 @@ const GardenList = () => {
       {/* Search and Filter */}
       <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 3, md: 4 } }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, md: showNearby ? 4 : 6 }}>
             <TextField
               fullWidth
               placeholder={t('gardens.searchByName')}
@@ -208,10 +388,51 @@ const GardenList = () => {
               size="small"
             />
           </Grid>
+          {showNearby && userLocation && gardensWithDistance.length > 0 && (
+            <Grid size={{ xs: 12, md: 3 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>{t('gardens.radiusFilter')}</InputLabel>
+                <Select
+                  value={radiusFilter}
+                  onChange={handleRadiusChange}
+                  label={t('gardens.radiusFilter')}
+                  sx={{ minWidth: 120 }}
+                >
+                  <MenuItem value="all">{t('gardens.allDistances')}</MenuItem>
+                  <MenuItem value="5">5 {t('gardens.km')}</MenuItem>
+                  <MenuItem value="10">10 {t('gardens.km')}</MenuItem>
+                  <MenuItem value="25">25 {t('gardens.km')}</MenuItem>
+                  <MenuItem value="50">50 {t('gardens.km')}</MenuItem>
+                  <MenuItem value="100">100 {t('gardens.km')}</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          )}
           <Grid
-            size={{ xs: 12, md: 6 }}
-            sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}
+            size={{ xs: 12, md: showNearby ? 5 : 6 }}
+            sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, gap: 1, flexWrap: 'wrap' }}
           >
+            {user && (
+              <Button
+                variant={showNearby ? "contained" : "outlined"}
+                color="primary"
+                startIcon={<LocationOnIcon />}
+                onClick={handleToggleNearby}
+                disabled={loadingLocation || !userLocation}
+                sx={{
+                  backgroundColor: showNearby ? '#558b2f' : 'transparent',
+                  color: showNearby ? 'white' : '#558b2f',
+                  borderColor: '#558b2f',
+                  '&:hover': { 
+                    backgroundColor: showNearby ? '#33691e' : 'rgba(85, 139, 47, 0.1)',
+                    borderColor: '#33691e',
+                  },
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {showNearby ? t('gardens.showAll') : t('gardens.nearbyGardens')}
+              </Button>
+            )}
             <Button
               variant="contained"
               color="primary"
@@ -220,7 +441,6 @@ const GardenList = () => {
               sx={{
                 backgroundColor: '#558b2f',
                 '&:hover': { backgroundColor: '#33691e' },
-                ml: 2,
                 whiteSpace: 'nowrap',
                 '& .MuiButton-startIcon': {
                   marginRight: 1,
@@ -232,6 +452,43 @@ const GardenList = () => {
             </Button>
           </Grid>
         </Grid>
+        {user && userLocation && loadingLocation && (
+          <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CircularProgress size={16} />
+            <Typography variant="body2" color="text.secondary">
+              {t('gardens.calculatingDistances') || 'Calculating distances...'}
+            </Typography>
+          </Box>
+        )}
+        {showNearby && userLocation && !loadingLocation && gardensWithDistance.length > 0 && (
+          <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <LocationOnIcon fontSize="small" color="success" />
+            <Typography variant="body2" color="text.secondary">
+              {t('gardens.showingNearbyGardens')}
+              {radiusFilter !== 'all' && (
+                <span> {t('gardens.withinRadius')} {radiusFilter} {t('gardens.km')}</span>
+              )}
+              {radiusFilter === 'all' && (
+                <span> {t('gardens.sortedByDistance')}</span>
+              )}
+            </Typography>
+            {filteredGardens.length > 0 && (
+              <Chip
+                label={`${filteredGardens.length} ${filteredGardens.length === 1 ? t('gardens.garden') : t('gardens.gardens')}`}
+                size="small"
+                color="success"
+                sx={{ height: 20, fontSize: '0.7rem' }}
+              />
+            )}
+          </Box>
+        )}
+        {showNearby && !userLocation && !loadingLocation && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2" color="error">
+              {t('gardens.locationNotAvailable')}
+            </Typography>
+          </Box>
+        )}
       </Paper>
 
       {/* Garden List */}
@@ -271,11 +528,21 @@ const GardenList = () => {
                   <Typography variant="body2" color="text.secondary" paragraph>
                     {garden.description}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <LocationOnIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-                    <Typography variant="body2" color="text.secondary">
-                      {translateLocationString(garden.location, i18n.language)}
-                    </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, flexWrap: 'wrap', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <LocationOnIcon fontSize="small" color="action" sx={{ mr: 1 }} />
+                      <Typography variant="body2" color="text.secondary">
+                        {translateLocationString(garden.location, i18n.language)}
+                      </Typography>
+                    </Box>
+                    {showNearby && garden.distance !== null && (
+                      <Chip
+                        label={`${garden.distance} km ${t('gardens.away')}`}
+                        size="small"
+                        color="success"
+                        sx={{ height: 20, fontSize: '0.7rem' }}
+                      />
+                    )}
                   </Box>
                 </CardContent>
                 <Box sx={{ p: 2, pt: 0 }}>

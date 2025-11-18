@@ -132,6 +132,7 @@ const InlineImageUpload = ({
         
         <Tooltip title={`${t('imageUpload.addImages')} (${images.length}/${maxImages})`}>
           <IconButton
+            data-testid="inline-upload-button"
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || uploading || images.length >= maxImages}
             size="small"

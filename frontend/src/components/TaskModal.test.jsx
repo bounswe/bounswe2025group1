@@ -116,7 +116,19 @@ describe('TaskModal Component - Keyboard Navigation', () => {
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  test('supports Enter key to submit form', () => {
+  test('supports Enter key to submit form', async () => {
+    // Mock fetch to return task types
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([]), // members
+    }).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([
+        { id: 1, name: 'Watering', description: 'Water plants' },
+        { id: 2, name: 'Weeding', description: 'Remove weeds' },
+      ]), // task types
+    });
+
     render(
       <TaskModal
         open={true}
@@ -131,17 +143,37 @@ describe('TaskModal Component - Keyboard Navigation', () => {
       />
     );
 
+    // Wait for task types to load
+    await waitFor(() => {
+      const comboboxes = screen.getAllByRole('combobox');
+      expect(comboboxes.length).toBeGreaterThan(0);
+    });
+
     const modal = screen.getByRole('dialog');
     
     // Fill in required fields
     const titleInput = screen.getByRole('textbox', { name: /title/i });
     fireEvent.change(titleInput, { target: { value: 'New Task' } });
     
-    // Test Enter key (should not submit if not in a textarea)
+    // Fill in the required custom_type field - get all comboboxes and select the one for custom_type (index 2)
+    const comboboxes = screen.getAllByRole('combobox');
+    const taskTypeSelect = comboboxes[2]; // Status is 0, Assigned To is 1, Task Type is 2
+    fireEvent.mouseDown(taskTypeSelect);
+    
+    // Wait for the options to appear and select the first option
+    await waitFor(() => {
+      const options = screen.getAllByRole('option');
+      expect(options.length).toBeGreaterThan(0);
+      fireEvent.click(options[0]);
+    });
+    
+    // Test Enter key (should submit form)
     fireEvent.keyDown(modal, { key: 'Enter' });
     
     // Should call onSubmit
-    expect(mockOnSubmit).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockOnSubmit).toHaveBeenCalled();
+    });
   });
 
   test('supports Tab navigation through form elements', () => {
@@ -320,6 +352,18 @@ describe('TaskModal Component - Keyboard Navigation', () => {
   });
 
   test('handles form submission with keyboard', async () => {
+    // Mock fetch to return task types
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([]), // members
+    }).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([
+        { id: 1, name: 'Watering', description: 'Water plants' },
+        { id: 2, name: 'Weeding', description: 'Remove weeds' },
+      ]), // task types
+    });
+
     render(
       <TaskModal
         open={true}
@@ -334,9 +378,27 @@ describe('TaskModal Component - Keyboard Navigation', () => {
       />
     );
 
+    // Wait for task types to load
+    await waitFor(() => {
+      const comboboxes = screen.getAllByRole('combobox');
+      expect(comboboxes.length).toBeGreaterThan(0);
+    });
+
     // Fill in required fields
     const titleInput = screen.getByRole('textbox', { name: /title/i });
     fireEvent.change(titleInput, { target: { value: 'New Task' } });
+
+    // Fill in the required custom_type field - get all comboboxes and select the one for custom_type (index 2)
+    const comboboxes = screen.getAllByRole('combobox');
+    const taskTypeSelect = comboboxes[2]; // Status is 0, Assigned To is 1, Task Type is 2
+    fireEvent.mouseDown(taskTypeSelect);
+    
+    // Wait for the options to appear and select the first option
+    await waitFor(() => {
+      const options = screen.getAllByRole('option');
+      expect(options.length).toBeGreaterThan(0);
+      fireEvent.click(options[0]);
+    });
 
     // Submit form
     const saveButton = screen.getByRole('button', { name: /create task/i });

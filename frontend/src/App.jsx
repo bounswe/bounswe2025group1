@@ -49,21 +49,6 @@ function AppContent() {
 
   return (
     <>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={isRTL}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme={getToastTheme()}
-        toastClassName="custom-toast"
-        bodyClassName="custom-toast-body"
-      />
-
       <CssBaseline />
       <AuthProvider>
         <Router>
@@ -140,9 +125,25 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        toastClassName="custom-toast"
+        bodyClassName="custom-toast-body"
+      />
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </>
   );
 }
 
