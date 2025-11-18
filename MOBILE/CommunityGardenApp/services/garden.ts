@@ -8,6 +8,8 @@ export interface Garden {
   name: string;
   description?: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
   is_public: boolean;
   cover_image?: {
     id: number;
