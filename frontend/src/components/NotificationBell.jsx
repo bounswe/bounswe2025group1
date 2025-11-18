@@ -4,8 +4,12 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
+import { useTranslation } from 'react-i18next';
 
 const NotificationBell = () => {
+  const { t, i18n } = useTranslation();
   const [anchorEl, setAnchorEl] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -78,9 +82,8 @@ const NotificationBell = () => {
       });
       fetchNotifications();
       fetchUnreadCount();
-      toast.success("Marked as read");
     } catch (err) {
-      toast.error("Failed to mark as read");
+      toast.error(t('notifications.failedToMarkAsRead'));
     }
   };
 
@@ -93,9 +96,9 @@ const NotificationBell = () => {
       fetchNotifications();
       fetchUnreadCount();
       handleClose();
-      toast.success("All notifications marked as read");
+      toast.success(t('notifications.allMarkedAsRead'));
     } catch (err) {
-      toast.error("Failed to mark all as read");
+      toast.error(t('notifications.failedToMarkAllAsRead'));
     }
   };
 
@@ -128,16 +131,20 @@ const NotificationBell = () => {
         PaperProps={{
           style: {
             maxHeight: 400,
-            width: '350px',
+            width: 400,
           },
         }}
       >
         {/* 3. The Content Inside the Box */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">Notifications</Typography>
-          <Button size="small" onClick={handleMarkAllAsRead} disabled={notifications.length === 0}>
-            Mark All Read
-          </Button>
+          <Typography variant="h6">{t('notifications.title')}</Typography>
+          <IconButton 
+            size="small" 
+            onClick={handleMarkAllAsRead} 
+            disabled={notifications.length === 0 || unreadCount === 0}
+          >
+            <DoneAllIcon />
+          </IconButton>
         </Box>
         <Divider />
 
@@ -147,16 +154,13 @@ const NotificationBell = () => {
               <React.Fragment key={notification.id}>
                 <ListItem
                   secondaryAction={
-                    !notification.read && (
-                      <Button 
-                        size="small" 
-                        variant="outlined" 
-                        onClick={() => handleMarkAsRead(notification.id)}
-                        sx={{ borderRadius: '20px' }}
-                      >
-                        Mark Read
-                      </Button>
-                    )
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleMarkAsRead(notification.id)}
+                      disabled={notification.read}
+                    >
+                      <MarkEmailReadIcon />
+                    </IconButton>
                   }
                   sx={{ 
                     bgcolor: notification.read ? 'transparent' : 'action.hover',
@@ -172,7 +176,13 @@ const NotificationBell = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary={notification.message}
-                    secondary={new Date(notification.timestamp).toLocaleString()}
+                    secondary={new Date(notification.timestamp).toLocaleString(i18n.language === 'tr' ? 'tr-TR' : i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   />
                 </ListItem>
                 <Divider component="li" />
@@ -180,7 +190,7 @@ const NotificationBell = () => {
             ))
           ) : (
             <ListItem>
-              <ListItemText primary="You have no notifications." sx={{ textAlign: 'center' }} />
+              <ListItemText primary={t('notifications.noNotifications')} sx={{ textAlign: 'center' }} />
             </ListItem>
           )}
         </List>
