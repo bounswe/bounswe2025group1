@@ -95,6 +95,7 @@
       "tabs": {
         "tasks": "Görevler",
         "members": "Üyeler",
+        "events": "Etkinlikler",
         "calendar": "Takvim",
         "gallery": "Galeri"
       },
@@ -221,5 +222,35 @@
     "profile": "Profil",
     "messages": "Mesajlar",
     "myTasks": "Görevlerim"
+  },
+  "events": {
+    "gardenEvents": "Bahçe Etkinlikleri",
+    "createEvent": "Etkinlik Oluştur",
+    "editEvent": "Etkinlik Düzenle",
+    "noEvents": "Planlanmış etkinlik yok",
+    "title": "Başlık",
+    "titlePlaceholder": "Etkinlik başlığını girin",
+    "description": "Açıklama",
+    "descriptionPlaceholder": "Etkinlik açıklamasını girin",
+    "date": "Tarih",
+    "time": "Saat",
+    "publicEvent": "Herkese Açık Etkinlik",
+    "visibleToAll": "Tüm kullanıcılara görünür",
+    "visibleToMembers": "Sadece bahçe üyelerine görünür",
+    "private": "Özel",
+    "going": "Katılıyorum",
+    "notGoing": "Katılmıyorum",
+    "maybe": "Belki",
+    "createdBy": "Oluşturan",
+    "pastEvent": "Geçmiş Etkinlik",
+    "titleRequired": "Etkinlik başlığı gereklidir",
+    "futureDateRequired": "Lütfen gelecek bir tarih seçin",
+    "createSuccess": "Etkinlik başarıyla oluşturuldu",
+    "updateSuccess": "Etkinlik başarıyla güncellendi",
+    "saveError": "Etkinlik kaydedilemedi",
+    "deleteConfirm": "Bu etkinliği silmek istediğinizden emin misiniz?",
+    "deleteSuccess": "Etkinlik silindi",
+    "deleteError": "Etkinlik silinemedi",
+    "voteError": "Katılım durumu güncellenemedi"
   }
 }
