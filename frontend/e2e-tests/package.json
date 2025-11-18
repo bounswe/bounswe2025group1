@@ -1,0 +1,22 @@
+{
+  "name": "garden-planner-e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-end tests for Community Garden Planner",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests/**/*.test.js --timeout 60000",
+    "test:chrome": "BROWSER=chrome npm run test",
+    "test:firefox": "BROWSER=firefox npm run test",
+    "test:headless": "HEADLESS=true npm run test",
+    "test:tansel": "mocha tests/tansel-garden-scenario.test.js --timeout 60000",
+    "setup": "mkdir -p screenshots && npm install"
+  },
+  "dependencies": {
+    "chai": "^4.3.10",
+    "mocha": "^10.2.0",
+    "selenium-webdriver": "^4.15.0"
+  },
+  "keywords": ["e2e", "selenium", "testing", "garden-planner"],
+  "author": "Community Garden Planner Team",
+  "license": "MIT"
+}
