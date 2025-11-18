@@ -96,3 +96,95 @@ export const translateCountryName = (countryName, language) => {
   
   return countryTranslations[countryName] || countryName;
 };
+
+/**
+ * Geocodes an address string to coordinates using OpenStreetMap Nominatim API
+ * @param {string} address - The address string to geocode
+ * @returns {Promise<{lat: number, lng: number} | null>} - Coordinates or null if geocoding fails
+ */
+export const geocodeAddress = async (address) => {
+  if (!address || typeof address !== 'string') {
+    return null;
+  }
+
+  try {
+    // Use OpenStreetMap Nominatim API (free, no API key required)
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
+      {
+        headers: {
+          'User-Agent': 'CommunityGardenApp/1.0', // Required by Nominatim
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Geocoding error:', error);
+    return null;
+  }
+};
+
+/**
+ * Calculates the distance between two coordinates using the Haversine formula
+ * @param {number} lat1 - Latitude of first point
+ * @param {number} lng1 - Longitude of first point
+ * @param {number} lat2 - Latitude of second point
+ * @param {number} lng2 - Longitude of second point
+ * @returns {number} - Distance in kilometers
+ */
+export const calculateDistance = (lat1, lng1, lat2, lng2) => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+/**
+ * Gets user's current location coordinates from browser geolocation API
+ * @returns {Promise<{lat: number, lng: number} | null>} - User coordinates or null
+ */
+export const getUserCurrentLocation = () => {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.error('Error getting user location:', error);
+        resolve(null);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000, // 5 minutes cache
+      }
+    );
+  });
+};

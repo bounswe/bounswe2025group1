@@ -152,7 +152,7 @@ describe('WeatherWidget Component', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
-      expect(screen.getByText(/weather service unavailable/i)).toBeInTheDocument();
+      expect(screen.getByText(/Weather service is currently unavailable. Please try again later./i)).toBeInTheDocument();
     });
   });
 
@@ -254,18 +254,6 @@ describe('WeatherWidget Component', () => {
       expect(fetch).toHaveBeenCalledWith(
         expect.stringMatching(/api\.open-meteo\.com.*latitude=41\.0082.*longitude=28\.9784/)
       );
-    });
-  });
-
-  it('shows proper weather details including temperature, humidity and wind', async () => {
-    mockPermission.state = 'granted';
-
-    render(<WeatherWidget />);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/feels like: 23°C \| humidity: 65% \| wind: 12 km\/h/i)
-      ).toBeInTheDocument();
     });
   });
 

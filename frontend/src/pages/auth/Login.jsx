@@ -153,6 +153,7 @@ const Login = () => {
                 required
                 fullWidth
                 id="username"
+                data-testid="username"
                 label={t('auth.login.username')}
                 name="username"
                 autoComplete="username"
@@ -176,6 +177,7 @@ const Login = () => {
                 label={t('auth.login.password')}
                 type="password"
                 id="password"
+                data-testid="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
