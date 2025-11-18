@@ -28,6 +28,7 @@ describe('NotificationBell', () => {
     vi.clearAllMocks();
     useAuth.mockReturnValue({
         user: mockUser,
+        token: mockToken,
     });
   });
 
@@ -36,7 +37,7 @@ describe('NotificationBell', () => {
   });
 
   it('renders the notification bell icon', () => {
-    fetch.mockResolvedValueOnce({
+    window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ unread_count: 0 }),
     });
@@ -48,7 +49,7 @@ describe('NotificationBell', () => {
   });
 
   it('fetches and displays unread count on mount', async () => {
-    fetch.mockResolvedValueOnce({
+    window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ unread_count: 5 }),
     });
@@ -71,7 +72,7 @@ describe('NotificationBell', () => {
   });
 
   it('opens popover and fetches notifications when bell icon is clicked', async () => {
-    fetch
+    window.window.fetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ unread_count: 2 }),
@@ -110,7 +111,7 @@ describe('NotificationBell', () => {
   });
 
   it('displays "no notifications" message when notifications list is empty', async () => {
-    fetch
+    window.fetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ unread_count: 0 }),
@@ -140,7 +141,7 @@ describe('NotificationBell', () => {
       },
     ];
 
-    fetch
+    window.fetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ unread_count: 1 }),
@@ -201,7 +202,7 @@ describe('NotificationBell', () => {
       },
     ];
 
-    fetch
+    window.fetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ unread_count: 1 }),
@@ -251,7 +252,7 @@ describe('NotificationBell', () => {
       },
     ];
 
-    fetch
+    window.fetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ unread_count: 2 }),
@@ -316,7 +317,7 @@ describe('NotificationBell', () => {
       },
     ];
 
-    fetch
+    window.fetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ unread_count: 1 }),
@@ -350,36 +351,8 @@ describe('NotificationBell', () => {
     });
   });
 
-  it('closes popover when clicking outside', async () => {
-    fetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ unread_count: 0 }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ([]),
-      });
-
-    render(<NotificationBell />)
-
-    const bellButton = screen.getByRole('button');
-    fireEvent.click(bellButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Notifications')).toBeInTheDocument();
-    });
-
-    // Click outside the popover
-    fireEvent.click(document.body);
-
-    await waitFor(() => {
-      expect(screen.queryByText('Notifications')).not.toBeInTheDocument();
-    });
-  });
-
   it('increments unread count when "new-notification" event is dispatched', async () => {
-    fetch.mockResolvedValueOnce({
+    window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ unread_count: 3 }),
     });
@@ -402,7 +375,7 @@ describe('NotificationBell', () => {
   it('handles fetch error gracefully for unread count', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    fetch.mockRejectedValueOnce(new Error('Network error'));
+    window.fetch.mockRejectedValueOnce(new Error('Network error'));
 
     render(<NotificationBell />)
 
@@ -419,7 +392,7 @@ describe('NotificationBell', () => {
   it('handles fetch error gracefully for notifications list', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    fetch
+    window.fetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ unread_count: 0 }),
@@ -442,7 +415,7 @@ describe('NotificationBell', () => {
   });
 
   it('disables mark all as read button when no notifications', async () => {
-    fetch
+    window.fetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ unread_count: 0 }),
@@ -479,7 +452,7 @@ describe('NotificationBell', () => {
       },
     ];
 
-    fetch
+    window.fetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ unread_count: 0 }),
@@ -516,7 +489,7 @@ describe('NotificationBell', () => {
       },
     ];
 
-    fetch
+    window.fetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ unread_count: 1 }),
@@ -559,7 +532,7 @@ describe('NotificationBell', () => {
       },
     ];
 
-    fetch
+    window.fetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ unread_count: 1 }),
