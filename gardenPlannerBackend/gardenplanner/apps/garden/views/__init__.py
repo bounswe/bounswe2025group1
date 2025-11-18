@@ -43,6 +43,11 @@ from .report import (
     AdminReportViewSet      
 )
 
+from .badge import (
+    BadgeListView,
+    UserBadgeListView
+)
+
 
 __all__ = [
     # Forum and Comment Views
