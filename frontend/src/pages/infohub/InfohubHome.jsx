@@ -1,3 +1,4 @@
+import React from 'react';
 import { Container, Typography, Box, Grid, Card, CardContent, CardMedia, Button, Paper, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
