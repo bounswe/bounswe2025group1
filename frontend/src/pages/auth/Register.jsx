@@ -87,14 +87,18 @@ const Register = () => {
     setTermsDialogOpen(true);
   };
 
-  const handleCloseTerms = () => {
-    setTermsDialogOpen(false);
-  };
-
   const handleAcceptTerms = () => {
     setFormData({
       ...formData,
       agreeTerms: true,
+    });
+    setTermsDialogOpen(false);
+  };
+
+  const handleRejectTerms = () => {
+    setFormData({
+      ...formData,
+      agreeTerms: false,
     });
     setTermsDialogOpen(false);
   };
@@ -475,7 +479,7 @@ const Register = () => {
           if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
             return;
           }
-          handleCloseTerms();
+          setTermsDialogOpen(false);
         }}
         maxWidth="md"
         fullWidth
@@ -547,7 +551,7 @@ const Register = () => {
         </DialogContent>
         <DialogActions sx={{ p: 2, gap: 1 }}>
           <Button
-            onClick={handleCloseTerms}
+            onClick={handleRejectTerms}
             variant="outlined"
             color="secondary"
             sx={{
