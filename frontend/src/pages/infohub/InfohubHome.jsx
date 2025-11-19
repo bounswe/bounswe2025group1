@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Typography, Box, Grid, Card, CardContent, CardMedia, Button, Paper, useTheme } from '@mui/material';
+import { Container, Typography, Box, Grid, Card, CardContent, Button, Paper, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -74,10 +74,11 @@ const InfohubHome = () => {
         {/* Categories Grid */}
         <Grid container spacing={{ xs: 2, md: 3 }}>
           {categories.map((category) => (
-            <Grid item xs={12} sm={6} md={4} key={category.id}>
+            <Grid item size={{xs: 12, md: 6}} key={category.id}>
               <Card
                 sx={{
                   height: '100%',
+                  width: '100%',
                   display: 'flex',
                   flexDirection: 'column',
                   transition: 'transform 0.3s ease, box-shadow 0.3s ease',
@@ -90,20 +91,12 @@ const InfohubHome = () => {
                     : 'none',
                 }}
               >
-                <CardMedia
-                  component="img"
-                  height="180"
-                  image={category.image}
-                  alt={t(`infohub.categories.${category.translationKey}.title`)}
-                  sx={{
-                    objectFit: 'cover',
-                  }}
-                />
-                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 180, justifyContent: 'space-between' }}>
                   <Typography 
                     gutterBottom 
                     variant="h5" 
                     component="h2"
+                    wordWrap="break-word"
                     sx={{ 
                       fontWeight: 'bold',
                       color: theme.palette.text.primary,
@@ -115,7 +108,8 @@ const InfohubHome = () => {
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
-                    sx={{ flexGrow: 1, mb: 2 }}
+                    wordWrap="break-word"
+                    sx={{ mb: 2 }}
                   >
                     {t(`infohub.categories.${category.translationKey}.brief`)}
                   </Typography>

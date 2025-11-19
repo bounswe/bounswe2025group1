@@ -63,7 +63,7 @@ const InfohubDetail = () => {
             {t(`infohub.categories.${translationKey}.title`)}
           </Typography>
           <Typography variant="h6">
-            {t(`infohub.categories.${translationKey}.brief`)}
+            {t(`infohub.categories.${translationKey}.subtitle`)}
           </Typography>
         </Paper>
 
@@ -78,9 +78,11 @@ const InfohubDetail = () => {
               : 'none',
           }}
         >
-          <Typography variant="body1" paragraph sx={{ color: theme.palette.text.secondary }}>
-            {t('infohub.detailsComingSoon')}
-          </Typography>
+          <Typography 
+            variant="body1"
+            sx={{ color: theme.palette.text.secondary, textAlign: 'left' }} 
+            dangerouslySetInnerHTML={{ __html: t(`infohub.categories.${translationKey}.details`) }}
+          />
           
           <Box sx={{ mt: 4, textAlign: 'center' }}>
             <Button

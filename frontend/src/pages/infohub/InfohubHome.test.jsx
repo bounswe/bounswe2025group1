@@ -65,16 +65,6 @@ describe('InfohubHome Component', () => {
       const exploreButtons = screen.getAllByText('Explore');
       expect(exploreButtons).toHaveLength(6);
     });
-
-    test('renders category images', () => {
-      render(<InfohubHome />);
-
-      const images = screen.getAllByRole('img');
-      expect(images).toHaveLength(6);
-      images.forEach(img => {
-        expect(img).toHaveAttribute('src');
-      });
-    });
   });
 
   describe('Navigation', () => {
