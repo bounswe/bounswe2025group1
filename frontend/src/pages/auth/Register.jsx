@@ -245,6 +245,7 @@ const Register = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="firstName"
+                    data-testid="first-name-input"
                     required
                     fullWidth
                     label={t('auth.register.firstName')}
@@ -263,6 +264,7 @@ const Register = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="lastName"
+                    data-testid="last-name-input"
                     required
                     fullWidth
                     label={t('auth.register.lastName')}
@@ -280,6 +282,7 @@ const Register = () => {
                 <Grid size={{ xs: 12 }}>
                   <TextField
                     name="username"
+                    data-testid="username-input"
                     required
                     fullWidth
                     label={t('auth.register.username')}
@@ -297,6 +300,7 @@ const Register = () => {
                 <Grid size={{ xs: 12 }}>
                   <TextField
                     name="email"
+                    data-testid="email-input"
                     required
                     fullWidth
                     label={t('auth.register.email')}
@@ -326,6 +330,7 @@ const Register = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="password"
+                    data-testid="password-input"
                     label={t('auth.register.password')}
                     type="password"
                     required
@@ -345,6 +350,7 @@ const Register = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="confirmPassword"
+                    data-testid="confirm-password-input"
                     label={t('auth.register.confirmPassword')}
                     type="password"
                     required
@@ -382,6 +388,7 @@ const Register = () => {
                   ) : null}
                   {t('auth.register.clickToRead')}{' '}
                   <Link
+                    data-testid="terms-link"
                     component="button"
                     type="button"
                     onClick={handleOpenTerms}
@@ -405,6 +412,7 @@ const Register = () => {
 
               <Button
                 type="submit"
+                data-testid="sign-up-button"
                 fullWidth
                 variant="contained"
                 disabled={!allValid}
@@ -473,6 +481,7 @@ const Register = () => {
       </Box>
 
       <Dialog
+        data-testid="terms-dialog"
         open={termsDialogOpen}
         onClose={(event, reason) => {
           // Prevent closing by clicking outside or pressing Escape
@@ -551,6 +560,7 @@ const Register = () => {
         </DialogContent>
         <DialogActions sx={{ p: 2, gap: 1 }}>
           <Button
+            data-testid="reject-terms-button"
             onClick={handleRejectTerms}
             variant="outlined"
             color="secondary"
@@ -566,6 +576,7 @@ const Register = () => {
             {t('auth.register.termsCancelButton')}
           </Button>
           <Button
+            data-testid="accept-terms-button"
             onClick={handleAcceptTerms}
             variant="contained"
             color="primary"
