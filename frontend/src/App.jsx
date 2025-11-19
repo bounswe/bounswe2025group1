@@ -27,6 +27,8 @@ import ForumPost from './pages/forum/ForumPost';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Profile from './pages/profile/Profile';
+import InfohubHome from './pages/infohub/InfohubHome';
+import InfohubDetail from './pages/infohub/InfohubDetail';
 import { ToastContainer } from 'react-toastify';
 import Tasks from './pages/task/Tasks';
 import 'react-toastify/dist/ReactToastify.css';
@@ -86,6 +88,8 @@ function AppContent() {
                 <Route path="/tasks" element={<Tasks />} />
                 <Route path="/forum" element={<ForumList />} />
                 <Route path="/forum/:postId" element={<ForumPost />} />
+                <Route path="/infohub" element={<InfohubHome />} />
+                <Route path="/infohub/:categoryId" element={<InfohubDetail />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
                 <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />

@@ -27,6 +27,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import YardIcon from '@mui/icons-material/Yard';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ForumIcon from '@mui/icons-material/Forum';
+import InfoIcon from '@mui/icons-material/Info';
 import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
@@ -47,6 +48,7 @@ const getPages = (t) => [
   { name: t('navigation.gardens'), path: '/gardens', icon: <YardIcon /> },
   { name: t('navigation.dashboard'), path: '/tasks', icon: <AssignmentIcon /> },
   { name: t('navigation.forum'), path: '/forum', icon: <ForumIcon /> },
+  { name: t('navigation.infohub'), path: '/infohub', icon: <InfoIcon /> },
 ];
 
 const getSettings = (t) => [
