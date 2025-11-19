@@ -7,6 +7,35 @@ import enTranslations from './locales/en.json';
 import trTranslations from './locales/tr.json';
 import arTranslations from './locales/ar.json';
 
+// Import smaller infohub-specific translation files to keep main locale files concise
+import infohubEn from './locales/infohub/en.json';
+import infohubTr from './locales/infohub/tr.json';
+import infohubAr from './locales/infohub/ar.json';
+
+// Small utility to deep-merge source into target (mutates target)
+const deepMerge = (target, source) => {
+  for (const key of Object.keys(source)) {
+    const srcVal = source[key];
+    const tgtVal = target[key];
+
+    if (srcVal && typeof srcVal === 'object' && !Array.isArray(srcVal)) {
+      if (!tgtVal || typeof tgtVal !== 'object' || Array.isArray(tgtVal)) {
+        target[key] = {};
+      }
+      deepMerge(target[key], srcVal);
+    } else {
+      target[key] = srcVal;
+    }
+  }
+  return target;
+};
+
+// Merge the infohub subsets into the main translation objects so components can keep using
+// the existing keys like `infohub.categories.plantCare.title` without code changes.
+deepMerge(enTranslations, infohubEn);
+deepMerge(trTranslations, infohubTr);
+deepMerge(arTranslations, infohubAr);
+
 const resources = {
   en: {
     translation: enTranslations
