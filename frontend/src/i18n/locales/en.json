@@ -27,7 +27,8 @@
     "logout": "Logout",
     "loggedOut": "You've been logged out.",
     "dashboard": "Dashboard",
-    "userSettings": "User Settings"
+    "userSettings": "User Settings",
+    "infohub": "Infohub"
   },
   "language": {
     "english": "English",
@@ -537,6 +538,39 @@
     "time_h": "h ago",
     "time_d": "d ago",
     "user_with_id": "User {{id}}"
+  },
+  "infohub": {
+    "title": "Community Garden Infohub",
+    "subtitle": "Learn, Grow, Connect.",
+    "exploreMore": "Explore",
+    "backToCategories": "Back to All Categories",
+    "detailsComingSoon": "Detailed information for this category is coming soon. Stay tuned!",
+    "categories": {
+      "plantCare": {
+        "title": "Plant & Disease Control",
+        "brief": "Detailed guides for various vegetables, herbs, flowers, and more."
+      },
+      "pestDisease": {
+        "title": "Pest & Disease Control",
+        "brief": "Identify, prevent, and manage common garden pests and plant diseases."
+      },
+      "soilComposting": {
+        "title": "Soil & Composting",
+        "brief": "Identify, prevent health, learn about common garden pests and essential soil nutrients."
+      },
+      "gardeningCalendar": {
+        "title": "Gardening Calendar",
+        "brief": "Monthly tasks, seasonal planting schedules, and harvesting times for your region."
+      },
+      "toolsTechniques": {
+        "title": "Tools & Techniques",
+        "brief": "Eco-friendly practices, water conservation, and attracting the right tools to your garden."
+      },
+      "sustainableGardening": {
+        "title": "Sustainable Gardening",
+        "brief": "Eco-friendly practices, water conservation, and attracting beneficial wildlife to your garden."
+      }
+    }
   },
   "accessibility": {
     "skipToContent": "Skip to main content",

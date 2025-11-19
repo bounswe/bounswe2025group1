@@ -27,7 +27,8 @@
     "logout": "Çıkış Yap",
     "loggedOut": "Çıkış yapıldı.",
     "dashboard": "Kontrol Paneli",
-    "userSettings": "Kullanıcı Ayarları"
+    "userSettings": "Kullanıcı Ayarları",
+    "infohub": "Bilgi Merkezi"
   },
   "language": {
     "english": "English",
@@ -536,6 +537,39 @@
     "time_h": " saat önce",
     "time_d": " gün önce",
     "user_with_id": "Kullanıcı {{id}}"
+  },
+  "infohub": {
+    "title": "Topluluk Bahçe Bilgi Merkezi",
+    "subtitle": "Öğren, Büyü, Bağlan.",
+    "exploreMore": "Keşfet",
+    "backToCategories": "Tüm Kategorilere Dön",
+    "detailsComingSoon": "Bu kategori için detaylı bilgiler yakında eklenecek. Takipte kalın!",
+    "categories": {
+      "plantCare": {
+        "title": "Bitki ve Hastalık Kontrolü",
+        "brief": "Çeşitli sebzeler, otlar, çiçekler ve daha fazlası için detaylı rehberler."
+      },
+      "pestDisease": {
+        "title": "Zararlı ve Hastalık Kontrolü",
+        "brief": "Yaygın bahçe zararlılarını ve bitki hastalıklarını tanımlayın, önleyin ve yönetin."
+      },
+      "soilComposting": {
+        "title": "Toprak ve Kompost",
+        "brief": "Toprak sağlığını iyileştirin, kompost hakkında bilgi edinin ve temel toprak besinlerini öğrenin."
+      },
+      "gardeningCalendar": {
+        "title": "Bahçecilik Takvimi",
+        "brief": "Bölgeniz için aylık görevler, mevsimlik ekim programları ve hasat zamanları."
+      },
+      "toolsTechniques": {
+        "title": "Araçlar ve Teknikler",
+        "brief": "Temel bahçecilik tekniklerinde ustalaşın ve iş için doğru araçları seçin."
+      },
+      "sustainableGardening": {
+        "title": "Sürdürülebilir Bahçecilik",
+        "brief": "Çevre dostu uygulamalar, su tasarrufu ve bahçenize yararlı yaban hayatı çekme."
+      }
+    }
   },
   "accessibility": {
     "skipToContent": "Ana içeriğe atla",
