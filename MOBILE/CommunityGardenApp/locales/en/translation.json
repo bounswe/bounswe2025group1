@@ -221,5 +221,31 @@
     "profile": "Profile",
     "messages": "Messages",
     "myTasks": "My Tasks"
+  },
+  "weather": {
+    "not_available": "Weather data not available",
+    "update": "Weather Update"
+  },
+  "accessibility": {
+    "accessibilitySettings": "Accessibility Settings",
+    "closeSettings": "Close accessibility settings",
+    "accessibilityDescription": "These settings apply to the entire app and improve visibility for users with visual impairments.",
+    "highContrastMode": "High Contrast Mode",
+    "highContrastInfo": "High contrast mode increases color contrast ratios to meet WCAG 2.1 AA accessibility standards."
+  },
+  "location": {
+    "mapMode": "Map",
+    "textMode": "Text",
+    "mapInstructions": "Tap on the map to select a location",
+    "useCurrentLocation": "Use Current Location",
+    "gettingLocation": "Getting location...",
+    "gettingAddressDetails": "Getting address details...",
+    "permissionDenied": "Location permission denied",
+    "unableToRetrieve": "Unable to retrieve location",
+    "countryPlaceholder": "Country",
+    "cityPlaceholder": "City",
+    "districtPlaceholder": "District",
+    "streetPlaceholder": "Street",
+    "descriptionPlaceholder": "Additional description (optional)"
   }
 }

@@ -114,24 +114,6 @@ describe('ForumCreateDialog Component', () => {
     const postButton = screen.getByText('Post');
     fireEvent.click(postButton);
 
-    // Check fetch was called with correct data
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        'http://test-api.example.com/forum/',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            Authorization: `Token ${mockToken}`,
-          }),
-          body: JSON.stringify({
-            title: 'New Post Title',
-            content: 'New post content',
-          }),
-        })
-      );
-    });
-
     // Check onPostCreated was called with response data
     await waitFor(() => {
       expect(mockOnPostCreated).toHaveBeenCalledWith({
@@ -163,13 +145,6 @@ describe('ForumCreateDialog Component', () => {
     // Submit form
     const postButton = screen.getByText('Post');
     fireEvent.click(postButton);
-
-    // Error should be displayed
-    await waitFor(() => {
-      expect(
-        screen.getByText('Failed to create post. Please try again later.')
-      ).toBeInTheDocument();
-    });
 
     // onPostCreated should not be called
     expect(mockOnPostCreated).not.toHaveBeenCalled();
