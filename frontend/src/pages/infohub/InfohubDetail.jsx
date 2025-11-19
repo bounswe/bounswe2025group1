@@ -1,3 +1,4 @@
+import React from 'react';
 import { Container, Typography, Box, Paper, Button, useTheme } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
