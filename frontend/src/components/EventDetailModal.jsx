@@ -52,21 +52,25 @@ const EventDetailModal = ({ open, onClose, event, onEventUpdated, onEventDeleted
 
   useEffect(() => {
     setEventData(event);
+  }, [event?.id]); // Only update eventData when event ID changes
+
+  useEffect(() => {
     if (open && event?.id) {
+      // Only fetch details on initial open, not on every event prop change
       fetchEventDetails();
       if (activeTab === 1) {
         fetchAttendances();
       }
     }
-  }, [event, open]);
+  }, [open, event?.id]); // Remove 'event' dependency to prevent infinite loop
 
   useEffect(() => {
     if (open && activeTab === 1 && eventData?.id) {
       fetchAttendances();
     }
-  }, [activeTab, open]);
+  }, [activeTab, open, eventData?.id]);
 
-  const fetchEventDetails = async () => {
+  const fetchEventDetails = async (shouldUpdateParent = false) => {
     if (!eventData?.id || !token) return;
 
     try {
@@ -81,7 +85,8 @@ const EventDetailModal = ({ open, onClose, event, onEventUpdated, onEventDeleted
       if (response.ok) {
         const data = await response.json();
         setEventData(data);
-        if (onEventUpdated) {
+        // Only update parent when explicitly requested (e.g., after voting)
+        if (shouldUpdateParent && onEventUpdated) {
           onEventUpdated(data);
         }
       }
@@ -142,8 +147,8 @@ const EventDetailModal = ({ open, onClose, event, onEventUpdated, onEventDeleted
 
       const attendance = await response.json();
       
-      // Refresh event data to get updated counts
-      await fetchEventDetails();
+      // Refresh event data to get updated counts and update parent
+      await fetchEventDetails(true);
       
       toast.success(t('events.voteRecorded'));
       setVoting(false);

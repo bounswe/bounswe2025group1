@@ -1177,7 +1177,7 @@ const GardenDetail = () => {
         event={selectedEvent}
         onEventUpdated={(updatedEvent) => {
           setEvents((prev) => prev.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)));
-          setSelectedEvent(updatedEvent);
+          // Don't update selectedEvent to prevent re-renders in modal
         }}
         onEventDeleted={(eventId) => {
           setEvents((prev) => prev.filter((e) => e.id !== eventId));
