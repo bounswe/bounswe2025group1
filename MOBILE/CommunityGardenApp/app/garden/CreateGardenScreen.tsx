@@ -7,7 +7,9 @@ import { createGarden } from '../../services/garden';
 import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import { useTranslation } from 'react-i18next';
 import ImagePicker from '../../components/ui/ImagePicker';
+import LocationPicker from '../../components/ui/LocationPicker';
 import { COLORS } from '../../constants/Config';
+import { LocationData } from '../../utils/locationUtils';
 
 
 interface ImageData {
@@ -21,6 +23,8 @@ export default function CreateGardenScreen() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [isPublic, setIsPublic] = useState(true);
   const [loading, setLoading] = useState(false);
   const [coverImage, setCoverImage] = useState<ImageData[]>([]);
@@ -29,6 +33,13 @@ export default function CreateGardenScreen() {
   const router = useRouter();
   const colors = useAccessibleColors();
   const { t } = useTranslation();
+
+  // Handle location change from LocationPicker
+  const handleLocationChange = (locationData: LocationData) => {
+    setLatitude(locationData.lat);
+    setLongitude(locationData.lng);
+    setLocation(locationData.address);
+  };
 
   const handleSubmit = async () => {
     if (!name) {
@@ -42,7 +53,12 @@ export default function CreateGardenScreen() {
         name,
         description,
         location,
-        is_public: isPublic
+        is_public: isPublic,
+        // Include coordinates if available (for future backend support)
+        ...(latitude !== null && longitude !== null && {
+          latitude,
+          longitude,
+        }),
       };
 
       // Add cover image if selected
@@ -94,16 +110,13 @@ export default function CreateGardenScreen() {
         onChangeText={setDescription}
         multiline
       />
-      <TextInput
-        placeholder={t('garden.create.locationPlaceholder')}
-        style={[styles.input, {
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          color: colors.text
-        }]}
-        placeholderTextColor={colors.textSecondary}
+      <LocationPicker
+        label={t('garden.create.location') || 'Location'}
         value={location}
-        onChangeText={setLocation}
+        onChange={setLocation}
+        onLocationChange={handleLocationChange}
+        placeholder={t('garden.create.locationPlaceholder')}
+        showCurrentLocation={true}
       />
 
       <View style={styles.switchRow}>

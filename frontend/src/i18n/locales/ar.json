@@ -159,8 +159,15 @@
     "following": "المتابَع",
     "noFollowers": "لا يوجد متابعون",
     "noFollowing": "لا تتابع أحداً"
-  }
-  ,
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "markAllRead": "تحديد الكل كمقروء",
+    "noNotifications": "لا توجد إشعارات.",
+    "failedToMarkAsRead": "فشل تحديد كمقروء",
+    "allMarkedAsRead": "تم تحديد جميع الإشعارات كمقروءة",
+    "failedToMarkAllAsRead": "فشل تحديد الكل كمقروء"
+  },
   "chat": {
     "header": "الرسائل",
     "chatTitle": "دردشة",
@@ -176,4 +183,5 @@
     "user_with_id": "المستخدم {{id}}"
   }
 }
+
 
