@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.contenttypes.models import ContentType
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenEvent, EventAttendance, AttendanceStatus
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenEvent, EventAttendance, AttendanceStatus, EventCategory
 from unittest.mock import patch, MagicMock
 from django.utils import timezone
 from datetime import timedelta
@@ -3487,5 +3487,74 @@ class GardenEventTests(APITestCase):
         from django.db import IntegrityError
         with self.assertRaises(IntegrityError):
             EventAttendance.objects.create(event=self.public_event, user=self.user1, status=AttendanceStatus.MAYBE)
+
+    def test_create_event_with_category(self):
+        """Test creating an event with a specific category"""
+        url = reverse('garden:event-list')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        data = {
+            'garden': self.garden.id,
+            'title': 'Workshop Event',
+            'description': 'Learning about plants',
+            'start_at': (timezone.now() + timedelta(days=1)).isoformat(),
+            'visibility': 'PUBLIC',
+            'event_category': 'WORKSHOP'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['event_category'], 'WORKSHOP')
+        
+        event = GardenEvent.objects.get(id=response.data['id'])
+        self.assertEqual(event.event_category, 'WORKSHOP')
+
+    def test_create_event_default_category(self):
+        """Test creating an event without category defaults to OTHER"""
+        url = reverse('garden:event-list')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        data = {
+            'garden': self.garden.id,
+            'title': 'Generic Event',
+            'description': 'Just an event',
+            'start_at': (timezone.now() + timedelta(days=1)).isoformat(),
+            'visibility': 'PUBLIC'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['event_category'], 'OTHER')
+
+    def test_filter_events_by_category(self):
+        """Test filtering events by category"""
+        # Create events with different categories
+        GardenEvent.objects.create(
+            garden=self.garden, title='Workshop 1', start_at=timezone.now(), 
+            created_by=self.user1, event_category='WORKSHOP', visibility='PUBLIC'
+        )
+        GardenEvent.objects.create(
+            garden=self.garden, title='Party 1', start_at=timezone.now(), 
+            created_by=self.user1, event_category='CELEBRATION', visibility='PUBLIC'
+        )
+        
+        url = reverse('garden:event-list')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        # Filter for WORKSHOP
+        response = self.client.get(url, {'event_category': 'WORKSHOP'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Note: There might be other events from setUp or other tests, so we check containment
+        titles = [e['title'] for e in response.data]
+        self.assertIn('Workshop 1', titles)
+        self.assertNotIn('Party 1', titles)
+        
+        # Filter for CELEBRATION
+        response = self.client.get(url, {'event_category': 'CELEBRATION'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        titles = [e['title'] for e in response.data]
+        self.assertIn('Party 1', titles)
+        self.assertNotIn('Workshop 1', titles)
+
+
+
 
 

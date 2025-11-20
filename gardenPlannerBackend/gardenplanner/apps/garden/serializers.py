@@ -514,7 +514,7 @@ class GardenEventSerializer(serializers.ModelSerializer):
         model = GardenEvent
         fields = [
             'id', 'garden', 'garden_name', 'title', 'description', 'start_at',
-            'visibility', 'created_by', 'created_by_username', 'created_at', 'updated_at',
+            'visibility', 'event_category', 'created_by', 'created_by_username', 'created_at', 'updated_at',
             'going_count', 'not_going_count', 'maybe_count', 'my_attendance'
         ]
         read_only_fields = ['id', 'created_by', 'created_by_username', 'created_at', 'updated_at',
