@@ -15,6 +15,7 @@ router.register(r'reports', views.ReportViewSet, basename='report')
 router.register(r'admin/reports', views.AdminReportViewSet, basename='admin-report')
 router.register(r'notifications', views.NotificationViewSet, basename='notification')
 router.register(r'devices/gcm', views.GCMDeviceViewSet, basename='gcm-device')
+router.register(r'events', views.GardenEventViewSet, basename='event')
 
 # Create forum-specific URL patterns
 forum_patterns = [

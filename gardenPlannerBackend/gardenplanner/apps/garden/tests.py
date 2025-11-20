@@ -5,9 +5,11 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.contenttypes.models import ContentType
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification
-from push_notifications.models import GCMDevice
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenEvent, EventAttendance, AttendanceStatus
 from unittest.mock import patch, MagicMock
+from django.utils import timezone
+from datetime import timedelta
+from push_notifications.models import GCMDevice
 
 
 class ModelTests(TestCase):
@@ -3112,7 +3114,6 @@ class AdditionalPermissionTests(TestCase):
         r.user = guest
         self.assertFalse(perm.has_permission(r, None))
 
-
 class SignalHandlerTests(TestCase):    
     def setUp(self):
         self.user1 = User.objects.create_user(username='user1', password='pass1')
@@ -3369,3 +3370,426 @@ class GCMDeviceViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
 
+
+class GardenEventTests(APITestCase):
+    """Tests for Garden Events and Attendance voting functionality"""
+
+    def setUp(self):
+        self.client = APIClient()
+        
+        # Create users
+        self.user1 = User.objects.create_user(
+            username='member1',
+            email='member1@example.com',
+            password='testpass123'
+        )
+        self.user2 = User.objects.create_user(
+            username='member2',
+            email='member2@example.com',
+            password='testpass123'
+        )
+        self.non_member = User.objects.create_user(
+            username='outsider',
+            email='outsider@example.com',
+            password='testpass123'
+        )
+        self.admin_user = User.objects.create_user(
+            username='admin',
+            email='admin@example.com',
+            password='adminpass123'
+        )
+        self.admin_user.profile.role = 'ADMIN'
+        self.admin_user.profile.save()
+        
+        # Create tokens
+        self.user1_token = Token.objects.create(user=self.user1)
+        self.user2_token = Token.objects.create(user=self.user2)
+        self.non_member_token = Token.objects.create(user=self.non_member)
+        self.admin_token = Token.objects.create(user=self.admin_user)
+        
+        # Create a garden
+        self.garden = Garden.objects.create(
+            name="Community Garden",
+            description="A test garden",
+            location="Test Location",
+            is_public=True
+        )
+        
+        # Create memberships
+        self.membership1 = GardenMembership.objects.create(
+            user=self.user1,
+            garden=self.garden,
+            role='MANAGER',
+            status='ACCEPTED'
+        )
+        self.membership2 = GardenMembership.objects.create(
+            user=self.user2,
+            garden=self.garden,
+            role='WORKER',
+            status='ACCEPTED'
+        )
+        
+        # Create a public event
+        self.public_event = GardenEvent.objects.create(
+            garden=self.garden,
+            title="Spring Planting Day",
+            description="Join us for planting!",
+            start_at=timezone.now() + timedelta(days=7),
+            visibility='PUBLIC',
+            created_by=self.user1
+        )
+        
+        # Create a private event
+        self.private_event = GardenEvent.objects.create(
+            garden=self.garden,
+            title="Members Only Meeting",
+            description="Private discussion",
+            start_at=timezone.now() + timedelta(days=3),
+            visibility='PRIVATE',
+            created_by=self.user1
+        )
+
+    def test_list_events_authenticated(self):
+        """Authenticated users can list events"""
+        url = reverse('garden:event-list')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)  # Both public and private events visible to member
+
+    def test_list_events_unauthenticated(self):
+        """Unauthenticated users cannot list events"""
+        url = reverse('garden:event-list')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_non_member_sees_only_public_events(self):
+        """Non-members can only see public events"""
+        url = reverse('garden:event-list')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.non_member_token.key}')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['title'], 'Spring Planting Day')
+        self.assertEqual(response.data[0]['visibility'], 'PUBLIC')
+
+    def test_member_sees_all_garden_events(self):
+        """Garden members can see both public and private events"""
+        url = reverse('garden:event-list')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+
+    def test_create_event_as_member(self):
+        """Garden members can create events"""
+        url = reverse('garden:event-list')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
+        
+        data = {
+            'garden': self.garden.id,
+            'title': 'Harvest Festival',
+            'description': 'Celebrate the harvest!',
+            'start_at': (timezone.now() + timedelta(days=14)).isoformat(),
+            'visibility': 'PUBLIC'
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(GardenEvent.objects.count(), 3)
+        
+        new_event = GardenEvent.objects.get(title='Harvest Festival')
+        self.assertEqual(new_event.created_by, self.user2)
+        self.assertEqual(new_event.visibility, 'PUBLIC')
+
+    def test_create_event_as_non_member_fails(self):
+        """Non-members cannot create events"""
+        url = reverse('garden:event-list')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.non_member_token.key}')
+        
+        data = {
+            'garden': self.garden.id,
+            'title': 'Unauthorized Event',
+            'description': 'Should fail',
+            'start_at': (timezone.now() + timedelta(days=14)).isoformat(),
+            'visibility': 'PUBLIC'
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_private_event(self):
+        """Members can create private events"""
+        url = reverse('garden:event-list')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        data = {
+            'garden': self.garden.id,
+            'title': 'Private Workshop',
+            'description': 'For members only',
+            'start_at': (timezone.now() + timedelta(days=5)).isoformat(),
+            'visibility': 'PRIVATE'
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['visibility'], 'PRIVATE')
+
+    def test_retrieve_event_details(self):
+        """Retrieve event details with attendance counts"""
+        url = reverse('garden:event-detail', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], 'Spring Planting Day')
+        self.assertIn('going_count', response.data)
+        self.assertIn('not_going_count', response.data)
+        self.assertIn('maybe_count', response.data)
+        self.assertIn('my_attendance', response.data)
+
+    def test_update_event_as_creator(self):
+        """Event creator can update their event"""
+        url = reverse('garden:event-detail', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        data = {
+            'garden': self.garden.id,
+            'title': 'Updated Spring Planting Day',
+            'description': 'Updated description',
+            'start_at': self.public_event.start_at.isoformat(),
+            'visibility': 'PUBLIC'
+        }
+        
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.public_event.refresh_from_db()
+        self.assertEqual(self.public_event.title, 'Updated Spring Planting Day')
+
+    def test_update_event_as_garden_manager(self):
+        """Garden manager can update events"""
+        url = reverse('garden:event-detail', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        data = {
+            'garden': self.garden.id,
+            'title': 'Manager Updated Event',
+            'description': 'Updated by manager',
+            'start_at': self.public_event.start_at.isoformat(),
+            'visibility': 'PUBLIC'
+        }
+        
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_update_event_as_non_creator_worker_fails(self):
+        """Worker who didn't create event cannot update it"""
+        url = reverse('garden:event-detail', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
+        
+        data = {
+            'garden': self.garden.id,
+            'title': 'Unauthorized Update',
+            'description': 'Should fail',
+            'start_at': self.public_event.start_at.isoformat(),
+            'visibility': 'PUBLIC'
+        }
+        
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_event_as_creator(self):
+        """Event creator can delete their event"""
+        url = reverse('garden:event-detail', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(GardenEvent.objects.filter(id=self.public_event.id).count(), 0)
+
+    def test_delete_event_as_admin(self):
+        """Admin can delete any event"""
+        url = reverse('garden:event-detail', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.admin_token.key}')
+        
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_vote_going(self):
+        """User can vote 'GOING' on an event"""
+        url = reverse('garden:event-vote', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
+        
+        data = {'status': 'GOING'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verify attendance was created
+        attendance = EventAttendance.objects.get(event=self.public_event, user=self.user2)
+        self.assertEqual(attendance.status, AttendanceStatus.GOING)
+
+    def test_vote_not_going(self):
+        """User can vote 'NOT_GOING' on an event"""
+        url = reverse('garden:event-vote', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        data = {'status': 'NOT_GOING'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        attendance = EventAttendance.objects.get(event=self.public_event, user=self.user1)
+        self.assertEqual(attendance.status, AttendanceStatus.NOT_GOING)
+
+    def test_vote_maybe(self):
+        """User can vote 'MAYBE' on an event"""
+        url = reverse('garden:event-vote', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
+        
+        data = {'status': 'MAYBE'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        attendance = EventAttendance.objects.get(event=self.public_event, user=self.user2)
+        self.assertEqual(attendance.status, AttendanceStatus.MAYBE)
+
+    def test_change_vote(self):
+        """User can change their vote"""
+        url = reverse('garden:event-vote', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
+        
+        # First vote
+        data = {'status': 'GOING'}
+        self.client.post(url, data, format='json')
+        
+        # Change vote
+        data = {'status': 'NOT_GOING'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verify only one attendance record exists with updated status
+        self.assertEqual(EventAttendance.objects.filter(event=self.public_event, user=self.user2).count(), 1)
+        attendance = EventAttendance.objects.get(event=self.public_event, user=self.user2)
+        self.assertEqual(attendance.status, AttendanceStatus.NOT_GOING)
+
+    def test_vote_invalid_status(self):
+        """Invalid vote status returns error"""
+        url = reverse('garden:event-vote', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        data = {'status': 'INVALID_STATUS'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_vote_private_event_as_non_member_fails(self):
+        """Non-member cannot vote on private event"""
+        url = reverse('garden:event-vote', args=[self.private_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.non_member_token.key}')
+        
+        data = {'status': 'GOING'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_vote_public_event_as_non_member(self):
+        """Non-member can vote on public event"""
+        url = reverse('garden:event-vote', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.non_member_token.key}')
+        
+        data = {'status': 'GOING'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_attendance_counts(self):
+        """Attendance counts are correctly calculated"""
+        # Create various votes
+        EventAttendance.objects.create(event=self.public_event, user=self.user1, status=AttendanceStatus.GOING)
+        EventAttendance.objects.create(event=self.public_event, user=self.user2, status=AttendanceStatus.GOING)
+        EventAttendance.objects.create(event=self.public_event, user=self.non_member, status=AttendanceStatus.NOT_GOING)
+        
+        url = reverse('garden:event-detail', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['going_count'], 2)
+        self.assertEqual(response.data['not_going_count'], 1)
+        self.assertEqual(response.data['maybe_count'], 0)
+
+    def test_my_attendance_field(self):
+        """my_attendance field shows current user's vote"""
+        EventAttendance.objects.create(event=self.public_event, user=self.user1, status=AttendanceStatus.MAYBE)
+        
+        url = reverse('garden:event-detail', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user1_token.key}')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['my_attendance'], 'MAYBE')
+
+    def test_my_attendance_null_when_no_vote(self):
+        """my_attendance is null when user hasn't voted"""
+        url = reverse('garden:event-detail', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(response.data['my_attendance'])
+
+    def test_list_attendances_for_public_event(self):
+        """Anyone can list attendances for public event"""
+        EventAttendance.objects.create(event=self.public_event, user=self.user1, status=AttendanceStatus.GOING)
+        EventAttendance.objects.create(event=self.public_event, user=self.user2, status=AttendanceStatus.MAYBE)
+        
+        url = reverse('garden:event-attendances', args=[self.public_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.non_member_token.key}')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+
+    def test_list_attendances_for_private_event_as_member(self):
+        """Members can list attendances for private event"""
+        EventAttendance.objects.create(event=self.private_event, user=self.user1, status=AttendanceStatus.GOING)
+        
+        url = reverse('garden:event-attendances', args=[self.private_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    def test_list_attendances_for_private_event_as_non_member_fails(self):
+        """Non-members cannot list attendances for private event"""
+        url = reverse('garden:event-attendances', args=[self.private_event.id])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.non_member_token.key}')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_event_str_representation(self):
+        """Test string representation of GardenEvent"""
+        expected = f"Spring Planting Day (Community Garden)"
+        self.assertEqual(str(self.public_event), expected)
+
+    def test_attendance_str_representation(self):
+        """Test string representation of EventAttendance"""
+        attendance = EventAttendance.objects.create(
+            event=self.public_event,
+            user=self.user1,
+            status=AttendanceStatus.GOING
+        )
+        expected = f"member1: GOING -> Spring Planting Day"
+        self.assertEqual(str(attendance), expected)
+
+    def test_unique_attendance_constraint(self):
+        """User can only have one attendance record per event"""
+        EventAttendance.objects.create(event=self.public_event, user=self.user1, status=AttendanceStatus.GOING)
+        
+        # Try to create duplicate
+        from django.db import IntegrityError
+        with self.assertRaises(IntegrityError):
+            EventAttendance.objects.create(event=self.public_event, user=self.user1, status=AttendanceStatus.MAYBE)
