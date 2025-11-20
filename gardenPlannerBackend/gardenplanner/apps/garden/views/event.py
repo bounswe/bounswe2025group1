@@ -29,6 +29,10 @@ class GardenEventViewSet(viewsets.ModelViewSet):
         garden_id = self.request.query_params.get('garden')
         if garden_id:
             qs = qs.filter(garden_id=garden_id)
+        
+        event_category = self.request.query_params.get('event_category')
+        if event_category:
+            qs = qs.filter(event_category=event_category)
         # daghan}
         
         if getattr(user, 'profile', None) and user.profile.role == 'ADMIN':
