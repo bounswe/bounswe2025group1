@@ -12,3 +12,4 @@ requests==2.32.3
 django-cors-headers==4.7.0
 psycopg2-binary==2.9.9
 firebase-admin==6.5.0
+drf-yasg
