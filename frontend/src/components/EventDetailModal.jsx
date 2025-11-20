@@ -331,10 +331,10 @@ const EventDetailModal = ({ open, onClose, event, onEventUpdated, onEventDeleted
                   </Typography>
                 </Box>
 
-                {eventData.created_by && (
+                {(eventData.created_by?.username || eventData.created_by_username) && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="body2" color="text.secondary">
-                      <strong>{t('events.createdBy')}:</strong> {eventData.created_by.username}
+                      <strong>{t('events.createdBy')}:</strong> {eventData.created_by?.username || eventData.created_by_username}
                     </Typography>
                   </Box>
                 )}
@@ -435,11 +435,11 @@ const EventDetailModal = ({ open, onClose, event, onEventUpdated, onEventDeleted
                       <ListItem key={attendance.id}>
                         <ListItemAvatar>
                           <Avatar>
-                            {attendance.user?.username?.[0]?.toUpperCase() || 'U'}
+                            {(attendance.user?.username || attendance.username)?.[0]?.toUpperCase() || 'U'}
                           </Avatar>
                         </ListItemAvatar>
                         <ListItemText
-                          primary={attendance.user?.username || t('events.unknownUser')}
+                          primary={attendance.user?.username || attendance.username || t('events.unknownUser')}
                           secondary={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                               {getAttendanceStatusIcon(attendance.status)}

@@ -127,13 +127,13 @@ const EventCard = ({ event, onViewDetails, onVote }) => {
             </Typography>
           </Box>
 
-          {event.created_by && (
+          {(event.created_by?.username || event.created_by_username) && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Avatar sx={{ width: 24, height: 24, fontSize: '0.75rem' }}>
-                {event.created_by.username?.[0]?.toUpperCase() || 'U'}
+                {(event.created_by?.username || event.created_by_username)?.[0]?.toUpperCase() || 'U'}
               </Avatar>
               <Typography variant="body2" color="text.secondary">
-                {t('events.createdBy')} {event.created_by.username}
+                {t('events.createdBy')} {event.created_by?.username || event.created_by_username}
               </Typography>
             </Box>
           )}
