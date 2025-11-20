@@ -55,8 +55,8 @@ const EventDetailModal = ({ open, onClose, event, onEventUpdated, onEventDeleted
   }, [event?.id]); // Only update eventData when event ID changes
 
   useEffect(() => {
-    if (open && event?.id) {
-      // Only fetch details on initial open, not on every event prop change
+    if (open && event?.id && !eventData?.id) {
+      // Only fetch details on initial open when no data exists
       fetchEventDetails();
       if (activeTab === 1) {
         fetchAttendances();
@@ -147,8 +147,29 @@ const EventDetailModal = ({ open, onClose, event, onEventUpdated, onEventDeleted
 
       const attendance = await response.json();
       
-      // Refresh event data to get updated counts and update parent
-      await fetchEventDetails(true);
+      // Update local state immediately to prevent flickering
+      setEventData(prevData => ({
+        ...prevData,
+        my_attendance: status,
+        // Update counts based on previous and new status
+        going_count: status === 'GOING' 
+          ? (prevData.going_count || 0) + (prevData.my_attendance === 'GOING' ? 0 : 1)
+          : (prevData.going_count || 0) - (prevData.my_attendance === 'GOING' ? 1 : 0),
+        not_going_count: status === 'NOT_GOING' 
+          ? (prevData.not_going_count || 0) + (prevData.my_attendance === 'NOT_GOING' ? 0 : 1)
+          : (prevData.not_going_count || 0) - (prevData.my_attendance === 'NOT_GOING' ? 1 : 0),
+        maybe_count: status === 'MAYBE' 
+          ? (prevData.maybe_count || 0) + (prevData.my_attendance === 'MAYBE' ? 0 : 1)
+          : (prevData.maybe_count || 0) - (prevData.my_attendance === 'MAYBE' ? 1 : 0),
+      }));
+      
+      // Update parent component with new data (but don't refetch)
+      if (onEventUpdated) {
+        onEventUpdated({
+          ...eventData,
+          my_attendance: status,
+        });
+      }
       
       toast.success(t('events.voteRecorded'));
       setVoting(false);
@@ -321,13 +342,24 @@ const EventDetailModal = ({ open, onClose, event, onEventUpdated, onEventDeleted
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <PeopleIcon fontSize="small" color="action" />
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ 
+                    fontVariantNumeric: 'tabular-nums',
+                    transition: 'all 0.2s ease',
+                  }}>
                     <strong>{t('events.attendance')}:</strong>{' '}
-                    {t('events.goingCount', { count: eventData.going_count || 0 })}
-                    {' • '}
-                    {t('events.maybeCount', { count: eventData.maybe_count || 0 })}
-                    {' • '}
-                    {t('events.notGoingCount', { count: eventData.not_going_count || 0 })}
+                    <Box component="span" sx={{ display: 'inline-flex', gap: 1, alignItems: 'center' }}>
+                      <Box component="span" sx={{ minWidth: '60px' }}>
+                        {t('events.goingCount', { count: eventData.going_count || 0 })}
+                      </Box>
+                      <Box component="span">•</Box>
+                      <Box component="span" sx={{ minWidth: '60px' }}>
+                        {t('events.maybeCount', { count: eventData.maybe_count || 0 })}
+                      </Box>
+                      <Box component="span">•</Box>
+                      <Box component="span" sx={{ minWidth: '70px' }}>
+                        {t('events.notGoingCount', { count: eventData.not_going_count || 0 })}
+                      </Box>
+                    </Box>
                   </Typography>
                 </Box>
 
