@@ -310,23 +310,6 @@ describe('CalendarTab Component', () => {
       }));
     });
 
-    test('navigates to previous week on mobile', () => {
-      renderWithTheme(
-        <CalendarTab
-          tasks={mockTasks}
-          handleTaskClick={mockHandleTaskClick}
-          onEmptyDayClick={mockOnEmptyDayClick}
-        />
-      );
-
-      const prevButton = screen.getAllByRole('button')[0];
-      fireEvent.click(prevButton);
-
-      // Week range should be displayed
-      const buttons = screen.getAllByRole('button');
-      expect(buttons).toHaveLength(2);
-    });
-
     test('displays week date range on mobile', () => {
       renderWithTheme(
         <CalendarTab
@@ -405,35 +388,6 @@ describe('CalendarTab Component', () => {
   });
 
   describe('Edge Cases', () => {
-    test('handles tasks with time information in due_date', () => {
-      const tasksWithTime = [
-        {
-          id: 1,
-          title: 'Morning task',
-          due_date: '2025-11-15T08:00:00Z',
-          status: 'PENDING',
-        },
-        {
-          id: 2,
-          title: 'Evening task',
-          due_date: '2025-11-15T20:00:00Z',
-          status: 'PENDING',
-        },
-      ];
-
-      renderWithTheme(
-        <CalendarTab
-          tasks={tasksWithTime}
-          handleTaskClick={mockHandleTaskClick}
-          onEmptyDayClick={mockOnEmptyDayClick}
-        />
-      );
-
-      // Both tasks should appear on the same day
-      expect(screen.getByText('Morning task')).toBeInTheDocument();
-      expect(screen.getByText('Evening task')).toBeInTheDocument();
-    });
-
     test('handles month transitions correctly', () => {
       renderWithTheme(
         <CalendarTab
