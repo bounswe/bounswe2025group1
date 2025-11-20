@@ -79,12 +79,10 @@ export const AuthProvider = ({ children }) => {
     validateStoredAuth();
   }, []);
 
-  const login = async (data) => {
-    
-    // If login data doesn't include profile, fetch it
+  const fetchAndSetUserData = async (data) => {
+    // If data doesn't include profile, fetch it
     if (!data.profile) {
       try {
-        
         const profileResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
           headers: {
             'Authorization': `Token ${data.token}`,
@@ -94,11 +92,13 @@ export const AuthProvider = ({ children }) => {
         if (profileResponse.ok) {
           const profileData = await profileResponse.json();
           
-          // Merge login data with profile data
+          // Merge data with profile data
           const completeUserData = {
             ...data,
             ...profileData
           };
+
+          console.log("Complete user data:", completeUserData);
           
           setUser(completeUserData);
           setToken(data.token);
@@ -121,12 +121,12 @@ export const AuthProvider = ({ children }) => {
     return true;
   };
 
-  const register = (data) => {
-    setUser(data);
-    setToken(data.token);
-    localStorage.setItem('user', JSON.stringify(data));
-    localStorage.setItem('token', data.token);
-    return true;
+  const login = async (data) => {
+    return await fetchAndSetUserData(data);
+  };
+
+  const register = async (data) => {
+    return await fetchAndSetUserData(data);
   };
 
   const logout = async () => {
