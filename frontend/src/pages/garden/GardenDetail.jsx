@@ -1038,7 +1038,19 @@ const GardenDetail = () => {
                 </Typography>
               </Box>
             ) : (
-              <Box>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 2,
+                  '@media (max-width: 900px)': {
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                  },
+                  '@media (max-width: 600px)': {
+                    gridTemplateColumns: '1fr',
+                  },
+                }}
+              >
                 {events.map((event) => (
                   <EventCard
                     key={event.id}

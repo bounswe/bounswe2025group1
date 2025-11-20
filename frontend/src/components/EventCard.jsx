@@ -108,7 +108,9 @@ const EventCard = ({ event, onViewDetails, onVote }) => {
   return (
     <Card
       sx={{
-        mb: 2,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         transition: 'transform 0.2s, box-shadow 0.2s',
         '&:hover': {
           transform: 'translateY(-2px)',
@@ -116,55 +118,55 @@ const EventCard = ({ event, onViewDetails, onVote }) => {
         },
       }}
     >
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <Typography variant="h6" component="h3" sx={{ fontWeight: 600, flex: 1 }}>
-                {event.title}
-              </Typography>
-              {event.event_category && (() => {
-                const categoryInfo = getCategoryInfo(event.event_category);
-                const CategoryIcon = categoryInfo.icon;
-                return (
-                  <Chip
-                    icon={<CategoryIcon />}
-                    label={t(categoryInfo.labelKey)}
-                    size="small"
-                    sx={{
-                      backgroundColor: `${categoryInfo.color}15`,
-                      color: categoryInfo.color,
-                      '& .MuiChip-icon': {
-                        color: categoryInfo.color,
-                      },
-                    }}
-                  />
-                );
-              })()}
-            </Box>
-            {event.description && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
+      <CardContent sx={{ flex: 1 }}>
+        {/* Title */}
+        <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 2 }}>
+          {event.title}
+        </Typography>
+
+        {/* Category and Visibility chips on same row */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          {event.event_category && (() => {
+            const categoryInfo = getCategoryInfo(event.event_category);
+            const CategoryIcon = categoryInfo.icon;
+            return (
+              <Chip
+                icon={<CategoryIcon />}
+                label={t(categoryInfo.labelKey)}
+                size="small"
                 sx={{
-                  mb: 2,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
+                  backgroundColor: `${categoryInfo.color}15`,
+                  color: categoryInfo.color,
+                  '& .MuiChip-icon': {
+                    color: categoryInfo.color,
+                  },
                 }}
-              >
-                {event.description}
-              </Typography>
-            )}
-          </Box>
+              />
+            );
+          })()}
           <Chip
             icon={event.visibility === 'PUBLIC' ? <PublicIcon /> : <LockIcon />}
             label={event.visibility === 'PUBLIC' ? t('events.public') : t('events.private')}
             size="small"
-            sx={{ ml: 1 }}
           />
         </Box>
+
+        {/* Description */}
+        {event.description && (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              mb: 2,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {event.description}
+          </Typography>
+        )}
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
