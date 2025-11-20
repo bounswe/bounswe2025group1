@@ -6,8 +6,8 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 
 // Mock MUI icons to avoid EMFILE errors
 vi.mock('@mui/icons-material', () => ({
-  LightMode: () => <div data-testid="light-mode-icon">LightMode</div>,
-  DarkMode: () => <div data-testid="dark-mode-icon">DarkMode</div>,
+  Brightness7: () => <div data-testid="light-mode-icon">LightMode</div>,
+  Brightness4: () => <div data-testid="dark-mode-icon">DarkMode</div>,
   Contrast: () => <div data-testid="contrast-icon">Contrast</div>,
   Palette: () => <div data-testid="palette-icon">Palette</div>,
 }));

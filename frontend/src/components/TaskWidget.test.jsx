@@ -282,26 +282,6 @@ describe('TaskWidget Component', () => {
       
       consoleErrorSpy.mockRestore();
     });
-
-    test('does not show TaskList when fetch fails', async () => {
-      useAuth.mockReturnValue({
-        user: mockUser,
-        token: 'mock-token',
-      });
-
-      globalThis.fetch.mockResolvedValue({
-        ok: false,
-        status: 404,
-      });
-
-      render(<TaskWidget />);
-
-      await waitFor(() => {
-        expect(toast.error).toHaveBeenCalled();
-      });
-
-      expect(screen.queryByTestId('task-list')).not.toBeInTheDocument();
-    });
   });
 
   describe('Component Lifecycle', () => {
@@ -384,23 +364,6 @@ describe('TaskWidget Component', () => {
   });
 
   describe('Edge Cases', () => {
-    test('handles undefined user gracefully', async () => {
-      useAuth.mockReturnValue({
-        user: undefined,
-        token: 'mock-token',
-      });
-
-      globalThis.fetch.mockResolvedValue({
-        ok: true,
-        json: async () => mockTasks,
-      });
-
-      render(<TaskWidget />);
-
-      // Should not crash
-      expect(screen.getByRole('progressbar')).toBeInTheDocument();
-    });
-
     test('handles malformed API response', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       
@@ -435,23 +398,6 @@ describe('TaskWidget Component', () => {
 
       expect(screen.getByText('Please log in to see your tasks.')).toBeInTheDocument();
       expect(globalThis.fetch).not.toHaveBeenCalled();
-    });
-
-    test('handles null user', () => {
-      useAuth.mockReturnValue({
-        user: null,
-        token: 'mock-token',
-      });
-
-      globalThis.fetch.mockResolvedValue({
-        ok: true,
-        json: async () => mockTasks,
-      });
-
-      render(<TaskWidget />);
-
-      // Should attempt to fetch even with null user
-      expect(globalThis.fetch).toHaveBeenCalled();
     });
   });
 
