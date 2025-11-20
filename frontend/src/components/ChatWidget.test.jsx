@@ -345,6 +345,7 @@ describe('ChatWidget Basic Functionality', () => {
         id: 'chat2',
         type: 'group',
         groupName: 'Test Garden',
+        gardenId: '1',
         members: ['django_123', 'django_456', 'django_789'],
         lastMessage: { text: 'Welcome to the garden', createdAt: new Date() },
       },
@@ -750,6 +751,7 @@ describe('ChatWidget Basic Functionality', () => {
         id: 'chat1',
         type: 'group',
         groupName: 'My Garden',
+        gardenId: '2',
         members: ['django_123', 'django_456', 'django_789'],
       },
     ];
