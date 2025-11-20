@@ -41,51 +41,33 @@ vi.mock('react-toastify', async () => {
   };
 });
 
-// Mock i18next
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key) => {
-      const translations = {
-        'auth.register.title': 'Join the Garden Community',
-        'auth.register.firstName': 'First Name',
-        'auth.register.lastName': 'Last Name',
-        'auth.register.username': 'Username',
-        'auth.register.email': 'Email Address',
-        'auth.register.location': 'Location',
-        'auth.register.password': 'Password',
-        'auth.register.confirmPassword': 'Confirm Password',
-        'auth.register.agreeTerms': 'I agree to the Terms of Service',
-        'auth.register.signUp': 'Sign Up',
-        'auth.register.completeAllFields': 'Please complete all fields correctly.',
-        'auth.register.welcomeToCommunity': 'Welcome to the community!'
-      };
-      return translations[key] || key;
-    },
-    i18n: { language: 'en' },
-  }),
-}));
-
-// Mock keyboard navigation utils
-vi.mock('../../utils/keyboardNavigation', () => ({
-  createFormKeyboardHandler: () => () => {},
-  trapFocus: () => () => {},
+// Mock MUI icons
+vi.mock('@mui/icons-material', () => ({
+  PersonAddIcon: () => <div data-testid="person-add-icon">PersonAddIcon</div>,
+  PersonIcon: () => <div data-testid="person-icon">PersonIcon</div>,
+  BadgeIcon: () => <div data-testid="badge-icon">BadgeIcon</div>,
+  EmailIcon: () => <div data-testid="email-icon">EmailIcon</div>,
+  LockIcon: () => <div data-testid="lock-icon">LockIcon</div>,
+  CheckCircleIcon: () => <div data-testid="check-circle-icon">CheckCircleIcon</div>,
+  RadioButtonUncheckedIcon: () => <div data-testid="radio-button-unchecked-icon">RadioButtonUncheckedIcon</div>,
 }));
 
 // Mock LocationPicker component
 vi.mock('../../components/LocationPicker', () => ({
-  __esModule: true,
-  default: ({ value, onChange, label }) => (
-    <input
-      type="text"
-      value={value || ''}
-      onChange={(e) => onChange && onChange(e.target.value)}
-      aria-label={label || 'Location'}
-      placeholder="Enter location"
-    />
+  default: ({ value, onChange, label, required, height }) => (
+    <div data-testid="location-picker">
+      <label>{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        style={{ height: height || 200 }}
+        data-testid="location-input"
+      />
+    </div>
   ),
 }));
-
-const theme = createTheme();
 
 const renderPage = () =>
   render(
@@ -168,5 +150,90 @@ describe('Register Page', () => {
     // Verify button starts disabled - use type submit since button text might vary
     const submitButton = screen.getByRole('button', { type: 'submit' }) || document.querySelector('button[type="submit"]');
     expect(submitButton).toBeDisabled();
+  });
+
+  describe('Terms and Conditions Dialog', () => {
+    it('opens terms and conditions dialog when link is clicked', () => {
+      renderPage();
+
+      // Click the terms and conditions link
+      const termsLink = screen.getByRole('button', { name: /read terms and conditions/i });
+      fireEvent.click(termsLink);
+
+      // Dialog should be open
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText(/Terms of Service and User Agreement for Community Garden Planner/i)).toBeInTheDocument();
+    });
+
+    it('displays terms and conditions content in the dialog', () => {
+      renderPage();
+
+      // Open terms dialog
+      const termsLink = screen.getByRole('button', { name: /read terms and conditions/i });
+      fireEvent.click(termsLink);
+
+      // Check for key sections in the terms
+      expect(screen.getByText(/Agreement to Terms of Service/i)).toBeInTheDocument();
+      expect(screen.getByText(/User Account Registration and Security/i)).toBeInTheDocument();
+      expect(screen.getByText(/Privacy Policy and Data Usage/i)).toBeInTheDocument();
+      expect(screen.getByText(/User-Generated Content and Intellectual Property/i)).toBeInTheDocument();
+      expect(screen.getByText(/Code of Conduct and Community Guidelines/i)).toBeInTheDocument();
+      expect(screen.getByText(/Disclaimer of Warranties and Limitation of Liability/i)).toBeInTheDocument();
+      expect(screen.getByText(/Modifications to This Agreement/i)).toBeInTheDocument();
+    });
+
+    it('prevents closing dialog by clicking outside or pressing escape', () => {
+      renderPage();
+
+      // Open terms dialog
+      const termsLink = screen.getByRole('button', { name: /read terms and conditions/i });
+      fireEvent.click(termsLink);
+
+      // Dialog should be open
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      // Try to close by clicking outside (backdrop click) - should not work
+      fireEvent.click(document.body);
+
+      // Dialog should still be open
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      // Try to close by pressing escape - should not work
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      // Dialog should still be open
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    it('requires terms acceptance to enable sign-up button', async () => {
+      renderPage();
+
+      // Fill in all form fields except terms
+      const firstNameInput = screen.getByTestId('first-name-input')
+      firstNameInput.value = 'John';
+      fireEvent.change(firstNameInput);
+      
+      const lastNameInput = screen.getByTestId('last-name-input')
+      lastNameInput.value = 'Doe';
+      fireEvent.change(lastNameInput);
+
+      const usernameInput = screen.getByTestId('username-input')
+      usernameInput.value = 'johndoe';
+      fireEvent.change(usernameInput);
+
+      const emailInput = screen.getByTestId('email-input')
+      emailInput.value = 'john@example.com';
+      fireEvent.change(emailInput);
+
+      const [passwordInput, confirmPasswordInput] = screen.getAllByLabelText(/password/i);
+      passwordInput.value = 'StrongP@ss1';
+      fireEvent.change(passwordInput);
+      confirmPasswordInput.value = 'StrongP@ss1';
+      fireEvent.change(confirmPasswordInput);
+
+      // Sign-up button should be disabled without terms acceptance
+      const signUpButton = screen.getByTestId('sign-up-button');
+      expect(signUpButton).toBeDisabled();
+    });
   });
 });

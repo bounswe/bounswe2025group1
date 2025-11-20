@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, GardenEvent, EventAttendance
 
 # Register your models here.
 admin.site.register(Profile)
@@ -9,6 +10,8 @@ admin.site.register(Garden)
 admin.site.register(GardenMembership)
 admin.site.register(CustomTaskType)
 admin.site.register(Task)
+admin.site.register(GardenEvent)
+admin.site.register(EventAttendance)
 
 @admin.register(ForumPost)
 class ForumPostAdmin(admin.ModelAdmin):
