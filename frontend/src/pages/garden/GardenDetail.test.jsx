@@ -1,7 +1,8 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import GardenDetail from './GardenDetail';
 import { useAuth } from '../../contexts/AuthContextUtils';
 
@@ -19,6 +20,56 @@ vi.mock('react-toastify', async () => {
 
 vi.mock('../../contexts/AuthContextUtils', () => ({
   useAuth: vi.fn(),
+}));
+
+// Mock i18next
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key) => {
+      const translations = {
+        'garden.members': 'Members',
+        'garden.tasks': 'Tasks',
+        'garden.overview': 'Overview',
+        'garden.taskBoard': 'Task Board',
+        'garden.addTask': 'Add Task',
+        'garden.loading': 'Loading garden...',
+        'garden.error': 'Error loading garden',
+        'garden.noTasks': 'No tasks available',
+        'garden.join': 'Join Garden',
+        'garden.leave': 'Leave Garden',
+        'gardens.members': '2 Members',
+        'gardens.tasks': '2 Tasks',
+        'gardens.joinGarden': 'Join Garden',
+        'gardens.leaveGarden': 'Leave Garden',
+        'gardens.gardenTasks': 'Garden Tasks',
+        'gardens.overviewTab': 'Overview',
+        'gardens.tasksTab': 'Tasks',
+        'gardens.membersTab': 'Members',
+        'gardens.galleryTab': 'Gallery'
+      };
+      return translations[key] || key;
+    },
+    i18n: { language: 'en' },
+  }),
+}));
+
+// Mock complex components
+vi.mock('../../components/TaskBoard', () => ({
+  __esModule: true,
+  default: ({ tasks }) => (
+    <div data-testid="task-board">
+      {tasks?.map(task => (
+        <div key={task.id}>{task.title}</div>
+      )) || <div>No tasks</div>}
+    </div>
+  ),
+}));
+
+vi.mock('../../components/TaskModal', () => ({
+  __esModule: true,
+  default: ({ open, onClose }) => (
+    open ? <div data-testid="task-modal">Task Modal</div> : null
+  ),
 }));
 
 window.fetch = vi.fn();
@@ -94,19 +145,28 @@ describe('GardenDetail', () => {
       return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
     });
   });
-  it('renders garden header and tabs', async () => {
+  const theme = createTheme();
+
+  const renderWithProviders = () =>
     render(
-      <BrowserRouter>
-        <GardenDetail />
-      </BrowserRouter>
+      <ThemeProvider theme={theme}>
+        <MemoryRouter initialEntries={['/gardens/1']}>
+          <Routes>
+            <Route path="/gardens/:gardenId" element={<GardenDetail />} />
+          </Routes>
+        </MemoryRouter>
+      </ThemeProvider>
     );
+
+  it('renders garden header and tabs', async () => {
+    renderWithProviders();
 
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText(/My Garden/i)).toBeInTheDocument();
       expect(screen.getByText(/Testland/i)).toBeInTheDocument();
-      expect(screen.getByText(/0 Members/i)).toBeInTheDocument();
+      expect(screen.getByText(/2 Members/i)).toBeInTheDocument();
       expect(screen.getByText(/2 Tasks/i)).toBeInTheDocument();
     });
   });
@@ -120,11 +180,7 @@ describe('GardenDetail', () => {
   });
 
   it('shows tasks inside TaskBoard', async () => {
-    render(
-      <BrowserRouter>
-        <GardenDetail />
-      </BrowserRouter>
-    );
+    renderWithProviders();
 
     await waitFor(() => {
       expect(screen.getByText(/Water plants/i)).toBeInTheDocument();

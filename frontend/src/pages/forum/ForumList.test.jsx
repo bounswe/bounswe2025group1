@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import ForumList from './ForumList';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import React from 'react';
@@ -15,6 +16,30 @@ vi.mock('react-toastify', () => ({
     success: vi.fn(),
     error: vi.fn(),
   },
+}));
+
+// Mock i18next
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key) => {
+      const translations = {
+        'forum.title': 'Community Forum',
+        'forum.subtitle': 'Join discussions, share gardening tips, and connect with fellow garden enthusiasts.',
+        'forum.searchPlaceholder': 'Search posts by title, content or author...',
+        'forum.followedOnly': 'Following Only',
+        'forum.createPost': 'Create Post',
+        'forum.noPosts': 'No posts found',
+        'forum.loading': 'Loading posts...',
+        'forum.readMore': 'Read More',
+        'forum.comments': 'Comments',
+        'forum.likes': 'Likes',
+        'forum.by': 'by',
+        'forum.ago': 'ago'
+      };
+      return translations[key] || key;
+    },
+    i18n: { language: 'en' },
+  }),
 }));
 
 // Mock fetch
@@ -35,11 +60,15 @@ beforeAll(() => {
   vi.stubEnv('VITE_API_URL', 'http://test-api.example.com');
 });
 
+const theme = createTheme();
+
 const renderWithRouter = (component) => {
   return render(
-    <BrowserRouter>
-      {component}
-    </BrowserRouter>
+    <ThemeProvider theme={theme}>
+      <BrowserRouter>
+        {component}
+      </BrowserRouter>
+    </ThemeProvider>
   );
 };
 

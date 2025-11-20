@@ -353,7 +353,7 @@ describe('Profile Component - Keyboard Navigation', () => {
     const editButton = screen.getByRole('button', { name: /edit profile/i });
     fireEvent.click(editButton);
 
-    const changePictureButton = screen.getByRole('button', { name: /change picture/i });
+    const changePictureButton = screen.getByRole('button', { name: /upload photo/i });
     
     // Test Enter key on Change Picture button
     fireEvent.keyDown(changePictureButton, { key: 'Enter' });

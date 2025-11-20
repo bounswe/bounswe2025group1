@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import GardenList from './GardenList';
 import { BrowserRouter } from 'react-router-dom';
 
@@ -39,7 +40,24 @@ vi.mock('react-toastify', async () => {
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key) => key,
+    t: (key) => {
+      const translations = {
+        'gardens.title': 'Gardens',
+        'gardens.subtitle': 'Discover and join community gardens',
+        'gardens.searchByName': 'Search by name',
+        'gardens.nearbyGardens': 'Nearby Gardens',
+        'gardens.createGarden': 'Create Garden',
+        'gardens.noGardensFound': 'No gardens found',
+        'gardens.loading': 'Loading gardens...',
+        'gardens.error': 'Error loading gardens',
+        'gardens.join': 'Join',
+        'gardens.leave': 'Leave',
+        'gardens.view': 'View',
+        'gardens.edit': 'Edit',
+        'gardens.delete': 'Delete'
+      };
+      return translations[key] || key;
+    },
     i18n: { language: 'en' },
   }),
 }));
@@ -64,11 +82,15 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+const theme = createTheme();
+
 const renderPage = () =>
   render(
-    <BrowserRouter>
-      <GardenList />
-    </BrowserRouter>
+    <ThemeProvider theme={theme}>
+      <BrowserRouter>
+        <GardenList />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 
 describe('GardenList', () => {
