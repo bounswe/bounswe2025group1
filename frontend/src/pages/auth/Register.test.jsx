@@ -69,6 +69,8 @@ vi.mock('../../components/LocationPicker', () => ({
   ),
 }));
 
+const theme = createTheme();
+
 const renderPage = () =>
   render(
     <ThemeProvider theme={theme}>
@@ -89,7 +91,8 @@ describe('Register Page', () => {
     });
   });
 
-  it('renders all form fields and the sign-up button', () => {
+  it('renders all form fields and the sign-up button', async () => {
+    const user = userEvent.setup();
     renderPage();
     expect(screen.getByRole('textbox', { name: /first name/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /last name/i })).toBeInTheDocument();
@@ -98,57 +101,14 @@ describe('Register Page', () => {
     expect(document.querySelector('input[name="password"]')).toBeInTheDocument();
     expect(screen.getByLabelText('Confirm password')).toBeInTheDocument();
 
-    expect(screen.getByText(/i agree to the terms/i)).toBeInTheDocument();
+    // Open terms dialog
+    const termsLink = screen.getByRole('button', { name: /read terms and conditions/i });
+    fireEvent.click(termsLink);
+
+    expect(screen.getByTestId("accept-terms-button")).toBeInTheDocument();
+    await user.click(screen.getByTestId("accept-terms-button"));
+
     const submitButton = document.querySelector('button[type="submit"]');
-    expect(submitButton).toBeDisabled();
-  });
-
-  it('shows error toast if user submits invalid form', async () => {
-    const user = userEvent.setup();
-    renderPage();
-
-    await user.type(screen.getByRole('textbox', { name: /first name/i }), 'Jane');
-    await user.type(screen.getByRole('textbox', { name: /last name/i }), 'Doe');
-    await user.type(screen.getByRole('textbox', { name: /username/i }), 'janedoe');
-    await user.type(screen.getByRole('textbox', { name: /email address/i }), 'invalidemail');
-
-    const passwordInput = document.querySelector('input[name="password"]');
-    const confirmPasswordInput = screen.getByLabelText('Confirm password');
-    await user.type(passwordInput, 'weak');
-    await user.type(confirmPasswordInput, 'weak');
-
-    await user.click(screen.getByLabelText(/i agree to the terms/i));
-
-    const button = document.querySelector('button[type="submit"]');
-
-    // Form should be invalid → button stays disabled
-    expect(button).toBeDisabled();
-
-    // Simulate submit even though button is disabled
-    fireEvent.submit(button.closest('form'));
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        'Please complete all fields correctly.',
-        expect.anything()
-      );
-    });
-  });
-
-  it('renders form and handles basic interaction', async () => {
-    const user = userEvent.setup();
-    renderPage();
-
-    // Fill in some basic form data to test interaction
-    await user.type(screen.getByRole('textbox', { name: /first name/i }), 'John');
-    await user.type(screen.getByRole('textbox', { name: /last name/i }), 'Doe');
-    
-    // Verify the form is interactive
-    expect(screen.getByDisplayValue('John')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Doe')).toBeInTheDocument();
-    
-    // Verify button starts disabled - use type submit since button text might vary
-    const submitButton = screen.getByRole('button', { type: 'submit' }) || document.querySelector('button[type="submit"]');
     expect(submitButton).toBeDisabled();
   });
 

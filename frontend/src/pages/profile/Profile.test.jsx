@@ -5,6 +5,17 @@ import Profile from './Profile';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import React from 'react';
 
+// Mock MUI icons to avoid EMFILE errors
+vi.mock('@mui/icons-material', () => ({
+  EditIcon: () => <div data-testid="edit-icon">Edit</div>,
+  SaveIcon: () => <div data-testid="save-icon">Save</div>,
+  CancelIcon: () => <div data-testid="cancel-icon">Cancel</div>,
+  PersonAdd: () => <div data-testid="person-add-icon">PersonAdd</div>,
+  PersonRemove: () => <div data-testid="person-remove-icon">PersonRemove</div>,
+  MyLocation: () => <div data-testid="my-location-icon">MyLocation</div>,
+  LocationOn: () => <div data-testid="location-on-icon">LocationOn</div>,
+}));
+
 // Mock the modules/hooks
 vi.mock('../../contexts/AuthContextUtils', () => ({
   useAuth: vi.fn(),
@@ -219,12 +230,6 @@ describe('Profile Component - Keyboard Navigation', () => {
     // Test Arrow Left navigation from Followers to Gardens
     fireEvent.keyDown(followersTab, { key: 'ArrowLeft' });
     expect(gardensTab).toHaveAttribute('aria-selected', 'true');
-  });
-
-  test.skip('follow/unfollow button supports keyboard navigation', async () => {
-    // This test is skipped because the follow button only appears for non-own profiles
-    // and the test setup is complex. The follow functionality is tested in integration tests.
-    expect(true).toBe(true);
   });
 
   test('edit profile button supports keyboard navigation', async () => {
