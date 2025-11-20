@@ -243,9 +243,21 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
       role="dialog"
       aria-modal="true"
       aria-labelledby="event-create-title"
+      scroll="body"
+      sx={{
+        '& .MuiDialog-container': {
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+      }}
       PaperProps={{
         sx: {
           borderRadius: 3,
+          maxHeight: '95vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          margin: 'auto',
         }
       }}
     >
@@ -288,7 +300,14 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
             </Box>
           </DialogTitle>
 
-      <DialogContent sx={{ px: 4, py: 3 }}>
+      <DialogContent sx={{ 
+        px: 4, 
+        py: 3,
+        flex: 1,
+        overflowY: 'auto',
+        overflowX: 'visible',
+        minHeight: 0, // Important for flex child with overflow
+      }}>
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
             {error}
@@ -300,14 +319,14 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
           <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 500, color: 'text.secondary', fontSize: '0.875rem' }}>
             {t('events.selectCategory')}
           </Typography>
-          <Grid container spacing={2}>
+          <Grid container spacing={1.5}>
             {eventCategories.map((cat) => {
               const Icon = cat.icon;
               const isSelected = category === cat.id;
               return (
-                <Grid item xs={6} sm={4} md={3} key={cat.id}>
+                <Grid item xs={6} sm={4} md={2} key={cat.id}>
                   <Paper
-                    elevation={isSelected ? 2 : 0}
+                    elevation={0}
                     onClick={() => {
                       setCategory(cat.id);
                     }}
@@ -316,23 +335,37 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
                       textAlign: 'center',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
-                      border: isSelected ? `2px solid ${cat.color}` : '1px solid',
-                      borderColor: isSelected ? cat.color : 'divider',
+                      border: '2px solid', // Always 2px to prevent layout shift
+                      borderColor: isSelected ? cat.color : 'transparent',
                       background: isSelected 
                         ? `${cat.color}08`
                         : 'transparent',
+                      borderRadius: 2,
+                      minHeight: '80px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
                       '&:hover': {
-                        borderColor: cat.color,
+                        borderColor: isSelected ? cat.color : `${cat.color}40`,
                         background: `${cat.color}05`,
+                        transform: 'translateY(-1px)',
                       },
                     }}
                   >
-                    <Icon sx={{ fontSize: '1.5rem', color: isSelected ? cat.color : 'text.secondary', mb: 0.5 }} />
+                    <Icon sx={{ 
+                      fontSize: '1.5rem', 
+                      color: isSelected ? cat.color : 'text.secondary', 
+                      mb: 0.5,
+                      transition: 'color 0.2s ease'
+                    }} />
                     <Typography variant="caption" sx={{ 
                       fontWeight: isSelected ? 600 : 400, 
-                      fontSize: '0.75rem',
+                      fontSize: '0.7rem',
                       display: 'block',
-                      lineHeight: 1.2
+                      lineHeight: 1.2,
+                      color: isSelected ? cat.color : 'text.secondary',
+                      transition: 'all 0.2s ease'
                     }}>
                       {t(cat.labelKey)}
                     </Typography>
@@ -416,6 +449,31 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
                     },
                   },
                 },
+                popper: {
+                  placement: 'bottom-start',
+                  modifiers: [
+                    {
+                      name: 'flip',
+                      enabled: true,
+                      options: {
+                        altBoundary: true,
+                        rootBoundary: 'viewport',
+                        padding: 8,
+                      },
+                    },
+                    {
+                      name: 'preventOverflow',
+                      enabled: true,
+                      options: {
+                        altAxis: true,
+                        altBoundary: true,
+                        tether: true,
+                        rootBoundary: 'viewport',
+                        padding: 8,
+                      },
+                    },
+                  ],
+                },
               }}
             />
           </Box>
@@ -445,13 +503,24 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
         </FormControl>
       </DialogContent>
 
-      <DialogActions sx={{ p: 3, gap: 2, background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.02))' }}>
+      <DialogActions sx={{ 
+        p: 2, 
+        gap: 1.5, 
+        background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.02))',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-end',
+        flexShrink: 0, // Prevent shrinking
+        borderTop: '1px solid',
+        borderColor: 'divider',
+      }}>
         <Button 
           onClick={handleClose} 
           variant="outlined"
           onKeyDown={createFormKeyboardHandler(handleClose)}
           sx={{
-            px: 3,
+            px: 2.5,
+            py: 1,
+            minWidth: '100px',
             '&:focus': {
               outline: '2px solid #558b2f',
               outlineOffset: '2px',
@@ -465,13 +534,14 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
           variant="contained"
           disabled={loading}
           onKeyDown={createFormKeyboardHandler(handleCreateEvent)}
-          startIcon={selectedCategory ? <span style={{ fontSize: '1.2rem' }}>{selectedCategory.emoji}</span> : <EventIcon />}
+          startIcon={selectedCategory ? <span style={{ fontSize: '1rem' }}>{selectedCategory.emoji}</span> : <EventIcon />}
           sx={{
             bgcolor: '#558b2f',
-            px: 4,
-            py: 1.5,
-            fontSize: '1rem',
+            px: 3,
+            py: 1,
+            fontSize: '0.95rem',
             fontWeight: 600,
+            minWidth: '120px',
             boxShadow: '0 4px 20px rgba(76, 175, 80, 0.3)',
             '&:hover': {
               bgcolor: '#33691e',
@@ -487,12 +557,12 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
         >
           {loading ? (
             <>
-              <CircularProgress size={20} sx={{ mr: 1.5, ml: 1.5, color: 'white' }} />
+              <CircularProgress size={18} sx={{ mr: 1, color: 'white' }} />
               {t('events.creating')}
             </>
           ) : (
             <>
-              {t('events.create')} {selectedCategory && selectedCategory.emoji}
+              {t('events.create')}
             </>
           )}
         </Button>
