@@ -97,117 +97,141 @@ describe('ChatWidget Component', () => {
       expect(noChatText).not.toBeInTheDocument();
     });
 
-    test('renders with chat icon', () => {
-      render(<ChatWidget />);
-      
-      const chatIcon = screen.getByTestId('chat-icon');
-      expect(chatIcon).toBeInTheDocument();
-    });
-
-    test('renders expand/collapse button', () => {
-      render(<ChatWidget />);
-      
-      // When collapsed, should show ExpandLess icon
-      const expandLessIcon = screen.getByTestId('expand-less-icon');
-      expect(expandLessIcon).toBeInTheDocument();
-    });
-
-    test('widget is positioned at bottom right', () => {
-      const { container } = render(<ChatWidget />);
-      
-      const paper = container.querySelector('.MuiPaper-root');
-      expect(paper).toBeInTheDocument();
-    });
+  it('toggles open/closed state when toggle button is clicked', () => {
+    render(<MockChatWidget />);
+    
+    const toggleButton = screen.getByTestId('toggle-button');
+    
+    // Click to open
+    fireEvent.click(toggleButton);
+    expect(screen.getByTestId('chat-content')).toBeInTheDocument();
+    
+    // Click to close
+    fireEvent.click(toggleButton);
+    expect(screen.queryByTestId('chat-content')).not.toBeInTheDocument();
   });
 
-  describe('Component Structure', () => {
-    test('renders Paper component as main container', () => {
-      const { container } = render(<ChatWidget />);
-      
-      const paper = container.querySelector('.MuiPaper-root');
-      expect(paper).toBeInTheDocument();
-    });
-
-    test('renders header with correct styling', () => {
-      render(<ChatWidget />);
-      
-      const header = screen.getByText('Messages').closest('div');
-      expect(header).toBeInTheDocument();
-    });
-
-    test('renders Badge component for unread count', () => {
-      const { container } = render(<ChatWidget />);
-      
-      const badge = container.querySelector('.MuiBadge-root');
-      expect(badge).toBeInTheDocument();
-    });
+  it('shows "No conversations yet" when there are no chats', () => {
+    render(<MockChatWidget initialOpen={true} />);
+    
+    expect(screen.getByTestId('no-chats')).toBeInTheDocument();
+    expect(screen.getByText('No conversations yet')).toBeInTheDocument();
   });
 
-  describe('User State', () => {
-    test('generates correct Firebase UID from user ID', () => {
-      const customUser = { id: 123, username: 'testuser123' };
-      useAuth.mockReturnValue({ user: customUser, token: mockToken });
-      
-      render(<ChatWidget />);
-      
-      // Component should render, which means it successfully processed the user ID
-      expect(screen.getByText('Messages')).toBeInTheDocument();
-    });
+  it('displays list of chats correctly', () => {
+    const testChats = [
+      {
+        id: 'chat1',
+        type: 'direct',
+        members: ['django_123', 'django_456'],
+        lastMessage: { text: 'Hello!', createdAt: new Date() },
+      },
+      {
+        id: 'chat2',
+        type: 'group',
+        groupName: 'Test Garden',
+        members: ['django_123', 'django_456', 'django_789'],
+        lastMessage: { text: 'Welcome to the garden', createdAt: new Date() },
+      },
+    ];
 
-    test('handles user with different ID format', () => {
-      const customUser = { id: 999, username: 'user999' };
-      useAuth.mockReturnValue({ user: customUser, token: mockToken });
-      
-      render(<ChatWidget />);
-      
-      expect(screen.getByText('Messages')).toBeInTheDocument();
-    });
-
-    test('handles user with string ID', () => {
-      const customUser = { id: '456', username: 'stringiduser' };
-      useAuth.mockReturnValue({ user: customUser, token: mockToken });
-      
-      render(<ChatWidget />);
-      
-      expect(screen.getByText('Messages')).toBeInTheDocument();
-    });
+    render(<MockChatWidget initialOpen={true} initialChats={testChats} />);
+    
+    expect(screen.getByTestId('chat-item-chat1')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-item-chat2')).toBeInTheDocument();
+    expect(screen.getByText('User 456')).toBeInTheDocument(); // Direct chat displays other user
+    expect(screen.getByText('Test Garden')).toBeInTheDocument(); // Group chat displays group name
   });
 
-  describe('Initial State', () => {
-    test('starts in list view mode', () => {
-      render(<ChatWidget />);
-      
-      // Header should show "Messages" which is the list view title
-      expect(screen.getByText('Messages')).toBeInTheDocument();
-    });
+  it('switches to chat view when a chat is selected', () => {
+    const testChats = [
+      {
+        id: 'chat1',
+        type: 'direct',
+        members: ['django_123', 'django_456'],
+        lastMessage: { text: 'Hello!', createdAt: new Date() },
+      },
+    ];
 
-    test('has no selected chat initially', () => {
-      render(<ChatWidget />);
-      
-      // Should show "Messages" not a specific chat name
-      expect(screen.getByText('Messages')).toBeInTheDocument();
-    });
+    render(<MockChatWidget initialOpen={true} initialChats={testChats} />);
+    
+    const chatItem = screen.getByTestId('chat-item-chat1');
+    fireEvent.click(chatItem);
+    
+    expect(screen.getByTestId('messages-view')).toBeInTheDocument();
+    expect(screen.getByTestId('back-button')).toBeInTheDocument();
+    expect(screen.queryByTestId('chats-list')).not.toBeInTheDocument();
+  });
 
-    test('initializes with empty chats array', () => {
-      render(<ChatWidget />);
-      
-      // Component renders successfully with no errors
-      expect(screen.getByText('Messages')).toBeInTheDocument();
-    });
+  it('returns to list view when back button is clicked', () => {
+    const testChats = [
+      {
+        id: 'chat1',
+        type: 'direct',
+        members: ['django_123', 'django_456'],
+        lastMessage: { text: 'Hello!', createdAt: new Date() },
+      },
+    ];
 
-    test('initializes with empty messages array', () => {
-      render(<ChatWidget />);
-      
-      // Component renders successfully
-      expect(screen.getByText('Messages')).toBeInTheDocument();
-    });
+    render(<MockChatWidget initialOpen={true} initialChats={testChats} />);
+    
+    // Select a chat
+    fireEvent.click(screen.getByTestId('chat-item-chat1'));
+    expect(screen.getByTestId('messages-view')).toBeInTheDocument();
+    
+    // Click back button
+    const backButton = screen.getByTestId('back-button');
+    fireEvent.click(backButton);
+    
+    expect(screen.getByTestId('chats-list')).toBeInTheDocument();
+    expect(screen.queryByTestId('messages-view')).not.toBeInTheDocument();
+  });
 
-    test('initializes with empty new message text', () => {
-      render(<ChatWidget />);
-      
-      // Component should render without errors
-      expect(screen.getByText('Messages')).toBeInTheDocument();
-    });
+  it('displays messages correctly', () => {
+    const testChats = [
+      {
+        id: 'chat1',
+        type: 'direct',
+        members: ['django_123', 'django_456'],
+      },
+    ];
+
+    const testMessages = [
+      {
+        id: 'msg1',
+        chatId: 'chat1',
+        text: 'Hello from me',
+        senderId: 'django_123',
+        createdAt: new Date(),
+        readBy: ['django_123'],
+      },
+      {
+        id: 'msg2',
+        chatId: 'chat1',
+        text: 'Hello from other',
+        senderId: 'django_456',
+        createdAt: new Date(),
+        readBy: ['django_456'],
+      },
+    ];
+
+    render(
+      <MockChatWidget 
+        initialOpen={true} 
+        initialView="chat"
+        initialChats={testChats}
+        initialMessages={testMessages}
+      />
+    );
+
+    // Select the chat to view messages
+    const chatItem = screen.getByTestId('chat-item-chat1');
+    fireEvent.click(chatItem);
+
+    expect(screen.getByTestId('message-msg1')).toBeInTheDocument();
+    expect(screen.getByTestId('message-msg2')).toBeInTheDocument();
+    expect(screen.getByTestId('message-text-msg1')).toHaveTextContent('Hello from me');
+    expect(screen.getByTestId('message-text-msg2')).toHaveTextContent('Hello from other');
   });
 
   describe('Props and Configuration', () => {
@@ -402,21 +426,43 @@ describe('ChatWidget Component', () => {
     });
   });
 
-  describe('Badge Display', () => {
-    test('renders badge for unread messages', () => {
-      const { container } = render(<ChatWidget />);
-      
-      const badges = container.querySelectorAll('.MuiBadge-root');
-      expect(badges.length).toBeGreaterThan(0);
-    });
+  it('displays group chat name correctly', () => {
+    const testChats = [
+      {
+        id: 'chat1',
+        type: 'group',
+        groupName: 'My Garden',
+        members: ['django_123', 'django_456', 'django_789'],
+      },
+    ];
 
-    test('badge is visible in header', () => {
-      const { container } = render(<ChatWidget />);
-      
-      const header = screen.getByText('Messages').closest('div');
-      const badge = header?.querySelector('.MuiBadge-root');
-      expect(badge).toBeInTheDocument();
-    });
+    render(
+      <MockChatWidget 
+        initialOpen={true}
+        initialChats={testChats}
+      />
+    );
+
+    expect(screen.getByTestId('chat-name-chat1')).toHaveTextContent('My Garden');
+  });
+
+  it('displays direct chat with other user name', () => {
+    const testChats = [
+      {
+        id: 'chat1',
+        type: 'direct',
+        members: ['django_123', 'django_456'],
+      },
+    ];
+
+    render(
+      <MockChatWidget 
+        initialOpen={true}
+        initialChats={testChats}
+      />
+    );
+
+    expect(screen.getByTestId('chat-name-chat1')).toHaveTextContent('User 456');
   });
 
   describe('Error Handling', () => {
