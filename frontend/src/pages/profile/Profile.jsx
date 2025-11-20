@@ -45,6 +45,7 @@ const Profile = () => {
     username: '',
     email: '',
     location: '',
+    receives_notifications: false,
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [gardens, setGardens] = useState([]);
@@ -100,6 +101,7 @@ const Profile = () => {
           username: data.username,
           email: data.email,
           location: data.profile?.location || '',
+          receives_notifications: data.profile.receives_notifications,
         });
 
         // Check if current user is following this profile
@@ -196,6 +198,7 @@ const Profile = () => {
       username: profile.username,
       email: profile.email,
       location: profile.profile?.location || '',
+      receives_notifications: profile.receives_notifications ?? false,
     });
     setSelectedFile(null);
   };

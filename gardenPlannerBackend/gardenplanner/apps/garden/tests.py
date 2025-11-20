@@ -2199,6 +2199,55 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=self.user)
         self.assertEqual(notifications.count(), 0)
 
+    def test_garden_membership_flow(self):
+
+        # 1. Setup: Make self.user a MANAGER of the garden so they can receive requests
+        # (self.user2 is already a WORKER in setUp, so we use self.user as manager)
+        GardenMembership.objects.create(
+            user=self.user, 
+            garden=self.garden, 
+            role='MANAGER', 
+            status='ACCEPTED'
+        )
+
+        applicant = User.objects.create_user(username='applicant', password='password123')
+        membership = GardenMembership.objects.create(
+            user=applicant,
+            garden=self.garden,
+            role='WORKER',
+            status='PENDING'
+        )
+
+        manager_notifications = Notification.objects.filter(recipient=self.user, category='SOCIAL')
+        self.assertEqual(manager_notifications.count(), 1)
+        self.assertIn(f"{applicant.username} has requested to join", manager_notifications.first().message)
+
+        membership.status = 'ACCEPTED'
+        membership.save()
+
+        applicant_notifications = Notification.objects.filter(recipient=applicant, category='SOCIAL')
+        self.assertEqual(applicant_notifications.count(), 1)
+        self.assertIn("has been accepted", applicant_notifications.first().message)
+
+    def test_garden_membership_rejection(self):
+        """Test that a user is notified when their request is rejected"""
+        
+        applicant = User.objects.create_user(username='rejectee', password='password123')
+        membership = GardenMembership.objects.create(
+            user=applicant,
+            garden=self.garden,
+            role='WORKER',
+            status='PENDING'
+        )
+
+        membership.status = 'REJECTED'
+        membership.save()
+
+        # Assertion: Check if Applicant received the 'Rejected' notification
+        notifications = Notification.objects.filter(recipient=applicant, category='SOCIAL')
+        self.assertEqual(notifications.count(), 1)
+        self.assertIn("has been rejected", notifications.first().message)
+
 
 
 class EdgeCaseTests(APITestCase):

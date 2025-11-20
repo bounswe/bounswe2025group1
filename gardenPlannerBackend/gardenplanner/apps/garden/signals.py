@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
-from .models import Notification, NotificationCategory, Task, Profile, Comment
+from .models import GardenMembership, Notification, NotificationCategory, Task, Profile, Comment
 from push_notifications.models import GCMDevice
 
 
@@ -116,3 +116,54 @@ def new_comment_notification(sender, instance, created, **kwargs):
         notification_message=message,
         notification_category=NotificationCategory.FORUM,
     )
+
+
+@receiver(post_save, sender=GardenMembership)
+def garden_join_request_notification(sender, instance, created, **kwargs):
+    """
+    Handles notifications for Garden Memberships:
+    1. When a user requests to join (PENDING) -> Notify Garden Managers.
+    2. When a request is decided (ACCEPTED/REJECTED) -> Notify the Requesting User.
+    """
+    target_garden = instance.garden
+    requesting_user = instance.user
+    current_status = instance.status
+
+    # Only trigger if it's a NEW record and the status is PENDING
+    if created and instance.status == 'PENDING':
+        requesting_user = instance.user
+        target_garden = instance.garden
+        
+        # Find all active MANAGERS of this garden
+        managers_memberships = GardenMembership.objects.filter(
+            garden=target_garden,
+            role='MANAGER',
+            status='ACCEPTED'
+        ).select_related('user')
+        
+        message = f"{requesting_user.username} has requested to join '{target_garden.name}'."
+
+        # Loop through all managers and send a notification to each
+        for membership in managers_memberships:
+            manager = membership.user
+            
+            _send_notification(
+                notification_receiver=manager,
+                notification_title="New Join Request",
+                notification_message=message,
+                notification_category=NotificationCategory.SOCIAL,
+            )
+
+    elif not created and current_status in ['ACCEPTED', 'REJECTED']:
+        # Determine the message based on the status
+        status_display = instance.get_status_display().lower()
+        message = f"Your request to join '{target_garden.name}' has been {status_display}."
+        
+        title = f"Membership for {target_garden.name} Accepted" if current_status == 'ACCEPTED' else f"Membership for {target_garden.name} Rejected"
+
+        _send_notification(
+            notification_receiver=requesting_user,
+            notification_title=title,
+            notification_message=message,
+            notification_category=NotificationCategory.SOCIAL,
+        )
