@@ -609,17 +609,19 @@
     "titlePlaceholder": "Enter event title...",
     "descriptionPlaceholder": "Describe your event... What will happen? Who should attend?",
     "category": {
+      "label": "Category",
       "workshop": "Workshops and Practice",
       "harvest": "Harvest Gathering",
       "community": "Community Gathering",
       "potluck": "Potluck / Picnic",
-      "swap": "Garden Exchange",
+      "exchange": "Garden Exchange",
       "treasureHunt": "Treasure Hunt",
       "photography": "Photography Day",
       "nature": "Nature Walk",
       "celebration": "Celebration",
       "seasonParty": "Season Party",
-      "maintenance": "Garden Maintenance"
+      "maintenance": "Garden Maintenance",
+      "other": "Other"
     },
     "subCategory": {
       "birthday": "Birthday",
@@ -637,7 +639,7 @@
       "harvest": "Celebrate the season's abundant harvest with our community! This gathering is all about sharing the fruits of our labor - literally! Bring your freshly harvested vegetables, fruits, herbs, or flowers to share with fellow gardeners. We'll enjoy garden-fresh snacks, exchange recipes, and connect over our shared love of growing food. A wonderful opportunity to appreciate what we've grown together!",
       "community": "A relaxed and friendly community gathering where gardeners of all experience levels come together to share ideas, discuss garden plans, and build lasting connections. We'll chat about upcoming projects, share tips and tricks we've learned, and simply enjoy each other's company. Whether you're planning your next planting season or just want to meet like-minded people, everyone is welcome!",
       "potluck": "Bring a dish to share and join us for a delightful potluck picnic in the garden! This is a perfect opportunity to enjoy garden-fresh meals together in a relaxed, social setting. Whether you bring something made from your own harvest or a favorite recipe, we'll have a wonderful spread to enjoy. Great food, great company, and great conversation - what more could you ask for?",
-      "swap": "One person's extra is another's treasure! Join our garden exchange where you can trade seeds, plants, tools, or garden supplies with fellow community members. Have extra tomato seeds? Looking for a specific tool? Want to share some cuttings? This is the perfect event to give and receive, all while reducing waste and building community connections. Bring what you have and find what you need!",
+      "exchange": "One person's extra is another's treasure! Join our garden exchange where you can trade seeds, plants, tools, or garden supplies with fellow community members. Have extra tomato seeds? Looking for a specific tool? Want to share some cuttings? This is the perfect event to give and receive, all while reducing waste and building community connections. Bring what you have and find what you need!",
       "treasureHunt": "Embark on an exciting adventure through our garden! Follow clues and complete challenges as you explore different areas and discover hidden spots. Learn about various plants, their growing conditions, and unique characteristics along the way. This interactive experience is perfect for families, kids, and anyone who loves a good mystery. You'll gain new knowledge while having fun exploring every corner of our beautiful garden space!",
       "photography": "Capture the stunning beauty of our garden through your lens! Whether you're a professional photographer or just love taking pictures, this event is for you. We'll explore the garden together, share photography tips and techniques, and showcase the seasonal highlights. From macro shots of flowers to wide-angle garden landscapes, there's beauty to capture everywhere. Bring your camera or smartphone and let's document the garden's natural splendor together!",
       "nature": "Take a peaceful, guided walk through our garden and immerse yourself in nature. We'll observe the local wildlife, learn about different plant species and their roles in the ecosystem, and discuss the importance of biodiversity. This is a wonderful opportunity to slow down, appreciate the natural world around us, and gain a deeper understanding of how all living things are connected. Perfect for nature enthusiasts and those seeking a moment of tranquility.",

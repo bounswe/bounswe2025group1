@@ -15,11 +15,59 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PeopleIcon from '@mui/icons-material/People';
 import PublicIcon from '@mui/icons-material/Public';
 import LockIcon from '@mui/icons-material/Lock';
+import LocalFloristIcon from '@mui/icons-material/LocalFlorist';
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import CelebrationIcon from '@mui/icons-material/Celebration';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(relativeTime);
+
+const getCategoryInfo = (category) => {
+  const categories = {
+    'WORKSHOP': { 
+      icon: LocalFloristIcon, 
+      color: '#4caf50', 
+      labelKey: 'events.category.workshop'
+    },
+    'POTLUCK': { 
+      icon: RestaurantMenuIcon, 
+      color: '#8bc34a', 
+      labelKey: 'events.category.potluck'
+    },
+    'EXCHANGE': { 
+      icon: SwapHorizIcon, 
+      color: '#795548', 
+      labelKey: 'events.category.exchange'
+    },
+    'TREASURE_HUNT': { 
+      icon: TravelExploreIcon, 
+      color: '#3f51b5', 
+      labelKey: 'events.category.treasureHunt'
+    },
+    'PHOTOGRAPHY': { 
+      icon: PhotoCameraIcon, 
+      color: '#2196f3', 
+      labelKey: 'events.category.photography'
+    },
+    'CELEBRATION': { 
+      icon: CelebrationIcon, 
+      color: '#e91e63', 
+      labelKey: 'events.category.celebration'
+    },
+    'OTHER': { 
+      icon: EventIcon, 
+      color: '#757575', 
+      labelKey: 'events.category.other'
+    }
+  };
+  
+  return categories[category] || categories['OTHER'];
+};
 
 const EventCard = ({ event, onViewDetails, onVote }) => {
   const { t, i18n } = useTranslation();
@@ -71,9 +119,29 @@ const EventCard = ({ event, onViewDetails, onVote }) => {
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
-              {event.title}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Typography variant="h6" component="h3" sx={{ fontWeight: 600, flex: 1 }}>
+                {event.title}
+              </Typography>
+              {event.event_category && (() => {
+                const categoryInfo = getCategoryInfo(event.event_category);
+                const CategoryIcon = categoryInfo.icon;
+                return (
+                  <Chip
+                    icon={<CategoryIcon />}
+                    label={t(categoryInfo.labelKey)}
+                    size="small"
+                    sx={{
+                      backgroundColor: `${categoryInfo.color}15`,
+                      color: categoryInfo.color,
+                      '& .MuiChip-icon': {
+                        color: categoryInfo.color,
+                      },
+                    }}
+                  />
+                );
+              })()}
+            </Box>
             {event.description && (
               <Typography
                 variant="body2"

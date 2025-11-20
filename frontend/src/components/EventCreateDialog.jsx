@@ -64,11 +64,11 @@ const getEventCategories = (t) => [
     exampleDescriptionKey: 'events.exampleDescription.potluck'
   },
   { 
-    id: 'SWAP', 
-    labelKey: 'events.category.swap',
+    id: 'EXCHANGE', 
+    labelKey: 'events.category.exchange',
     icon: SwapHorizIcon, 
     color: '#795548', 
-    exampleDescriptionKey: 'events.exampleDescription.swap'
+    exampleDescriptionKey: 'events.exampleDescription.exchange'
   },
   { 
     id: 'TREASURE_HUNT', 
@@ -140,6 +140,7 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
         description: description.trim() || null,
         start_at: dayjs(startTime).toISOString(),
         visibility: visibility,
+        event_category: category || 'OTHER',
       };
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/events/`, {

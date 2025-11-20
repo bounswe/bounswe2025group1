@@ -23,6 +23,12 @@ import {
 import EventIcon from '@mui/icons-material/Event';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PeopleIcon from '@mui/icons-material/People';
+import LocalFloristIcon from '@mui/icons-material/LocalFlorist';
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import CelebrationIcon from '@mui/icons-material/Celebration';
 import PublicIcon from '@mui/icons-material/Public';
 import LockIcon from '@mui/icons-material/Lock';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -36,6 +42,48 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(relativeTime);
+
+const getCategoryInfo = (category) => {
+  const categories = {
+    'WORKSHOP': { 
+      icon: LocalFloristIcon, 
+      color: '#4caf50', 
+      labelKey: 'events.category.workshop'
+    },
+    'POTLUCK': { 
+      icon: RestaurantMenuIcon, 
+      color: '#8bc34a', 
+      labelKey: 'events.category.potluck'
+    },
+    'EXCHANGE': { 
+      icon: SwapHorizIcon, 
+      color: '#795548', 
+      labelKey: 'events.category.exchange'
+    },
+    'TREASURE_HUNT': { 
+      icon: TravelExploreIcon, 
+      color: '#3f51b5', 
+      labelKey: 'events.category.treasureHunt'
+    },
+    'PHOTOGRAPHY': { 
+      icon: PhotoCameraIcon, 
+      color: '#2196f3', 
+      labelKey: 'events.category.photography'
+    },
+    'CELEBRATION': { 
+      icon: CelebrationIcon, 
+      color: '#e91e63', 
+      labelKey: 'events.category.celebration'
+    },
+    'OTHER': { 
+      icon: EventIcon, 
+      color: '#757575', 
+      labelKey: 'events.category.other'
+    }
+  };
+  
+  return categories[category] || categories['OTHER'];
+};
 
 const EventDetailModal = ({ open, onClose, event, onEventUpdated, onEventDeleted, canEdit, canDelete }) => {
   const { t } = useTranslation();
@@ -312,6 +360,32 @@ const EventDetailModal = ({ open, onClose, event, onEventUpdated, onEventDeleted
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   {eventData.description}
                 </Typography>
+              )}
+
+              {eventData.event_category && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  {(() => {
+                    const categoryInfo = getCategoryInfo(eventData.event_category);
+                    const CategoryIcon = categoryInfo.icon;
+                    return (
+                      <>
+                        <CategoryIcon fontSize="small" sx={{ color: categoryInfo.color }} />
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>{t('events.category.label')}:</strong>{' '}
+                          <Chip
+                            label={t(categoryInfo.labelKey)}
+                            size="small"
+                            sx={{
+                              backgroundColor: `${categoryInfo.color}15`,
+                              color: categoryInfo.color,
+                              ml: 0.5,
+                            }}
+                          />
+                        </Typography>
+                      </>
+                    );
+                  })()}
+                </Box>
               )}
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 2 }}>
