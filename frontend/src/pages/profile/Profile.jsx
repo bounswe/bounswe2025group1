@@ -29,6 +29,7 @@ import { createButtonKeyboardHandler, createLinkKeyboardHandler, createRovingTab
 import LocationPicker from '../../components/LocationPicker';
 import { useTranslation } from 'react-i18next';
 import { translateLocationString } from '../../utils/locationUtils';
+import { Switch, FormControlLabel } from '@mui/material';
 import { ALL_BADGES } from '../../components/GardenBadges';
 
 const Profile = () => {
@@ -45,6 +46,7 @@ const Profile = () => {
     username: '',
     email: '',
     location: '',
+    receives_notifications: false,
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [gardens, setGardens] = useState([]);
@@ -101,6 +103,7 @@ const Profile = () => {
           username: data.username,
           email: data.email,
           location: data.profile?.location || '',
+          receives_notifications: data.profile.receives_notifications,
         });
         
         // Set earned badges from profile data (if available)
@@ -206,6 +209,7 @@ const Profile = () => {
       username: profile.username,
       email: profile.email,
       location: profile.profile?.location || '',
+      receives_notifications: profile.receives_notifications ?? false,
     });
     setSelectedFile(null);
   };
@@ -235,10 +239,12 @@ const Profile = () => {
   }, [tabValue, followerRefs.current.length]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+
     setEditedProfile((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: newValue,
     }));
   };
 
@@ -248,6 +254,7 @@ const Profile = () => {
       formData.append('username', editedProfile.username);
       formData.append('email', editedProfile.email);
       formData.append('location', editedProfile.location);
+      formData.append('receives_notifications', editedProfile.receives_notifications);
 
       if (selectedFile) {
         formData.append('profile_picture', selectedFile);
@@ -543,6 +550,19 @@ const Profile = () => {
                   value={editedProfile.email}
                   onChange={handleInputChange}
                 />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={editedProfile.receives_notifications}
+                      onChange={handleInputChange}
+                      name="receives_notifications"
+                      type="checkbox"
+                    />
+                  }
+                  label={t('Would you like to receive notifications?')}
+                  sx={{ mt: 1, mb: 1, display: 'block' }}
+                />
+                {}
                 <LocationPicker
                   value={editedProfile.location}
                   onChange={(value) => setEditedProfile({ ...editedProfile, location: value })}

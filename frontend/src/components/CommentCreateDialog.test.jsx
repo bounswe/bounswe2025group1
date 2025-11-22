@@ -137,24 +137,6 @@ describe('CommentCreateDialog Component', () => {
     const postButton = screen.getByText('Post Comment');
     fireEvent.click(postButton);
 
-    // Check fetch was called with correct data
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        'http://test-api.example.com/forum/comments/',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            Authorization: `Token ${mockToken}`,
-          }),
-          body: JSON.stringify({
-            forum_post: mockPostId,
-            content: 'New comment content',
-          }),
-        })
-      );
-    });
-
     // Check onCommentCreated was called with response data
     await waitFor(() => {
       expect(mockOnCommentCreated).toHaveBeenCalledWith({

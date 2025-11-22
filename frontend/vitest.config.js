@@ -3,11 +3,12 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    watch: false,
     environment: 'jsdom',
     globals: true,            
     setupFiles: './src/setupTests.js',
     coverage: {
-      provider: 'v8',
+      provider: 'istanbul',
       include: ['src/**/*.{js,jsx,ts,tsx}'],
       exclude: [
         'src/**/*.test.{js,jsx,ts,tsx}',
@@ -20,6 +21,8 @@ export default defineConfig({
       ],
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: './coverage',
+      enabled: true,
+      reportOnFailure: true,
     }
   },
 });

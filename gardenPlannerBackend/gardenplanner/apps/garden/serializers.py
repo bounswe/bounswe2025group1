@@ -1,11 +1,12 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenImage, ForumPostImage, CommentImage, Badge, UserBadge
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenImage, ForumPostImage, CommentImage, Badge, UserBadge, GardenEvent, EventAttendance, AttendanceStatus
 from django.contrib.auth import get_user_model
 from django.conf import settings
 import requests
 from django.contrib.auth import authenticate
 import base64
+from push_notifications.models import GCMDevice
 
 def _decode_base64_image(data_str):
     """Return (bytes, mime_type) from data URL or raw base64 string."""
@@ -248,7 +249,7 @@ class GardenSerializer(serializers.ModelSerializer):
 class GardenMembershipSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     garden_name = serializers.CharField(source='garden.name', read_only=True)
-    garden = serializers.PrimaryKeyRelatedField(queryset=Garden.objects.all(), required=True)
+    garden = serializers.PrimaryKeyRelatedField(queryset=Garden.objects.all(), required=False)
     user_id = serializers.IntegerField(source='user.id', read_only=True)  # ✅ ADD THIS LINE
 
     class Meta:
@@ -257,9 +258,16 @@ class GardenMembershipSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'joined_at', 'updated_at']
         
     def validate(self, data):
-        if not data.get('garden'):
+        # Garden is required only on create, not on update
+        if self.instance is None and not data.get('garden'):
             raise serializers.ValidationError({"garden": "Garden ID is required"})
         return data
+    
+    def update(self, instance, validated_data):
+        # If garden is not provided in update, use the instance's garden
+        if 'garden' not in validated_data:
+            validated_data['garden'] = instance.garden
+        return super().update(instance, validated_data)
 
 class CustomTaskTypeSerializer(serializers.ModelSerializer):
     garden_name = serializers.CharField(source='garden.name', read_only=True)
@@ -478,13 +486,72 @@ class ReportSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
     
 
-
-
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ('id', 'message', 'category', 'read', 'timestamp')
 
+
+class GCMDeviceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GCMDevice
+        fields = ['registration_id']
+        extra_kwargs = {
+            'registration_id': {'required': True},
+        }
+class EventAttendanceSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = EventAttendance
+        fields = ['id', 'event', 'user', 'username', 'status', 'responded_at']
+        read_only_fields = ['id', 'user', 'responded_at']
+
+
+class GardenEventSerializer(serializers.ModelSerializer):
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
+    garden_name = serializers.CharField(source='garden.name', read_only=True)
+    going_count = serializers.SerializerMethodField()
+    not_going_count = serializers.SerializerMethodField()
+    maybe_count = serializers.SerializerMethodField()
+    my_attendance = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GardenEvent
+        fields = [
+            'id', 'garden', 'garden_name', 'title', 'description', 'start_at',
+            'visibility', 'created_by', 'created_by_username', 'created_at', 'updated_at',
+            'going_count', 'not_going_count', 'maybe_count', 'my_attendance'
+        ]
+        read_only_fields = ['id', 'created_by', 'created_by_username', 'created_at', 'updated_at',
+                            'going_count', 'not_going_count', 'maybe_count', 'my_attendance']
+
+    def validate_visibility(self, value):
+        if value not in ('PRIVATE', 'PUBLIC'):
+            raise serializers.ValidationError('Visibility must be PRIVATE or PUBLIC')
+        return value
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            validated_data['created_by'] = request.user
+        return super().create(validated_data)
+
+    def get_going_count(self, obj):
+        return obj.attendances.filter(status=AttendanceStatus.GOING).count()
+
+    def get_not_going_count(self, obj):
+        return obj.attendances.filter(status=AttendanceStatus.NOT_GOING).count()
+
+    def get_maybe_count(self, obj):
+        return obj.attendances.filter(status=AttendanceStatus.MAYBE).count()
+
+    def get_my_attendance(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return None
+        vote = obj.attendances.filter(user=request.user).first()
+        return vote.status if vote else None
 class BadgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Badge
