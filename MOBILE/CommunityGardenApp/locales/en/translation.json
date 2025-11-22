@@ -59,11 +59,15 @@
     "noPosts": "No posts found.",
     "goToCommunity": "Go to Community",
     "post": {
+      "title": "Forum Post",
       "by": "By",
       "comments": "Comments",
       "noComments": "No comments yet.",
       "addComment": "Add a comment...",
       "postComment": "Post"
+    },
+    "create": {
+      "title": "Create Post"
     },
     "errors": {
       "commentEmpty": "Comment cannot be empty",
@@ -293,5 +297,41 @@
     "districtPlaceholder": "District",
     "streetPlaceholder": "Street",
     "descriptionPlaceholder": "Additional description (optional)"
+  },
+  "moderation": {
+    "title": "Moderation",
+    "reportContent": "Report Content",
+    "reason": "Reason",
+    "description": "Description",
+    "descriptionPlaceholder": "Provide additional details about this report...",
+    "selectReason": "Please select a reason",
+    "reportSubmitted": "Report submitted successfully",
+    "reportError": "Failed to submit report",
+    "submit": "Submit Report",
+    "reasons": {
+      "abuse": "Abusive or Harassing",
+      "spam": "Spam or Misleading",
+      "illegal": "Illegal Content",
+      "other": "Other"
+    },
+    "accessDenied": "You do not have permission to view reports",
+    "deleteContent": "Delete Content",
+    "dismissReport": "Dismiss Report",
+    "dismiss": "Dismiss",
+    "confirmAction": "Are you sure you want to {{action}}?",
+    "reviewSuccess": "Report reviewed successfully",
+    "reviewError": "Failed to review report",
+    "reportedBy": "Reported by user",
+    "pendingReports": "pending reports",
+    "noReports": "No reports to review"
+  },
+  "layout": {
+    "home": "Home",
+    "profile": "Profile",
+    "gardens": "Gardens",
+    "forum": "Forum",
+    "messages": "Messages",
+    "myTasks": "My Tasks",
+    "moderation": "Moderation"
   }
 }

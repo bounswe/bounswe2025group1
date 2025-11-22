@@ -10,6 +10,7 @@ interface User {
   email: string;
   firstName?: string;
   lastName?: string;
+  role?: string;
 }
 
 interface AuthContextType {
@@ -36,7 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const storedUser = await AsyncStorage.getItem('user');
       const storedToken = await AsyncStorage.getItem('token');
-      
+
       if (storedUser && storedToken) {
         setUser(JSON.parse(storedUser));
         setToken(storedToken);
@@ -49,6 +50,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const fetchUserProfile = async (token: string) => {
+    try {
+      const response = await axios.get(`${API_URL}/profile/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return null;
+    }
+  };
+
   const login = async (username: string, password: string) => {
     try {
       const response = await axios.post(`${API_URL}/login/`, {
@@ -57,16 +70,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       const { token: newToken, user_id, username: responseUsername } = response.data;
-      
+
+      // Fetch profile to get role and other user data
+      const profile = await fetchUserProfile(newToken);
+
       const userData = {
-        id:user_id,
+        id: user_id,
         username: responseUsername,
-        email: '', // You might want to fetch this from a profile endpoint
+        email: profile?.email || '',
+        firstName: profile?.first_name,
+        lastName: profile?.last_name,
+        role: profile?.role,
       };
 
       await AsyncStorage.setItem('token', newToken);
       await AsyncStorage.setItem('user', JSON.stringify(userData));
-      
+
       setToken(newToken);
       setUser(userData);
       axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
@@ -85,20 +104,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Step 1: Register the user
       const response = await axios.post(`${API_URL}/register/`, userData);
       const { token: newToken } = response.data;
-  
-      // Step 2: Store token and user
+
+      // Step 2: Fetch profile to get role and other user data
+      const profile = await fetchUserProfile(newToken);
+
+      // Step 3: Store token and user
       const user = {
         id: userData.id,
         username: userData.username,
         email: userData.email,
         firstName: userData.first_name,
         lastName: userData.last_name,
+        role: profile?.role,
       };
-  
+
       await AsyncStorage.setItem('token', newToken);
       await AsyncStorage.setItem('user', JSON.stringify(user));
-  
-      // Step 3: Set context and headers
+
+      // Step 4: Set context and headers
       setToken(newToken);
       setUser(user);
       axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
@@ -108,7 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.warn('Failed to register for push notifications:', err);
       });
 
-      // ✅ Step 4: Ensure profile exists
+      // ✅ Step 5: Ensure profile exists
       try {
         await axios.put(`${API_URL}/profile/`, {
           location: userData.location || '',
@@ -124,7 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw error;  // rethrow other unexpected errors
         }
       }
-  
+
     } catch (error) {
       console.error('Registration error:', error.response?.data || error.message);
       throw error;

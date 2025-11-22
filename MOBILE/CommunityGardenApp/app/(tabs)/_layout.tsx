@@ -29,6 +29,10 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { t } = useTranslation();
+  const { user } = useAuth();
+
+  // Check if user is admin or moderator
+  const isModerator = user?.role === 'ADMIN' || user?.role === 'MODERATOR';
 
   return (
     <AuthGate>
@@ -85,6 +89,14 @@ export default function TabLayout() {
           name="notifications"
           options={{
             href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="moderation"
+          options={{
+            title: t('layout.moderation') || 'Moderation',
+            tabBarIcon: ({ color }) => <Ionicons name="shield-checkmark" size={24} color={color} />,
+            href: isModerator ? '/moderation' : null,
           }}
         />
         <Tabs.Screen

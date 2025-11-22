@@ -59,11 +59,15 @@
     "noPosts": "Gönderi bulunamadı.",
     "goToCommunity": "Topluluğa Git",
     "post": {
+      "title": "Forum Gönderisi",
       "by": "Yazan",
       "comments": "Yorumlar",
       "noComments": "Henüz yorum yok.",
       "addComment": "Yorum ekle...",
       "postComment": "Gönder"
+    },
+    "create": {
+      "title": "Gönderi Oluştur"
     },
     "errors": {
       "commentEmpty": "Yorum boş olamaz",
@@ -293,5 +297,41 @@
     "districtPlaceholder": "İlçe",
     "streetPlaceholder": "Sokak",
     "descriptionPlaceholder": "Ek açıklama (isteğe bağlı)"
+  },
+  "moderation": {
+    "title": "Moderasyon",
+    "reportContent": "İçerik Bildir",
+    "reason": "Sebep",
+    "description": "Açıklama",
+    "descriptionPlaceholder": "Bu bildirim hakkında ek detaylar sağlayın...",
+    "selectReason": "Lütfen bir sebep seçin",
+    "reportSubmitted": "Bildirim başarıyla gönderildi",
+    "reportError": "Bildirim gönderilemedi",
+    "submit": "Bildirimi Gönder",
+    "reasons": {
+      "abuse": "Taciz veya Hakaret",
+      "spam": "Spam veya Yanıltıcı",
+      "illegal": "Yasadışı İçerik",
+      "other": "Diğer"
+    },
+    "accessDenied": "Bildirimleri görüntüleme yetkiniz yok",
+    "deleteContent": "İçeriği Sil",
+    "dismissReport": "Bildirimi Reddet",
+    "dismiss": "Reddet",
+    "confirmAction": "{{action}} işlemini yapmak istediğinizden emin misiniz?",
+    "reviewSuccess": "Bildirim başarıyla incelendi",
+    "reviewError": "Bildirim incelenemedi",
+    "reportedBy": "Bildiren kullanıcı",
+    "pendingReports": "bekleyen bildirim",
+    "noReports": "İncelenecek bildirim yok"
+  },
+  "layout": {
+    "home": "Ana Sayfa",
+    "profile": "Profil",
+    "gardens": "Bahçeler",
+    "forum": "Forum",
+    "messages": "Mesajlar",
+    "myTasks": "Görevlerim",
+    "moderation": "Moderasyon"
   }
 }

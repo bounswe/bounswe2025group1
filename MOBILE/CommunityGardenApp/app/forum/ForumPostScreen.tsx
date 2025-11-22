@@ -7,6 +7,9 @@ import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
+import ReportModal from '../../components/ui/ReportModal';
+import { ContentType } from '../../services/report';
 
 export default function ForumPostScreen() {
   const { t } = useTranslation();
@@ -18,6 +21,9 @@ export default function ForumPostScreen() {
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
   const [blockedError, setBlockedError] = useState(false);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [reportContentType, setReportContentType] = useState<ContentType>('forumpost');
+  const [reportObjectId, setReportObjectId] = useState<number>(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -77,6 +83,18 @@ export default function ForumPostScreen() {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  const handleReportPost = () => {
+    setReportContentType('forumpost');
+    setReportObjectId(Number(postId));
+    setReportModalVisible(true);
+  };
+
+  const handleReportComment = (commentId: number) => {
+    setReportContentType('comment');
+    setReportObjectId(commentId);
+    setReportModalVisible(true);
+  };
+
   if (loading || blockedError) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
@@ -89,7 +107,14 @@ export default function ForumPostScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.header, { color: colors.text }]}>{post.title}</Text>
+      <View style={styles.postHeader}>
+        <View style={styles.postHeaderContent}>
+          <Text style={[styles.header, { color: colors.text }]}>{post.title}</Text>
+          <TouchableOpacity onPress={handleReportPost} style={styles.menuButton}>
+            <Ionicons name="ellipsis-vertical" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      </View>
       <Text style={[styles.author, { color: colors.textSecondary }]}>{t('forum.post.by')} {post.author} • {formatDate(post.created_at)}</Text>
       <Text style={[styles.content, { color: colors.text }]}>{post.content}</Text>
       <Text style={[styles.commentsHeader, { color: colors.text }]}>{t('forum.post.comments')}</Text>
@@ -98,7 +123,12 @@ export default function ForumPostScreen() {
         keyExtractor={(item: any) => item.id.toString()}
         renderItem={({ item }: { item: any }) => (
           <View style={[styles.commentCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.commentAuthor, { color: colors.textSecondary }]}>{item.author} • {formatDate(item.created_at)}</Text>
+            <View style={styles.commentHeader}>
+              <Text style={[styles.commentAuthor, { color: colors.textSecondary }]}>{item.author} • {formatDate(item.created_at)}</Text>
+              <TouchableOpacity onPress={() => handleReportComment(item.id)} style={styles.commentMenuButton}>
+                <Ionicons name="ellipsis-vertical" size={16} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
             <Text style={[styles.commentContent, { color: colors.text }]}>{item.content}</Text>
           </View>
         )}
@@ -120,18 +150,30 @@ export default function ForumPostScreen() {
           <Text style={[styles.commentButtonText, { color: colors.white }]}>{t('forum.post.postComment')}</Text>
         </TouchableOpacity>
       </View>
+
+      <ReportModal
+        visible={reportModalVisible}
+        onClose={() => setReportModalVisible(false)}
+        contentType={reportContentType}
+        objectId={reportObjectId}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { padding: 16, flex: 1 },
-  header: { fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
+  postHeader: { marginBottom: 8 },
+  postHeaderContent: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  header: { fontSize: 22, fontWeight: 'bold', flex: 1 },
+  menuButton: { padding: 4, marginLeft: 8 },
   author: { fontSize: 14, marginBottom: 8 },
   content: { fontSize: 16, marginBottom: 16 },
   commentsHeader: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
   commentCard: { padding: 12, borderRadius: 8, marginBottom: 8 },
-  commentAuthor: { fontSize: 12, marginBottom: 4 },
+  commentHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  commentAuthor: { fontSize: 12, flex: 1 },
+  commentMenuButton: { padding: 4 },
   commentContent: { fontSize: 14 },
   emptyText: { textAlign: 'center', marginTop: 20 },
   commentInputContainer: { flexDirection: 'row', marginTop: 16 },

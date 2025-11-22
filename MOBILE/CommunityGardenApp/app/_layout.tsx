@@ -65,6 +65,24 @@ function StackNavigator() {
           title: t('garden.detail.title'),
         }}
       />
+      <Stack.Screen
+        name="forum/[id]"
+        options={{
+          title: t('forum.post.title') || 'Forum Post',
+        }}
+      />
+      <Stack.Screen
+        name="forum/create"
+        options={{
+          title: t('forum.create.title') || 'Create Post',
+        }}
+      />
+      <Stack.Screen
+        name="community/index"
+        options={{
+          title: t('community.title') || 'Community Members',
+        }}
+      />
     </Stack>
   );
 }
