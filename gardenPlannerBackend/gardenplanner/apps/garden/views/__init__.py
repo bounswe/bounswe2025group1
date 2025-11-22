@@ -37,6 +37,7 @@ from .task import (
 )
 from .notification import NotificationViewSet
 from .weatherdata import WeatherDataView
+from .event import GardenEventViewSet
 
 from .report import (
     ReportViewSet,
@@ -77,6 +78,8 @@ __all__ = [
     # Notification Views
     "NotificationViewSet",
     "TaskUpdateView",
+    # Event Views
+    "GardenEventViewSet",
     # Report Vİews
     "ReportViewSet",
     "AdminReportViewSet"

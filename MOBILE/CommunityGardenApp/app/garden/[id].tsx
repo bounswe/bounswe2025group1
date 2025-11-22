@@ -13,12 +13,16 @@ import { Picker } from '@react-native-picker/picker';
 import { Calendar } from 'react-native-calendars';
 import ImageGallery from '../../components/ui/ImageGallery';
 import { COLORS } from '../../constants/Config';
+import EventCard from '../../components/ui/EventCard';
+import CreateEventModal from '../../components/ui/CreateEventModal';
+import { GardenEvent, fetchEvents, deleteEvent, AttendanceStatus } from '../../services/event';
 
 import { useTranslation } from 'react-i18next';
 
 const TABS = [
   { key: 'Tasks', label: 'garden.detail.tabs.tasks' },
   { key: 'Members', label: 'garden.detail.tabs.members' },
+  { key: 'Events', label: 'garden.detail.tabs.events' },
   { key: 'Calendar', label: 'garden.detail.tabs.calendar' },
   { key: 'Gallery', label: 'garden.detail.tabs.gallery' }
 ];
@@ -40,6 +44,9 @@ export default function GardenDetailScreen() {
   const [tab, setTab] = useState(0);
   const [followingIds, setFollowingIds] = useState<number[]>([]);
   const [blockedIds, setBlockedIds] = useState<number[]>([]);
+  const [events, setEvents] = useState<GardenEvent[]>([]);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<GardenEvent | null>(null);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -131,6 +138,19 @@ export default function GardenDetailScreen() {
     }
   }, [token]);
 
+  const fetchEventsData = useCallback(async () => {
+    if (!token) return;
+    try {
+      const gardenId = parseInt(id as string, 10);
+      const allEvents = await fetchEvents();
+      // Filter events for this garden
+      const gardenEvents = allEvents.filter(event => event.garden === gardenId);
+      setEvents(gardenEvents);
+    } catch (err) {
+      console.error('Error fetching events:', err);
+    }
+  }, [token, id]);
+
   // ---------- Effects ----------
   useEffect(() => {
     fetchGarden();
@@ -143,7 +163,8 @@ export default function GardenDetailScreen() {
       fetchMembershipStatus();
       fetchMembers();
       fetchTasks();
-    }, [fetchMembershipStatus, fetchMembers, fetchTasks])
+      fetchEventsData();
+    }, [fetchMembershipStatus, fetchMembers, fetchTasks, fetchEventsData])
   );
 
   // ---------- Derived data ----------
@@ -427,6 +448,106 @@ export default function GardenDetailScreen() {
         )}
 
         {tab === 2 && (
+          <ScrollView>
+            <View style={styles.eventsHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                {t('events.gardenEvents') || 'Garden Events'}
+              </Text>
+              {membershipStatus === 'ACCEPTED' && (
+                <TouchableOpacity
+                  style={[styles.createEventButton, { backgroundColor: colors.primary }]}
+                  onPress={() => {
+                    setEditingEvent(null);
+                    setShowEventModal(true);
+                  }}
+                >
+                  <Ionicons name="add" size={20} color="#fff" />
+                  <Text style={styles.createEventButtonText}>
+                    {t('events.createEvent') || 'Create Event'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {events.length === 0 ? (
+              <View style={styles.emptyEvents}>
+                <Ionicons name="calendar-outline" size={48} color={colors.textSecondary} />
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                  {t('events.noEvents') || 'No events scheduled'}
+                </Text>
+              </View>
+            ) : (
+              events.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onVote={(eventId, status) => {
+                    // Update local state after voting
+                    setEvents(prev =>
+                      prev.map(e =>
+                        e.id === eventId
+                          ? { ...e, my_attendance: status }
+                          : e
+                      )
+                    );
+                    fetchEventsData();
+                  }}
+                  canEdit={event.created_by === user?.id || userIsManager}
+                  canDelete={event.created_by === user?.id || userIsManager}
+                  onEdit={(event) => {
+                    setEditingEvent(event);
+                    setShowEventModal(true);
+                  }}
+                  onDelete={async (event) => {
+                    Alert.alert(
+                      t('common.confirm') || 'Confirm',
+                      t('events.deleteConfirm') || 'Are you sure you want to delete this event?',
+                      [
+                        { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+                        {
+                          text: t('common.delete') || 'Delete',
+                          style: 'destructive',
+                          onPress: async () => {
+                            try {
+                              await deleteEvent(event.id);
+                              fetchEventsData();
+                              Alert.alert(
+                                t('common.success') || 'Success',
+                                t('events.deleteSuccess') || 'Event deleted'
+                              );
+                            } catch (error) {
+                              Alert.alert(
+                                t('common.error') || 'Error',
+                                t('events.deleteError') || 'Failed to delete event'
+                              );
+                            }
+                          },
+                        },
+                      ]
+                    );
+                  }}
+                />
+              ))
+            )}
+
+            <CreateEventModal
+              visible={showEventModal}
+              onClose={() => {
+                setShowEventModal(false);
+                setEditingEvent(null);
+              }}
+              onSuccess={() => {
+                setShowEventModal(false);
+                setEditingEvent(null);
+                fetchEventsData();
+              }}
+              gardenId={parseInt(id as string, 10)}
+              editEvent={editingEvent}
+            />
+          </ScrollView>
+        )}
+
+        {tab === 3 && (
           <View style={{ padding: 20 }}>
             <Calendar
               markedDates={markedDates}
@@ -455,7 +576,7 @@ export default function GardenDetailScreen() {
           </View>
         )}
 
-        {tab === 3 && (
+        {tab === 4 && (
           <View>
             <Text style={styles.sectionTitle}>Garden Gallery</Text>
             {galleryImages.length > 0 ? (
@@ -568,6 +689,30 @@ const styles = StyleSheet.create({
     borderWidth: 2, borderColor: COLORS.secondary, borderStyle: 'dashed',
   },
   emptySubtext: { fontSize: 14, color: COLORS.text, textAlign: 'center', marginTop: 8, opacity: 0.7 },
+  eventsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  createEventButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  createEventButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+    marginLeft: 4,
+  },
+  emptyEvents: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
 });
 
 const taskCardStyles = StyleSheet.create({
