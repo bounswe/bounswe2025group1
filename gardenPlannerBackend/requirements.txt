@@ -1,6 +1,7 @@
 asgiref==3.8.1
 Django==4.2.20
 django-cors-headers==4.7.0
+django-push-notifications==3.2.1
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
 PyJWT==2.9.0
@@ -12,4 +13,8 @@ requests==2.32.3
 django-cors-headers==4.7.0
 psycopg2-binary==2.9.9
 firebase-admin==6.5.0
+<<<<<<< HEAD
+django-apscheduler==0.7.0
+=======
 drf-yasg
+>>>>>>> dev
