@@ -15,7 +15,10 @@
     "previous": "Previous",
     "close": "Close",
     "submit": "Submit",
-    "reset": "Reset"
+    "reset": "Reset",
+    "confirm": "Confirm",
+    "submitting": "Submitting...",
+    "errorOccurred": "An error occurred"
   },
   "navigation": {
     "home": "Home",
@@ -27,7 +30,8 @@
     "logout": "Logout",
     "loggedOut": "You've been logged out.",
     "dashboard": "Dashboard",
-    "userSettings": "User Settings"
+    "userSettings": "User Settings",
+    "moderation": "Moderation"
   },
   "language": {
     "english": "English",
@@ -686,5 +690,45 @@
     "closeDialog": "Close dialog",
     "uploadImages": "Upload images",
     "removeImage": "Remove image"
+  },
+  "report": {
+    "title": "Report Content",
+    "instruction": "Please provide a reason for reporting this content.",
+    "reason": "Reason",
+    "abuse": "Abusive or Harassing",
+    "spam": "Spam or Misleading",
+    "illegal": "Illegal Content",
+    "other": "Other",
+    "description": "Description (Optional)",
+    "submit": "Report",
+    "success": "Report submitted successfully!",
+    "error": "Failed to submit report. Please try again.",
+    "alreadyReported": "You have already reported this content.",
+    "reportPost": "Report Post",
+    "reportComment": "Report Comment"
+  },
+  "moderation": {
+    "title": "Moderation Dashboard",
+    "pending": "Pending Reviews",
+    "reviewed": "Reviewed History",
+    "date": "Date",
+    "reporter": "Reporter",
+    "type": "Type",
+    "reason": "Reason",
+    "description": "Description",
+    "status": "Status",
+    "actions": "Actions",
+    "noReports": "No reports found",
+    "valid": "Valid (Removed)",
+    "invalid": "Invalid (Kept)",
+    "accept": "Accept",
+    "dismiss": "Dismiss",
+    "confirmAcceptTitle": "Confirm Report Validity",
+    "confirmDismissTitle": "Confirm Report Dismissal",
+    "confirmAcceptText": "Are you sure this content is inappropriate? Accepting this report will remove the content.",
+    "confirmDismissText": "Are you sure this content is safe? Dismissing this report will keep the content visible.",
+    "reviewSuccess": "Report reviewed successfully",
+    "reviewError": "Failed to submit review",
+    "fetchError": "Failed to load reports"
   }
 }
