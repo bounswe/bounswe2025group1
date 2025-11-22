@@ -27,6 +27,7 @@ import ForumPost from './pages/forum/ForumPost';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Profile from './pages/profile/Profile';
+import ModerationDashboard from './pages/moderation/ModerationDashboard';
 import { ToastContainer } from 'react-toastify';
 import Tasks from './pages/task/Tasks';
 import 'react-toastify/dist/ReactToastify.css';
@@ -91,6 +92,7 @@ function AppContent() {
                 <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:userId" element={<Profile />} />
+                <Route path="/moderation" element={<ModerationDashboard />} />
                 {/* Additional routes will be implemented later */}
                 <Route path="*" element={<Home />} />
               </Routes>

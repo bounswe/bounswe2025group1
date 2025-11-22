@@ -29,8 +29,10 @@ import { createButtonKeyboardHandler, createLinkKeyboardHandler, createRovingTab
 import LocationPicker from '../../components/LocationPicker';
 import { useTranslation } from 'react-i18next';
 import { translateLocationString } from '../../utils/locationUtils';
-import { Switch, FormControlLabel } from '@mui/material';
+import { Switch, FormControlLabel, IconButton, Tooltip } from '@mui/material';
 import { ALL_BADGES } from '../../components/GardenBadges';
+import ReportDialog from '../../components/ReportDialog';
+import FlagIcon from '@mui/icons-material/Flag';
 
 const Profile = () => {
   const { t, i18n } = useTranslation();
@@ -54,6 +56,7 @@ const Profile = () => {
   const [following, setFollowing] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [earnedBadges, setEarnedBadges] = useState([]);
+  const [reportOpen, setReportOpen] = useState(false);
   const tabRefs = useRef([]);
   const gardenRefs = useRef([]);
   const followerRefs = useRef([]);
@@ -433,7 +436,7 @@ const Profile = () => {
             </Typography>
 
             {!isOwnProfile && (
-              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center' }}>
                 <Button
                   variant={isFollowing ? 'outlined' : 'contained'}
                   color={isFollowing ? 'error' : 'primary'}
@@ -455,6 +458,13 @@ const Profile = () => {
                   variant="contained"
                   size="medium"
                 />
+                {user && (
+                  <Tooltip title={t('report.reportUser', 'Report User')}>
+                    <IconButton onClick={() => setReportOpen(true)} color="default">
+                      <FlagIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
               </Box>
             )}
 
@@ -963,6 +973,12 @@ const Profile = () => {
           </Grid>
         </Grid>
       </Paper>
+      <ReportDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        contentType="user"
+        objectId={parseInt(userId)}
+      />
     </Container>
   );
 };
