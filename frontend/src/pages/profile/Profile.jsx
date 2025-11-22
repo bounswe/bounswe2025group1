@@ -30,6 +30,7 @@ import LocationPicker from '../../components/LocationPicker';
 import { useTranslation } from 'react-i18next';
 import { translateLocationString } from '../../utils/locationUtils';
 import { Switch, FormControlLabel } from '@mui/material';
+import { ALL_BADGES } from '../../components/GardenBadges';
 
 const Profile = () => {
   const { t, i18n } = useTranslation();
@@ -52,6 +53,7 @@ const Profile = () => {
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [earnedBadges, setEarnedBadges] = useState([]);
   const tabRefs = useRef([]);
   const gardenRefs = useRef([]);
   const followerRefs = useRef([]);
@@ -103,6 +105,15 @@ const Profile = () => {
           location: data.profile?.location || '',
           receives_notifications: data.profile.receives_notifications,
         });
+        
+        // Set earned badges from profile data (if available)
+        // For now, defaulting to empty array - backend can provide badges array
+        // Tiny Sprout is always earned
+        const badges = data.badges || data.profile?.badges || [];
+        if (!badges.includes('Tiny Sprout') && !badges.some(b => typeof b === 'string' ? b === 'Tiny Sprout' : b?.name === 'Tiny Sprout')) {
+          badges.push('Tiny Sprout');
+        }
+        setEarnedBadges(badges);
 
         // Check if current user is following this profile
         if (!isOwnProfile && user) {
@@ -585,7 +596,7 @@ const Profile = () => {
                           setTabValue(1);
                         } else if (e.key === 'ArrowLeft') {
                           e.preventDefault();
-                          setTabValue(2);
+                          setTabValue(3);
                         }
                       }}
                       sx={{
@@ -634,10 +645,36 @@ const Profile = () => {
                           setTabValue(2);
                         } else if (e.key === 'ArrowRight') {
                           e.preventDefault();
-                          setTabValue(0);
+                          setTabValue(3);
                         } else if (e.key === 'ArrowLeft') {
                           e.preventDefault();
                           setTabValue(1);
+                        }
+                      }}
+                      sx={{
+                        '&:focus': {
+                          outline: '2px solid #558b2f',
+                          outlineOffset: '2px',
+                        },
+                      }}
+                    />
+                    <Tab 
+                      ref={(el) => (tabRefs.current[3] = el)}
+                      label={t('profile.badges')} 
+                      id="tab-3"
+                      role="tab"
+                      aria-selected={tabValue === 3}
+                      aria-controls="tabpanel-3"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setTabValue(3);
+                        } else if (e.key === 'ArrowRight') {
+                          e.preventDefault();
+                          setTabValue(0);
+                        } else if (e.key === 'ArrowLeft') {
+                          e.preventDefault();
+                          setTabValue(2);
                         }
                       }}
                       sx={{
@@ -798,6 +835,128 @@ const Profile = () => {
                       )}
                     </>
                   )}
+                </Box>
+
+                {/* Badges Tab */}
+                <Box role="tabpanel" hidden={tabValue !== 3} id="tabpanel-3" sx={{ py: 2 }}>
+                  {tabValue === 3 && (() => {
+                    const getCurrentSeason = () => {
+                      const month = new Date().getMonth() + 1; // 1-12
+                      if (month >= 3 && month <= 5) return 'spring';
+                      if (month >= 6 && month <= 8) return 'summer';
+                      if (month >= 9 && month <= 11) return 'autumn';
+                      return 'winter';
+                    };
+
+                    const getSeasonalDescription = (descriptionKey) => {
+                      const season = getCurrentSeason();
+                      // Extract the badge key from descriptionKey (e.g., "badges.frostGuardian" -> "frostGuardian")
+                      const badgeKey = descriptionKey.replace('badges.', '');
+                      const seasonKey = `${descriptionKey}.${season}`;
+                      const fallbackKey = descriptionKey;
+                      // Try season-specific first, fallback to general
+                      const seasonTranslation = t(seasonKey);
+                      // If translation exists (not the same as key), use it
+                      if (seasonTranslation && seasonTranslation !== seasonKey) {
+                        return seasonTranslation;
+                      }
+                      // Otherwise use fallback
+                      return t(fallbackKey);
+                    };
+
+                    return (
+                      <Grid container spacing={3}>
+                        {ALL_BADGES.map((badge) => {
+                          const BadgeComponent = badge.component;
+                          // Tiny Sprout is always earned
+                          const isEarned = badge.name === 'Tiny Sprout' || earnedBadges.includes(badge.name) || earnedBadges.some(b => 
+                            typeof b === 'string' ? b === badge.name : b?.name === badge.name
+                          );
+                          
+                          // Get description - seasonal badges get time-sensitive descriptions
+                          let description = '';
+                          if (badge.descriptionKey) {
+                            if (badge.category === 'Seasonal Badges') {
+                              description = getSeasonalDescription(badge.descriptionKey);
+                            } else {
+                              description = t(badge.descriptionKey);
+                            }
+                          }
+
+                          return (
+                            <Grid size={{ xs: 6, sm: 4, md: 3 }} key={badge.name}>
+                              <Paper
+                                elevation={isEarned ? 2 : 1}
+                                sx={{
+                                  p: 2,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  textAlign: 'center',
+                                  backgroundColor: isEarned ? 'background.paper' : 'action.hover',
+                                  transition: 'all 0.3s ease',
+                                  minHeight: { xs: '220px', sm: '240px', md: '260px' },
+                                  height: '100%',
+                                  '&:hover': {
+                                    transform: 'translateY(-4px)',
+                                    boxShadow: 4,
+                                  },
+                                }}
+                              >
+                                <BadgeComponent size={80} earned={isEarned} />
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    mt: 1,
+                                    mb: 0.5,
+                                    fontWeight: isEarned ? 600 : 400,
+                                    color: isEarned ? 'text.primary' : 'text.secondary',
+                                    minHeight: { xs: '2.5em', sm: '2.5em', md: '2.5em' },
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    lineHeight: 1.2,
+                                  }}
+                                >
+                                  {badge.nameKey ? t(badge.nameKey) : badge.name}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    mt: 0.5,
+                                    color: 'text.secondary',
+                                    fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                                    minHeight: '1.2em',
+                                  }}
+                                >
+                                  {badge.categoryKey ? t(badge.categoryKey) : badge.category}
+                                </Typography>
+                                {description && (
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      mt: 0.5,
+                                      color: 'text.secondary',
+                                      fontSize: { xs: '0.6rem', sm: '0.65rem' },
+                                      fontStyle: 'italic',
+                                      minHeight: '1.5em',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      lineHeight: 1.2,
+                                      textAlign: 'center',
+                                    }}
+                                  >
+                                    {description}
+                                  </Typography>
+                                )}
+                              </Paper>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
+                    );
+                  })()}
                 </Box>
               </Box>
             )}
