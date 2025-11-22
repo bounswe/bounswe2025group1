@@ -38,6 +38,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { createRovingTabindex, createButtonKeyboardHandler, createLinkKeyboardHandler } from '../utils/keyboardNavigation';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
+import NotificationBell from './NotificationBell';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
@@ -283,6 +284,7 @@ function Navbar() {
           <Box sx={{ display: 'flex', alignItems: 'center', mr: user ? 2 : 0 }}>
             <LanguageToggle />
             <ThemeToggle />
+            {user && <NotificationBell />}
           </Box>
 
           {user && (
