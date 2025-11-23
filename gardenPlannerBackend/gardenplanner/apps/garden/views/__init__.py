@@ -35,13 +35,18 @@ from .task import (
     TaskViewSet,
     TaskUpdateView
 )
-from .notification import NotificationViewSet
+from .notification import NotificationViewSet, GCMDeviceViewSet
 from .weatherdata import WeatherDataView
 from .event import GardenEventViewSet
 
 from .report import (
     ReportViewSet,
     AdminReportViewSet      
+)
+
+from .badge import (
+    BadgeListView,
+    UserBadgeListView
 )
 
 
@@ -77,6 +82,7 @@ __all__ = [
     "TaskViewSet",
     # Notification Views
     "NotificationViewSet",
+    "GCMDeviceViewSet",
     "TaskUpdateView",
     # Event Views
     "GardenEventViewSet",

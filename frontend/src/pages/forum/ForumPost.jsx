@@ -33,6 +33,8 @@ import ImageGallery from '../../components/ImageGallery';
 import InlineImageUpload from '../../components/InlineImageUpload';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import ReportDialog from '../../components/ReportDialog';
+import FlagIcon from '@mui/icons-material/Flag';
 
 const ForumPost = () => {
   const { t, i18n } = useTranslation();
@@ -45,6 +47,7 @@ const ForumPost = () => {
   const [editedContent, setEditedContent] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [error, setError] = useState(null);
+  const [reportConfig, setReportConfig] = useState({ open: false, type: null, id: null });
 
   // Comment dialog state
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
@@ -338,7 +341,6 @@ const ForumPost = () => {
             </Box>
           </Box>
         ) : (
-          // View Mode
           <>
             <Box
               sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
@@ -350,7 +352,7 @@ const ForumPost = () => {
               >
                 {post.title}
               </Typography>
-              {post.author === user?.id && (
+              {post.author === user?.id ? (
                 <Box>
                   <IconButton
                     onClick={() => setEditMode(true)}
@@ -362,6 +364,17 @@ const ForumPost = () => {
                   </IconButton>
                   <IconButton onClick={() => setDeleteDialogOpen(true)} color="error" size="small">
                     <DeleteIcon />
+                  </IconButton>
+                </Box>
+              ) : (
+                <Box>
+                  <IconButton
+                    onClick={() => setReportConfig({ open: true, type: 'forumpost', id: post.id })}
+                    color="default"
+                    size="small"
+                    title={t('report.reportPost', 'Report Post')}
+                  >
+                    <FlagIcon />
                   </IconButton>
                 </Box>
               )}
@@ -546,9 +559,21 @@ const ForumPost = () => {
                       {formatDate(comment.created_at)}
                     </Typography>
                   </Box>
-                  <Typography variant="body2" sx={{ textAlign: 'left' }}>
-                    {comment.content}
-                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Typography variant="body2" sx={{ textAlign: 'left', flex: 1 }}>
+                      {comment.content}
+                    </Typography>
+                    {user && comment.author !== user.id && (
+                      <IconButton
+                        size="small"
+                        onClick={() => setReportConfig({ open: true, type: 'comment', id: comment.id })}
+                        sx={{ ml: 1, mt: -0.5, opacity: 0.6, '&:hover': { opacity: 1 } }}
+                        title={t('report.reportComment', 'Report Comment')}
+                      >
+                        <FlagIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                  </Box>
                   
                   {/* Comment Images */}
                   {comment.images && comment.images.length > 0 && (
@@ -604,6 +629,13 @@ const ForumPost = () => {
         onClose={() => setCommentDialogOpen(false)}
         postId={postId}
         onCommentCreated={handleCommentCreated}
+      />
+
+      <ReportDialog
+        open={reportConfig.open}
+        onClose={() => setReportConfig({ ...reportConfig, open: false })}
+        contentType={reportConfig.type}
+        objectId={reportConfig.id}
       />
 
       {/* Delete Confirmation Dialog */}

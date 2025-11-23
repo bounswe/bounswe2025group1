@@ -130,7 +130,7 @@ const ForumList = () => {
     navigate(`/forum/${selectedPostId}`);
   };
 
-  const handleModernPostSubmit = async (postData) => {
+  const handlePostSubmit = async (postData) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, {
         method: 'POST',
@@ -398,7 +398,7 @@ const ForumList = () => {
       {user && (
         <PostComposer
           currentUser={user}
-          onSubmit={handleModernPostSubmit}
+          onSubmit={handlePostSubmit}
           placeholder={t('forum.whatsOnYourMind')}
         />
       )}

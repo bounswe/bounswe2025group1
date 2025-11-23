@@ -49,10 +49,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'drf_yasg',
     
     # Local apps
     'gardenplanner.apps.garden',
     'gardenplanner.apps.chat',
+
+    'push_notifications',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -202,6 +206,9 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 # Ensure trailing slashes are handled correctly
 APPEND_SLASH = True
 
+PUSH_NOTIFICATIONS_SETTINGS = {
+    "FCM_SERVICE_ACCOUNT_FILE": os.path.join(BASE_DIR, "firebase-service-account.json"), 
+}
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -222,3 +229,5 @@ LOGGING = {
         },
     },
 }
+
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
