@@ -25,4 +25,9 @@ export default defineConfig({
       reportOnFailure: true,
     }
   },
+  server: {
+    fs: {
+      strict: false,
+    },
+  },
 });

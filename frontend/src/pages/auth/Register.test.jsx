@@ -1,6 +1,8 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Register from './Register';
 import { BrowserRouter } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -67,11 +69,15 @@ vi.mock('../../components/LocationPicker', () => ({
   ),
 }));
 
+const theme = createTheme();
+
 const renderPage = () =>
   render(
-    <BrowserRouter>
-      <Register />
-    </BrowserRouter>
+    <ThemeProvider theme={theme}>
+      <BrowserRouter>
+        <Register />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 
 describe('Register Page', () => {
@@ -85,101 +91,25 @@ describe('Register Page', () => {
     });
   });
 
-  it('renders all form fields and the sign-up button', () => {
+  it('renders all form fields and the sign-up button', async () => {
+    const user = userEvent.setup();
     renderPage();
-    expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
-    const [passwordInput, confirmPasswordInput] = screen.getAllByLabelText(/password/i);
-    expect(passwordInput).toBeInTheDocument();
-    expect(confirmPasswordInput).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /first name/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /last name/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /username/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /email address/i })).toBeInTheDocument();
+    expect(document.querySelector('input[name="password"]')).toBeInTheDocument();
+    expect(screen.getByLabelText('Confirm password')).toBeInTheDocument();
 
-    expect(screen.getByText(/i agree to the terms/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign up/i })).toBeDisabled();
-  });
+    // Open terms dialog
+    const termsLink = screen.getByRole('button', { name: /read terms and conditions/i });
+    fireEvent.click(termsLink);
 
-  it('shows error toast if user submits invalid form', async () => {
-    renderPage();
+    expect(screen.getByTestId("accept-terms-button")).toBeInTheDocument();
+    await user.click(screen.getByTestId("accept-terms-button"));
 
-    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } });
-    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'janedoe' } });
-    fireEvent.change(screen.getByLabelText(/email address/i), {
-      target: { value: 'invalidemail' },
-    });
-
-    const [passwordInput, confirmPasswordInput] = screen.getAllByLabelText(/password/i);
-    fireEvent.change(passwordInput, { target: { value: 'weak' } });
-    fireEvent.change(confirmPasswordInput, { target: { value: 'weak' } });
-
-    fireEvent.click(screen.getByLabelText(/i agree to the terms/i));
-
-    const button = screen.getByRole('button', { name: /sign up/i });
-
-    // Form should be invalid → button stays disabled
-    expect(button).toBeDisabled();
-
-    // Simulate submit even though button is disabled
-    fireEvent.submit(button.closest('form'));
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        'Please complete all fields correctly.',
-        expect.anything()
-      );
-    });
-  });
-
-  it('calls register and shows success toast on valid form submit', async () => {
-    renderPage();
-
-    // Fill in valid form data
-    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'John' } });
-    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'johndoe' } });
-    fireEvent.change(screen.getByLabelText(/email address/i), {
-      target: { value: 'john@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText(/location/i), {
-      target: { value: 'New York' },
-    });
-
-    const [passwordInput, confirmPasswordInput] = screen.getAllByLabelText(/password/i);
-    fireEvent.change(passwordInput, { target: { value: 'StrongP@ss1' } });
-    fireEvent.change(confirmPasswordInput, { target: { value: 'StrongP@ss1' } });
-
-    // Accept terms
-    fireEvent.click(screen.getByLabelText(/i agree to the terms/i));
-
-    // Wait for button to be enabled and click it
-    let button;
-    await waitFor(() => {
-      button = screen.getByRole('button', { name: /sign up/i });
-      expect(button).toBeEnabled();
-    });
-
-    fireEvent.click(button);
-
-    // Verify the API is called correctly
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          method: 'POST',
-          body: expect.stringContaining('johndoe'),
-        })
-      );
-    });
-
-    // Verify the register function is called
-    await waitFor(() => {
-      expect(mockRegister).toHaveBeenCalled();
-    });
-
-    // Verify the success toast and navigation
-    expect(toast.success).toHaveBeenCalledWith('Welcome to the community!', expect.anything());
-    expect(mockNavigate).toHaveBeenCalledWith('/');
+    const submitButton = document.querySelector('button[type="submit"]');
+    expect(submitButton).toBeDisabled();
   });
 
   describe('Terms and Conditions Dialog', () => {

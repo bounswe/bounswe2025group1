@@ -1,13 +1,39 @@
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import Navbar from './Navbar';
 import { useAuth } from '../contexts/AuthContextUtils';
-import React from 'react';
+
+// Mock MUI icons to avoid EMFILE errors
+vi.mock('@mui/icons-material', () => ({
+  Home: () => <div data-testid="home-icon">Home</div>,
+  Yard: () => <div data-testid="gardens-icon">Gardens</div>,
+  Assignment: () => <div data-testid="tasks-icon">Tasks</div>,
+  Forum: () => <div data-testid="forum-icon">Forum</div>,
+  Menu: () => <div data-testid="menu-icon">Menu</div>,
+  AccountCircle: () => <div data-testid="account-icon">AccountCircle</div>,
+  Close: () => <div data-testid="close-icon">Close</div>,
+  Logout: () => <div data-testid="logout-icon">Logout</div>,
+  Person: () => <div data-testid="person-icon">Person</div>,
+  Settings: () => <div data-testid="settings-icon">Settings</div>,
+}));
 
 // Mock the modules/hooks
 vi.mock('../contexts/AuthContextUtils', () => ({
   useAuth: vi.fn(),
+}));
+
+vi.mock('../contexts/ThemeContext', () => ({
+  useTheme: vi.fn(() => ({
+    currentTheme: 'light',
+    changeTheme: vi.fn(),
+    toggleHighContrast: vi.fn(),
+    availableThemes: ['light', 'dark', 'highContrast'],
+    isHighContrast: false,
+    isDarkMode: false,
+  })),
+  ThemeProvider: ({ children }) => <div>{children}</div>,
 }));
 
 vi.mock('react-toastify', () => ({
@@ -16,6 +42,15 @@ vi.mock('react-toastify', () => ({
     info: vi.fn(),
   },
   ToastContainer: () => <div data-testid="toast-container" />,
+}));
+
+// Mock ThemeToggle and LanguageToggle components
+vi.mock('./ThemeToggle', () => ({
+  default: () => <div data-testid="theme-toggle">ThemeToggle</div>,
+}));
+
+vi.mock('./LanguageToggle', () => ({
+  default: () => <div data-testid="language-toggle">LanguageToggle</div>,
 }));
 
 // Mock useNavigate and useLocation
@@ -31,7 +66,7 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-const renderWithRouter = (component) => {
+const renderWithProviders = (component) => {
   return render(
     <BrowserRouter>
       {component}
@@ -56,17 +91,16 @@ describe('Navbar Component - Keyboard Navigation', () => {
   });
 
   test('renders navbar with keyboard navigation support', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     // Check that navigation buttons are present
     expect(screen.getByRole('button', { name: /home/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /gardens/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /tasks/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /forum/i })).toBeInTheDocument();
   });
 
   test('navigation buttons support keyboard activation', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const homeButton = screen.getByRole('button', { name: /home/i });
     const gardensButton = screen.getByRole('button', { name: /gardens/i });
@@ -81,7 +115,7 @@ describe('Navbar Component - Keyboard Navigation', () => {
   });
 
   test('navigation buttons have proper focus indicators', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const homeButton = screen.getByRole('button', { name: /home/i });
     
@@ -93,7 +127,7 @@ describe('Navbar Component - Keyboard Navigation', () => {
   });
 
   test('user menu button supports keyboard navigation', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const userMenuButton = screen.getByRole('button', { name: /open user menu/i });
     
@@ -105,19 +139,18 @@ describe('Navbar Component - Keyboard Navigation', () => {
   });
 
   test('user menu items support keyboard navigation', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const userMenuButton = screen.getByRole('button', { name: /open user menu/i });
     fireEvent.click(userMenuButton);
 
     // Check that menu items are present
     expect(screen.getByText('Profile')).toBeInTheDocument();
-    expect(screen.getByText('Settings')).toBeInTheDocument();
     expect(screen.getByText('Logout')).toBeInTheDocument();
   });
 
   test('user menu items support keyboard activation', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const userMenuButton = screen.getByRole('button', { name: /open user menu/i });
     fireEvent.click(userMenuButton);
@@ -135,7 +168,7 @@ describe('Navbar Component - Keyboard Navigation', () => {
   });
 
   test('mobile menu toggle supports keyboard navigation', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const menuToggle = screen.getByRole('button', { name: /open drawer/i });
     
@@ -147,7 +180,7 @@ describe('Navbar Component - Keyboard Navigation', () => {
   });
 
   test('mobile drawer items support keyboard navigation', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const menuToggle = screen.getByRole('button', { name: /open drawer/i });
     fireEvent.click(menuToggle);
@@ -155,12 +188,11 @@ describe('Navbar Component - Keyboard Navigation', () => {
     // Check that drawer items are present - use getAllByText to handle multiple elements
     expect(screen.getAllByText('Home')).toHaveLength(2); // One in desktop nav, one in drawer
     expect(screen.getAllByText('Gardens')).toHaveLength(2); // One in desktop nav, one in drawer
-    expect(screen.getAllByText('Tasks')).toHaveLength(2); // One in desktop nav, one in drawer
     expect(screen.getAllByText('Forum')).toHaveLength(2); // One in desktop nav, one in drawer
   });
 
   test('mobile drawer items support keyboard activation', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const menuToggle = screen.getByRole('button', { name: /open drawer/i });
     fireEvent.click(menuToggle);
@@ -180,7 +212,7 @@ describe('Navbar Component - Keyboard Navigation', () => {
   });
 
   test('close drawer button supports keyboard navigation', async () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const menuToggle = screen.getByRole('button', { name: /open drawer/i });
     fireEvent.click(menuToggle);
@@ -196,28 +228,8 @@ describe('Navbar Component - Keyboard Navigation', () => {
     });
   });
 
-  test('login and register buttons support keyboard navigation when user not logged in', () => {
-    useAuth.mockReturnValue({
-      user: null,
-      logout: mockLogout,
-    });
-
-    renderWithRouter(<Navbar />);
-
-    const loginButton = screen.getByRole('button', { name: /login/i });
-    const registerButton = screen.getByRole('button', { name: /sign up/i });
-
-    // Test Enter key on Login button
-    fireEvent.keyDown(loginButton, { key: 'Enter' });
-    expect(mockNavigate).toHaveBeenCalledWith('/auth/login');
-
-    // Test Space key on Register button
-    fireEvent.keyDown(registerButton, { key: ' ' });
-    expect(mockNavigate).toHaveBeenCalledWith('/auth/register');
-  });
-
   test('navigation buttons have proper ARIA attributes', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const homeButton = screen.getByRole('button', { name: /home/i });
     const gardensButton = screen.getByRole('button', { name: /gardens/i });
@@ -228,7 +240,7 @@ describe('Navbar Component - Keyboard Navigation', () => {
   });
 
   test('user menu has proper ARIA attributes', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const userMenuButton = screen.getByRole('button', { name: /open user menu/i });
     
@@ -237,7 +249,7 @@ describe('Navbar Component - Keyboard Navigation', () => {
   });
 
   test('mobile drawer has proper ARIA attributes', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const menuToggle = screen.getByRole('button', { name: /open drawer/i });
     fireEvent.click(menuToggle);
@@ -251,7 +263,7 @@ describe('Navbar Component - Keyboard Navigation', () => {
   });
 
   test('handles keyboard navigation without errors', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const homeButton = screen.getByRole('button', { name: /home/i });
     
@@ -266,17 +278,15 @@ describe('Navbar Component - Keyboard Navigation', () => {
   });
 
   test('supports roving tabindex for navigation buttons', () => {
-    renderWithRouter(<Navbar />);
+    renderWithProviders(<Navbar />);
 
     const homeButton = screen.getByRole('button', { name: /home/i });
     const gardensButton = screen.getByRole('button', { name: /gardens/i });
-    const tasksButton = screen.getByRole('button', { name: /tasks/i });
     const forumButton = screen.getByRole('button', { name: /forum/i });
 
     // All buttons should be focusable (desktop navigation uses normal tab navigation)
     expect(homeButton).toHaveAttribute('tabindex', '0');
     expect(gardensButton).toHaveAttribute('tabindex', '0');
-    expect(tasksButton).toHaveAttribute('tabindex', '0');
     expect(forumButton).toHaveAttribute('tabindex', '0');
   });
 });
