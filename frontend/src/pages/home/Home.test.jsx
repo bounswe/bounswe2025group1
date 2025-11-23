@@ -6,13 +6,18 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Home from './Home';
 import { useAuth } from '../../contexts/AuthContextUtils';
 
+import { registerForPushNotifications, setupForegroundMessageListener } from '../../utils/notificationUtils.jsx';
+
 // Mock the auth context
 vi.mock('../../contexts/AuthContextUtils', () => ({
   useAuth: vi.fn(),
 }));
 
 // Mock react-router-dom
-const mockNavigate = vi.fn();
+const { mockNavigate } = vi.hoisted(() => {
+  return { mockNavigate: vi.fn() };
+});
+
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
@@ -20,6 +25,12 @@ vi.mock('react-router-dom', async () => {
     useNavigate: () => mockNavigate,
   };
 });
+
+// Mock notificationUtils
+vi.mock('../../utils/notificationUtils.jsx', () => ({
+  registerForPushNotifications: vi.fn(),
+  setupForegroundMessageListener: vi.fn(),
+}));
 
 // Mock i18next
 vi.mock('react-i18next', () => ({
@@ -131,6 +142,12 @@ describe('Home Component', () => {
 
       const joinButton = screen.queryByRole('button', { name: /join our community/i });
       expect(joinButton).not.toBeInTheDocument();
+    });
+
+    it('sets up foreground message listener with navigate', () => {
+      renderWithProviders(<Home />);
+
+      expect(setupForegroundMessageListener).toHaveBeenCalledWith(mockNavigate);
     });
   });
 
