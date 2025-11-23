@@ -166,7 +166,15 @@
     "title": "Herkese Açık Bahçeler",
     "goToDetail": "Detaya Git",
     "noGardens": "Herkese açık bahçe bulunamadı.",
-    "createGarden": "Bahçe Oluştur"
+    "createGarden": "Bahçe Oluştur",
+    "showNearby": "Yakındaki Bahçeleri Göster",
+    "showingGardensIn": "Bahçeler gösteriliyor",
+    "noNearbyGardens": "Şehrinizde bahçe bulunamadı.",
+    "locationPermissionTitle": "Konum İzni",
+    "locationPermissionMessage": "Yakındaki bahçeleri filtrelemek için lütfen konum izinlerini etkinleştirin.",
+    "locationErrorTitle": "Konum Ayarlanmadı",
+    "locationErrorMessage": "Şehriniz belirlenemedi. Lütfen tekrar deneyin.",
+    "locationNotSetMessage": "Bu filtreyi kullanmak için lütfen profilinizde konumunuzu ayarlayın."
   },
   "tasks": {
     "myTasks": "Görevlerim",
