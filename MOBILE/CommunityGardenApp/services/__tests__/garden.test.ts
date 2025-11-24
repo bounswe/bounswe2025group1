@@ -187,7 +187,7 @@ describe('Garden Utility Functions', () => {
 
       const result = await fetchMyGardens();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(`${API_URL}/gardens/`, undefined);
+      expect(mockedAxios.get).toHaveBeenCalledWith(`${API_URL}/gardens/`, {});
       expect(result).toEqual(mockGardens);
     });
 
@@ -245,7 +245,7 @@ describe('Garden Utility Functions', () => {
       expect(mockedAxios.post).toHaveBeenCalledWith(
         `${API_URL}/gardens/`,
         gardenData,
-        undefined
+        {}
       );
       expect(result).toEqual(mockGarden);
     });
@@ -390,7 +390,7 @@ describe('Garden Utility Functions', () => {
 
       await deleteGarden(1);
 
-      expect(mockedAxios.delete).toHaveBeenCalledWith(`${API_URL}/gardens/1/`, undefined);
+      expect(mockedAxios.delete).toHaveBeenCalledWith(`${API_URL}/gardens/1/`, {});
     });
 
     it('should throw error when delete fails', async () => {
@@ -453,7 +453,7 @@ describe('Garden Utility Functions', () => {
 
       const result = await fetchGardenById(1);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(`${API_URL}/gardens/1/`, undefined);
+      expect(mockedAxios.get).toHaveBeenCalledWith(`${API_URL}/gardens/1/`, {});
       expect(result).toEqual(mockGarden);
     });
 
