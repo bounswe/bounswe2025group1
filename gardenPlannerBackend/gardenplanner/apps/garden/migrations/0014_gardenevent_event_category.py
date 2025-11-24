@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('garden', '0011_gardenevent_eventattendance'),
+        ('garden', '0013_populate_badges'),
     ]
 
     operations = [
