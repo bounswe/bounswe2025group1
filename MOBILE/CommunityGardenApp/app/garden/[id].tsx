@@ -327,8 +327,8 @@ export default function GardenDetailScreen() {
       console.log('Join request successful:', response.data);
 
       Alert.alert(
-        t('common.success') || 'Success',
-        t('garden.detail.joinRequestSent') || 'Join request sent! Waiting for manager approval.'
+        'Success',
+        'Join request sent! Waiting for manager approval.'
       );
 
       // Refresh state
