@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList, ScrollView } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_URL, COLORS } from '../../constants/Config';
 import axios from 'axios';
@@ -11,11 +11,13 @@ import { useCallback } from 'react';
 import { useAccessibleColors, useAccessibleTheme } from '../../contexts/AccessibilityContextSimple';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
+import { ALL_BADGES } from '../../constants/Badges';
 
 const TABS = [
   { key: 'Gardens', label: 'profile.gardens' },
   { key: 'Followers', label: 'profile.followers' },
-  { key: 'Following', label: 'profile.following' }
+  { key: 'Following', label: 'profile.following' },
+  { key: 'Badges', label: 'profile.badges' }
 ];
 
 export default function ProfileScreen() {
@@ -29,6 +31,7 @@ export default function ProfileScreen() {
   const [gardens, setGardens] = useState([]);
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
+  const [earnedBadges, setEarnedBadges] = useState<string[]>([]);
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -65,6 +68,7 @@ export default function ProfileScreen() {
         setGardens([]);
         setFollowers([]);
         setFollowing([]);
+        setEarnedBadges([]);
         setLoading(false);
         return;
       }
@@ -77,29 +81,42 @@ export default function ProfileScreen() {
         axios.get(`${API_URL}/profile/followers/`, { headers }),
         axios.get(`${API_URL}/profile/following/`, { headers }),
       ]);
-      
+
       const acceptedGardenIds = membershipsRes.data
         .filter(m => m.status === 'ACCEPTED' && m.username === profileRes.data.username)
         .map(m => m.garden);
-      
+
 
       const gardenDetails = await Promise.all(
         acceptedGardenIds.map(id =>
           axios.get(`${API_URL}/gardens/${id}/`, { headers }).then(res => res.data)
         )
       );
-      
+
 
       setProfile(profileRes.data);
       setGardens(gardenDetails);
       setFollowers(followersRes.data);
       setFollowing(followingRes.data);
+
+      // Fetch badges from the dedicated endpoint
+      try {
+        const userId = profileRes.data.id;
+        const badgesRes = await axios.get(`${API_URL}/user/${userId}/badges/`, { headers });
+        // badgesRes.data is an array of {badge: {key, name, description, category, requirement}, earned_at}
+        const badgeNames = badgesRes.data.map((ub: any) => ub.badge?.name).filter(Boolean);
+        setEarnedBadges(badgeNames);
+      } catch (badgeError) {
+        console.error('Failed to fetch badges:', badgeError);
+        setEarnedBadges([]);
+      }
     } catch (error) {
       console.error('Profile fetch error:', error, error?.response?.data);
       setProfile(null);
       setGardens([]);
       setFollowers([]);
       setFollowing([]);
+      setEarnedBadges([]);
     } finally {
       setLoading(false);
     }
@@ -115,9 +132,9 @@ export default function ProfileScreen() {
       console.log('Unfollowing user with ID:', userId);
       await axios.delete(
         `${API_URL}/profile/follow/`,
-        { 
+        {
           data: { user_id: Number(userId) },
-          headers: { Authorization: `Token ${token}` } 
+          headers: { Authorization: `Token ${token}` }
         }
       );
       setFollowing(prev => prev.filter((u: any) => u.id !== userId));
@@ -152,7 +169,7 @@ export default function ProfileScreen() {
             })
           }
         >
-            <Text style={[styles.detailButtonText, { color: colors.primary }]}>{t('profile.goToDetail')}</Text>
+          <Text style={[styles.detailButtonText, { color: colors.primary }]}>{t('profile.goToDetail')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -165,11 +182,11 @@ export default function ProfileScreen() {
         <Text style={[styles.username, { color: colors.text }]}>{profile.username}</Text>
         <Text style={[styles.email, { color: colors.textSecondary }]}>{profile.email}</Text>
         <Text style={[styles.location, { color: colors.textSecondary }]}>{profile.profile?.location}</Text>
-        
+
         <View style={styles.settingsRow}>
           <LanguageSwitcher variant="modal" style={styles.languageSwitcher} />
-          <TouchableOpacity 
-            style={[styles.logoutButton, { backgroundColor: colors.error }]} 
+          <TouchableOpacity
+            style={[styles.logoutButton, { backgroundColor: colors.error }]}
             onPress={handleLogout}
             accessibilityLabel="Logout"
             accessibilityHint="Sign out of your account"
@@ -253,6 +270,61 @@ export default function ProfileScreen() {
             />
           </View>
         )}
+
+        {tab === 3 && (
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('profile.badges')}</Text>
+            <View style={styles.badgesGrid}>
+              {ALL_BADGES.map((badge) => {
+                const isEarned = earnedBadges.includes(badge.name);
+
+                let description = '';
+                if (badge.descriptionKey) {
+                  if (badge.category === 'Seasonal Badges') {
+                    const month = new Date().getMonth() + 1;
+                    let season = 'winter';
+                    if (month >= 3 && month <= 5) season = 'spring';
+                    else if (month >= 6 && month <= 8) season = 'summer';
+                    else if (month >= 9 && month <= 11) season = 'autumn';
+
+                    const seasonKey = `${badge.descriptionKey}_${season}`;
+                    const seasonTranslation = t(seasonKey);
+                    description = (seasonTranslation && seasonTranslation !== seasonKey)
+                      ? seasonTranslation
+                      : t(badge.descriptionKey);
+                  } else {
+                    description = t(badge.descriptionKey);
+                  }
+                }
+
+                return (
+                  <View
+                    key={badge.name}
+                    style={[
+                      styles.badgeCard,
+                      {
+                        backgroundColor: isEarned ? colors.surface : colors.background,
+                        opacity: isEarned ? 1 : 0.5,
+                        borderColor: isEarned ? badge.color : colors.border,
+                        borderWidth: isEarned ? 2 : 1
+                      }
+                    ]}
+                  >
+                    <Ionicons name={badge.iconName} size={40} color={isEarned ? badge.color : colors.textSecondary} />
+                    <Text style={[styles.badgeName, { color: colors.text }]}>{t(badge.nameKey)}</Text>
+                    <Text style={[styles.badgeCategory, { color: colors.textSecondary }]}>{t(badge.categoryKey)}</Text>
+                    {description ? (
+                      <Text style={[styles.badgeDescription, { color: colors.textSecondary }]}>{description}</Text>
+                    ) : null}
+                  </View>
+                );
+              })}
+            </View>
+            {ALL_BADGES.length === 0 && (
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('profile.noBadges')}</Text>
+            )}
+          </ScrollView>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -282,7 +354,7 @@ const styles = StyleSheet.create({
   followerName: { marginLeft: 10, fontSize: 15 },
   emptyText: { fontSize: 14, textAlign: 'center', marginVertical: 8 },
   detailButtonText: { fontSize: 16, fontWeight: '600' },
-  row: {flexDirection: 'row',justifyContent: 'space-between',alignItems: 'center',},
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', },
   unfollowButton: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -291,5 +363,35 @@ const styles = StyleSheet.create({
   },
   unfollowButtonText: {
     fontWeight: 'bold',
+  },
+  badgesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  badgeCard: {
+    width: '48%',
+    alignItems: 'center',
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  badgeName: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  badgeCategory: {
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  badgeDescription: {
+    fontSize: 11,
+    marginTop: 4,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
