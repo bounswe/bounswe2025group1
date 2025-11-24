@@ -65,6 +65,12 @@ function StackNavigator() {
           title: t('garden.detail.title'),
         }}
       />
+      <Stack.Screen
+        name="tasks/create-task"
+        options={{
+          title: 'Create Task',
+        }}
+      />
     </Stack>
   );
 }
