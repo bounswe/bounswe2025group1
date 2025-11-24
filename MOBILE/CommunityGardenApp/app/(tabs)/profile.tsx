@@ -105,15 +105,10 @@ export default function ProfileScreen() {
         const badgesRes = await axios.get(`${API_URL}/user/${userId}/badges/`, { headers });
         // badgesRes.data is an array of {badge: {key, name, description, category, requirement}, earned_at}
         const badgeNames = badgesRes.data.map((ub: any) => ub.badge?.name).filter(Boolean);
-        // Tiny Sprout is always earned
-        if (!badgeNames.includes('Tiny Sprout')) {
-          badgeNames.push('Tiny Sprout');
-        }
         setEarnedBadges(badgeNames);
       } catch (badgeError) {
         console.error('Failed to fetch badges:', badgeError);
-        // Fallback: just show Tiny Sprout
-        setEarnedBadges(['Tiny Sprout']);
+        setEarnedBadges([]);
       }
     } catch (error) {
       console.error('Profile fetch error:', error, error?.response?.data);

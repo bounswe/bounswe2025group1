@@ -71,13 +71,13 @@ export const ALL_BADGES: BadgeDefinition[] = [
         descriptionKey: 'badges.voiceOfTheGarden'
     },
 
-    // Forum Answers
+    // Forum Answers / Replies
     {
         name: 'Helpful Seedling',
         nameKey: 'badges.names.helpfulSeedling',
         iconName: 'thumbs-up',
         color: '#FF9800',
-        category: 'Forum Answers',
+        category: 'Forum Answers / Replies',
         categoryKey: 'badges.categories.forumAnswers',
         descriptionKey: 'badges.helpfulSeedling'
     },
@@ -86,7 +86,7 @@ export const ALL_BADGES: BadgeDefinition[] = [
         nameKey: 'badges.names.supportiveStem',
         iconName: 'heart',
         color: '#FFA726',
-        category: 'Forum Answers',
+        category: 'Forum Answers / Replies',
         categoryKey: 'badges.categories.forumAnswers',
         descriptionKey: 'badges.supportiveStem'
     },
@@ -95,7 +95,7 @@ export const ALL_BADGES: BadgeDefinition[] = [
         nameKey: 'badges.names.wiseWillow',
         iconName: 'school',
         color: '#5C6BC0',
-        category: 'Forum Answers',
+        category: 'Forum Answers / Replies',
         categoryKey: 'badges.categories.forumAnswers',
         descriptionKey: 'badges.wiseWillow'
     },
@@ -234,121 +234,5 @@ export const ALL_BADGES: BadgeDefinition[] = [
         category: 'Followers Gained',
         categoryKey: 'badges.categories.followersGained',
         descriptionKey: 'badges.gardenStar'
-    },
-
-    // Event Participation
-    {
-        name: 'Festival Sprout',
-        nameKey: 'badges.names.festivalSprout',
-        iconName: 'calendar',
-        color: '#9C27B0',
-        category: 'Event Participation',
-        categoryKey: 'badges.categories.eventParticipation',
-        descriptionKey: 'badges.festivalSprout'
-    },
-    {
-        name: 'Gathering Spirit',
-        nameKey: 'badges.names.gatheringSpirit',
-        iconName: 'people-circle',
-        color: '#8E24AA',
-        category: 'Event Participation',
-        categoryKey: 'badges.categories.eventParticipation',
-        descriptionKey: 'badges.gatheringSpirit'
-    },
-    {
-        name: 'Heart of the Garden',
-        nameKey: 'badges.names.heartOfTheGarden',
-        iconName: 'heart-circle',
-        color: '#AD1457',
-        category: 'Event Participation',
-        categoryKey: 'badges.categories.eventParticipation',
-        descriptionKey: 'badges.heartOfTheGarden'
-    },
-
-    // Seasonal Badges
-    {
-        name: 'Pink Blossom',
-        nameKey: 'badges.names.pinkBlossom',
-        iconName: 'flower-outline',
-        color: '#E91E63',
-        category: 'Seasonal Badges',
-        categoryKey: 'badges.categories.seasonalBadges',
-        descriptionKey: 'badges.pinkBlossom'
-    },
-    {
-        name: 'Sunny Petal',
-        nameKey: 'badges.names.sunnyPetal',
-        iconName: 'sunny-outline',
-        color: '#F57F17',
-        category: 'Seasonal Badges',
-        categoryKey: 'badges.categories.seasonalBadges',
-        descriptionKey: 'badges.sunnyPetal'
-    },
-    {
-        name: 'Harvest Spirit',
-        nameKey: 'badges.names.harvestSpirit',
-        iconName: 'leaf-outline',
-        color: '#E65100',
-        category: 'Seasonal Badges',
-        categoryKey: 'badges.categories.seasonalBadges',
-        descriptionKey: 'badges.harvestSpirit'
-    },
-    {
-        name: 'Frost Guardian',
-        nameKey: 'badges.names.frostGuardian',
-        iconName: 'snow',
-        color: '#0277BD',
-        category: 'Seasonal Badges',
-        categoryKey: 'badges.categories.seasonalBadges',
-        descriptionKey: 'badges.frostGuardian'
-    },
-
-    // Time-Based
-    {
-        name: 'Dawn Dewdrop',
-        nameKey: 'badges.names.dawnDewdrop',
-        iconName: 'water',
-        color: '#FFA000',
-        category: 'Time-Based',
-        categoryKey: 'badges.categories.timeBased',
-        descriptionKey: 'badges.dawnDewdrop'
-    },
-    {
-        name: 'Moonlit Gardener',
-        nameKey: 'badges.names.moonlitGardener',
-        iconName: 'moon',
-        color: '#3949AB',
-        category: 'Time-Based',
-        categoryKey: 'badges.categories.timeBased',
-        descriptionKey: 'badges.moonlitGardener'
-    },
-    {
-        name: 'Puddle Spirit',
-        nameKey: 'badges.names.puddleSpirit',
-        iconName: 'rainy',
-        color: '#0288D1',
-        category: 'Time-Based',
-        categoryKey: 'badges.categories.timeBased',
-        descriptionKey: 'badges.puddleSpirit'
-    },
-    {
-        name: 'Sunbeam Spirit',
-        nameKey: 'badges.names.sunbeamSpirit',
-        iconName: 'partly-sunny',
-        color: '#F9A825',
-        category: 'Time-Based',
-        categoryKey: 'badges.categories.timeBased',
-        descriptionKey: 'badges.sunbeamSpirit'
-    },
-
-    // Sign-in Streaks
-    {
-        name: 'Evergreen',
-        nameKey: 'badges.names.evergreen',
-        iconName: 'repeat',
-        color: '#2E7D32',
-        category: 'Sign-in Streaks',
-        categoryKey: 'badges.categories.signInStreaks',
-        descriptionKey: 'badges.evergreen'
     },
 ];
