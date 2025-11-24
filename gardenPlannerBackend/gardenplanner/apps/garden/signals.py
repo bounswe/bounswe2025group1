@@ -17,6 +17,7 @@ def _send_notification(notification_receiver, notification_title, notification_m
         recipient=notification_receiver,
         message=notification_message,
         category=notification_category,
+        link=link
     )
 
     devices = GCMDevice.objects.filter(user=notification_receiver, active=True)
