@@ -34,15 +34,23 @@ import DirectMessageButton from '../../components/DirectMessageButton';
 import { useTranslation } from 'react-i18next';
 import ImageGallery from '../../components/ImageGallery';
 import { translateLocationString } from '../../utils/locationUtils';
+import EventCard from '../../components/EventCard';
+import EventCreateDialog from '../../components/EventCreateDialog';
+import EventDetailModal from '../../components/EventDetailModal';
+import EventIcon from '@mui/icons-material/Event';
 
 const GardenDetail = () => {
   const { t, i18n } = useTranslation();
   const [garden, setGarden] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [members, setMembers] = useState([]);
+  const [events, setEvents] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [openTaskModal, setOpenTaskModal] = useState(false);
+  const [openEventCreateDialog, setOpenEventCreateDialog] = useState(false);
+  const [openEventDetailModal, setOpenEventDetailModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const { user, token } = useAuth();
   const theme = useTheme();
   const [openGardenEditModal, setOpenGardenEditModal] = useState(false);
@@ -95,7 +103,7 @@ const GardenDetail = () => {
         const gardenData = await gardenRes.json();
         setGarden(gardenData);
 
-        // Only fetch tasks and members for authenticated users
+        // Only fetch tasks, members, and events for authenticated users
         if (token) {
           const tasksRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/?garden=${gardenId}`, {
             method: 'GET',
@@ -124,6 +132,26 @@ const GardenDetail = () => {
             setIsMember(!!userMember);
             setIsManager(userMember?.role === 'MANAGER');
             setUserMembership(userMember);
+          }
+
+          // Fetch events
+          try {
+            const eventsRes = await fetch(
+              `${import.meta.env.VITE_API_URL}/events/?garden=${gardenId}`,
+              {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Token ${token}`,
+                },
+              }
+            );
+            if (eventsRes.ok) {
+              const eventsData = await eventsRes.json();
+              setEvents(eventsData || []);
+            }
+          } catch (error) {
+            console.error('Error fetching events:', error);
           }
         }
         setEditForm({
@@ -782,6 +810,7 @@ const GardenDetail = () => {
         >
           <Tab label={t('gardens.tasksTab')} />
           <Tab label={t('gardens.membersTab')} />
+          <Tab label={t('gardens.eventsTab')} />
           <Tab label={t('gardens.calendarTab')} />
           <Tab label={t('gardens.galleryTab')} />
         </Tabs>
@@ -950,8 +979,99 @@ const GardenDetail = () => {
           </Box>
         )}
 
-        {/* Calendar Tab */}
+        {/* Events Tab */}
         {activeTab === 2 && (
+          <Box>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}
+            >
+              <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
+                {t('gardens.gardenEvents')}
+              </Typography>
+              {isMember && isAccepted && (
+                <Button
+                  variant="contained"
+                  startIcon={<EventIcon />}
+                  onClick={() => {
+                    setOpenEventCreateDialog(true);
+                  }}
+                >
+                  {t('events.createEvent')}
+                </Button>
+              )}
+            </Box>
+
+            {!token ? (
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                p: 4,
+                textAlign: 'center'
+              }}>
+                <Typography variant="body1" color="text.secondary" gutterBottom>
+                  {t('tasks.pleaseLogIn')}
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/auth/login')}
+                  sx={{ mt: 2 }}
+                >
+                  {t('tasks.logIn')}
+                </Button>
+              </Box>
+            ) : events.length === 0 ? (
+              <Box sx={{ 
+                p: 4, 
+                textAlign: 'center', 
+                backgroundColor: 'background.paper', 
+                borderRadius: 2,
+                border: '2px dashed',
+                borderColor: 'divider'
+              }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  {t('events.noEventsYet')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {isAccepted ? t('events.createFirstEvent') : t('events.joinToCreateEvents')}
+                </Typography>
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 2,
+                  '@media (max-width: 900px)': {
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                  },
+                  '@media (max-width: 600px)': {
+                    gridTemplateColumns: '1fr',
+                  },
+                }}
+              >
+                {events.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    onViewDetails={(event) => {
+                      setSelectedEvent(event);
+                      setOpenEventDetailModal(true);
+                    }}
+                    onVote={(event) => {
+                      setSelectedEvent(event);
+                      setOpenEventDetailModal(true);
+                    }}
+                  />
+                ))}
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* Calendar Tab */}
+        {activeTab === 3 && (
           !token ? (
             <Box sx={{ 
               display: 'flex', 
@@ -988,7 +1108,7 @@ const GardenDetail = () => {
         )}
 
         {/* Gallery Tab */}
-        {activeTab === 3 && (
+        {activeTab === 4 && (
           <Box>
             <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, mb: 3 }}>
               {t('gardens.gardenGallery')}
@@ -1051,6 +1171,37 @@ const GardenDetail = () => {
         gardenId={gardenId}
         members={members}
         mode="edit"
+      />
+      <EventCreateDialog
+        open={openEventCreateDialog}
+        onClose={() => setOpenEventCreateDialog(false)}
+        onEventCreated={(newEvent) => {
+          setEvents((prev) => [newEvent, ...prev]);
+        }}
+        gardenId={gardenId}
+      />
+      <EventDetailModal
+        open={openEventDetailModal}
+        onClose={() => {
+          setOpenEventDetailModal(false);
+          setSelectedEvent(null);
+        }}
+        event={selectedEvent}
+        onEventUpdated={(updatedEvent) => {
+          setEvents((prev) => prev.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)));
+          // Don't update selectedEvent to prevent re-renders in modal
+        }}
+        onEventDeleted={(eventId) => {
+          setEvents((prev) => prev.filter((e) => e.id !== eventId));
+        }}
+        canEdit={
+          selectedEvent &&
+          (selectedEvent.created_by?.id === user?.id || isManager)
+        }
+        canDelete={
+          selectedEvent &&
+          (selectedEvent.created_by?.id === user?.id || isManager)
+        }
       />
     </Container>
   );

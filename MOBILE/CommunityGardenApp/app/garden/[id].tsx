@@ -1,7 +1,7 @@
 // File: app/garden/[id].tsx
 
 import React, { useEffect, useState, useCallback, useMemo, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Image, FlatList, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Image, FlatList, Alert, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import axios from 'axios';
 import { API_URL } from '../../constants/Config';
@@ -16,6 +16,8 @@ import { COLORS } from '../../constants/Config';
 import EventCard from '../../components/ui/EventCard';
 import CreateEventModal from '../../components/ui/CreateEventModal';
 import { GardenEvent, fetchEvents, deleteEvent, AttendanceStatus } from '../../services/event';
+import { db } from '../../config/firebaseConfig';
+import { addDoc, collection, doc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
 
 import { useTranslation } from 'react-i18next';
 
@@ -47,6 +49,8 @@ export default function GardenDetailScreen() {
   const [events, setEvents] = useState<GardenEvent[]>([]);
   const [showEventModal, setShowEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<GardenEvent | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedReportReason, setSelectedReportReason] = useState<string | null>(null);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -228,6 +232,31 @@ export default function GardenDetailScreen() {
     };
   }, [tasks, user?.id, user?.username, members]);
 
+  const reportReasons = useMemo(
+    () => ['Infection outbreak', 'Spam/Scam', 'Harassment/Abuse', 'Safety hazard', 'Wrong information'],
+    []
+  );
+  const canReport = membershipStatus === 'ACCEPTED' && !userIsManager;
+
+  // Header warning icon for reports (only accepted members, not managers)
+  useEffect(() => {
+    const canReport = membershipStatus === 'ACCEPTED' && !userIsManager;
+    navigation.setOptions({
+      headerRight: canReport
+        ? () => (
+            <TouchableOpacity
+              onPress={() => setShowReportModal(true)}
+              style={{ marginRight: 16 }}
+              accessibilityLabel="Report garden"
+              accessibilityHint="Report an issue to the manager"
+            >
+              <Ionicons name="warning-outline" size={24} color={colors.white} />
+            </TouchableOpacity>
+          )
+        : undefined,
+    });
+  }, [membershipStatus, userIsManager, navigation, colors.white]);
+
   // Memoized gallery images (top-level, not conditional)
   const galleryImages = useMemo(() => {
     const imageArray = garden?.images || garden?.gallery;
@@ -307,12 +336,105 @@ export default function GardenDetailScreen() {
     }
   };
 
-  const handleJoin = async () => {
+  const sendDirectMessage = async (recipientUserId: number, messageText: string) => {
     try {
-      await axios.post(
+      if (!db || !user) {
+        Alert.alert('Error', 'Messaging is unavailable.');
+        return;
+      }
+
+      const currentUserUid = `django_${user.id}`;
+      const recipientUid = `django_${recipientUserId}`;
+
+      const chatsRef = collection(db, 'chats');
+      const q = query(chatsRef, where('type', '==', 'direct'), where('members', 'array-contains', currentUserUid));
+      const querySnapshot = await getDocs(q);
+
+      let chatId: string | null = null;
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.members.includes(recipientUid)) {
+          chatId = docSnap.id;
+        }
+      });
+
+      if (!chatId) {
+        const newChatRef = await addDoc(chatsRef, {
+          type: 'direct',
+          members: [currentUserUid, recipientUid],
+          createdAt: serverTimestamp(),
+          lastMessage: {
+            text: messageText,
+            createdAt: serverTimestamp(),
+            senderId: currentUserUid,
+          },
+        });
+        chatId = newChatRef.id;
+      }
+
+      const messagesRef = collection(db, `chats/${chatId}/messages`);
+      await addDoc(messagesRef, {
+        text: messageText,
+        senderId: currentUserUid,
+        createdAt: serverTimestamp(),
+        readBy: [currentUserUid],
+      });
+
+      const chatDocRef = doc(db, 'chats', chatId);
+      await setDoc(
+        chatDocRef,
+        {
+          lastMessage: {
+            text: messageText,
+            createdAt: serverTimestamp(),
+            senderId: currentUserUid,
+          },
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      console.error('Error sending report DM:', error);
+      Alert.alert('Error', 'Could not send the report.');
+    }
+  };
+
+  const handleSubmitReport = async () => {
+    if (membershipStatus !== 'ACCEPTED' || userIsManager) {
+      Alert.alert('Not allowed', 'Only garden members can report issues.');
+      return;
+    }
+    if (!selectedReportReason) {
+      Alert.alert('Select reason', 'Please choose a report reason.');
+      return;
+    }
+
+    const manager = members.find(
+      (m: any) => m.role === 'MANAGER' && m.status === 'ACCEPTED'
+    );
+
+    if (!manager?.user_id) {
+      Alert.alert('Unavailable', 'No manager found to notify.');
+      return;
+    }
+
+    const message = `Garden Report for "${garden?.name}": ${selectedReportReason} (by ${user?.username})`;
+    await sendDirectMessage(manager.user_id, message);
+    Alert.alert('Sent', 'Your report was sent to the manager.');
+    setShowReportModal(false);
+    setSelectedReportReason(null);
+  };
+
+  const handleJoin = async () => {
+    if (joining) return; // Prevent double-click
+
+    setJoining(true);
+    try {
+      console.log('Sending join request for garden:', id);
+      const response = await axios.post(
         `${API_URL}/memberships/`,
         {
-          garden: id,
+          garden: parseInt(id as string, 10),
           role: 'WORKER',
           status: 'PENDING',
         },
@@ -320,14 +442,39 @@ export default function GardenDetailScreen() {
           headers: { Authorization: `Token ${token}` },
         }
       );
+      console.log('Join request successful:', response.data);
 
-      alert('Join request sent!');
-      // refresh state
-      fetchMembershipStatus();
-      fetchMembers();
-      fetchTasks();
-    } catch (err) {
-      alert('Could not send join request');
+      Alert.alert(
+        'Success',
+        'Join request sent! Waiting for manager approval.'
+      );
+
+      // Refresh state
+      await fetchMembershipStatus();
+      await fetchMembers();
+      await fetchTasks();
+    } catch (err: any) {
+      console.error('Join request error:', err);
+      console.error('Error response:', err?.response?.data);
+
+      let errorMessage = t('garden.detail.joinRequestError') || 'Could not send join request';
+      if (err?.response?.data) {
+        // Handle specific error messages from backend
+        if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else if (err.response.data.detail) {
+          errorMessage = err.response.data.detail;
+        } else if (err.response.data.error) {
+          errorMessage = err.response.data.error;
+        }
+      }
+
+      Alert.alert(
+        t('common.error') || 'Error',
+        errorMessage
+      );
+    } finally {
+      setJoining(false);
     }
   };
 
@@ -351,6 +498,57 @@ export default function GardenDetailScreen() {
   // ---------- Render ----------
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Modal
+        visible={showReportModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowReportModal(false)}
+      >
+        <View style={styles.reportOverlay}>
+          <View style={[styles.reportCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.sectionTitle, { marginBottom: 12, color: colors.text }]}>Report Issue</Text>
+            {reportReasons.map((reason) => (
+              <TouchableOpacity
+                key={reason}
+                style={[
+                  styles.reportOption,
+                  {
+                    borderColor: selectedReportReason === reason ? colors.primary : colors.border,
+                    backgroundColor: selectedReportReason === reason ? colors.secondary : colors.surface,
+                  },
+                ]}
+                onPress={() => setSelectedReportReason(reason)}
+              >
+                <Ionicons
+                  name={selectedReportReason === reason ? 'radio-button-on' : 'radio-button-off'}
+                  size={20}
+                  color={colors.primary}
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={{ color: colors.text }}>{reason}</Text>
+              </TouchableOpacity>
+            ))}
+            <View style={styles.reportActions}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowReportModal(false);
+                  setSelectedReportReason(null);
+                }}
+                style={[styles.reportButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}
+              >
+                <Text style={{ color: colors.text }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSubmitReport}
+                style={[styles.reportButton, { backgroundColor: colors.primary }]}
+              >
+                <Text style={{ color: colors.white }}>Send</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <View style={[styles.headerCard, { backgroundColor: colors.surface }]}>
         <Image source={getGardenImageSource()} style={styles.headerImage} />
         <View style={styles.headerContent}>
@@ -370,10 +568,32 @@ export default function GardenDetailScreen() {
             </View>
           </View>
           <Text style={[styles.gardenDesc, { color: colors.textSecondary }]}>{(garden as any).description}</Text>
-          {membershipStatus && <Text style={[styles.status, { color: colors.primary }]}>{t('garden.detail.membershipStatus')}: {membershipStatus}</Text>}
+          {membershipStatus && (
+            <View style={[styles.statusBadge, {
+              backgroundColor: membershipStatus === 'ACCEPTED' ? '#4CAF50' :
+                              membershipStatus === 'PENDING' ? '#FFA500' : '#F44336'
+            }]}>
+              <Text style={[styles.statusText, { color: '#FFFFFF' }]}>
+                {membershipStatus === 'PENDING'
+                  ? 'Pending Approval'
+                  : membershipStatus === 'ACCEPTED'
+                  ? 'Member'
+                  : `Status: ${membershipStatus}`}
+              </Text>
+            </View>
+          )}
           {garden.is_public && !membershipStatus && (
-            <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={handleJoin} disabled={joining}>
-              <Text style={[styles.buttonText, { color: colors.white }]}>{joining ? t('garden.detail.sendingRequest') : t('garden.detail.joinGarden')}</Text>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                { backgroundColor: joining ? colors.disabled : colors.primary }
+              ]}
+              onPress={handleJoin}
+              disabled={joining}
+            >
+              <Text style={[styles.buttonText, { color: colors.white }]}>
+                {joining ? t('garden.detail.sendingRequest') || 'Sending...' : t('garden.detail.joinGarden') || 'Join Garden'}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -659,6 +879,17 @@ const styles = StyleSheet.create({
   chipText: { marginLeft: 4, fontSize: 13 },
   gardenDesc: { fontSize: 15, marginVertical: 6 },
   status: { fontSize: 14, marginBottom: 8 },
+  statusBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  statusText: {
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
   button: { padding: 10, borderRadius: 8, marginTop: 10 },
   buttonText: { fontWeight: 'bold' },
   tabsRow: { flexDirection: 'row', borderBottomWidth: 1, marginHorizontal: 16, marginTop: 8 },
@@ -734,6 +965,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 32,
+  },
+  reportOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  reportCard: {
+    width: '100%',
+    borderRadius: 12,
+    padding: 16,
+  },
+  reportOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  reportActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    gap: 12,
+  },
+  reportButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
   },
 });
 

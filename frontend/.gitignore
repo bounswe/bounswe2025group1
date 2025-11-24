@@ -27,7 +27,7 @@ dist-ssr
 .env
 .env.local
 
-public/firebase-messaging-sw.js
+
 # Test coverage
 coverage
 html

@@ -31,7 +31,8 @@
     "loggedOut": "تم تسجيل خروجك.",
     "dashboard": "لوحة التحكم",
     "userSettings": "إعدادات المستخدم",
-    "moderation": "الإشراف"
+    "moderation": "الإشراف",
+    "infohub": "مركز المعلومات"
   },
   "language": {
     "english": "الإنجليزية",
@@ -326,7 +327,8 @@
     "error": "فشل إرسال البلاغ. يرجى المحاولة مرة أخرى.",
     "alreadyReported": "لقد أبلغت عن هذا المحتوى مسبقاً.",
     "reportPost": "الإبلاغ عن المنشور",
-    "reportComment": "الإبلاغ عن التعليق"
+    "reportComment": "الإبلاغ عن التعليق",
+    "reportGarden": "الإبلاغ عن الحديقة"
   },
   "moderation": {
     "title": "لوحة الإشراف",
@@ -353,5 +355,3 @@
     "fetchError": "فشل تحميل البلاغات"
   }
 }
-
-

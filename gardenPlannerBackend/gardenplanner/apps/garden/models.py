@@ -246,6 +246,7 @@ class Notification(models.Model):
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()
     category = models.CharField(max_length=30, choices=NotificationCategory.choices)
+    link = models.CharField(max_length=255, blank=True, null=True)
     read = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -265,10 +266,22 @@ class EventVisibility(models.TextChoices):
     PUBLIC = 'PUBLIC', 'Public'
 
 
+
 class AttendanceStatus(models.TextChoices):
     GOING = 'GOING', 'Going'
     NOT_GOING = 'NOT_GOING', 'Not Going'
     MAYBE = 'MAYBE', 'Maybe'
+
+
+class EventCategory(models.TextChoices):
+    WORKSHOP = 'WORKSHOP', 'Workshops and Practice'
+    POTLUCK = 'POTLUCK', 'Potluck / Picnic'
+    EXCHANGE = 'EXCHANGE', 'Garden Exchange'
+    TREASURE_HUNT = 'TREASURE_HUNT', 'Treasure Hunt'
+    PHOTOGRAPHY = 'PHOTOGRAPHY', 'Photography Day'
+    CELEBRATION = 'CELEBRATION', 'Celebration'
+    OTHER = 'OTHER', 'Other'
+
 
 
 class GardenEvent(models.Model):
@@ -284,6 +297,7 @@ class GardenEvent(models.Model):
     description = models.TextField(blank=True)
     start_at = models.DateTimeField()
     visibility = models.CharField(max_length=10, choices=EventVisibility.choices, default=EventVisibility.PRIVATE)
+    event_category = models.CharField(max_length=20, choices=EventCategory.choices, default=EventCategory.OTHER)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='events_created')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

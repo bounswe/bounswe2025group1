@@ -27,6 +27,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import YardIcon from '@mui/icons-material/Yard';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ForumIcon from '@mui/icons-material/Forum';
+import InfoIcon from '@mui/icons-material/Info';
 import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
@@ -50,16 +51,17 @@ const getPages = (t, user) => {
     { name: t('navigation.gardens'), path: '/gardens', icon: <YardIcon /> },
     { name: t('navigation.dashboard'), path: '/tasks', icon: <AssignmentIcon /> },
     { name: t('navigation.forum'), path: '/forum', icon: <ForumIcon /> },
+    { name: t('navigation.infohub'), path: '/infohub', icon: <InfoIcon /> },
   ];
 
   if (user?.profile?.role === 'ADMIN' || user?.profile?.role === 'MODERATOR') {
-    pages.push({ 
-      name: t('navigation.moderation', 'Moderation'), 
-      path: '/moderation', 
-      icon: <AdminPanelSettingsIcon /> 
+    pages.push({
+      name: t('navigation.moderation', 'Moderation'),
+      path: '/moderation',
+      icon: <AdminPanelSettingsIcon />
     });
   }
-  
+
   return pages;
 };
 
@@ -82,7 +84,7 @@ function Navbar() {
   const muiTheme = useMuiTheme();
   const drawerItemsRef = useRef([]);
   const settingsMenuRef = useRef([]);
-  
+
   // Get translated navigation items
   const pages = getPages(t, user);
   const settings = getSettings(t);
@@ -209,8 +211,8 @@ function Navbar() {
             aria-label="open drawer"
             onClick={toggleDrawer(true)}
             onKeyDown={createButtonKeyboardHandler(() => toggleDrawer(true)())}
-            sx={{ 
-              mr: 2, 
+            sx={{
+              mr: 2,
               display: { md: 'none' },
               '&:focus': {
                 outline: '2px solid white',
@@ -322,9 +324,9 @@ function Navbar() {
                   aria-haspopup="true"
                   aria-expanded={Boolean(anchorElUser)}
                 >
-                  <Avatar 
-                    alt="User" 
-                    src={user?.profile?.profile_picture || '/default-avatar.png'} 
+                  <Avatar
+                    alt="User"
+                    src={user?.profile?.profile_picture || '/default-avatar.png'}
                     sx={{ width: 36, height: 36 }}
                   >
                     <AccountCircleIcon />
@@ -466,8 +468,8 @@ function Navbar() {
               Menu
             </Typography>
           </Box>
-          <IconButton 
-            color="inherit" 
+          <IconButton
+            color="inherit"
             onClick={toggleDrawer(false)}
             onKeyDown={createButtonKeyboardHandler(() => toggleDrawer(false)())}
             sx={{
@@ -560,7 +562,7 @@ function Navbar() {
                         navigate(setting.path);
                       }
                     })}
-                    sx={{ 
+                    sx={{
                       py: 1.5,
                       '&:focus': {
                         outline: '2px solid #558b2f',
@@ -591,7 +593,7 @@ function Navbar() {
                 navigate('/auth/login');
                 setDrawerOpen(false);
               })}
-              sx={{ 
+              sx={{
                 mb: 1,
                 '&:focus': {
                   outline: '2px solid #558b2f',

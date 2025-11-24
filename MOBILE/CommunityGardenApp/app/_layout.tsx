@@ -65,6 +65,19 @@ function StackNavigator() {
           title: t('garden.detail.title'),
         }}
       />
+      <Stack.Screen
+        name="tasks/create-task"
+        options={{
+          title: 'Create Task',
+        }}
+      />
+      <Stack.Screen
+        name="messages/[chatId]"
+        options={{
+          title: 'Chat',
+          headerBackTitle: 'Back',
+        }}
+      />
     </Stack>
   );
 }

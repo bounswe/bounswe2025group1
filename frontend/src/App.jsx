@@ -28,6 +28,8 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Profile from './pages/profile/Profile';
 import ModerationDashboard from './pages/moderation/ModerationDashboard';
+import InfohubHome from './pages/infohub/InfohubHome';
+import InfohubDetail from './pages/infohub/InfohubDetail';
 import { ToastContainer } from 'react-toastify';
 import Tasks from './pages/task/Tasks';
 import 'react-toastify/dist/ReactToastify.css';
@@ -39,7 +41,7 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 function AppContent() {
   const { currentTheme } = useTheme();
   const { i18n } = useTranslation();
-  
+
   const getToastTheme = () => {
     if (currentTheme === 'dark') return 'dark';
     if (currentTheme === 'highContrast') return 'light';
@@ -87,6 +89,8 @@ function AppContent() {
                 <Route path="/tasks" element={<Tasks />} />
                 <Route path="/forum" element={<ForumList />} />
                 <Route path="/forum/:postId" element={<ForumPost />} />
+                <Route path="/infohub" element={<InfohubHome />} />
+                <Route path="/infohub/:categoryId" element={<InfohubDetail />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
                 <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
@@ -97,10 +101,10 @@ function AppContent() {
                 <Route path="*" element={<Home />} />
               </Routes>
             </Box>
-            
+
             {/* Chat Widget - appears on all pages when user is logged in */}
             <ChatWidget />
-            
+
             <Box
               component="footer"
               sx={{
