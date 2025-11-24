@@ -2096,7 +2096,8 @@ class SignalTests(TestCase):
         self.task_type = CustomTaskType.objects.create(garden=self.garden, name='Test Type')
         self.post = ForumPost.objects.create(title='Test Post', content='Content', author=self.user)
     
-    def test_task_update_notification_signal(self):
+    @patch('push_notifications.models.GCMDeviceQuerySet.send_message')
+    def test_task_update_notification_signal(self, mock_send_message):
         """Test notification on task creation"""
         task = Task.objects.create(
             garden=self.garden,
@@ -2110,6 +2111,14 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=self.user2, category='TASK')
         self.assertEqual(notifications.count(), 1)
         self.assertIn('New Task', notifications.first().message)
+        self.assertEqual(notifications.first().link, '/tasks')
+        
+        # Check push notification was sent with link
+        self.assertTrue(mock_send_message.called)
+        call_args = mock_send_message.call_args
+        self.assertIn('extra', call_args[1])
+        self.assertIn('link', call_args[1]['extra'])
+        self.assertEqual(call_args[1]['extra']['link'], '/tasks')
     
     def test_task_update_notification_signal_no_assignee(self):
         """Test no notification when task has no assignee"""
@@ -2142,7 +2151,8 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=self.user2)
         self.assertEqual(notifications.count(), 0)
     
-    def test_new_follower_notification_signal(self):
+    @patch('push_notifications.models.GCMDeviceQuerySet.send_message')
+    def test_new_follower_notification_signal(self, mock_send_message):
         """Test notification on follow"""
         self.user.profile.following.add(self.user2.profile)
         
@@ -2150,6 +2160,14 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=self.user2, category='SOCIAL')
         self.assertEqual(notifications.count(), 1)
         self.assertIn('testuser', notifications.first().message)
+        self.assertEqual(notifications.first().link, f'/profile/{self.user.id}')
+        
+        # Check push notification was sent with link
+        self.assertTrue(mock_send_message.called)
+        call_args = mock_send_message.call_args
+        self.assertIn('extra', call_args[1])
+        self.assertIn('link', call_args[1]['extra'])
+        self.assertEqual(call_args[1]['extra']['link'], f'/profile/{self.user.id}')
     
     def test_new_follower_notification_signal_notifications_disabled(self):
         """Test no notification when user has notifications disabled"""
@@ -2162,7 +2180,8 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=self.user2)
         self.assertEqual(notifications.count(), 0)
     
-    def test_new_comment_notification_signal(self):
+    @patch('push_notifications.models.GCMDeviceQuerySet.send_message')
+    def test_new_comment_notification_signal(self, mock_send_message):
         """Test notification on comment"""
         comment = Comment.objects.create(
             forum_post=self.post,
@@ -2174,6 +2193,14 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=self.user, category='FORUM')
         self.assertEqual(notifications.count(), 1)
         self.assertIn('testuser2', notifications.first().message)
+        self.assertEqual(notifications.first().link, f'/forum/{self.post.id}')
+        
+        # Check push notification was sent with link
+        self.assertTrue(mock_send_message.called)
+        call_args = mock_send_message.call_args
+        self.assertIn('extra', call_args[1])
+        self.assertIn('link', call_args[1]['extra'])
+        self.assertEqual(call_args[1]['extra']['link'], f'/forum/{self.post.id}')
     
     def test_new_comment_notification_signal_own_post(self):
         """Test no notification when commenting on own post"""
@@ -2202,7 +2229,8 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=self.user)
         self.assertEqual(notifications.count(), 0)
 
-    def test_garden_membership_flow(self):
+    @patch('push_notifications.models.GCMDeviceQuerySet.send_message')
+    def test_garden_membership_flow(self, mock_send_message):
 
         # 1. Setup: Make self.user a MANAGER of the garden so they can receive requests
         # (self.user2 is already a WORKER in setUp, so we use self.user as manager)
@@ -2224,6 +2252,20 @@ class SignalTests(TestCase):
         manager_notifications = Notification.objects.filter(recipient=self.user, category='SOCIAL')
         self.assertEqual(manager_notifications.count(), 1)
         self.assertIn(f"{applicant.username} has requested to join", manager_notifications.first().message)
+        self.assertEqual(manager_notifications.first().link, f'/gardens/{self.garden.id}')
+        
+        # Check push notification for request
+        # Since multiple notifications might be sent (one for request, one for accept), we check the calls
+        # The first call should be for the request
+        self.assertTrue(mock_send_message.called)
+        # We expect at least 1 call
+        self.assertGreaterEqual(mock_send_message.call_count, 1)
+        
+        # Check the call for the request
+        # We need to find the call that corresponds to the request notification
+        # Since we just created the membership, it should be the most recent one or one of them
+        # Let's reset mock to check the next one clearly
+        mock_send_message.reset_mock()
 
         membership.status = 'ACCEPTED'
         membership.save()
@@ -2231,8 +2273,17 @@ class SignalTests(TestCase):
         applicant_notifications = Notification.objects.filter(recipient=applicant, category='SOCIAL')
         self.assertEqual(applicant_notifications.count(), 1)
         self.assertIn("has been accepted", applicant_notifications.first().message)
+        self.assertEqual(applicant_notifications.first().link, f'/gardens/{self.garden.id}')
+        
+        # Check push notification for acceptance
+        self.assertTrue(mock_send_message.called)
+        call_args = mock_send_message.call_args
+        self.assertIn('extra', call_args[1])
+        self.assertIn('link', call_args[1]['extra'])
+        self.assertEqual(call_args[1]['extra']['link'], f'/gardens/{self.garden.id}')
 
-    def test_garden_membership_rejection(self):
+    @patch('push_notifications.models.GCMDeviceQuerySet.send_message')
+    def test_garden_membership_rejection(self, mock_send_message):
         """Test that a user is notified when their request is rejected"""
         
         applicant = User.objects.create_user(username='rejectee', password='password123')
@@ -2250,6 +2301,14 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=applicant, category='SOCIAL')
         self.assertEqual(notifications.count(), 1)
         self.assertIn("has been rejected", notifications.first().message)
+        self.assertEqual(notifications.first().link, f'/gardens/{self.garden.id}')
+        
+        # Check push notification was sent with link
+        self.assertTrue(mock_send_message.called)
+        call_args = mock_send_message.call_args
+        self.assertIn('extra', call_args[1])
+        self.assertIn('link', call_args[1]['extra'])
+        self.assertEqual(call_args[1]['extra']['link'], f'/gardens/{self.garden.id}')
 
 
 
