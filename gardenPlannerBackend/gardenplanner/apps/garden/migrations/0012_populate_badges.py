@@ -174,57 +174,6 @@ def create_all_badges(apps, schema_editor):
             "category": "Followers Gained",
             "requirement": {"followers_count": 100},
         },
-        # Garden Event — Participation Badges
-        {
-            "key": "event_1",
-            "name": "Festival Sprout",
-            "description": "Joined your first big garden gathering!",
-            "category": "Event Participation",
-            "requirement": {"events_attended": 1},
-        },
-        {
-            "key": "event_5",
-            "name": "Gathering Spirit",
-            "description": "You show up rain or shine — the garden loves you!",
-            "category": "Event Participation",
-            "requirement": {"events_attended": 5},
-        },
-        {
-            "key": "event_10",
-            "name": "Heart of the Garden",
-            "description": "You’re a bright part of every celebration.",
-            "category": "Event Participation",
-            "requirement": {"events_attended": 10},
-        },
-        # Seasonal Event Badges
-        {
-            "key": "event_spring",
-            "name": "Pink Blossom",
-            "description": "Celebrated new beginnings this spring.",
-            "category": "Event Seasonal",
-            "requirement": {"season": "spring"},
-        },
-        {
-            "key": "event_summer",
-            "name": "Sunny Petal",
-            "description": "Danced under the summer sun.",
-            "category": "Event Seasonal",
-            "requirement": {"season": "summer"},
-        },
-        {
-            "key": "event_autumn",
-            "name": "Harvest Spirit",
-            "description": "Helped the garden through harvest time.",
-            "category": "Event Seasonal",
-            "requirement": {"season": "autumn"},
-        },
-        {
-            "key": "event_winter",
-            "name": "Frost Guardian",
-            "description": "Kept the warmth alive through winter.",
-            "category": "Event Seasonal",
-            "requirement": {"season": "winter"},
-        },
     ]
 
     for badge_data in badges_data:
@@ -233,7 +182,7 @@ def create_all_badges(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('garden', '0012_badge_userbadge'),  
+        ('garden', '0011_badge_userbadge'),  
     ]
 
     operations = [

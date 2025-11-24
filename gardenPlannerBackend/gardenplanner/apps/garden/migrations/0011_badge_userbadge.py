@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("garden", "0011_gardenevent_eventattendance"),
+        ("garden", "0010_profile_picture_fields"),
     ]
 
     operations = [
