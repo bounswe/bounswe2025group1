@@ -71,6 +71,13 @@ function StackNavigator() {
           title: 'Create Task',
         }}
       />
+      <Stack.Screen
+        name="messages/[chatId]"
+        options={{
+          title: 'Chat',
+          headerBackTitle: '',
+        }}
+      />
     </Stack>
   );
 }

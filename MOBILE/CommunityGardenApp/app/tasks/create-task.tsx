@@ -40,7 +40,8 @@ export default function CreateTaskScreen() {
         const membersList = response.data
           .filter((membership: any) => membership.status === 'ACCEPTED')
           .map((membership: any) => ({
-            id: membership.user,
+            // GardenMembershipSerializer exposes user_id (not user) for the member
+            id: membership.user_id,
             username: membership.username,
           }));
 

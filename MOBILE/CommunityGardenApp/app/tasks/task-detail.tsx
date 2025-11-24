@@ -18,10 +18,12 @@ export default function TaskDetailScreen() {
   const colors = useAccessibleColors();
   const { t } = useTranslation();
   const [task, setTask] = useState(null);
+  const [acceptedMembers, setAcceptedMembers] = useState([]);
   const [members, setMembers] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState('');
   const [isManager, setIsManager] = useState(false);
   const [isMember, setIsMember] = useState(false);
+  const [managerId, setManagerId] = useState(null);
 
   useEffect(() => {
     fetchTask();
@@ -41,9 +43,13 @@ export default function TaskDetailScreen() {
       });
       const gardenId = res.data.garden;
       const accepted = memberRes.data.filter(m => m.status === 'ACCEPTED' && m.garden === gardenId);
+      setAcceptedMembers(accepted);
       setMembers(accepted.filter(m => m.role === 'WORKER'));
       setIsManager(accepted.some(m => m.username === user.username && m.role === 'MANAGER'&& m.status ==='ACCEPTED'));
       setIsMember(accepted.some(m => m.username === user.username));
+      const assignedByUser = accepted.find(m => m.username === res.data.assigned_by_username) 
+        || accepted.find(m => m.role === 'MANAGER');
+      setManagerId(assignedByUser?.user_id ?? null);
       
       
       
@@ -200,9 +206,16 @@ export default function TaskDetailScreen() {
   const handleDeclineWithReason = async (reason) => {
     try {
       // Send DM to manager (assigned_by)
-      const managerId = task.assigned_by;
+      const managerUserId = managerId || acceptedMembers.find(
+        (m) => m.username === task.assigned_by_username
+      )?.user_id;
+
+      if (!managerUserId) {
+        Alert.alert('Error', 'Could not find manager to notify.');
+        return;
+      }
       const messageText = `Task Declined - "${task.title}": ${reason}`;
-      await sendDirectMessage(managerId, messageText);
+      await sendDirectMessage(managerUserId, messageText);
 
       // Call decline endpoint
       await axios.post(`${API_URL}/tasks/${task.id}/decline/`, {}, {
