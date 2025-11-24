@@ -4,11 +4,12 @@ from push_notifications.models import GCMDevice
 from .models import Notification, NotificationCategory, Task, Profile, Comment, Badge, UserBadge, ForumPost, GardenMembership
 
 
-def _send_notification(notification_receiver, notification_title, notification_message, notification_category):
+def _send_notification(notification_receiver, notification_title, notification_message, notification_category, link=None):
 
     if notification_receiver == None:
         return
 
+    # Skip if the assigned user has disabled notifications
     if not notification_receiver.profile.receives_notifications:
         return
 
@@ -19,13 +20,19 @@ def _send_notification(notification_receiver, notification_title, notification_m
     )
 
     devices = GCMDevice.objects.filter(user=notification_receiver, active=True)
+    
+    data = {
+        "data_title": notification_title,
+        "data_body": notification_message,
+        "type": notification_category.value,
+    }
+    
+    if link:
+        data["link"] = link
+
     devices.send_message(
         message=None,  # Set this to None to force data-only
-        extra={
-            "data_title": notification_title,      # Move title here
-            "data_body": notification_message,             # Move body here
-            "type": notification_category.value,
-        }
+        extra=data
     )
 
 
@@ -40,28 +47,16 @@ def task_update_notification(sender, instance, created, **kwargs):
             return
 
         message = f"You have been assigned a new task: '{instance.title}'."
-
+        
         _send_notification(
             notification_receiver=assignee,
-            notification_title="Task Update",
+            notification_title="New Task Assigned",
             notification_message=message,
             notification_category=NotificationCategory.TASK,
+            link="/tasks"
         )
 
-    else: # Task update
-        new_status = instance.status
-
-        if new_status in ['ACCEPTED', 'DECLINED']:
-            if assigner != assignee:
-                message = f"{instance.title} Your task has been {instance.get_status_display()}."
-                _send_notification(
-                    notification_receiver=assigner,
-                    notification_title="Task Response",
-                    notification_message=message,
-                    notification_category=NotificationCategory.TASK,
-                )
-
-
+    
 @receiver(m2m_changed, sender=Profile.following.through)
 def new_follower_notification(sender, instance, action, pk_set, **kwargs):
     """
@@ -90,6 +85,7 @@ def new_follower_notification(sender, instance, action, pk_set, **kwargs):
             notification_title="New Follower",
             notification_message=message,
             notification_category=NotificationCategory.SOCIAL,
+            link=f"/profile/{follower_profile.user.id}"
         )
 
 
@@ -115,6 +111,7 @@ def new_comment_notification(sender, instance, created, **kwargs):
         notification_title="New Comment",
         notification_message=message,
         notification_category=NotificationCategory.FORUM,
+        link=f"/forum/{instance.forum_post.id}"
     )
 
 
@@ -152,6 +149,7 @@ def garden_join_request_notification(sender, instance, created, **kwargs):
                 notification_title="New Join Request",
                 notification_message=message,
                 notification_category=NotificationCategory.SOCIAL,
+                link=f"/gardens/{target_garden.id}"
             )
 
     elif not created and current_status in ['ACCEPTED', 'REJECTED']:
@@ -166,6 +164,7 @@ def garden_join_request_notification(sender, instance, created, **kwargs):
             notification_title=title,
             notification_message=message,
             notification_category=NotificationCategory.SOCIAL,
+            link=f"/gardens/{target_garden.id}"
         )
 def award_badge(user, badge_key):
     badge = Badge.objects.filter(key=badge_key).first()

@@ -96,11 +96,21 @@ describe('notificationUtils', () => {
   });
 
   describe('setupForegroundMessageListener', () => {
+    let addEventListenerSpy;
+
+    beforeEach(() => {
+      addEventListenerSpy = vi.fn();
+      globalThis.navigator.serviceWorker = {
+        addEventListener: addEventListenerSpy,
+      };
+    });
+
     it('should setup message listener and show toast', () => {
       const mockPayload = {
         data: {
           data_title: 'Test Title',
           data_body: 'Test Body',
+          link: '/test-link',
         },
       };
 
@@ -110,8 +120,9 @@ describe('notificationUtils', () => {
       });
 
       const dispatchEventSpy = vi.spyOn(document, 'dispatchEvent');
+      const mockNavigate = vi.fn();
 
-      setupForegroundMessageListener();
+      setupForegroundMessageListener(mockNavigate);
 
       // Simulate receiving a message
       messageCallback(mockPayload);
@@ -123,7 +134,28 @@ describe('notificationUtils', () => {
         })
       );
 
+      // Verify service worker listener is attached
+      expect(addEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function));
+
       dispatchEventSpy.mockRestore();
+    });
+
+    it('should handle service worker navigation message', () => {
+      const mockNavigate = vi.fn();
+      setupForegroundMessageListener(mockNavigate);
+
+      // Get the message listener callback
+      const messageListener = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
+
+      // Simulate service worker message
+      messageListener({
+        data: {
+          type: 'navigate',
+          link: '/test-link'
+        }
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('/test-link');
     });
   });
 });
