@@ -2111,6 +2111,7 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=self.user2, category='TASK')
         self.assertEqual(notifications.count(), 1)
         self.assertIn('New Task', notifications.first().message)
+        self.assertEqual(notifications.first().link, '/tasks')
         
         # Check push notification was sent with link
         self.assertTrue(mock_send_message.called)
@@ -2159,6 +2160,7 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=self.user2, category='SOCIAL')
         self.assertEqual(notifications.count(), 1)
         self.assertIn('testuser', notifications.first().message)
+        self.assertEqual(notifications.first().link, f'/profile/{self.user.id}')
         
         # Check push notification was sent with link
         self.assertTrue(mock_send_message.called)
@@ -2191,6 +2193,7 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=self.user, category='FORUM')
         self.assertEqual(notifications.count(), 1)
         self.assertIn('testuser2', notifications.first().message)
+        self.assertEqual(notifications.first().link, f'/forum/{self.post.id}')
         
         # Check push notification was sent with link
         self.assertTrue(mock_send_message.called)
@@ -2249,6 +2252,7 @@ class SignalTests(TestCase):
         manager_notifications = Notification.objects.filter(recipient=self.user, category='SOCIAL')
         self.assertEqual(manager_notifications.count(), 1)
         self.assertIn(f"{applicant.username} has requested to join", manager_notifications.first().message)
+        self.assertEqual(manager_notifications.first().link, f'/gardens/{self.garden.id}')
         
         # Check push notification for request
         # Since multiple notifications might be sent (one for request, one for accept), we check the calls
@@ -2269,6 +2273,7 @@ class SignalTests(TestCase):
         applicant_notifications = Notification.objects.filter(recipient=applicant, category='SOCIAL')
         self.assertEqual(applicant_notifications.count(), 1)
         self.assertIn("has been accepted", applicant_notifications.first().message)
+        self.assertEqual(applicant_notifications.first().link, f'/gardens/{self.garden.id}')
         
         # Check push notification for acceptance
         self.assertTrue(mock_send_message.called)
@@ -2296,6 +2301,7 @@ class SignalTests(TestCase):
         notifications = Notification.objects.filter(recipient=applicant, category='SOCIAL')
         self.assertEqual(notifications.count(), 1)
         self.assertIn("has been rejected", notifications.first().message)
+        self.assertEqual(notifications.first().link, f'/gardens/{self.garden.id}')
         
         # Check push notification was sent with link
         self.assertTrue(mock_send_message.called)

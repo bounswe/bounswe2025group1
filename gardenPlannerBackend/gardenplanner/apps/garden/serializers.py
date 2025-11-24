@@ -489,7 +489,7 @@ class ReportSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ('id', 'message', 'category', 'read', 'timestamp')
+        fields = ('id', 'message', 'category', 'read', 'timestamp', 'link')
 
 
 class GCMDeviceSerializer(serializers.ModelSerializer):
