@@ -1,11 +1,12 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenImage, ForumPostImage, CommentImage, GardenEvent, EventAttendance, AttendanceStatus
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenImage, ForumPostImage, CommentImage, Badge, UserBadge, GardenEvent, EventAttendance, AttendanceStatus
 from django.contrib.auth import get_user_model
 from django.conf import settings
 import requests
 from django.contrib.auth import authenticate
 import base64
+from push_notifications.models import GCMDevice
 
 def _decode_base64_image(data_str):
     """Return (bytes, mime_type) from data URL or raw base64 string."""
@@ -485,14 +486,19 @@ class ReportSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
     
 
-
-
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ('id', 'message', 'category', 'read', 'timestamp')
 
 
+class GCMDeviceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GCMDevice
+        fields = ['registration_id']
+        extra_kwargs = {
+            'registration_id': {'required': True},
+        }
 class EventAttendanceSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
 
@@ -546,3 +552,14 @@ class GardenEventSerializer(serializers.ModelSerializer):
             return None
         vote = obj.attendances.filter(user=request.user).first()
         return vote.status if vote else None
+class BadgeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Badge
+        fields = ['key', 'name', 'description', 'category', 'requirement']
+
+class UserBadgeSerializer(serializers.ModelSerializer):
+    badge = BadgeSerializer(read_only=True)  
+
+    class Meta:
+        model = UserBadge
+        fields = ['badge', 'earned_at']

@@ -14,6 +14,7 @@ router.register(r'tasks', views.TaskViewSet, basename='task')
 router.register(r'reports', views.ReportViewSet, basename='report')
 router.register(r'admin/reports', views.AdminReportViewSet, basename='admin-report')
 router.register(r'notifications', views.NotificationViewSet, basename='notification')
+router.register(r'devices/gcm', views.GCMDeviceViewSet, basename='gcm-device')
 router.register(r'events', views.GardenEventViewSet, basename='event')
 
 # Create forum-specific URL patterns
@@ -54,4 +55,8 @@ urlpatterns = [
     
     # External API integrations
     path('weather/', views.WeatherDataView.as_view(), name='weather'),
+
+    # Badge endpoints
+    path('badges/', views.BadgeListView.as_view(), name='badge-list'),
+    path('user/<int:user_id>/badges/', views.UserBadgeListView.as_view(), name='user-badges'),
 ] 

@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from django.contrib.contenttypes.models import ContentType
 from ..models import Report
 from ..serializers import ReportSerializer
-from ..permissions import IsMember, IsSystemAdministrator
+from ..permissions import IsMember, IsSystemAdministrator, IsModerator
 
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
@@ -57,7 +57,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 class AdminReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all().select_related('reporter')
     serializer_class = ReportSerializer
-    permission_classes = [IsSystemAdministrator]
+    permission_classes = [IsModerator]
 
     @action(detail=True, methods=['post'])
     def review(self, request, pk=None):

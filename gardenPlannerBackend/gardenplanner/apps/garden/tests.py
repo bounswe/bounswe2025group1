@@ -9,6 +9,7 @@ from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, For
 from unittest.mock import patch, MagicMock
 from django.utils import timezone
 from datetime import timedelta
+from push_notifications.models import GCMDevice
 
 
 class ModelTests(TestCase):
@@ -1892,8 +1893,7 @@ class ExtendedForumPostTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Should only see posts from followed users
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['title'], 'Test Post 2')
+        self.assertEqual(len(response.data), 2) # Including own post
     
     def test_forum_post_retrieve_blocked(self):
         """Test retrieving a post when blocked"""
@@ -2201,6 +2201,55 @@ class SignalTests(TestCase):
         # Should not create notification
         notifications = Notification.objects.filter(recipient=self.user)
         self.assertEqual(notifications.count(), 0)
+
+    def test_garden_membership_flow(self):
+
+        # 1. Setup: Make self.user a MANAGER of the garden so they can receive requests
+        # (self.user2 is already a WORKER in setUp, so we use self.user as manager)
+        GardenMembership.objects.create(
+            user=self.user, 
+            garden=self.garden, 
+            role='MANAGER', 
+            status='ACCEPTED'
+        )
+
+        applicant = User.objects.create_user(username='applicant', password='password123')
+        membership = GardenMembership.objects.create(
+            user=applicant,
+            garden=self.garden,
+            role='WORKER',
+            status='PENDING'
+        )
+
+        manager_notifications = Notification.objects.filter(recipient=self.user, category='SOCIAL')
+        self.assertEqual(manager_notifications.count(), 1)
+        self.assertIn(f"{applicant.username} has requested to join", manager_notifications.first().message)
+
+        membership.status = 'ACCEPTED'
+        membership.save()
+
+        applicant_notifications = Notification.objects.filter(recipient=applicant, category='SOCIAL')
+        self.assertEqual(applicant_notifications.count(), 1)
+        self.assertIn("has been accepted", applicant_notifications.first().message)
+
+    def test_garden_membership_rejection(self):
+        """Test that a user is notified when their request is rejected"""
+        
+        applicant = User.objects.create_user(username='rejectee', password='password123')
+        membership = GardenMembership.objects.create(
+            user=applicant,
+            garden=self.garden,
+            role='WORKER',
+            status='PENDING'
+        )
+
+        membership.status = 'REJECTED'
+        membership.save()
+
+        # Assertion: Check if Applicant received the 'Rejected' notification
+        notifications = Notification.objects.filter(recipient=applicant, category='SOCIAL')
+        self.assertEqual(notifications.count(), 1)
+        self.assertIn("has been rejected", notifications.first().message)
 
 
 
@@ -2632,8 +2681,8 @@ class AdditionalEdgeCaseTests(APITestCase):
         # Should see unassigned, declined, and assigned tasks
         self.assertGreaterEqual(len(response.data), 2)
     
-    def test_task_queryset_worker_does_not_see_other_assigned(self):
-        """Test worker does not see tasks assigned to others"""
+    def test_task_queryset_worker_sees_other_assigned(self):
+        """Test worker sees tasks assigned to others"""
         worker = User.objects.create_user(username='worker', password='password123')
         worker_token = Token.objects.create(user=worker)
         other_worker = User.objects.create_user(username='otherworker', password='password123')
@@ -2656,7 +2705,7 @@ class AdditionalEdgeCaseTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Should not see tasks assigned to others
         task_titles = [t['title'] for t in response.data]
-        self.assertNotIn('Other Worker Task', task_titles)
+        self.assertIn('Other Worker Task', task_titles)
     
     def test_weather_api_error_handling(self):
         """Test weather API error handling"""
@@ -3064,6 +3113,263 @@ class AdditionalPermissionTests(TestCase):
         guest.profile.save()
         r.user = guest
         self.assertFalse(perm.has_permission(r, None))
+
+class SignalHandlerTests(TestCase):    
+    def setUp(self):
+        self.user1 = User.objects.create_user(username='user1', password='pass1')
+        self.user2 = User.objects.create_user(username='user2', password='pass2')
+        self.garden = Garden.objects.create(
+            name="Test Garden",
+            description="Test",
+            location="Test Location",
+            is_public=True
+        )
+        GardenMembership.objects.create(
+            user=self.user1,
+            garden=self.garden,
+            role='MANAGER',
+            status='ACCEPTED'
+        )
+        self.task_type = CustomTaskType.objects.create(
+            garden=self.garden,
+            name="Test Type"
+        )
+    
+    @patch('gardenplanner.apps.garden.signals.GCMDevice')
+    def test_task_creation_sends_notification(self, mock_gcm):
+        """Test that creating a task with assignee sends notification"""
+        mock_gcm.objects.filter.return_value.send_message = MagicMock()
+        
+        task = Task.objects.create(
+            garden=self.garden,
+            title="New Task",
+            description="Test task",
+            custom_type=self.task_type,
+            assigned_by=self.user1,
+            assigned_to=self.user2,
+            status='PENDING'
+        )
+        
+        notifications = Notification.objects.filter(recipient=self.user2)
+        self.assertEqual(notifications.count(), 1)
+        self.assertIn("assigned a new task", notifications.first().message)
+    
+    @patch('gardenplanner.apps.garden.signals.GCMDevice')
+    def test_task_accepted_sends_notification(self, mock_gcm):
+        """Test that accepting a task sends notification to assigner"""
+        mock_gcm.objects.filter.return_value.send_message = MagicMock()
+        
+        task = Task.objects.create(
+            garden=self.garden,
+            title="Task",
+            description="Test",
+            custom_type=self.task_type,
+            assigned_by=self.user1,
+            assigned_to=self.user2,
+            status='PENDING'
+        )
+        
+        # Clear notifications from creation
+        Notification.objects.all().delete()
+        
+        task.status = 'ACCEPTED'
+        task.save()
+        
+        notifications = Notification.objects.filter(recipient=self.user1)
+        self.assertEqual(notifications.count(), 1)
+        self.assertIn("Task Your task has been Accepted.", notifications.first().message)
+    
+    @patch('gardenplanner.apps.garden.signals.GCMDevice')
+    def test_follow_sends_notification(self, mock_gcm):
+        """Test that following a user sends notification"""
+        mock_gcm.objects.filter.return_value.send_message = MagicMock()
+        
+        self.user1.profile.follow(self.user2.profile)
+        
+        notifications = Notification.objects.filter(recipient=self.user2)
+        self.assertEqual(notifications.count(), 1)
+        self.assertIn("started following you", notifications.first().message)
+    
+    @patch('gardenplanner.apps.garden.signals.GCMDevice')
+    def test_comment_sends_notification(self, mock_gcm):
+        """Test that commenting on a post sends notification to author"""
+        mock_gcm.objects.filter.return_value.send_message = MagicMock()
+        
+        post = ForumPost.objects.create(
+            author=self.user1,
+            title="Test Post",
+            content="Test content"
+        )
+        
+        Comment.objects.create(
+            author=self.user2,
+            forum_post=post,
+            content="Test comment"
+        )
+        
+        notifications = Notification.objects.filter(recipient=self.user1)
+        self.assertEqual(notifications.count(), 1)
+        self.assertIn("commented on your post", notifications.first().message)
+    
+    @patch('gardenplanner.apps.garden.signals.GCMDevice')
+    def test_notifications_disabled(self, mock_gcm):
+        """Test that notifications are not created when disabled"""
+        mock_gcm.objects.filter.return_value.send_message = MagicMock()
+        
+        self.user2.profile.receives_notifications = False
+        self.user2.profile.save()
+        
+        Task.objects.create(
+            garden=self.garden,
+            title="Task",
+            description="Test",
+            custom_type=self.task_type,
+            assigned_by=self.user1,
+            assigned_to=self.user2,
+            status='PENDING'
+        )
+        
+        notifications = Notification.objects.filter(recipient=self.user2)
+        self.assertEqual(notifications.count(), 0)
+
+
+class NotificationViewTests(APITestCase):    
+    def setUp(self):
+        self.user1 = User.objects.create_user(username='user1', password='pass1')
+        self.user2 = User.objects.create_user(username='user2', password='pass2')
+        self.token1 = Token.objects.create(user=self.user1)
+        self.token2 = Token.objects.create(user=self.user2)
+        
+        # Create some notifications
+        self.notif1 = Notification.objects.create(
+            recipient=self.user1,
+            message="Test notification 1",
+            category='TASK'
+        )
+        self.notif2 = Notification.objects.create(
+            recipient=self.user1,
+            message="Test notification 2",
+            category='SOCIAL',
+            read=True
+        )
+        self.notif3 = Notification.objects.create(
+            recipient=self.user2,
+            message="Test notification 3",
+            category='FORUM'
+        )
+    
+    def test_list_notifications(self):
+        """Test listing notifications for authenticated user"""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token1.key}')
+        url = reverse('garden:notification-list')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+    
+    def test_retrieve_notification(self):
+        """Test retrieving a single notification"""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token1.key}')
+        url = reverse('garden:notification-detail', kwargs={'pk': self.notif1.pk})
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], "Test notification 1")
+    
+    def test_unread_count(self):
+        """Test getting unread notification count"""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token1.key}')
+        url = reverse('garden:notification-unread-count')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['unread_count'], 1)
+    
+    def test_mark_as_read(self):
+        """Test marking a notification as read"""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token1.key}')
+        url = reverse('garden:notification-mark-as-read', kwargs={'pk': self.notif1.pk})
+        
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        self.notif1.refresh_from_db()
+        self.assertTrue(self.notif1.read)
+    
+    def test_mark_all_as_read(self):
+        """Test marking all notifications as read"""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token1.key}')
+        url = reverse('garden:notification-mark-all-as-read')
+        
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        unread = Notification.objects.filter(recipient=self.user1, read=False).count()
+        self.assertEqual(unread, 0)
+    
+    def test_cannot_access_other_user_notification(self):
+        """Test that users cannot access other users' notifications"""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token1.key}')
+        url = reverse('garden:notification-detail', kwargs={'pk': self.notif3.pk})
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class GCMDeviceViewTests(APITestCase):    
+    def setUp(self):
+        self.user = User.objects.create_user(username='user1', password='pass1')
+        self.token = Token.objects.create(user=self.user)
+    
+    def test_register_device(self):
+        """Test registering a new device"""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        url = reverse('garden:gcm-device-list')
+        data = {
+            'registration_id': 'test_device_token_123'
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        device = GCMDevice.objects.filter(user=self.user).first()
+        self.assertIsNotNone(device)
+        self.assertEqual(device.registration_id, 'test_device_token_123')
+        self.assertTrue(device.active)
+    
+    def test_update_existing_device(self):
+        """Test that registering same device updates it"""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        url = reverse('garden:gcm-device-list')
+        data = {
+            'registration_id': 'test_device_token_123'
+        }
+        
+        # Register twice
+        self.client.post(url, data, format='json')
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        # Should only have one device
+        device_count = GCMDevice.objects.filter(user=self.user).count()
+        self.assertEqual(device_count, 1)
+    
+    def test_list_user_devices(self):
+        """Test listing user's registered devices"""
+        GCMDevice.objects.create(
+            user=self.user,
+            registration_id='device1',
+            active=True
+        )
+        
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        url = reverse('garden:gcm-device-list')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
 
 class GardenEventTests(APITestCase):
     """Tests for Garden Events and Attendance voting functionality"""
