@@ -59,12 +59,34 @@ export default function GardenDetailScreen() {
     });
   }, [navigation, colors, t]);
 
+  // ---------- Helper function to extract city from location ----------
+  const getCityFromLocation = (location?: string): string | null => {
+    if (!location) return null;
+    // Extract city (part before the first comma, or the whole string if no comma)
+    const city = location.split(',')[0].trim();
+    return city || null;
+  };
+
   // ---------- Data fetchers (top-level, before useFocusEffect) ----------
   const fetchGarden = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/gardens/${id}/`);
       setGarden(response.data);
+      
+      // Extract and log the city from garden location
+      console.log('=== GARDEN LOCATION DEBUG ===');
+      console.log('Full garden data:', JSON.stringify(response.data, null, 2));
+      console.log('Garden location field:', response.data?.location);
+      
+      const city = getCityFromLocation(response.data?.location);
+      if (city) {
+        console.log('✅ Garden City:', city);
+      } else {
+        console.log('❌ Garden location not available or no city found');
+        console.log('Location value:', response.data?.location);
+      }
+      console.log('=== END GARDEN LOCATION DEBUG ===');
     } catch (error) {
       console.error('Error fetching garden:', error);
       Alert.alert('Error', 'Could not load garden.');

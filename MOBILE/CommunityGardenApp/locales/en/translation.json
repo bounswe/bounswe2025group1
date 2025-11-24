@@ -166,7 +166,15 @@
     "title": "Public Gardens",
     "goToDetail": "Go to Detail",
     "noGardens": "No public gardens found.",
-    "createGarden": "Create Garden"
+    "createGarden": "Create Garden",
+    "showNearby": "Show Nearby Gardens",
+    "showingGardensIn": "Showing gardens in",
+    "noNearbyGardens": "No gardens found in your city.",
+    "locationPermissionTitle": "Location Permission",
+    "locationPermissionMessage": "Please enable location permissions to filter nearby gardens.",
+    "locationErrorTitle": "Location Not Set",
+    "locationErrorMessage": "Could not determine your city. Please try again.",
+    "locationNotSetMessage": "Please set your location in your profile to use this filter."
   },
   "tasks": {
     "myTasks": "My Tasks",
