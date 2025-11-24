@@ -7,14 +7,15 @@ import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 const NotificationBell = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const { token } = useAuth();
-
 
   const fetchUnreadCount = async () => {
     if (!token) return;
@@ -34,7 +35,7 @@ const NotificationBell = () => {
   const fetchNotifications = async () => {
     if (!token) return;
     try {
-      
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/notifications/`, {
         headers: { 'Authorization': `Token ${token}` }
       });
@@ -102,6 +103,16 @@ const NotificationBell = () => {
     }
   };
 
+  const handleNotificationClick = (notification) => {
+    handleClose();
+    if (notification.link) {
+      navigate(notification.link);
+    }
+    if (!notification.read) {
+      handleMarkAsRead(notification.id);
+    }
+  };
+
   const open = Boolean(anchorEl);
   const id = open ? 'notification-popover' : undefined;
 
@@ -138,9 +149,9 @@ const NotificationBell = () => {
         {/* 3. The Content Inside the Box */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">{t('notifications.title')}</Typography>
-          <IconButton 
-            size="small" 
-            onClick={handleMarkAllAsRead} 
+          <IconButton
+            size="small"
+            onClick={handleMarkAllAsRead}
             disabled={notifications.length === 0 || unreadCount === 0}
           >
             <DoneAllIcon />
@@ -152,24 +163,17 @@ const NotificationBell = () => {
           {notifications.length > 0 ? (
             notifications.map((notification) => (
               <React.Fragment key={notification.id}>
-                <ListItem
-                  secondaryAction={
-                    <IconButton 
-                      size="small" 
-                      onClick={() => handleMarkAsRead(notification.id)}
-                      disabled={notification.read}
-                    >
-                      <MarkEmailReadIcon />
-                    </IconButton>
-                  }
-                  sx={{ 
+                <ListItemButton
+                  onClick={() => handleNotificationClick(notification)}
+                  alignItems="flex-start"
+                  sx={{
                     bgcolor: notification.read ? 'transparent' : 'action.hover',
                     '& .MuiListItemText-root': {
-                      paddingRight: '100px' 
+                      paddingRight: '40px' // Adjusted padding
                     }
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: '30px' }}>
+                  <ListItemIcon sx={{ minWidth: '30px', mt: 1 }}>
                     {!notification.read && (
                       <FiberManualRecordIcon sx={{ fontSize: '10px' }} color="primary" />
                     )}
@@ -184,7 +188,19 @@ const NotificationBell = () => {
                       minute: '2-digit',
                     })}
                   />
-                </ListItem>
+                  <Box sx={{ position: 'absolute', right: 8, top: 8 }}>
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkAsRead(notification.id);
+                      }}
+                      disabled={notification.read}
+                    >
+                      <MarkEmailReadIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </ListItemButton>
                 <Divider component="li" />
               </React.Fragment>
             ))
