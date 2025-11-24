@@ -28,6 +28,33 @@ const Tasks = () => {
 
   const handleTaskUpdate = async (updatedTask) => {
     try {
+      const wasUnassigned = !selectedTask?.assigned_to || selectedTask.assigned_to === null;
+      const isSelfAssignment = updatedTask.assigned_to === user?.user_id;
+      const isUnassigning = !updatedTask.assigned_to || updatedTask.assigned_to === null;
+      
+      if (wasUnassigned && isSelfAssignment && !isUnassigning) {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${updatedTask.id}/self-assign/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Self-assign failed:', errorText);
+          toast.error(t('tasks.updateFailed'));
+          return;
+        }
+
+        const updated = await response.json();
+        setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+        toast.success(t('tasks.taskUpdatedSuccessfully'));
+        setTaskModalOpen(false);
+        return;
+      }
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${updatedTask.id}/`, {
         method: 'PUT',
         headers: {
