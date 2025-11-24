@@ -3,20 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import EventCard from './EventCard';
 import { useTranslation } from 'react-i18next';
-import dayjs from 'dayjs';
 
 // Mock the modules/hooks
 vi.mock('react-i18next', () => ({
   useTranslation: vi.fn(),
 }));
-
-vi.mock('dayjs', () => {
-  const actualDayjs = vi.importActual('dayjs');
-  return {
-    default: actualDayjs.default,
-    extend: vi.fn(),
-  };
-});
 
 describe('EventCard Component', () => {
   const mockT = vi.fn((key, options) => {

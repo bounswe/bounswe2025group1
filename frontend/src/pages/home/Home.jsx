@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Container, Typography, Box, Grid, Button, Paper, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { useTranslation } from 'react-i18next';
-import React, { useEffect } from 'react';
 
 import WeatherWidget from '../../components/WeatherWidget';
 import ForumPreview from '../../components/ForumPreview';
@@ -21,7 +20,7 @@ const Home = () => {
     // Only run if 'auth' is not null AND 'auth.token' exists
     if (auth && auth.token) {
       console.log("User is logged in, registering for push notifications...");
-      
+
       registerForPushNotifications(auth.token); // Pass the token
       setupForegroundMessageListener();
     }
@@ -41,8 +40,8 @@ const Home = () => {
             mb: { xs: 3, md: 5 },
             background: theme.palette.custom?.buttonGradient || `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
             color: theme.palette.primary.contrastText,
-            border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
-              ? '2px solid #000000' 
+            border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+              ? '2px solid #000000'
               : 'none',
           }}
         >
@@ -79,14 +78,14 @@ const Home = () => {
         </Grid>
 
         {!user && (
-          <Paper 
-            elevation={1} 
-            sx={{ 
-              mt: { xs: 4, md: 6 }, 
+          <Paper
+            elevation={1}
+            sx={{
+              mt: { xs: 4, md: 6 },
               p: { xs: 2, sm: 3, md: 4 },
               backgroundColor: theme.palette.background.paper,
-              border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
-                ? '2px solid #000000' 
+              border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+                ? '2px solid #000000'
                 : 'none',
             }}
           >
@@ -96,14 +95,14 @@ const Home = () => {
             <Typography variant="body1" paragraph>
               {t('home.aboutDescription')}
             </Typography>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={() => navigate('/auth/register')}
               sx={{
                 background: theme.palette.custom?.buttonGradient || theme.palette.primary.main,
                 color: theme.palette.primary.contrastText,
-                border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
-                  ? '2px solid #000000' 
+                border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+                  ? '2px solid #000000'
                   : 'none',
                 '&:hover': {
                   background: theme.palette.custom?.buttonGradientHover || theme.palette.primary.dark,
