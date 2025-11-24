@@ -265,6 +265,79 @@ docker-compose logs frontend
 docker-compose logs mobile
 ```
 
+#### 4. HTTPS Certificates (Production)
+If you intend to serve the frontend over HTTPS with the included Nginx config:
+1. Point your domain's A record to the host running Docker.
+2. Obtain Let's Encrypt certificates (on the host, not inside the container):
+  ```bash
+  sudo certbot certonly --standalone \
+    -d yourdomain.example \
+    --email admin@yourdomain.example \
+    --agree-tos --non-interactive
+  ```
+3. Ensure the certificates are available at `/etc/letsencrypt/live/yourdomain.example/` and mount that path (read-only) into the frontend container (already configured as `/etc/letsencrypt`).
+4. Fix permissions if the key cannot be read:
+  ```bash
+  sudo chmod 644 /etc/letsencrypt/live/yourdomain.example/fullchain.pem
+  sudo chmod 600 /etc/letsencrypt/live/yourdomain.example/privkey.pem
+  ```
+5. Test renewal:
+  ```bash
+  sudo certbot renew --dry-run
+  ```
+
+Windows / WSL: Use WSL (Ubuntu) to run certbot so certificates reside under `/etc/letsencrypt/` in the WSL filesystem for Docker to mount. Plain Windows paths like `C:\...` will not map directly.
+
+#### 5. Disabling HTTPS for Local Container Testing
+For purely local docker testing without certificates:
+1. Edit `frontend/nginx.conf` and remove the redirect server block.
+2. Change the HTTPS server block to listen on port 80 only and remove all `ssl_*` directives.
+3. Rebuild:
+  ```bash
+  docker-compose up --build
+  ```
+Then access via `http://localhost`.
+
+#### 6. Data Persistence
+- PostgreSQL data: `postgres_data` named volume.
+- Django static files: `static_volume` (after `collectstatic`).
+- Django media uploads: `media_volume`.
+Recreation of containers will not delete data stored in these volumes; use `docker volume ls` and `docker volume rm` to manage manually.
+
+#### 7. Docker-Specific Troubleshooting
+| Issue | Cause | Fix |
+|-------|-------|-----|
+| `SSL: no such file` | Certificates not mounted or wrong domain folder | Verify `/etc/letsencrypt/live/<domain>/` path and volume mount |
+| Permission denied reading key | File mode too restrictive | Adjust with `chmod 600 privkey.pem` and 644 fullchain |
+| Frontend deep-link 404 | Missing `try_files` in Nginx | Restore `try_files $uri $uri/ /index.html;` |
+| Backend cannot reach DB | Postgres not healthy yet | Compose healthcheck waits; re-run after readiness |
+| Mobile cannot hit API | Using `localhost` on device | Replace with host LAN IP (e.g. `192.168.x.x`) |
+
+#### 8. Example Environment Files
+Template files (`.env.example`) are provided in each of:
+```
+gardenPlannerBackend/.env.example
+frontend/.env.example
+MOBILE/CommunityGardenApp/.env.example
+```
+Copy them to `.env` before editing secrets:
+```bash
+cp gardenPlannerBackend/.env.example gardenPlannerBackend/.env
+cp frontend/.env.example frontend/.env
+cp MOBILE/CommunityGardenApp/.env.example MOBILE/CommunityGardenApp/.env
+```
+Never commit populated `.env` files.
+
+#### 9. Firebase Integration Notes
+Backend uses a Firebase Admin service account JSON (`firebase-service-account.json`) referenced by `FIREBASE_SERVICE_ACCOUNT_KEY`; do NOT commit this file.
+Frontend and Mobile rely on environment variables (`VITE_FIREBASE_*` / `EXPO_PUBLIC_FIREBASE_*`). Vite exposes variables prefixed with `VITE_` via `import.meta.env`. React Native (Expo) exposes those prefixed with `EXPO_PUBLIC_`.
+Security best practices:
+- Restrict API key usage in Firebase console (HTTP referrers / app restrictions).
+- Rotate service account keys if compromised.
+- Use environment variables instead of hardcoding.
+- Confirm push notification permissions and messaging sender ID are correct.
+
+
 ---
 
 ## Configuration
