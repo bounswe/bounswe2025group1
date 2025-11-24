@@ -31,7 +31,8 @@
     "loggedOut": "You've been logged out.",
     "dashboard": "Dashboard",
     "userSettings": "User Settings",
-    "moderation": "Moderation"
+    "moderation": "Moderation",
+    "infohub": "Infohub"
   },
   "language": {
     "english": "English",

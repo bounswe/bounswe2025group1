@@ -31,7 +31,8 @@
     "loggedOut": "تم تسجيل خروجك.",
     "dashboard": "لوحة التحكم",
     "userSettings": "إعدادات المستخدم",
-    "moderation": "الإشراف"
+    "moderation": "الإشراف",
+    "infohub": "مركز المعلومات"
   },
   "language": {
     "english": "الإنجليزية",
