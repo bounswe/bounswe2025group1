@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.contenttypes.models import ContentType
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenEvent, EventAttendance, AttendanceStatus
+from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenEvent, EventAttendance, AttendanceStatus, Badge, UserBadge
 from unittest.mock import patch, MagicMock
 from django.utils import timezone
 from datetime import timedelta
@@ -3793,3 +3793,215 @@ class GardenEventTests(APITestCase):
         from django.db import IntegrityError
         with self.assertRaises(IntegrityError):
             EventAttendance.objects.create(event=self.public_event, user=self.user1, status=AttendanceStatus.MAYBE)
+
+
+class BadgeSystemTests(TestCase):
+
+    def setUp(self):
+        # 1. Setup users
+        self.user_a = User.objects.create_user(username='badge_hunter', password='pw')
+        self.user_b = User.objects.create_user(username='target_user', password='pw')
+        self.user_c = User.objects.create_user(username='third_user', password='pw')
+        self.garden_1 = Garden.objects.create(name='Badge Garden 1')
+        self.garden_2 = Garden.objects.create(name='Badge Garden 2')
+        self.task_type = CustomTaskType.objects.create(garden=self.garden_1, name='Badge Task')
+
+
+        GardenMembership.objects.create(user=self.user_a, garden=self.garden_1, role='MANAGER', status='ACCEPTED')
+        GardenMembership.objects.create(user=self.user_b, garden=self.garden_1, role='WORKER', status='ACCEPTED')
+
+        badge_data = [
+            # Welcome
+            {"key": "tiny_sprout", "category": "Welcome & Onboarding", "requirement": {"signed_up": 1}},
+            # Garden Creation
+            {"key": "seed_planter", "category": "Garden Creation", "requirement": {"gardens_created": 1}},
+            # Forum Posts
+            {"key": "talkative_tulip", "category": "Forum Posts", "requirement": {"posts_count": 1}},
+            # Forum Answers / Replies
+            {"key": "helpful_seedling", "category": "Forum Answers / Replies", "requirement": {"comments_count": 1}},
+            # Task Creation
+            {"key": "tiny_toolbelt", "category": "Task Creation", "requirement": {"tasks_created": 1}},
+            {"key": "garden_deputy", "category": "Task Creation", "requirement": {"tasks_created": 100}},
+            # Task Completion
+            {"key": "task_tiller", "category": "Task Completion", "requirement": {"tasks_completed": 1}},
+            {"key": "bloom_keeper", "category": "Task Completion", "requirement": {"tasks_completed": 100}},
+            # Garden Joining
+            {"key": "new_seedling", "category": "Garden Joining", "requirement": {"gardens_joined": 1}},
+            # People Followed
+            {"key": "curious_sprout", "category": "People Followed", "requirement": {"following_count": 1}},
+            # Followers Gained
+            {"key": "spotted_seed", "category": "Followers Gained", "requirement": {"followers_count": 1}},
+            # Event Participation
+            {"key": "event_1", "category": "Event Participation", "requirement": {"events_attended": 1}},
+            # Seasonal Events
+            {"key": "event_spring", "category": "Event Seasonal", "requirement": {"season": "spring"}},
+            {"key": "event_summer", "category": "Event Seasonal", "requirement": {"season": "summer"}},
+        ]
+        
+        for data in badge_data:
+            Badge.objects.update_or_create(key=data["key"], defaults={**data, "name": data["key"], "description": "Test"})
+
+    def assertBadgeEarned(self, user, badge_key):
+        self.assertTrue(UserBadge.objects.filter(user=user, badge__key=badge_key).exists(), f"User {user.username} should have earned badge {badge_key}.")
+
+    def assertBadgeNotEarned(self, user, badge_key):
+        self.assertFalse(UserBadge.objects.filter(user=user, badge__key=badge_key).exists(), f"User {user.username} should NOT have earned badge {badge_key}.")
+
+
+    ##  Welcome & Onboarding Badges 
+
+    def test_welcome_badge_on_creation(self):
+        """Tests that the 'tiny_sprout' badge is awarded on user creation."""
+        self.assertBadgeEarned(self.user_a, 'tiny_sprout')
+        self.assertBadgeEarned(self.user_b, 'tiny_sprout')
+
+
+    ## Task Badges Tests 
+
+    def test_task_creation_badge_progression(self):
+        """Tests that 'Task Creation' badges are awarded after creating tasks."""
+        self.assertBadgeNotEarned(self.user_a, 'tiny_toolbelt')
+        
+        # Create 1st task
+        Task.objects.create(
+            garden=self.garden_1, title='Task 1', custom_type=self.task_type, assigned_by=self.user_a
+        )
+        self.assertBadgeEarned(self.user_a, 'tiny_toolbelt')
+        self.assertBadgeNotEarned(self.user_a, 'garden_deputy') 
+
+        for i in range(2, 101):
+            Task.objects.create(
+                garden=self.garden_1, title=f'Task {i}', custom_type=self.task_type, assigned_by=self.user_a
+            )
+
+        self.assertBadgeEarned(self.user_a, 'garden_deputy')
+
+
+
+    def test_task_completion_badge_progression(self):
+        """Tests that 'Task Completion' badges are awarded after completing tasks."""
+        # Create tasks assigned to user_b
+        for i in range(1, 101):
+            Task.objects.create(
+                garden=self.garden_1, title=f'T{i}', custom_type=self.task_type, assigned_by=self.user_a, assigned_to=self.user_b
+            )
+        
+        self.assertBadgeNotEarned(self.user_b, 'task_tiller')
+        
+        # Complete 1st task
+        task1 = Task.objects.get(title='T1')
+        task1.status = 'COMPLETED'
+        task1.save()
+        self.assertBadgeEarned(self.user_b, 'task_tiller')
+        self.assertBadgeNotEarned(self.user_b, 'bloom_keeper') 
+
+        for i in range(2, 101):
+            task = Task.objects.get(title=f'T{i}')
+            task.status = 'COMPLETED'
+            task.save()
+
+        self.assertBadgeEarned(self.user_b, 'bloom_keeper')
+    
+    
+
+    ## --- Follow Badges Tests ---
+
+    def test_following_badge_earned(self):
+        """Tests that the 'People Followed' badge is awarded on following."""
+        self.assertBadgeNotEarned(self.user_a, 'curious_sprout')
+
+        # User A follows User B
+        self.user_a.profile.follow(self.user_b.profile)
+        self.assertBadgeEarned(self.user_a, 'curious_sprout')
+
+    def test_followers_gained_badge_earned(self):
+        """Tests that the 'Followers Gained' badge is awarded on being followed."""
+        self.assertBadgeNotEarned(self.user_b, 'spotted_seed')
+
+        # User A follows User B (User B is the one gaining the follower)
+        self.user_a.profile.follow(self.user_b.profile)
+        self.assertBadgeEarned(self.user_b, 'spotted_seed')
+
+
+    ##  Forum Badges Tests 
+
+    def test_forum_post_badge_progression(self):
+        """Tests that 'Forum Posts' badges are awarded."""
+        self.assertBadgeNotEarned(self.user_a, 'talkative_tulip')
+
+        # Create 1st post
+        ForumPost.objects.create(author=self.user_a, title='P1', content='C1')
+        self.assertBadgeEarned(self.user_a, 'talkative_tulip')
+        self.assertBadgeNotEarned(self.user_a, 'friendly_fern')
+
+    def test_forum_comment_badge_progression(self):
+        """Tests that 'Forum Answers' badges are awarded."""
+        post = ForumPost.objects.create(author=self.user_b, title='Post', content='Content')
+        self.assertBadgeNotEarned(self.user_a, 'helpful_seedling')
+
+        # User A comments on User B's post
+        Comment.objects.create(author=self.user_a, forum_post=post, content='C1')
+        self.assertBadgeEarned(self.user_a, 'helpful_seedling')
+
+
+    ## --- Garden Badges Tests ---
+
+    def test_garden_joining_badge_earned(self):
+        """Tests that 'Garden Joining' badge is awarded."""
+        # user_a already has 1 ACCEPTED membership from setUp
+        self.assertBadgeEarned(self.user_a, 'new_seedling')
+
+        # user_c does not have one yet
+        self.assertBadgeNotEarned(self.user_c, 'new_seedling')
+        
+        # User C joins garden 2
+        GardenMembership.objects.create(user=self.user_c, garden=self.garden_2, role='WORKER', status='ACCEPTED')
+        self.assertBadgeEarned(self.user_c, 'new_seedling')
+
+
+    ## --- Event Badges Tests ---
+
+    @patch('django.utils.timezone.now')
+    def test_event_participation_and_seasonal_badges(self, mock_now):
+        """Tests 'Event Participation' (event_1) and 'Event Seasonal' badges."""
+        
+        # --- Spring Event Test ---
+        mock_now.return_value = timezone.datetime(2025, 4, 15, tzinfo=timezone.utc) # April is Spring
+        event_spring = GardenEvent.objects.create(
+            garden=self.garden_1,
+            title='Spring Event',
+            start_at=timezone.now() + timedelta(days=1),
+            created_by=self.user_a
+        )
+        
+        self.assertBadgeNotEarned(self.user_b, 'event_1')
+        self.assertBadgeNotEarned(self.user_b, 'event_spring')
+
+        # User B votes 'GOING'
+        EventAttendance.objects.create(event=event_spring, user=self.user_b, status='GOING')
+
+        # Participation Badge Check (event_1)
+        self.assertBadgeEarned(self.user_b, 'event_1')
+        
+        # Seasonal Badge Check (event_spring)
+        self.assertBadgeEarned(self.user_b, 'event_spring')
+        self.assertBadgeNotEarned(self.user_b, 'event_summer')
+
+        # --- Summer Event Test ---
+        mock_now.return_value = timezone.datetime(2025, 7, 15, tzinfo=timezone.utc) 
+        event_summer = GardenEvent.objects.create(
+            garden=self.garden_1,
+            title='Summer Event',
+            start_at=timezone.now() + timedelta(days=1),
+            created_by=self.user_a
+        )
+        
+        # User B votes 'GOING' again
+        EventAttendance.objects.create(event=event_summer, user=self.user_b, status='GOING')
+        
+        # Seasonal Badge Check (event_summer)
+        self.assertBadgeEarned(self.user_b, 'event_summer')
+        
+        # Test Not GOING status doesn't award (User A attempts to earn)
+        EventAttendance.objects.create(event=event_summer, user=self.user_a, status='NOT_GOING')
+        self.assertBadgeNotEarned(self.user_a, 'event_1')
