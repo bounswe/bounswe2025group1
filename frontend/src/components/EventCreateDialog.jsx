@@ -91,6 +91,13 @@ const getEventCategories = (t) => [
     color: '#e91e63', 
     exampleDescriptionKey: 'events.exampleDescription.celebration',
   },
+  { 
+    id: 'OTHER', 
+    labelKey: 'events.category.other',
+    icon: EventIcon, 
+    color: '#757575', 
+    exampleDescriptionKey: 'events.exampleDescription.other'
+  },
 ];
 
 const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
