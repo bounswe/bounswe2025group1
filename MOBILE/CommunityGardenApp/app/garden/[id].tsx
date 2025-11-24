@@ -308,11 +308,15 @@ export default function GardenDetailScreen() {
   };
 
   const handleJoin = async () => {
+    if (joining) return; // Prevent double-click
+
+    setJoining(true);
     try {
-      await axios.post(
+      console.log('Sending join request for garden:', id);
+      const response = await axios.post(
         `${API_URL}/memberships/`,
         {
-          garden: id,
+          garden: parseInt(id as string, 10),
           role: 'WORKER',
           status: 'PENDING',
         },
@@ -320,14 +324,39 @@ export default function GardenDetailScreen() {
           headers: { Authorization: `Token ${token}` },
         }
       );
+      console.log('Join request successful:', response.data);
 
-      alert('Join request sent!');
-      // refresh state
-      fetchMembershipStatus();
-      fetchMembers();
-      fetchTasks();
-    } catch (err) {
-      alert('Could not send join request');
+      Alert.alert(
+        t('common.success') || 'Success',
+        t('garden.detail.joinRequestSent') || 'Join request sent! Waiting for manager approval.'
+      );
+
+      // Refresh state
+      await fetchMembershipStatus();
+      await fetchMembers();
+      await fetchTasks();
+    } catch (err: any) {
+      console.error('Join request error:', err);
+      console.error('Error response:', err?.response?.data);
+
+      let errorMessage = t('garden.detail.joinRequestError') || 'Could not send join request';
+      if (err?.response?.data) {
+        // Handle specific error messages from backend
+        if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else if (err.response.data.detail) {
+          errorMessage = err.response.data.detail;
+        } else if (err.response.data.error) {
+          errorMessage = err.response.data.error;
+        }
+      }
+
+      Alert.alert(
+        t('common.error') || 'Error',
+        errorMessage
+      );
+    } finally {
+      setJoining(false);
     }
   };
 
@@ -370,10 +399,32 @@ export default function GardenDetailScreen() {
             </View>
           </View>
           <Text style={[styles.gardenDesc, { color: colors.textSecondary }]}>{(garden as any).description}</Text>
-          {membershipStatus && <Text style={[styles.status, { color: colors.primary }]}>{t('garden.detail.membershipStatus')}: {membershipStatus}</Text>}
+          {membershipStatus && (
+            <View style={[styles.statusBadge, {
+              backgroundColor: membershipStatus === 'ACCEPTED' ? '#4CAF50' :
+                              membershipStatus === 'PENDING' ? '#FFA500' : '#F44336'
+            }]}>
+              <Text style={[styles.statusText, { color: '#FFFFFF' }]}>
+                {membershipStatus === 'PENDING'
+                  ? 'Pending Approval'
+                  : membershipStatus === 'ACCEPTED'
+                  ? 'Member'
+                  : `Status: ${membershipStatus}`}
+              </Text>
+            </View>
+          )}
           {garden.is_public && !membershipStatus && (
-            <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={handleJoin} disabled={joining}>
-              <Text style={[styles.buttonText, { color: colors.white }]}>{joining ? t('garden.detail.sendingRequest') : t('garden.detail.joinGarden')}</Text>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                { backgroundColor: joining ? colors.disabled : colors.primary }
+              ]}
+              onPress={handleJoin}
+              disabled={joining}
+            >
+              <Text style={[styles.buttonText, { color: colors.white }]}>
+                {joining ? t('garden.detail.sendingRequest') || 'Sending...' : t('garden.detail.joinGarden') || 'Join Garden'}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -659,6 +710,17 @@ const styles = StyleSheet.create({
   chipText: { marginLeft: 4, fontSize: 13 },
   gardenDesc: { fontSize: 15, marginVertical: 6 },
   status: { fontSize: 14, marginBottom: 8 },
+  statusBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  statusText: {
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
   button: { padding: 10, borderRadius: 8, marginTop: 10 },
   buttonText: { fontWeight: 'bold' },
   tabsRow: { flexDirection: 'row', borderBottomWidth: 1, marginHorizontal: 16, marginTop: 8 },
