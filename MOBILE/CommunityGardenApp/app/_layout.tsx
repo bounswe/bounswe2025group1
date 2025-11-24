@@ -75,7 +75,7 @@ function StackNavigator() {
         name="messages/[chatId]"
         options={{
           title: 'Chat',
-          headerBackTitle: '',
+          headerBackTitle: 'Back',
         }}
       />
     </Stack>

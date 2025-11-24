@@ -1,7 +1,7 @@
 // File: app/garden/[id].tsx
 
 import React, { useEffect, useState, useCallback, useMemo, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Image, FlatList, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Image, FlatList, Alert, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import axios from 'axios';
 import { API_URL } from '../../constants/Config';
@@ -16,6 +16,8 @@ import { COLORS } from '../../constants/Config';
 import EventCard from '../../components/ui/EventCard';
 import CreateEventModal from '../../components/ui/CreateEventModal';
 import { GardenEvent, fetchEvents, deleteEvent, AttendanceStatus } from '../../services/event';
+import { db } from '../../config/firebaseConfig';
+import { addDoc, collection, doc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
 
 import { useTranslation } from 'react-i18next';
 
@@ -47,6 +49,8 @@ export default function GardenDetailScreen() {
   const [events, setEvents] = useState<GardenEvent[]>([]);
   const [showEventModal, setShowEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<GardenEvent | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedReportReason, setSelectedReportReason] = useState<string | null>(null);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -228,6 +232,31 @@ export default function GardenDetailScreen() {
     };
   }, [tasks, user?.id, user?.username, members]);
 
+  const reportReasons = useMemo(
+    () => ['Infection outbreak', 'Spam/Scam', 'Harassment/Abuse', 'Safety hazard', 'Wrong information'],
+    []
+  );
+  const canReport = membershipStatus === 'ACCEPTED' && !userIsManager;
+
+  // Header warning icon for reports (only accepted members, not managers)
+  useEffect(() => {
+    const canReport = membershipStatus === 'ACCEPTED' && !userIsManager;
+    navigation.setOptions({
+      headerRight: canReport
+        ? () => (
+            <TouchableOpacity
+              onPress={() => setShowReportModal(true)}
+              style={{ marginRight: 16 }}
+              accessibilityLabel="Report garden"
+              accessibilityHint="Report an issue to the manager"
+            >
+              <Ionicons name="warning-outline" size={24} color={colors.white} />
+            </TouchableOpacity>
+          )
+        : undefined,
+    });
+  }, [membershipStatus, userIsManager, navigation, colors.white]);
+
   // Memoized gallery images (top-level, not conditional)
   const galleryImages = useMemo(() => {
     const imageArray = garden?.images || garden?.gallery;
@@ -307,6 +336,95 @@ export default function GardenDetailScreen() {
     }
   };
 
+  const sendDirectMessage = async (recipientUserId: number, messageText: string) => {
+    try {
+      if (!db || !user) {
+        Alert.alert('Error', 'Messaging is unavailable.');
+        return;
+      }
+
+      const currentUserUid = `django_${user.id}`;
+      const recipientUid = `django_${recipientUserId}`;
+
+      const chatsRef = collection(db, 'chats');
+      const q = query(chatsRef, where('type', '==', 'direct'), where('members', 'array-contains', currentUserUid));
+      const querySnapshot = await getDocs(q);
+
+      let chatId: string | null = null;
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.members.includes(recipientUid)) {
+          chatId = docSnap.id;
+        }
+      });
+
+      if (!chatId) {
+        const newChatRef = await addDoc(chatsRef, {
+          type: 'direct',
+          members: [currentUserUid, recipientUid],
+          createdAt: serverTimestamp(),
+          lastMessage: {
+            text: messageText,
+            createdAt: serverTimestamp(),
+            senderId: currentUserUid,
+          },
+        });
+        chatId = newChatRef.id;
+      }
+
+      const messagesRef = collection(db, `chats/${chatId}/messages`);
+      await addDoc(messagesRef, {
+        text: messageText,
+        senderId: currentUserUid,
+        createdAt: serverTimestamp(),
+        readBy: [currentUserUid],
+      });
+
+      const chatDocRef = doc(db, 'chats', chatId);
+      await setDoc(
+        chatDocRef,
+        {
+          lastMessage: {
+            text: messageText,
+            createdAt: serverTimestamp(),
+            senderId: currentUserUid,
+          },
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      console.error('Error sending report DM:', error);
+      Alert.alert('Error', 'Could not send the report.');
+    }
+  };
+
+  const handleSubmitReport = async () => {
+    if (membershipStatus !== 'ACCEPTED' || userIsManager) {
+      Alert.alert('Not allowed', 'Only garden members can report issues.');
+      return;
+    }
+    if (!selectedReportReason) {
+      Alert.alert('Select reason', 'Please choose a report reason.');
+      return;
+    }
+
+    const manager = members.find(
+      (m: any) => m.role === 'MANAGER' && m.status === 'ACCEPTED'
+    );
+
+    if (!manager?.user_id) {
+      Alert.alert('Unavailable', 'No manager found to notify.');
+      return;
+    }
+
+    const message = `Garden Report for "${garden?.name}": ${selectedReportReason} (by ${user?.username})`;
+    await sendDirectMessage(manager.user_id, message);
+    Alert.alert('Sent', 'Your report was sent to the manager.');
+    setShowReportModal(false);
+    setSelectedReportReason(null);
+  };
+
   const handleJoin = async () => {
     if (joining) return; // Prevent double-click
 
@@ -380,6 +498,57 @@ export default function GardenDetailScreen() {
   // ---------- Render ----------
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Modal
+        visible={showReportModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowReportModal(false)}
+      >
+        <View style={styles.reportOverlay}>
+          <View style={[styles.reportCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.sectionTitle, { marginBottom: 12, color: colors.text }]}>Report Issue</Text>
+            {reportReasons.map((reason) => (
+              <TouchableOpacity
+                key={reason}
+                style={[
+                  styles.reportOption,
+                  {
+                    borderColor: selectedReportReason === reason ? colors.primary : colors.border,
+                    backgroundColor: selectedReportReason === reason ? colors.secondary : colors.surface,
+                  },
+                ]}
+                onPress={() => setSelectedReportReason(reason)}
+              >
+                <Ionicons
+                  name={selectedReportReason === reason ? 'radio-button-on' : 'radio-button-off'}
+                  size={20}
+                  color={colors.primary}
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={{ color: colors.text }}>{reason}</Text>
+              </TouchableOpacity>
+            ))}
+            <View style={styles.reportActions}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowReportModal(false);
+                  setSelectedReportReason(null);
+                }}
+                style={[styles.reportButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}
+              >
+                <Text style={{ color: colors.text }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSubmitReport}
+                style={[styles.reportButton, { backgroundColor: colors.primary }]}
+              >
+                <Text style={{ color: colors.white }}>Send</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <View style={[styles.headerCard, { backgroundColor: colors.surface }]}>
         <Image source={getGardenImageSource()} style={styles.headerImage} />
         <View style={styles.headerContent}>
@@ -796,6 +965,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 32,
+  },
+  reportOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  reportCard: {
+    width: '100%',
+    borderRadius: 12,
+    padding: 16,
+  },
+  reportOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  reportActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    gap: 12,
+  },
+  reportButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
   },
 });
 
