@@ -3,8 +3,8 @@
 
 FROM node:18-bullseye AS builder
 
-# Install Java and basic tools
-RUN apt-get update && apt-get install -y openjdk-11-jdk wget unzip git && rm -rf /var/lib/apt/lists/*
+# Install Java 17 and basic tools (AGP requires Java 17)
+RUN apt-get update && apt-get install -y openjdk-17-jdk wget unzip git && rm -rf /var/lib/apt/lists/*
 
 # Android SDK paths
 ENV ANDROID_HOME=/opt/android-sdk \
@@ -18,13 +18,13 @@ RUN mkdir -p /opt/android-sdk/cmdline-tools && \
     unzip cmdtools.zip -d /opt/android-sdk/cmdline-tools && \
     mv /opt/android-sdk/cmdline-tools/cmdline-tools /opt/android-sdk/cmdline-tools/latest && \
     yes | sdkmanager --sdk_root=/opt/android-sdk --licenses && \
-    sdkmanager --sdk_root=/opt/android-sdk "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+    sdkmanager --sdk_root=/opt/android-sdk "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
 WORKDIR /app
 
 # Install JS deps
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy the rest of the app
 COPY . .
