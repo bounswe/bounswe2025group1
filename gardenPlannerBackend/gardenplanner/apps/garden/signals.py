@@ -12,7 +12,7 @@ def _send_notification(notification_receiver, notification_title, notification_m
     # Skip if the assigned user has disabled notifications
     if not notification_receiver.profile.receives_notifications:
         return
-    
+
     Notification.objects.create(
         recipient=notification_receiver,
         message=notification_message,
@@ -41,12 +41,12 @@ def _send_notification(notification_receiver, notification_title, notification_m
 def task_update_notification(sender, instance, created, **kwargs):
     assignee = instance.assigned_to
     assigner = instance.assigned_by
-    
+
     if created:
         # Skip if there's no one assigned
         if not assignee:
             return
-        
+
         message = f"You have been assigned a new task: '{instance.title}'."
         
         _send_notification(

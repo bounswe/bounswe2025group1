@@ -1,7 +1,7 @@
 // File: app/tasks/task-detail.tsx
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Platform } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import { API_URL } from '../../constants/Config';
@@ -9,6 +9,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
+import { db } from '../../config/firebaseConfig';
+import { collection, addDoc, query, where, getDocs, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 
 export default function TaskDetailScreen() {
   const { taskId } = useLocalSearchParams();
@@ -16,10 +18,12 @@ export default function TaskDetailScreen() {
   const colors = useAccessibleColors();
   const { t } = useTranslation();
   const [task, setTask] = useState(null);
+  const [acceptedMembers, setAcceptedMembers] = useState([]);
   const [members, setMembers] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState('');
   const [isManager, setIsManager] = useState(false);
   const [isMember, setIsMember] = useState(false);
+  const [managerId, setManagerId] = useState(null);
 
   useEffect(() => {
     fetchTask();
@@ -39,9 +43,13 @@ export default function TaskDetailScreen() {
       });
       const gardenId = res.data.garden;
       const accepted = memberRes.data.filter(m => m.status === 'ACCEPTED' && m.garden === gardenId);
+      setAcceptedMembers(accepted);
       setMembers(accepted.filter(m => m.role === 'WORKER'));
       setIsManager(accepted.some(m => m.username === user.username && m.role === 'MANAGER'&& m.status ==='ACCEPTED'));
       setIsMember(accepted.some(m => m.username === user.username));
+      const assignedByUser = accepted.find(m => m.username === res.data.assigned_by_username) 
+        || accepted.find(m => m.role === 'MANAGER');
+      setManagerId(assignedByUser?.user_id ?? null);
       
       
       
@@ -76,6 +84,80 @@ export default function TaskDetailScreen() {
     }
   };
 
+  const sendDirectMessage = async (recipientUserId, messageText) => {
+    try {
+      if (!db) {
+        console.error('Firebase not initialized');
+        return;
+      }
+
+      const currentUserUid = `django_${user.id}`;
+      const recipientUid = `django_${recipientUserId}`;
+
+      // Query for existing direct chat between these two users
+      const chatsRef = collection(db, 'chats');
+      const q = query(
+        chatsRef,
+        where('type', '==', 'direct'),
+        where('members', 'array-contains', currentUserUid)
+      );
+
+      const querySnapshot = await getDocs(q);
+      let chatId = null;
+
+      // Find chat where both users are members
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.members.includes(recipientUid)) {
+          chatId = doc.id;
+        }
+      });
+
+      // If no chat exists, create one
+      if (!chatId) {
+        const newChatRef = await addDoc(chatsRef, {
+          type: 'direct',
+          members: [currentUserUid, recipientUid],
+          createdAt: serverTimestamp(),
+          lastMessage: {
+            text: messageText,
+            createdAt: serverTimestamp(),
+            senderId: currentUserUid,
+          },
+        });
+        chatId = newChatRef.id;
+      }
+
+      // Add message to the chat
+      const messagesRef = collection(db, `chats/${chatId}/messages`);
+      await addDoc(messagesRef, {
+        text: messageText,
+        senderId: currentUserUid,
+        createdAt: serverTimestamp(),
+        readBy: [currentUserUid],
+      });
+
+      // Update lastMessage in chat document
+      const chatDocRef = doc(db, 'chats', chatId);
+      await setDoc(
+        chatDocRef,
+        {
+          lastMessage: {
+            text: messageText,
+            createdAt: serverTimestamp(),
+            senderId: currentUserUid,
+          },
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      console.log('DM sent successfully');
+    } catch (error) {
+      console.error('Error sending DM:', error);
+    }
+  };
+
   const handleAction = async (action) => {
     try {
       await axios.post(`${API_URL}/tasks/${task.id}/${action}/`, {}, {
@@ -85,6 +167,66 @@ export default function TaskDetailScreen() {
       fetchTask(); // Refresh
     } catch (err) {
       Alert.alert('Error', `Failed to ${action} task.`);
+    }
+  };
+
+  const handleDecline = () => {
+    if (Platform.OS === 'web') {
+      // For web, use a simple prompt
+      const reason = prompt('Please explain why you are declining this task:');
+      if (reason) {
+        handleDeclineWithReason(reason);
+      }
+    } else {
+      // For iOS/Android, use Alert.prompt
+      Alert.prompt(
+        'Decline Task',
+        'Please explain why you are declining this task:',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Submit',
+            onPress: (reason) => {
+              if (reason && reason.trim()) {
+                handleDeclineWithReason(reason);
+              } else {
+                Alert.alert('Error', 'Please provide a reason for declining.');
+              }
+            },
+          },
+        ],
+        'plain-text'
+      );
+    }
+  };
+
+  const handleDeclineWithReason = async (reason) => {
+    try {
+      // Send DM to manager (assigned_by)
+      const managerUserId = managerId || acceptedMembers.find(
+        (m) => m.username === task.assigned_by_username
+      )?.user_id;
+
+      if (!managerUserId) {
+        Alert.alert('Error', 'Could not find manager to notify.');
+        return;
+      }
+      const messageText = `Task Declined - "${task.title}": ${reason}`;
+      await sendDirectMessage(managerUserId, messageText);
+
+      // Call decline endpoint
+      await axios.post(`${API_URL}/tasks/${task.id}/decline/`, {}, {
+        headers: { Authorization: `Token ${token}` },
+      });
+
+      Alert.alert('Success', 'Task declined. Your explanation has been sent to the manager.');
+      fetchTask(); // Refresh
+    } catch (err) {
+      console.error('Decline error:', err);
+      Alert.alert('Error', 'Failed to decline task.');
     }
   };
   const handleComplete = async () => {
@@ -189,7 +331,7 @@ export default function TaskDetailScreen() {
           <TouchableOpacity style={[styles.acceptBtn, { backgroundColor: colors.success }]} onPress={() => handleAction('accept')}>
             <Text style={[styles.btnText, { color: colors.white }]}>{t('tasks.detail.acceptTask')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.declineBtn, { backgroundColor: colors.error }]} onPress={() => handleAction('decline')}>
+          <TouchableOpacity style={[styles.declineBtn, { backgroundColor: colors.error }]} onPress={handleDecline}>
             <Text style={[styles.btnText, { color: colors.white }]}>{t('tasks.detail.declineTask')}</Text>
           </TouchableOpacity>
         </View>
