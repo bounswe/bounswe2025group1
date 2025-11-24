@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from push_notifications.models import GCMDevice
-from .models import Notification, NotificationCategory, Task, Profile, Comment, Badge, UserBadge, ForumPost, GardenMembership
+from .models import Notification, NotificationCategory, Task, Profile, Comment, Badge, UserBadge, ForumPost, GardenMembership, EventAttendance
 
 
 def _send_notification(notification_receiver, notification_title, notification_message, notification_category, link=None):
@@ -274,5 +274,46 @@ def garden_membership_badges(sender, instance, created, **kwargs):
                 req = badge.requirement
                 if total_created >= req.get("gardens_created", 0):
                     award_badge(user, badge.key)
+
+
+def get_season(dt):
+    month = dt.month
+    if month in (3, 4, 5):
+        return "spring"
+    if month in (6, 7, 8):
+        return "summer"
+    if month in (9, 10, 11):
+        return "autumn"
+    return "winter"
+
+@receiver(post_save, sender=EventAttendance)
+def event_attendance_badges(sender, instance, created, **kwargs):
+    user = instance.user
+
+    # Only count GOING statuses
+    if instance.status != "GOING":
+        return
+
+    total_attended = EventAttendance.objects.filter(
+        user=user,
+        status="GOING",
+    ).count()
+
+    #  Participation Count Badges
+    for badge in Badge.objects.filter(category="Event Participation"):
+        req = badge.requirement or {}
+        needed = req.get("events_attended", None)
+        if needed is not None and total_attended >= needed:
+            award_badge(user, badge.key)
+
+    # Seasonal Badges
+    event = instance.event
+    season = get_season(event.start_at)
+
+    for badge in Badge.objects.filter(category="Event Seasonal"):
+        req = badge.requirement or {}
+        if req.get("season") == season:
+            award_badge(user, badge.key)
+
 
 
