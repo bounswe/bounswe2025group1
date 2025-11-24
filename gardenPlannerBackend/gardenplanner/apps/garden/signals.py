@@ -9,12 +9,9 @@ def _send_notification(notification_receiver, notification_title, notification_m
     if notification_receiver == None:
         return
 
-    user = instance.assigned_to
-
-    # Skip if the assigned user has disabled notifications
-    if not user.profile.receives_notifications:
+    if not notification_receiver.profile.receives_notifications:
         return
-    
+
     Notification.objects.create(
         recipient=notification_receiver,
         message=notification_message,
@@ -36,21 +33,34 @@ def _send_notification(notification_receiver, notification_title, notification_m
 def task_update_notification(sender, instance, created, **kwargs):
     assignee = instance.assigned_to
     assigner = instance.assigned_by
-    
+
     if created:
         # Skip if there's no one assigned
         if not assignee:
             return
-        
+
         message = f"You have been assigned a new task: '{instance.title}'."
 
-    Notification.objects.create(
-        recipient=user,
-        message=message,
-        category=NotificationCategory.TASK,
-    )
+        _send_notification(
+            notification_receiver=assignee,
+            notification_title="Task Update",
+            notification_message=message,
+            notification_category=NotificationCategory.TASK,
+        )
 
-    
+    else: # Task update
+        new_status = instance.status
+
+        if new_status in ['ACCEPTED', 'DECLINED']:
+            if assigner != assignee:
+                message = f"{instance.title} Your task has been {instance.get_status_display()}."
+                _send_notification(
+                    notification_receiver=assigner,
+                    notification_title="Task Response",
+                    notification_message=message,
+                    notification_category=NotificationCategory.TASK,
+                )
+
 
 @receiver(m2m_changed, sender=Profile.following.through)
 def new_follower_notification(sender, instance, action, pk_set, **kwargs):
