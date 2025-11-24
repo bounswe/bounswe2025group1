@@ -49,53 +49,53 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 
 const getEventCategories = (t) => [
-  { 
-    id: 'WORKSHOP', 
+  {
+    id: 'WORKSHOP',
     labelKey: 'events.category.workshop',
-    icon: LocalFloristIcon, 
-    color: '#4caf50', 
+    icon: LocalFloristIcon,
+    color: '#4caf50',
     exampleDescriptionKey: 'events.exampleDescription.workshop'
   },
-  { 
-    id: 'POTLUCK', 
+  {
+    id: 'POTLUCK',
     labelKey: 'events.category.potluck',
-    icon: RestaurantMenuIcon, 
-    color: '#8bc34a', 
+    icon: RestaurantMenuIcon,
+    color: '#8bc34a',
     exampleDescriptionKey: 'events.exampleDescription.potluck'
   },
-  { 
-    id: 'EXCHANGE', 
+  {
+    id: 'EXCHANGE',
     labelKey: 'events.category.exchange',
-    icon: SwapHorizIcon, 
-    color: '#795548', 
+    icon: SwapHorizIcon,
+    color: '#795548',
     exampleDescriptionKey: 'events.exampleDescription.exchange'
   },
-  { 
-    id: 'TREASURE_HUNT', 
+  {
+    id: 'TREASURE_HUNT',
     labelKey: 'events.category.treasureHunt',
-    icon: TravelExploreIcon, 
-    color: '#3f51b5', 
+    icon: TravelExploreIcon,
+    color: '#3f51b5',
     exampleDescriptionKey: 'events.exampleDescription.treasureHunt'
   },
-  { 
-    id: 'PHOTOGRAPHY', 
+  {
+    id: 'PHOTOGRAPHY',
     labelKey: 'events.category.photography',
-    icon: PhotoCameraIcon, 
-    color: '#2196f3', 
+    icon: PhotoCameraIcon,
+    color: '#2196f3',
     exampleDescriptionKey: 'events.exampleDescription.photography'
   },
-  { 
-    id: 'CELEBRATION', 
+  {
+    id: 'CELEBRATION',
     labelKey: 'events.category.celebration',
-    icon: CelebrationIcon, 
-    color: '#e91e63', 
+    icon: CelebrationIcon,
+    color: '#e91e63',
     exampleDescriptionKey: 'events.exampleDescription.celebration',
   },
-  { 
-    id: 'OTHER', 
+  {
+    id: 'OTHER',
     labelKey: 'events.category.other',
-    icon: EventIcon, 
-    color: '#757575', 
+    icon: EventIcon,
+    color: '#757575',
     exampleDescriptionKey: 'events.exampleDescription.other'
   },
 ];
@@ -228,12 +228,12 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       );
       focusableElementsRef.current = Array.from(focusableElements);
-      
+
       // Focus the first element
       if (focusableElementsRef.current.length > 0) {
         focusableElementsRef.current[0].focus();
       }
-      
+
       // Set up focus trap
       const cleanup = trapFocus(dialogRef.current, focusableElementsRef.current);
       return cleanup;
@@ -241,10 +241,10 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
   }, [open]);
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={handleClose} 
-      fullWidth 
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      fullWidth
       maxWidth="md"
       ref={dialogRef}
       onKeyDown={formKeyboardHandler}
@@ -269,47 +269,47 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
         }
       }}
     >
-          <DialogTitle 
-            id="event-create-title"
-            sx={{ 
-              background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              py: 3,
-              px: 4,
-            }}
-          >
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 2,
-              width: '100%'
-            }}>
-              {selectedCategory ? (
-                <>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-                      {t('events.createEvent')}
-                    </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                      {t(selectedCategory.labelKey)}
-                    </Typography>
-                  </Box>
-                </>
-              ) : (
-                <>
-                  <EventIcon sx={{ fontSize: '2rem' }} />
-                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                    {t('events.createEvent')}
-                  </Typography>
-                </>
-              )}
-            </Box>
-          </DialogTitle>
+      <DialogTitle
+        id="event-create-title"
+        sx={{
+          background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          py: 3,
+          px: 4,
+        }}
+      >
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          width: '100%'
+        }}>
+          {selectedCategory ? (
+            <>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  {t('events.createEvent')}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  {t(selectedCategory.labelKey)}
+                </Typography>
+              </Box>
+            </>
+          ) : (
+            <>
+              <EventIcon sx={{ fontSize: '2rem' }} />
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                {t('events.createEvent')}
+              </Typography>
+            </>
+          )}
+        </Box>
+      </DialogTitle>
 
-      <DialogContent sx={{ 
-        px: 4, 
+      <DialogContent sx={{
+        px: 4,
         py: 3,
         flex: 1,
         overflowY: 'auto',
@@ -323,7 +323,7 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
         )}
 
         {/* Event Categories */}
-        <Box sx={{ mb: 3, mt:3 }}>
+        <Box sx={{ mb: 3, mt: 3 }}>
           <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 500, color: 'text.secondary', fontSize: '0.875rem' }}>
             {t('events.selectCategory')}
           </Typography>
@@ -332,7 +332,7 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
               const Icon = cat.icon;
               const isSelected = category === cat.id;
               return (
-                <Grid item xs={6} sm={4} md={2} key={cat.id}>
+                <Grid item size={{ xs: 6, sm: 4, md: 1.7 }} key={cat.id}>
                   <Paper
                     elevation={0}
                     onClick={() => {
@@ -345,7 +345,7 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
                       transition: 'all 0.2s ease',
                       border: '2px solid', // Always 2px to prevent layout shift
                       borderColor: isSelected ? cat.color : 'transparent',
-                      background: isSelected 
+                      background: isSelected
                         ? `${cat.color}08`
                         : 'transparent',
                       borderRadius: 2,
@@ -361,14 +361,14 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
                       },
                     }}
                   >
-                    <Icon sx={{ 
-                      fontSize: '1.5rem', 
-                      color: isSelected ? cat.color : 'text.secondary', 
+                    <Icon sx={{
+                      fontSize: '1.5rem',
+                      color: isSelected ? cat.color : 'text.secondary',
                       mb: 0.5,
                       transition: 'color 0.2s ease'
                     }} />
-                    <Typography variant="caption" sx={{ 
-                      fontWeight: isSelected ? 600 : 400, 
+                    <Typography variant="caption" sx={{
+                      fontWeight: isSelected ? 600 : 400,
                       fontSize: '0.7rem',
                       display: 'block',
                       lineHeight: 1.2,
@@ -393,7 +393,7 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
           onChange={(e) => setTitle(e.target.value)}
           required
           placeholder={t('events.titlePlaceholder')}
-          sx={{ 
+          sx={{
             mb: 3,
             '& .MuiOutlinedInput-root': {
               fontSize: '1.1rem',
@@ -433,8 +433,8 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
           aria-label="Event description"
         />
 
-        <LocalizationProvider 
-          dateAdapter={AdapterDayjs} 
+        <LocalizationProvider
+          dateAdapter={AdapterDayjs}
           adapterLocale={i18n.language === 'tr' ? 'tr' : 'en'}
         >
           <Box sx={{ mb: 3 }}>
@@ -511,9 +511,9 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
         </FormControl>
       </DialogContent>
 
-      <DialogActions sx={{ 
-        p: 2, 
-        gap: 1.5, 
+      <DialogActions sx={{
+        p: 2,
+        gap: 1.5,
         background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.02))',
         flexWrap: 'wrap',
         justifyContent: 'flex-end',
@@ -521,8 +521,8 @@ const EventCreateDialog = ({ open, onClose, onEventCreated, gardenId }) => {
         borderTop: '1px solid',
         borderColor: 'divider',
       }}>
-        <Button 
-          onClick={handleClose} 
+        <Button
+          onClick={handleClose}
           variant="outlined"
           onKeyDown={createFormKeyboardHandler(handleClose)}
           sx={{
