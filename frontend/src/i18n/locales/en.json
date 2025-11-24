@@ -812,7 +812,8 @@
     "error": "Failed to submit report. Please try again.",
     "alreadyReported": "You have already reported this content.",
     "reportPost": "Report Post",
-    "reportComment": "Report Comment"
+    "reportComment": "Report Comment",
+    "reportGarden": "Report Garden"
   },
   "moderation": {
     "title": "Moderation Dashboard",

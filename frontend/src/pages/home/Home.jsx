@@ -16,18 +16,18 @@ const Home = () => {
   const auth = useAuth();
   const user = auth ? auth.user : null;
 
+  const navigate = useNavigate();
+  const theme = useTheme();
+
   useEffect(() => {
     // Only run if 'auth' is not null AND 'auth.token' exists
     if (auth && auth.token) {
       console.log("User is logged in, registering for push notifications...");
 
       registerForPushNotifications(auth.token); // Pass the token
-      setupForegroundMessageListener();
+      setupForegroundMessageListener(navigate);
     }
-  }, [auth]);
-
-  const navigate = useNavigate();
-  const theme = useTheme();
+  }, [auth, navigate]);
 
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>

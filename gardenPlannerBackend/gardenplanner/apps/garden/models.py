@@ -246,6 +246,7 @@ class Notification(models.Model):
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()
     category = models.CharField(max_length=30, choices=NotificationCategory.choices)
+    link = models.CharField(max_length=255, blank=True, null=True)
     read = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 

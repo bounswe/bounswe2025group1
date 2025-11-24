@@ -811,7 +811,8 @@
     "error": "Bildirim gönderilemedi. Lütfen tekrar deneyin.",
     "alreadyReported": "Bu içeriği zaten bildirdiniz.",
     "reportPost": "Gönderiyi Bildir",
-    "reportComment": "Yorumu Bildir"
+    "reportComment": "Yorumu Bildir",
+    "reportGarden": "Bahçeyi Bildir"
   },
   "moderation": {
     "title": "Moderasyon Paneli",
