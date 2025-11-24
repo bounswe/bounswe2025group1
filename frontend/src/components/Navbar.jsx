@@ -31,6 +31,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast, ToastContainer } from 'react-toastify';
@@ -38,16 +39,29 @@ import 'react-toastify/dist/ReactToastify.css';
 import { createRovingTabindex, createButtonKeyboardHandler, createLinkKeyboardHandler } from '../utils/keyboardNavigation';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
+import NotificationBell from './NotificationBell';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 
-const getPages = (t) => [
-  { name: t('navigation.home'), path: '/', icon: <HomeIcon /> },
-  { name: t('navigation.gardens'), path: '/gardens', icon: <YardIcon /> },
-  { name: t('navigation.dashboard'), path: '/tasks', icon: <AssignmentIcon /> },
-  { name: t('navigation.forum'), path: '/forum', icon: <ForumIcon /> },
-];
+const getPages = (t, user) => {
+  const pages = [
+    { name: t('navigation.home'), path: '/', icon: <HomeIcon /> },
+    { name: t('navigation.gardens'), path: '/gardens', icon: <YardIcon /> },
+    { name: t('navigation.dashboard'), path: '/tasks', icon: <AssignmentIcon /> },
+    { name: t('navigation.forum'), path: '/forum', icon: <ForumIcon /> },
+  ];
+
+  if (user?.profile?.role === 'ADMIN' || user?.profile?.role === 'MODERATOR') {
+    pages.push({ 
+      name: t('navigation.moderation', 'Moderation'), 
+      path: '/moderation', 
+      icon: <AdminPanelSettingsIcon /> 
+    });
+  }
+  
+  return pages;
+};
 
 const getSettings = (t) => [
   { name: t('navigation.profile'), path: '/profile', icon: <PersonIcon /> },
@@ -70,7 +84,7 @@ function Navbar() {
   const settingsMenuRef = useRef([]);
   
   // Get translated navigation items
-  const pages = getPages(t);
+  const pages = getPages(t, user);
   const settings = getSettings(t);
 
   // Track scroll position to add shadow when scrolled
@@ -283,6 +297,7 @@ function Navbar() {
           <Box sx={{ display: 'flex', alignItems: 'center', mr: user ? 2 : 0 }}>
             <LanguageToggle />
             <ThemeToggle />
+            {user && <NotificationBell />}
           </Box>
 
           {user && (

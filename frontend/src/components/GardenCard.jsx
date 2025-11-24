@@ -1,14 +1,19 @@
-import React from 'react';
-import { Card, CardContent, CardMedia, Typography, Box, Button } from '@mui/material';
+import React, { useState } from 'react';
+import { Card, CardContent, CardMedia, Typography, Box, Button, IconButton } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import GroupIcon from '@mui/icons-material/Group';
+import FlagIcon from '@mui/icons-material/Flag';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { translateLocationString } from '../utils/locationUtils';
+import { useAuth } from '../contexts/AuthContextUtils';
+import ReportDialog from './ReportDialog';
 
 const GardenCard = ({ garden, variant = 'default' }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [reportOpen, setReportOpen] = useState(false);
 
   // Different style variants for different usages
   const cardStyles = {
@@ -88,7 +93,7 @@ const GardenCard = ({ garden, variant = 'default' }) => {
           </Typography>
         </Box>
       </CardContent>
-      <Box sx={{ p: 2, pt: 0 }}>
+      <Box sx={{ p: 2, pt: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
         <Button
           variant={variant === 'featured' ? 'contained' : 'text'}
           fullWidth={variant === 'featured'}
@@ -96,6 +101,7 @@ const GardenCard = ({ garden, variant = 'default' }) => {
           color="primary"
           onClick={() => navigate(`/gardens/${garden.id}`)}
           sx={{
+            flex: 1,
             color: variant === 'featured' ? 'white' : '#2e7d32',
             backgroundColor: variant === 'featured' ? '#558b2f' : 'transparent',
             '&:hover': {
@@ -105,7 +111,28 @@ const GardenCard = ({ garden, variant = 'default' }) => {
         >
           {t('gardens.viewGarden')}
         </Button>
+        
+        {user && (
+          <IconButton 
+            size="small" 
+            onClick={(e) => {
+              e.stopPropagation();
+              setReportOpen(true);
+            }}
+            title={t('report.reportGarden', 'Report Garden')}
+            sx={{ color: 'text.secondary' }}
+          >
+            <FlagIcon fontSize="small" />
+          </IconButton>
+        )}
       </Box>
+
+      <ReportDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        contentType="garden"
+        objectId={garden.id}
+      />
     </Card>
   );
 };

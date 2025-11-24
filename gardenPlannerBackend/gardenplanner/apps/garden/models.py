@@ -254,6 +254,63 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.recipient.username} ({self.category})"
+
+
+# =====================
+# Events and Attendance
+# =====================
+
+class EventVisibility(models.TextChoices):
+    PRIVATE = 'PRIVATE', 'Private'
+    PUBLIC = 'PUBLIC', 'Public'
+
+
+class AttendanceStatus(models.TextChoices):
+    GOING = 'GOING', 'Going'
+    NOT_GOING = 'NOT_GOING', 'Not Going'
+    MAYBE = 'MAYBE', 'Maybe'
+
+
+class GardenEvent(models.Model):
+    """An event belonging to a garden.
+
+    Visibility is per event:
+      - PRIVATE: visible only to accepted garden members
+      - PUBLIC: visible to all authenticated platform users
+    """
+
+    garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='events')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    start_at = models.DateTimeField()
+    visibility = models.CharField(max_length=10, choices=EventVisibility.choices, default=EventVisibility.PRIVATE)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='events_created')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('-start_at', '-created_at')
+
+    def __str__(self):
+        return f"{self.title} ({self.garden.name})"
+
+
+class EventAttendance(models.Model):
+    """A user's attendance vote for a specific event."""
+
+    event = models.ForeignKey(GardenEvent, on_delete=models.CASCADE, related_name='attendances')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_attendances')
+    status = models.CharField(max_length=10, choices=AttendanceStatus.choices)
+    responded_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('event', 'user')
+        indexes = [
+            models.Index(fields=['event', 'user']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username}: {self.status} -> {self.event.title}"
     
 
 class Badge(models.Model):

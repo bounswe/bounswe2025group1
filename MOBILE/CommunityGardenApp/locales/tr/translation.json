@@ -118,6 +118,7 @@
         "tasks": "Görevler",
         "badges": "Rozetler",
         "members": "Üyeler",
+        "events": "Etkinlikler",
         "calendar": "Takvim",
         "gallery": "Galeri"
       },
@@ -188,7 +189,15 @@
     "title": "Herkese Açık Bahçeler",
     "goToDetail": "Detaya Git",
     "noGardens": "Herkese açık bahçe bulunamadı.",
-    "createGarden": "Bahçe Oluştur"
+    "createGarden": "Bahçe Oluştur",
+    "showNearby": "Yakındaki Bahçeleri Göster",
+    "showingGardensIn": "Bahçeler gösteriliyor",
+    "noNearbyGardens": "Şehrinizde bahçe bulunamadı.",
+    "locationPermissionTitle": "Konum İzni",
+    "locationPermissionMessage": "Yakındaki bahçeleri filtrelemek için lütfen konum izinlerini etkinleştirin.",
+    "locationErrorTitle": "Konum Ayarlanmadı",
+    "locationErrorMessage": "Şehriniz belirlenemedi. Lütfen tekrar deneyin.",
+    "locationNotSetMessage": "Bu filtreyi kullanmak için lütfen profilinizde konumunuzu ayarlayın."
   },
   "tasks": {
     "myTasks": "Görevlerim",
@@ -243,7 +252,52 @@
     "forum": "Forum",
     "profile": "Profil",
     "messages": "Mesajlar",
+    "notifications": "Bildirimler",
     "myTasks": "Görevlerim"
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "markAllRead": "Tümünü Okundu İşaretle",
+    "markAsRead": "Okundu İşaretle",
+    "noNotifications": "Henüz bildirim yok",
+    "unreadCount": "okunmamış",
+    "markAllError": "Tümü okundu işaretlenemedi",
+    "categories": {
+      "TASK": "Görev Güncellemesi",
+      "SOCIAL": "Sosyal Aktivite",
+      "FORUM": "Forum Aktivitesi",
+      "WEATHER": "Hava Durumu Uyarısı"
+    }
+  },
+  "events": {
+    "gardenEvents": "Bahçe Etkinlikleri",
+    "createEvent": "Etkinlik Oluştur",
+    "editEvent": "Etkinlik Düzenle",
+    "noEvents": "Planlanmış etkinlik yok",
+    "title": "Başlık",
+    "titlePlaceholder": "Etkinlik başlığını girin",
+    "description": "Açıklama",
+    "descriptionPlaceholder": "Etkinlik açıklamasını girin",
+    "date": "Tarih",
+    "time": "Saat",
+    "publicEvent": "Herkese Açık Etkinlik",
+    "visibleToAll": "Tüm kullanıcılara görünür",
+    "visibleToMembers": "Sadece bahçe üyelerine görünür",
+    "private": "Özel",
+    "going": "Katılıyorum",
+    "notGoing": "Katılmıyorum",
+    "maybe": "Belki",
+    "createdBy": "Oluşturan",
+    "pastEvent": "Geçmiş Etkinlik",
+    "titleRequired": "Etkinlik başlığı gereklidir",
+    "futureDateRequired": "Lütfen gelecek bir tarih seçin",
+    "createSuccess": "Etkinlik başarıyla oluşturuldu",
+    "updateSuccess": "Etkinlik başarıyla güncellendi",
+    "saveError": "Etkinlik kaydedilemedi",
+    "deleteConfirm": "Bu etkinliği silmek istediğinizden emin misiniz?",
+    "deleteSuccess": "Etkinlik silindi",
+    "deleteError": "Etkinlik silinemedi",
+    "voteError": "Katılım durumu güncellenemedi"
   },
   "weather": {
     "not_available": "Hava durumu verisi mevcut değil",

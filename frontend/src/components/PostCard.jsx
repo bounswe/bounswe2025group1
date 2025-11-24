@@ -25,6 +25,9 @@ import { useNavigate } from 'react-router-dom';
 import ImageGallery from './ImageGallery';
 import InlineImageUpload from './InlineImageUpload';
 
+import ReportDialog from './ReportDialog';
+import FlagIcon from '@mui/icons-material/Flag';
+
 const PostCard = ({
   post,
   onComment,
@@ -41,6 +44,7 @@ const PostCard = ({
   const [commentImages, setCommentImages] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   // Check if post has comments
   const hasComments = post.comments && post.comments.length > 0;
@@ -156,7 +160,7 @@ const PostCard = ({
             </Box>
           </Box>
           
-          {isOwner && (
+          {(isOwner || currentUser) && (
             <IconButton 
               size="small" 
               onClick={handleMenuOpen}
@@ -403,13 +407,30 @@ const PostCard = ({
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => { onEdit && onEdit(post); handleMenuClose(); }}>
-          {t('forum.editPost')}
-        </MenuItem>
-        <MenuItem onClick={() => { onDelete && onDelete(post.id); handleMenuClose(); }} sx={{ color: 'error.main' }}>
-          {t('forum.deletePost')}
-        </MenuItem>
+        {isOwner && (
+          <div>
+            <MenuItem onClick={() => { onEdit && onEdit(post); handleMenuClose(); }}>
+              {t('forum.editPost')}
+            </MenuItem>
+            <MenuItem onClick={() => { onDelete && onDelete(post.id); handleMenuClose(); }} sx={{ color: 'error.main' }}>
+              {t('forum.deletePost')}
+            </MenuItem>
+          </div>
+        )}
+        {!isOwner && currentUser && (
+          <MenuItem onClick={() => { setReportDialogOpen(true); handleMenuClose(); }} sx={{ color: 'text.secondary' }}>
+            <FlagIcon fontSize="small" sx={{ mr: 1 }} />
+            {t('report.reportPost', 'Report Post')}
+          </MenuItem>
+        )}
       </Menu>
+
+      <ReportDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        contentType="forumpost"
+        objectId={post.id}
+      />
     </Card>
   );
 };

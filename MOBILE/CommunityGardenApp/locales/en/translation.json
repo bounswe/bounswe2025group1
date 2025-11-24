@@ -118,6 +118,7 @@
       "tabs": {
         "tasks": "Tasks",
         "members": "Members",
+        "events": "Events",
         "calendar": "Calendar",
         "gallery": "Gallery"
       },
@@ -188,7 +189,15 @@
     "title": "Public Gardens",
     "goToDetail": "Go to Detail",
     "noGardens": "No public gardens found.",
-    "createGarden": "Create Garden"
+    "createGarden": "Create Garden",
+    "showNearby": "Show Nearby Gardens",
+    "showingGardensIn": "Showing gardens in",
+    "noNearbyGardens": "No gardens found in your city.",
+    "locationPermissionTitle": "Location Permission",
+    "locationPermissionMessage": "Please enable location permissions to filter nearby gardens.",
+    "locationErrorTitle": "Location Not Set",
+    "locationErrorMessage": "Could not determine your city. Please try again.",
+    "locationNotSetMessage": "Please set your location in your profile to use this filter."
   },
   "tasks": {
     "myTasks": "My Tasks",
@@ -243,7 +252,52 @@
     "forum": "Forum",
     "profile": "Profile",
     "messages": "Messages",
+    "notifications": "Notifications",
     "myTasks": "My Tasks"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark All Read",
+    "markAsRead": "Mark as Read",
+    "noNotifications": "No notifications yet",
+    "unreadCount": "unread",
+    "markAllError": "Failed to mark all as read",
+    "categories": {
+      "TASK": "Task Update",
+      "SOCIAL": "Social Activity",
+      "FORUM": "Forum Activity",
+      "WEATHER": "Weather Alert"
+    }
+  },
+  "events": {
+    "gardenEvents": "Garden Events",
+    "createEvent": "Create Event",
+    "editEvent": "Edit Event",
+    "noEvents": "No events scheduled",
+    "title": "Title",
+    "titlePlaceholder": "Enter event title",
+    "description": "Description",
+    "descriptionPlaceholder": "Enter event description",
+    "date": "Date",
+    "time": "Time",
+    "publicEvent": "Public Event",
+    "visibleToAll": "Visible to all users",
+    "visibleToMembers": "Only visible to garden members",
+    "private": "Private",
+    "going": "Going",
+    "notGoing": "Not Going",
+    "maybe": "Maybe",
+    "createdBy": "Created by",
+    "pastEvent": "Past Event",
+    "titleRequired": "Event title is required",
+    "futureDateRequired": "Please select a future date",
+    "createSuccess": "Event created successfully",
+    "updateSuccess": "Event updated successfully",
+    "saveError": "Failed to save event",
+    "deleteConfirm": "Are you sure you want to delete this event?",
+    "deleteSuccess": "Event deleted",
+    "deleteError": "Failed to delete event",
+    "voteError": "Failed to update attendance"
   },
   "weather": {
     "not_available": "Weather data not available",
