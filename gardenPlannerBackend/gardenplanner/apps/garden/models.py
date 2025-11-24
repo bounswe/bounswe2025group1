@@ -246,6 +246,7 @@ class Notification(models.Model):
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()
     category = models.CharField(max_length=30, choices=NotificationCategory.choices)
+    link = models.CharField(max_length=255, blank=True, null=True)
     read = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -254,3 +255,97 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.recipient.username} ({self.category})"
+
+
+# =====================
+# Events and Attendance
+# =====================
+
+class EventVisibility(models.TextChoices):
+    PRIVATE = 'PRIVATE', 'Private'
+    PUBLIC = 'PUBLIC', 'Public'
+
+
+
+class AttendanceStatus(models.TextChoices):
+    GOING = 'GOING', 'Going'
+    NOT_GOING = 'NOT_GOING', 'Not Going'
+    MAYBE = 'MAYBE', 'Maybe'
+
+
+class EventCategory(models.TextChoices):
+    WORKSHOP = 'WORKSHOP', 'Workshops and Practice'
+    POTLUCK = 'POTLUCK', 'Potluck / Picnic'
+    EXCHANGE = 'EXCHANGE', 'Garden Exchange'
+    TREASURE_HUNT = 'TREASURE_HUNT', 'Treasure Hunt'
+    PHOTOGRAPHY = 'PHOTOGRAPHY', 'Photography Day'
+    CELEBRATION = 'CELEBRATION', 'Celebration'
+    OTHER = 'OTHER', 'Other'
+
+
+
+class GardenEvent(models.Model):
+    """An event belonging to a garden.
+
+    Visibility is per event:
+      - PRIVATE: visible only to accepted garden members
+      - PUBLIC: visible to all authenticated platform users
+    """
+
+    garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='events')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    start_at = models.DateTimeField()
+    visibility = models.CharField(max_length=10, choices=EventVisibility.choices, default=EventVisibility.PRIVATE)
+    event_category = models.CharField(max_length=20, choices=EventCategory.choices, default=EventCategory.OTHER)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='events_created')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('-start_at', '-created_at')
+
+    def __str__(self):
+        return f"{self.title} ({self.garden.name})"
+
+
+class EventAttendance(models.Model):
+    """A user's attendance vote for a specific event."""
+
+    event = models.ForeignKey(GardenEvent, on_delete=models.CASCADE, related_name='attendances')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_attendances')
+    status = models.CharField(max_length=10, choices=AttendanceStatus.choices)
+    responded_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('event', 'user')
+        indexes = [
+            models.Index(fields=['event', 'user']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username}: {self.status} -> {self.event.title}"
+    
+
+class Badge(models.Model):
+    key = models.CharField(max_length=64, unique=True)
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=100, blank=True)
+    requirement = models.JSONField(default=dict, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class UserBadge(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="earned_badges")
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE, related_name="holders")
+    earned_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ('user', 'badge')
+        ordering = ['-earned_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.badge.name}"
+

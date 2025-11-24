@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -51,19 +51,23 @@ const ChatWidget = () => {
   const [newMessage, setNewMessage] = useState('');
   const [firebaseUid, setFirebaseUid] = useState(null);
   const [userProfiles, setUserProfiles] = useState({}); // Cache for user profiles (username + picture)
+  const [gardenProfiles, setGardenProfiles] = useState({}); // Cache for garden profiles (name + cover image)
   const [unreadCounts, setUnreadCounts] = useState({}); // Unread message counts per chat
   const messagesEndRef = useRef(null);
 
   // Get Firebase UID for the current user
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setFirebaseUid(null);
+      return;
+    }
     
     // Firebase UID format: django_{userId}
     const uid = `django_${user.id}`;
     setFirebaseUid(uid);
   }, [user]);
 
-  // Subscribe to chats list
+  // Subscribe to chats list and calculate unread counts
   useEffect(() => {
     if (!firebaseUid || !db) return;
 
@@ -73,7 +77,7 @@ const ChatWidget = () => {
       orderBy('updatedAt', 'desc')
     );
 
-    const unsubscribe = onSnapshot(
+    const unsubscribeChats = onSnapshot(
       chatsQuery,
       (snapshot) => {
         const chatsList = snapshot.docs.map((doc) => ({
@@ -81,61 +85,60 @@ const ChatWidget = () => {
           ...doc.data(),
         }));
         setChats(chatsList);
+
+        // Set up unread count listeners for each chat
+        const unreadUnsubscribes = [];
+        
+        chatsList.forEach((chat) => {
+          const messagesQuery = query(
+            collection(db, 'chats', chat.id, 'messages'),
+            where('senderId', '!=', firebaseUid) // Only count messages from others
+          );
+
+          const unsubscribe = onSnapshot(
+            messagesQuery,
+            (snapshot) => {
+              const unreadCount = snapshot.docs.filter((doc) => {
+                const data = doc.data();
+                // Message is unread if readBy array doesn't include current user
+                return !data.readBy || !data.readBy.includes(firebaseUid);
+              }).length;
+
+              if(unreadCount){
+                console.log(`Chat ${chat.id} has ${unreadCount} unread messages.`);
+              }
+
+              setUnreadCounts((prev) => ({
+                ...prev,
+                [chat.id]: unreadCount,
+              }));
+            },
+            (error) => {
+              console.error(`Error fetching unread count for chat ${chat.id}:`, error);
+            }
+          );
+
+          unreadUnsubscribes.push(unsubscribe);
+        });
+
+        // Store unsubscribes for cleanup
+        return () => {
+          unreadUnsubscribes.forEach((unsub) => unsub());
+        };
       },
       (error) => {
         console.error('Error fetching chats:', error);
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeChats();
+    };
   }, [firebaseUid]);
 
-  // Calculate unread counts for all chats
+  // Fetch user profiles (username + profile picture) for chats and messages
   useEffect(() => {
-    if (!firebaseUid || !db || chats.length === 0) return;
-
-    const unsubscribes = [];
-    
-    chats.forEach((chat) => {
-      const messagesQuery = query(
-        collection(db, 'chats', chat.id, 'messages'),
-        where('senderId', '!=', firebaseUid) // Only count messages from others
-      );
-
-      const unsubscribe = onSnapshot(
-        messagesQuery,
-        (snapshot) => {
-          const unreadCount = snapshot.docs.filter((doc) => {
-            const data = doc.data();
-            // Message is unread if readBy array doesn't include current user
-            return !data.readBy || !data.readBy.includes(firebaseUid);
-          }).length;
-
-          if(unreadCount){
-            console.log(`Chat ${chat.id} has ${unreadCount} unread messages.`);
-          }
-
-          setUnreadCounts((prev) => ({
-            ...prev,
-            [chat.id]: unreadCount,
-          }));
-        },
-        (error) => {
-          console.error(`Error fetching unread count for chat ${chat.id}:`, error);
-        }
-      );
-
-      unsubscribes.push(unsubscribe);
-    });
-
-    return () => {
-      unsubscribes.forEach((unsubscribe) => unsubscribe());
-    };
-  }, [chats, firebaseUid]);
-
-  // Fetch user profiles (username + profile picture) for chats
-  useEffect(() => {
-    if (!token) return;
+    if (!token || !firebaseUid) return;
 
     const fetchUserProfiles = async () => {
       const userIdsToFetch = new Set();
@@ -146,9 +149,7 @@ const ChatWidget = () => {
           const otherUserId = chat.members.find((id) => id !== firebaseUid);
           if (otherUserId) {
             const djangoUserId = otherUserId.replace('django_', '');
-            if (!userProfiles[djangoUserId]) {
-              userIdsToFetch.add(djangoUserId);
-            }
+            userIdsToFetch.add(djangoUserId);
           }
         }
       });
@@ -157,53 +158,147 @@ const ChatWidget = () => {
       messages.forEach((message) => {
         if (message.senderId !== firebaseUid) {
           const djangoUserId = message.senderId.replace('django_', '');
-          if (!userProfiles[djangoUserId]) {
-            userIdsToFetch.add(djangoUserId);
-          }
+          userIdsToFetch.add(djangoUserId);
         }
       });
 
       // Fetch user profiles from backend
-    if (userIdsToFetch.size > 0) {
-        const newUserProfiles = { ...userProfiles };
-        
-        for (const userId of userIdsToFetch) {
-          try {
-            const response = await fetch(
-              `${import.meta.env.VITE_API_URL}/profile/${userId}/`,
-              {
-                headers: {
-                  Authorization: `Token ${token}`,
-                },
+      if (userIdsToFetch.size > 0) {
+        // Use functional update to avoid dependency on userProfiles
+        setUserProfiles((prevProfiles) => {
+          const toFetch = Array.from(userIdsToFetch).filter(id => !prevProfiles[id]);
+          
+          if (toFetch.length === 0) return prevProfiles;
+
+          // Fetch in parallel
+          Promise.all(
+            toFetch.map(async (userId) => {
+              try {
+                const response = await fetch(
+                  `${import.meta.env.VITE_API_URL}/profile/${userId}/`,
+                  {
+                    headers: {
+                      Authorization: `Token ${token}`,
+                    },
+                  }
+                );
+                
+                if (response.ok) {
+                  const data = await response.json();
+                  return {
+                    userId,
+                    profile: {
+                      username: data.username || t('chat.user_with_id', { id: userId }),
+                      profile_picture: data.profile?.profile_picture || null,
+                    }
+                  };
+                }
+              } catch (error) {
+                console.error(`Error fetching profile for user ${userId}:`, error);
+                return {
+                  userId,
+                  profile: {
+                    username: t('chat.user_with_id', { id: userId }),
+                    profile_picture: null,
+                  }
+                };
               }
-            );
-            
-            if (response.ok) {
-              const data = await response.json();
-              newUserProfiles[userId] = {
-                username: data.username || t('chat.user_with_id', { id: userId }),
-                profile_picture: data.profile?.profile_picture || null,
-              };
-            }
-          } catch (error) {
-            console.error(`Error fetching profile for user ${userId}:`, error);
-            newUserProfiles[userId] = {
-              username: t('chat.user_with_id', { id: userId }),
-              profile_picture: null,
-            };
-          }
+              return null;
+            })
+          ).then((results) => {
+            setUserProfiles((prev) => {
+              const updated = { ...prev };
+              results.forEach((result) => {
+                if (result) {
+                  updated[result.userId] = result.profile;
+                }
+              });
+              return updated;
+            });
+          });
+
+          return prevProfiles;
+        });
+      }
+    };
+
+    const fetchGardenProfiles = async () => {
+      const gardenIdsToFetch = new Set();
+      
+      // Collect all garden IDs from group chats
+      chats.forEach((chat) => {
+        if (chat.type === 'group' && chat.gardenId) {
+          gardenIdsToFetch.add(chat.gardenId);
         }
-        
-        setUserProfiles(newUserProfiles);
+      });
+
+      // Fetch garden profiles from backend
+      if (gardenIdsToFetch.size > 0) {
+        // Use functional update to avoid dependency on gardenProfiles
+        setGardenProfiles((prevProfiles) => {
+          const toFetch = Array.from(gardenIdsToFetch).filter(id => !prevProfiles[id]);
+          
+          if (toFetch.length === 0) return prevProfiles;
+
+          // Fetch in parallel
+          Promise.all(
+            toFetch.map(async (gardenId) => {
+              try {
+                const response = await fetch(
+                  `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`,
+                  {
+                    headers: {
+                      Authorization: `Token ${token}`,
+                    },
+                  }
+                );
+                
+                if (response.ok) {
+                  const data = await response.json();
+                  return {
+                    gardenId,
+                    profile: {
+                      name: data.name || t('chat.garden_chat'),
+                      cover_image: data.cover_image?.image_base64 || null,
+                    }
+                  };
+                }
+              } catch (error) {
+                console.error(`Error fetching profile for garden ${gardenId}:`, error);
+                return {
+                  gardenId,
+                  profile: {
+                    name: t('chat.garden_chat'),
+                    cover_image: null,
+                  }
+                };
+              }
+              return null;
+            })
+          ).then((results) => {
+            setGardenProfiles((prev) => {
+              const updated = { ...prev };
+              results.forEach((result) => {
+                if (result) {
+                  updated[result.gardenId] = result.profile;
+                }
+              });
+              return updated;
+            });
+          });
+
+          return prevProfiles;
+        });
       }
     };
 
     fetchUserProfiles();
-  }, [chats, messages, firebaseUid, token, userProfiles, t]);
+    fetchGardenProfiles();
+  }, [chats, messages, firebaseUid, token, t]);
 
-  // Subscribe to messages for selected chat
+  // Subscribe to messages for selected chat and mark them as read
   useEffect(() => {
-    if (!selectedChat || !db) return;
+    if (!selectedChat || !db || !firebaseUid) return;
 
     const messagesQuery = query(
       collection(db, 'chats', selectedChat.id, 'messages'),
@@ -212,12 +307,42 @@ const ChatWidget = () => {
 
     const unsubscribe = onSnapshot(
       messagesQuery,
-      (snapshot) => {
+      async (snapshot) => {
         const messagesList = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
         setMessages(messagesList);
+
+        // Mark messages as read
+        try {
+          const batch = writeBatch(db);
+          let batchCount = 0;
+
+          messagesList.forEach((message) => {
+            // Skip messages sent by current user
+            if (message.senderId === firebaseUid) return;
+            
+            // Skip messages already read by current user
+            if (message.readBy && message.readBy.includes(firebaseUid)) return;
+
+            const messageRef = doc(db, 'chats', selectedChat.id, 'messages', message.id);
+            const updatedReadBy = message.readBy ? [...message.readBy, firebaseUid] : [firebaseUid];
+            
+            batch.update(messageRef, {
+              readBy: updatedReadBy,
+            });
+            
+            batchCount++;
+          });
+
+          // Only commit if there are updates
+          if (batchCount > 0) {
+            await batch.commit();
+          }
+        } catch (error) {
+          console.error('Error marking messages as read:', error);
+        }
       },
       (error) => {
         console.error('Error fetching messages:', error);
@@ -225,45 +350,7 @@ const ChatWidget = () => {
     );
 
     return () => unsubscribe();
-  }, [selectedChat]);
-
-  // Mark messages as read when chat is opened
-  useEffect(() => {
-    if (!selectedChat || !firebaseUid || !db || messages.length === 0) return;
-
-    const markMessagesAsRead = async () => {
-      try {
-        const batch = writeBatch(db);
-        let batchCount = 0;
-
-        messages.forEach((message) => {
-          // Skip messages sent by current user
-          if (message.senderId === firebaseUid) return;
-          
-          // Skip messages already read by current user
-          if (message.readBy && message.readBy.includes(firebaseUid)) return;
-
-          const messageRef = doc(db, 'chats', selectedChat.id, 'messages', message.id);
-          const updatedReadBy = message.readBy ? [...message.readBy, firebaseUid] : [firebaseUid];
-          
-          batch.update(messageRef, {
-            readBy: updatedReadBy,
-          });
-          
-          batchCount++;
-        });
-
-        // Only commit if there are updates
-        if (batchCount > 0) {
-          await batch.commit();
-        }
-      } catch (error) {
-        console.error('Error marking messages as read:', error);
-      }
-    };
-
-    markMessagesAsRead();
-  }, [selectedChat, messages, firebaseUid]);
+  }, [selectedChat, firebaseUid]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -348,6 +435,10 @@ const ChatWidget = () => {
 
   const getChatDisplayName = (chat) => {
     if (chat.type === 'group') {
+      // Use fetched garden profile if available, otherwise fall back to chat.groupName
+      if (chat.gardenId && gardenProfiles[chat.gardenId]) {
+        return gardenProfiles[chat.gardenId].name;
+      }
       return chat.groupName || t('chat.garden_chat');
     }
     // For direct messages, show the other user's username
@@ -469,12 +560,21 @@ const ChatWidget = () => {
                   </Typography>
                 </Box>
               ) : (
-                chats.map((chat) => (
-                  <div key={chat.id}>
-                    <ListItemButton onClick={() => handleSelectChat(chat)}>
-                      <Avatar sx={{ mr: 2, bgcolor: theme.palette.secondary.main }}>
-                        {chat.type === 'group' ? <GroupIcon /> : <PersonIcon />}
-                      </Avatar>
+                chats.map((chat) => {
+                  const otherUserId = chat.type === 'direct' ? chat.members.find((id) => id !== firebaseUid) : null;
+                  const djangoUserId = otherUserId ? otherUserId.replace('django_', '') : null;
+                  const otherUserProfile = djangoUserId ? userProfiles[djangoUserId] : null;
+                  const gardenProfile = chat.type === 'group' && chat.gardenId ? gardenProfiles[chat.gardenId] : null;
+
+                  return (
+                    <div key={chat.id}>
+                      <ListItemButton onClick={() => handleSelectChat(chat)}>
+                        <Avatar 
+                          src={chat.type === 'group' ? (gardenProfile?.cover_image || chat.cover_image) : otherUserProfile?.profile_picture}
+                          sx={{ mr: 2, bgcolor: theme.palette.secondary.main }}
+                        >
+                          {chat.type === 'group' ? <GroupIcon /> : <PersonIcon />}
+                        </Avatar>
                       <ListItemText
                         primary={
                           <Box
@@ -505,8 +605,8 @@ const ChatWidget = () => {
                     </ListItemButton>
                     <Divider />
                   </div>
-                ))
-              )}
+                )
+              }))}
             </List>
           ) : (
             // Messages view

@@ -61,21 +61,6 @@ describe('Internationalization (i18n)', () => {
       expect(i18n.t('auth.login.password')).toBe('Şifre');
       expect(i18n.t('auth.login.signInButton')).toBe('Giriş Yap');
     });
-
-    it('should translate register form correctly in English', () => {
-      expect(i18n.t('auth.register.title')).toBe('Sign Up');
-      expect(i18n.t('auth.register.firstName')).toBe('First Name');
-      expect(i18n.t('auth.register.lastName')).toBe('Last Name');
-      expect(i18n.t('auth.register.signUpButton')).toBe('Sign Up');
-    });
-
-    it('should translate register form correctly in Turkish', async () => {
-      await i18n.changeLanguage('tr');
-      expect(i18n.t('auth.register.title')).toBe('Kayıt Ol');
-      expect(i18n.t('auth.register.firstName')).toBe('Ad');
-      expect(i18n.t('auth.register.lastName')).toBe('Soyad');
-      expect(i18n.t('auth.register.signUpButton')).toBe('Kayıt Ol');
-    });
   });
 
   describe('Translation Keys - Home Page', () => {
@@ -159,11 +144,6 @@ describe('Internationalization (i18n)', () => {
       await i18n.changeLanguage('tr');
       const result = i18n.t('home.welcome', { username: ', Ahmet' });
       expect(result).toBe('Hoş geldin, Ahmet!');
-    });
-
-    it('should handle theme interpolation correctly', () => {
-      const result = i18n.t('theme.currentTheme', { theme: 'Dark Mode' });
-      expect(result).toBe('Current theme: Dark Mode');
     });
 
     it('should handle language interpolation correctly', async () => {

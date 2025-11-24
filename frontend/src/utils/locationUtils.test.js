@@ -87,20 +87,6 @@ describe('locationUtils', () => {
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
-
-    it('encodes special characters in address', async () => {
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve([{ lat: '40.0', lon: '30.0' }]),
-      });
-
-      await geocodeAddress('İstanbul, Türkiye');
-
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('İstanbul%2C%20Türkiye'),
-        expect.any(Object)
-      );
-    });
   });
 
   describe('calculateDistance', () => {

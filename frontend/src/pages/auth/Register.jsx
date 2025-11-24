@@ -17,6 +17,10 @@ import {
   ListItemIcon,
   ListItemText,
   useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonIcon from '@mui/icons-material/Person';
@@ -45,6 +49,7 @@ const Register = () => {
     location: '',
   });
   const [error, setError] = useState('');
+  const [termsDialogOpen, setTermsDialogOpen] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -75,6 +80,27 @@ const Register = () => {
       ...formData,
       [name]: type === 'checkbox' ? checked : value,
     });
+  };
+
+  const handleOpenTerms = (e) => {
+    e.preventDefault();
+    setTermsDialogOpen(true);
+  };
+
+  const handleAcceptTerms = () => {
+    setFormData({
+      ...formData,
+      agreeTerms: true,
+    });
+    setTermsDialogOpen(false);
+  };
+
+  const handleRejectTerms = () => {
+    setFormData({
+      ...formData,
+      agreeTerms: false,
+    });
+    setTermsDialogOpen(false);
   };
 
   // Create keyboard handler for the form
@@ -219,6 +245,7 @@ const Register = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="firstName"
+                    data-testid="first-name-input"
                     required
                     fullWidth
                     label={t('auth.register.firstName')}
@@ -237,6 +264,7 @@ const Register = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="lastName"
+                    data-testid="last-name-input"
                     required
                     fullWidth
                     label={t('auth.register.lastName')}
@@ -254,6 +282,7 @@ const Register = () => {
                 <Grid size={{ xs: 12 }}>
                   <TextField
                     name="username"
+                    data-testid="username-input"
                     required
                     fullWidth
                     label={t('auth.register.username')}
@@ -271,6 +300,7 @@ const Register = () => {
                 <Grid size={{ xs: 12 }}>
                   <TextField
                     name="email"
+                    data-testid="email-input"
                     required
                     fullWidth
                     label={t('auth.register.email')}
@@ -300,6 +330,7 @@ const Register = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="password"
+                    data-testid="password-input"
                     label={t('auth.register.password')}
                     type="password"
                     required
@@ -319,6 +350,7 @@ const Register = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="confirmPassword"
+                    data-testid="confirm-password-input"
                     label={t('auth.register.confirmPassword')}
                     type="password"
                     required
@@ -350,38 +382,37 @@ const Register = () => {
               </List>
 
               <Box sx={{ mt: 2 }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="agreeTerms"
-                      color="primary"
-                      checked={formData.agreeTerms}
-                      onChange={handleChange}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          setFormData({
-                            ...formData,
-                            agreeTerms: !formData.agreeTerms,
-                          });
-                        }
-                      }}
-                      sx={{
-                        '&:focus': {
-                          outline: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
-                            ? '3px solid #ffff00'
-                            : `2px solid ${theme.palette.primary.main}`,
-                          outlineOffset: '2px',
-                        },
-                      }}
-                    />
-                  }
-                  label={t('auth.register.agreeTerms')}
-                />
+                <Typography variant="body2" color="text.secondary">
+                  {formData.agreeTerms ? (
+                    <CheckCircleIcon sx={{ fontSize: 16, verticalAlign: 'middle', mr: 0.5, color: 'success.main' }} />
+                  ) : null}
+                  {t('auth.register.clickToRead')}{' '}
+                  <Link
+                    data-testid="terms-link"
+                    component="button"
+                    type="button"
+                    onClick={handleOpenTerms}
+                    underline="hover"
+                    color="primary"
+                    sx={{
+                      cursor: 'pointer',
+                      '&:focus': {
+                        outline: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+                          ? '3px solid #ffff00'
+                          : `2px solid ${theme.palette.primary.main}`,
+                        outlineOffset: '2px',
+                      },
+                    }}
+                    aria-label="Read terms and conditions"
+                  >
+                    {t('auth.register.termsAndConditions')}
+                  </Link>
+                </Typography>
               </Box>
 
               <Button
                 type="submit"
+                data-testid="sign-up-button"
                 fullWidth
                 variant="contained"
                 disabled={!allValid}
@@ -448,6 +479,120 @@ const Register = () => {
           </Box>
         </Paper>
       </Box>
+
+      <Dialog
+        data-testid="terms-dialog"
+        open={termsDialogOpen}
+        onClose={(event, reason) => {
+          // Prevent closing by clicking outside or pressing Escape
+          if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+            return;
+          }
+          setTermsDialogOpen(false);
+        }}
+        maxWidth="md"
+        fullWidth
+        aria-labelledby="terms-dialog-title"
+      >
+        <DialogTitle id="terms-dialog-title">
+          {t('auth.register.termsAndConditions')}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="h6" gutterBottom>
+            {t('auth.register.termsTitle')}
+          </Typography>
+          <Typography paragraph>
+            {t('auth.register.termsIntro')}
+          </Typography>
+          
+          <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
+            1. {t('auth.register.termsAcceptance')}
+          </Typography>
+          <Typography paragraph>
+            {t('auth.register.termsAcceptanceText')}
+          </Typography>
+
+          <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
+            2. {t('auth.register.termsAccount')}
+          </Typography>
+          <Typography paragraph>
+            {t('auth.register.termsAccountText')}
+          </Typography>
+
+          <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
+            3. {t('auth.register.termsPrivacy')}
+          </Typography>
+          <Typography paragraph>
+            {t('auth.register.termsPrivacyText')}
+          </Typography>
+
+          <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
+            4. {t('auth.register.termsContent')}
+          </Typography>
+          <Typography paragraph>
+            {t('auth.register.termsContentText')}
+          </Typography>
+
+          <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
+            5. {t('auth.register.termsCommunity')}
+          </Typography>
+          <Typography paragraph>
+            {t('auth.register.termsCommunityText')}
+          </Typography>
+
+          <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
+            6. {t('auth.register.termsLiability')}
+          </Typography>
+          <Typography paragraph>
+            {t('auth.register.termsLiabilityText')}
+          </Typography>
+
+          <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
+            7. {t('auth.register.termsChanges')}
+          </Typography>
+          <Typography paragraph>
+            {t('auth.register.termsChangesText')}
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
+            {t('auth.register.termsLastUpdated')}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            data-testid="reject-terms-button"
+            onClick={handleRejectTerms}
+            variant="outlined"
+            color="secondary"
+            sx={{
+              '&:focus': {
+                outline: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+                  ? '3px solid #ffff00'
+                  : `2px solid ${theme.palette.primary.main}`,
+                outlineOffset: '2px',
+              },
+            }}
+          >
+            {t('auth.register.termsCancelButton')}
+          </Button>
+          <Button
+            data-testid="accept-terms-button"
+            onClick={handleAcceptTerms}
+            variant="contained"
+            color="primary"
+            sx={{
+              '&:focus': {
+                outline: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+                  ? '3px solid #ffff00'
+                  : `2px solid ${theme.palette.primary.main}`,
+                outlineOffset: '2px',
+              },
+            }}
+          >
+            {t('auth.register.termsAcceptButton')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

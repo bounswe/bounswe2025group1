@@ -1,7 +1,9 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Login from './Login';
 import AuthContext from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
@@ -32,6 +34,31 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+// Mock i18next
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key) => {
+      const translations = {
+        'auth.login.title': 'Sign In',
+        'auth.login.username': 'Username',
+        'auth.login.password': 'Password',
+        'auth.login.signInButton': 'Sign In',
+        'auth.login.loginFailed': 'Login failed',
+        'auth.login.welcomeBack': 'Welcome back!',
+        'auth.login.failedToLogin': 'Failed to login'
+      };
+      return translations[key] || key;
+    },
+    i18n: { language: 'en' },
+  }),
+}));
+
+// Mock keyboard navigation utils
+vi.mock('../../utils/keyboardNavigation', () => ({
+  createFormKeyboardHandler: () => () => {},
+  trapFocus: () => () => {},
+}));
+
 const mockLogin = vi.fn();
 
 const mockContext = {
@@ -42,13 +69,17 @@ const mockContext = {
   loading: false,
 };
 
+const theme = createTheme();
+
 const renderWithProviders = () =>
   render(
-    <AuthContext.Provider value={mockContext}>
-      <BrowserRouter>
-        <Login />
-      </BrowserRouter>
-    </AuthContext.Provider>
+    <ThemeProvider theme={theme}>
+      <AuthContext.Provider value={mockContext}>
+        <BrowserRouter>
+          <Login />
+        </BrowserRouter>
+      </AuthContext.Provider>
+    </ThemeProvider>
   );
 
 describe('Login page', () => {
@@ -64,21 +95,22 @@ describe('Login page', () => {
 
   it('renders username and password inputs', () => {
     renderWithProviders();
-    expect(screen.getByTestId(/username/i)).toBeInTheDocument();
-    expect(screen.getByTestId(/password/i)).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /username/i })).toBeInTheDocument();
+    expect(screen.getByTestId('password')).toBeInTheDocument();
   });
 
   it('calls login and shows success toast on submit', async () => {
+    const user = userEvent.setup();
     renderWithProviders();
-    fireEvent.change(screen.getByTestId(/username/i), {
-      target: { value: 'testuser' },
-    });
-    fireEvent.change(screen.getByTestId(/password/i), {
-      target: { value: 'securepass' },
-    });
+    
+    const usernameInput = screen.getByRole('textbox', { name: /username/i });
+    const passwordInput = screen.getByTestId('password').querySelector('input');
+    
+    await user.type(usernameInput, 'testuser');
+    await user.type(passwordInput, 'securepass');
 
     // Submit the form
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     // Wait for the fetch and login to be called
     await waitFor(() => {
@@ -98,6 +130,7 @@ describe('Login page', () => {
     expect(toast.success).toHaveBeenCalled();
   });
   it('shows error toast when login fails', async () => {
+    const user = userEvent.setup();
     // Setup a failed response
     fetch.mockResolvedValue({
       ok: false,
@@ -105,14 +138,14 @@ describe('Login page', () => {
     });
 
     renderWithProviders();
-    fireEvent.change(screen.getByTestId(/username/i), {
-      target: { value: 'fail' },
-    });
-    fireEvent.change(screen.getByTestId(/password/i), {
-      target: { value: 'wrong' },
-    });
+    
+    const usernameInput = screen.getByRole('textbox', { name: /username/i });
+    const passwordInput = screen.getByTestId('password').querySelector('input');
+    
+    await user.type(usernameInput, 'fail');
+    await user.type(passwordInput, 'wrong');
 
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalled();

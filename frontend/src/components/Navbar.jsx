@@ -32,6 +32,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast, ToastContainer } from 'react-toastify';
@@ -39,17 +40,30 @@ import 'react-toastify/dist/ReactToastify.css';
 import { createRovingTabindex, createButtonKeyboardHandler, createLinkKeyboardHandler } from '../utils/keyboardNavigation';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
+import NotificationBell from './NotificationBell';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 
-const getPages = (t) => [
-  { name: t('navigation.home'), path: '/', icon: <HomeIcon /> },
-  { name: t('navigation.gardens'), path: '/gardens', icon: <YardIcon /> },
-  { name: t('navigation.dashboard'), path: '/tasks', icon: <AssignmentIcon /> },
-  { name: t('navigation.forum'), path: '/forum', icon: <ForumIcon /> },
-  { name: t('navigation.infohub'), path: '/infohub', icon: <InfoIcon /> },
-];
+const getPages = (t, user) => {
+  const pages = [
+    { name: t('navigation.home'), path: '/', icon: <HomeIcon /> },
+    { name: t('navigation.gardens'), path: '/gardens', icon: <YardIcon /> },
+    { name: t('navigation.dashboard'), path: '/tasks', icon: <AssignmentIcon /> },
+    { name: t('navigation.forum'), path: '/forum', icon: <ForumIcon /> },
+    { name: t('navigation.infohub'), path: '/infohub', icon: <InfoIcon /> },
+  ];
+
+  if (user?.profile?.role === 'ADMIN' || user?.profile?.role === 'MODERATOR') {
+    pages.push({
+      name: t('navigation.moderation', 'Moderation'),
+      path: '/moderation',
+      icon: <AdminPanelSettingsIcon />
+    });
+  }
+
+  return pages;
+};
 
 const getSettings = (t) => [
   { name: t('navigation.profile'), path: '/profile', icon: <PersonIcon /> },
@@ -70,9 +84,9 @@ function Navbar() {
   const muiTheme = useMuiTheme();
   const drawerItemsRef = useRef([]);
   const settingsMenuRef = useRef([]);
-  
+
   // Get translated navigation items
-  const pages = getPages(t);
+  const pages = getPages(t, user);
   const settings = getSettings(t);
 
   // Track scroll position to add shadow when scrolled
@@ -197,8 +211,8 @@ function Navbar() {
             aria-label="open drawer"
             onClick={toggleDrawer(true)}
             onKeyDown={createButtonKeyboardHandler(() => toggleDrawer(true)())}
-            sx={{ 
-              mr: 2, 
+            sx={{
+              mr: 2,
               display: { md: 'none' },
               '&:focus': {
                 outline: '2px solid white',
@@ -285,6 +299,7 @@ function Navbar() {
           <Box sx={{ display: 'flex', alignItems: 'center', mr: user ? 2 : 0 }}>
             <LanguageToggle />
             <ThemeToggle />
+            {user && <NotificationBell />}
           </Box>
 
           {user && (
@@ -309,9 +324,9 @@ function Navbar() {
                   aria-haspopup="true"
                   aria-expanded={Boolean(anchorElUser)}
                 >
-                  <Avatar 
-                    alt="User" 
-                    src={user?.profile?.profile_picture || '/default-avatar.png'} 
+                  <Avatar
+                    alt="User"
+                    src={user?.profile?.profile_picture || '/default-avatar.png'}
                     sx={{ width: 36, height: 36 }}
                   >
                     <AccountCircleIcon />
@@ -453,8 +468,8 @@ function Navbar() {
               Menu
             </Typography>
           </Box>
-          <IconButton 
-            color="inherit" 
+          <IconButton
+            color="inherit"
             onClick={toggleDrawer(false)}
             onKeyDown={createButtonKeyboardHandler(() => toggleDrawer(false)())}
             sx={{
@@ -547,7 +562,7 @@ function Navbar() {
                         navigate(setting.path);
                       }
                     })}
-                    sx={{ 
+                    sx={{
                       py: 1.5,
                       '&:focus': {
                         outline: '2px solid #558b2f',
@@ -578,7 +593,7 @@ function Navbar() {
                 navigate('/auth/login');
                 setDrawerOpen(false);
               })}
-              sx={{ 
+              sx={{
                 mb: 1,
                 '&:focus': {
                   outline: '2px solid #558b2f',
