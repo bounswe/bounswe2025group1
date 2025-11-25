@@ -1,4 +1,3 @@
-/* global Intl */
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -21,7 +20,7 @@ import {
   DialogTitle,
   Alert,
   Fab,
-  Tooltip
+  Tooltip,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
@@ -30,9 +29,15 @@ import AddCommentIcon from '@mui/icons-material/AddComment';
 import { useAuth } from '../../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import CommentCreateDialog from '../../components/CommentCreateDialog';
+import ImageGallery from '../../components/ImageGallery';
+import InlineImageUpload from '../../components/InlineImageUpload';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import ReportDialog from '../../components/ReportDialog';
+import FlagIcon from '@mui/icons-material/Flag';
 
 const ForumPost = () => {
+  const { t, i18n } = useTranslation();
   const { postId } = useParams();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -42,11 +47,18 @@ const ForumPost = () => {
   const [editedContent, setEditedContent] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [error, setError] = useState(null);
-  
+  const [reportConfig, setReportConfig] = useState({ open: false, type: null, id: null });
+
   // Comment dialog state
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   
-  const { currentUser, token } = useAuth();
+  // Inline comment state
+  const [showInlineComment, setShowInlineComment] = useState(false);
+  const [commentContent, setCommentContent] = useState('');
+  const [commentImages, setCommentImages] = useState([]);
+  const [commentLoading, setCommentLoading] = useState(false);
+
+  const { user, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,26 +70,32 @@ const ForumPost = () => {
         // Fetch post details
         const postResponse = await fetch(`${import.meta.env.VITE_API_URL}/forum/${postId}/`, {
           headers: {
-            'Authorization': `Token ${token}`
-          }
+            Authorization: `Token ${token}`,
+          },
         });
-        
+
         if (!postResponse.ok) {
-          throw new Error('Failed to fetch post');
+          toast.error(t('forum.failedToFetchPost'));
+          setLoading(false);
+          setError(t('forum.failedToLoadPost'));
+          return;
         }
-        
+
         const postData = await postResponse.json();
         setPost(postData);
         setEditedTitle(postData.title);
         setEditedContent(postData.content);
-        
+
         // Fetch comments for the post
-        const commentsResponse = await fetch(`${import.meta.env.VITE_API_URL}/forum/comments/?forum_post=${postId}`, {
-          headers: {
-            'Authorization': `Token ${token}`
+        const commentsResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/forum/comments/?forum_post=${postId}`,
+          {
+            headers: {
+              Authorization: `Token ${token}`,
+            },
           }
-        });
-        
+        );
+
         // If response is 404, we treat it as no comments rather than an error
         if (commentsResponse.status === 404) {
           setComments([]);
@@ -89,7 +107,7 @@ const ForumPost = () => {
           const commentsData = await commentsResponse.json();
           setComments(commentsData);
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching post data:', error);
@@ -108,36 +126,83 @@ const ForumPost = () => {
     setCommentDialogOpen(false);
   };
 
+  const handleInlineCommentSubmit = async () => {
+    if (!commentContent.trim()) {
+      toast.error('Comment cannot be empty');
+      return;
+    }
+
+    try {
+      setCommentLoading(true);
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/comments/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify({
+          forum_post: postId,
+          content: commentContent,
+          images_base64: commentImages,
+        }),
+      });
+
+      if (!response.ok) {
+        toast.error('Failed to post comment');
+        return;
+      }
+
+      const newComment = await response.json();
+      setComments([...comments, newComment]);
+      
+      // Reset form
+      setCommentContent('');
+      setCommentImages([]);
+      setShowInlineComment(false);
+      
+      toast.success('Comment posted successfully!');
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      toast.error('Failed to post comment. Please try again.');
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
   const handlePostUpdate = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/${postId}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify({
           title: editedTitle,
-          content: editedContent
-        })
+          content: editedContent,
+        }),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to update post');
+        toast.error('Failed to update post');
+        setError('Failed to update your post. Please try again.');
+        return;
       }
-      
+
       const data = await response.json();
       setPost(data);
       setEditMode(false);
-      
+
       // Show success toast notification
-      toast.success('Post updated successfully!');
+      toast.success(t('forum.postUpdatedSuccessfully'));
     } catch (error) {
       console.error('Error updating post:', error);
       setError('Failed to update your post. Please try again.');
-      
+
       // Show error toast notification
       toast.error('Failed to update post. Please try again.');
+      return;
     }
   };
 
@@ -146,37 +211,43 @@ const ForumPost = () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/${postId}/`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Token ${token}`
-        }
+          Authorization: `Token ${token}`,
+        },
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to delete post');
+        toast.error(t('forum.failedToDeletePost'));
+        setError(t('forum.failedToDeletePostTryAgain'));
+        setDeleteDialogOpen(false);
+        return;
       }
-      
+
       // Show success toast notification
       toast.success('Post deleted successfully!');
-      
+
       // Redirect to forum list after deletion
       navigate('/forum');
     } catch (error) {
       console.error('Error deleting post:', error);
       setError('Failed to delete the post. Please try again.');
       setDeleteDialogOpen(false);
-      
+
       // Show error toast notification
-      toast.error('Failed to delete post. Please try again.');
+      toast.error(t('forum.failedToDeletePost'));
+      return;
     }
   };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
+    const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+    return new Intl.DateTimeFormat(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: i18n.language === 'tr' ? false : true,
     }).format(date);
   };
 
@@ -191,13 +262,15 @@ const ForumPost = () => {
   if (error) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
-        <Button 
-          startIcon={<ArrowBackIcon />} 
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+        <Button
+          startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/forum')}
           sx={{ color: '#558b2f' }}
         >
-          Back to Forums
+          {t('forum.backToForums')}
         </Button>
       </Container>
     );
@@ -207,14 +280,14 @@ const ForumPost = () => {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
         <Typography variant="h5" color="text.secondary" sx={{ textAlign: 'left', py: 5 }}>
-          Post not found
+          {t('forum.postNotFound')}
         </Typography>
-        <Button 
-          startIcon={<ArrowBackIcon />} 
+        <Button
+          startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/forum')}
           sx={{ color: '#558b2f' }}
         >
-          Back to Forums
+          {t('forum.backToForums')}
         </Button>
       </Container>
     );
@@ -224,12 +297,12 @@ const ForumPost = () => {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
       {/* Back Button */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-        <Button 
-          startIcon={<ArrowBackIcon />} 
+        <Button
+          startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/forum')}
           sx={{ color: '#558b2f', mb: 2 }}
         >
-          Back to Forums
+          {t('forum.backToForums')}
         </Button>
       </Box>
 
@@ -240,14 +313,14 @@ const ForumPost = () => {
           <Box component="form" sx={{ mb: 3 }}>
             <TextField
               fullWidth
-              label="Title"
+              label={t('forum.postTitle')}
               value={editedTitle}
               onChange={(e) => setEditedTitle(e.target.value)}
               sx={{ mb: 2 }}
             />
             <TextField
               fullWidth
-              label="Content"
+              label={t('forum.content')}
               multiline
               rows={6}
               value={editedContent}
@@ -255,31 +328,33 @@ const ForumPost = () => {
               sx={{ mb: 2 }}
             />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-              <Button 
-                variant="outlined" 
-                onClick={() => setEditMode(false)}
-              >
-                Cancel
+              <Button variant="outlined" onClick={() => setEditMode(false)}>
+                {t('common.cancel')}
               </Button>
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 onClick={handlePostUpdate}
                 sx={{ bgcolor: '#558b2f', '&:hover': { bgcolor: '#33691e' } }}
               >
-                Save Changes
+                {t('forum.saveChanges')}
               </Button>
             </Box>
           </Box>
         ) : (
-          // View Mode
           <>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <Typography variant="h4" gutterBottom sx={{ color: '#2e7d32', fontWeight: 'bold', textAlign: 'left' }}>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
+            >
+              <Typography
+                variant="h4"
+                gutterBottom
+                sx={{ color: '#2e7d32', fontWeight: 'bold', textAlign: 'left' }}
+              >
                 {post.title}
               </Typography>
-              {post.author === currentUser?.id && (
+              {post.author === user?.id ? (
                 <Box>
-                  <IconButton 
+                  <IconButton
                     onClick={() => setEditMode(true)}
                     color="primary"
                     size="small"
@@ -287,50 +362,95 @@ const ForumPost = () => {
                   >
                     <EditIcon />
                   </IconButton>
-                  <IconButton 
-                    onClick={() => setDeleteDialogOpen(true)}
-                    color="error"
-                    size="small"
-                  >
+                  <IconButton onClick={() => setDeleteDialogOpen(true)} color="error" size="small">
                     <DeleteIcon />
+                  </IconButton>
+                </Box>
+              ) : (
+                <Box>
+                  <IconButton
+                    onClick={() => setReportConfig({ open: true, type: 'forumpost', id: post.id })}
+                    color="default"
+                    size="small"
+                    title={t('report.reportPost', 'Report Post')}
+                  >
+                    <FlagIcon />
                   </IconButton>
                 </Box>
               )}
             </Box>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>              <Avatar sx={{ bgcolor: '#558b2f', width: 40, height: 40, mr: 1 }}>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, width: '100%' }}>
+              <Avatar 
+                src={post.author_profile_picture || '/default-avatar.png'}
+                sx={{ bgcolor: '#558b2f', width: 40, height: 40, mr: 2.5, ml: 2.5, flexShrink: 0 }}
+              >
                 {post.author_username && post.author_username.charAt(0)}
               </Avatar>
-              <Box>
-                <Typography 
-                  variant="subtitle2" 
-                  sx={{ cursor: 'pointer' }}
+              <Box sx={{ flex: 1, textAlign: 'left' }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ cursor: 'pointer', textAlign: 'left', margin: 0 }}
                   onClick={() => navigate(`/profile/${post.author}`)}
                 >
                   {post.author_username}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Posted on {formatDate(post.created_at)}
-                  {post.updated_at !== post.created_at && 
-                    ` • Edited on ${formatDate(post.updated_at)}`}
+                  {t('forum.postedOn')} {formatDate(post.created_at)}
+                  {post.updated_at !== post.created_at &&
+                    ` • ${t('forum.editedOn')} ${formatDate(post.updated_at)}`}
                 </Typography>
               </Box>
             </Box>
-            
+
             <Typography variant="body1" sx={{ mb: 3, whiteSpace: 'pre-wrap', textAlign: 'left' }}>
               {post.content}
             </Typography>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-              {currentUser && (
-                <Button 
-                  variant="outlined"
-                  startIcon={<AddCommentIcon />}
-                  onClick={() => setCommentDialogOpen(true)}
-                  sx={{ color: '#558b2f', borderColor: '#558b2f' }}
-                >
-                  Add Comment
-                </Button>
+            {/* Post Images */}
+            {post.images && post.images.length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <ImageGallery 
+                  images={post.images}
+                  maxColumns={3}
+                  imageHeight={200}
+                />
+              </Box>
+            )}
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
+              {user && (
+                <>
+                  <Button
+                    variant="outlined"
+                    startIcon={<AddCommentIcon />}
+                    onClick={() => setShowInlineComment(!showInlineComment)}
+                    sx={{ 
+                      color: '#558b2f', 
+                      borderColor: '#558b2f',
+                      '& .MuiButton-startIcon': {
+                        marginRight: 1,
+                        marginLeft: 1,
+                      },
+                    }}
+                  >
+                    {showInlineComment ? t('common.cancel') : t('forum.addComment')}
+                  </Button>
+                  <Button
+                    variant="text"
+                    startIcon={<AddCommentIcon />}
+                    onClick={() => setCommentDialogOpen(true)}
+                    sx={{ 
+                      color: '#558b2f',
+                      '& .MuiButton-startIcon': {
+                        marginRight: 1,
+                        marginLeft: 1,
+                      },
+                    }}
+                  >
+                    {t('forum.dialog')}
+                  </Button>
+                </>
               )}
             </Box>
           </>
@@ -339,25 +459,97 @@ const ForumPost = () => {
 
       {/* Comments Section */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#2e7d32', fontWeight: 'medium', mt: 4, mb: 2 }}>
-          Comments ({comments.length})
+        <Typography
+          variant="h5"
+          gutterBottom
+          sx={{ color: '#2e7d32', fontWeight: 'medium', mt: 4, mb: 2 }}
+        >
+          {t('forum.comments')} ({comments.length})
         </Typography>
       </Box>
-      
+
       <Divider sx={{ mb: 3 }} />
-      
+
+      {/* Inline Comment Form */}
+      {showInlineComment && user && (
+        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+            Add a Comment
+          </Typography>
+          
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            placeholder="Share your thoughts about this post..."
+            value={commentContent}
+            onChange={(e) => setCommentContent(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          
+          <InlineImageUpload
+            onImagesChange={setCommentImages}
+            maxImages={3}
+            maxSizeMB={5}
+            initialImages={commentImages.map((img, index) => ({ 
+              base64: img, 
+              name: `image-${index + 1}.jpg` 
+            }))}
+            disabled={commentLoading}
+            compact={true}
+          />
+          
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setShowInlineComment(false);
+                setCommentContent('');
+                setCommentImages([]);
+              }}
+              disabled={commentLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleInlineCommentSubmit}
+              disabled={!commentContent.trim() || commentLoading}
+              sx={{ 
+                bgcolor: '#558b2f', 
+                '&:hover': { bgcolor: '#33691e' } 
+              }}
+            >
+              {commentLoading ? 'Posting...' : 'Post Comment'}
+            </Button>
+          </Box>
+        </Paper>
+      )}
+
       {/* Comment List */}
       {comments.length > 0 ? (
         comments.map((comment) => (
           <Card key={comment.id} sx={{ mb: 2 }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                <Avatar sx={{ bgcolor: '#8bc34a', width: 32, height: 32, mr: 2 }}>
+                <Avatar 
+                  src={comment.author_profile_picture || '/default-avatar.png'}
+                  sx={{ bgcolor: '#8bc34a', width: 32, height: 32, mr: 2, ml: 2 }}
+                >
                   {comment.author_username && comment.author_username.charAt(0)}
                 </Avatar>
-                <Box sx={{ width: '100%' }}>                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Typography 
-                      variant="subtitle2" 
+                <Box sx={{ width: '100%' }}>
+                  {' '}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle2"
                       sx={{ cursor: 'pointer' }}
                       onClick={() => navigate(`/profile/${comment.author}`)}
                     >
@@ -367,9 +559,32 @@ const ForumPost = () => {
                       {formatDate(comment.created_at)}
                     </Typography>
                   </Box>
-                  <Typography variant="body2" sx={{ textAlign: 'left' }}>
-                    {comment.content}
-                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Typography variant="body2" sx={{ textAlign: 'left', flex: 1 }}>
+                      {comment.content}
+                    </Typography>
+                    {user && comment.author !== user.id && (
+                      <IconButton
+                        size="small"
+                        onClick={() => setReportConfig({ open: true, type: 'comment', id: comment.id })}
+                        sx={{ ml: 1, mt: -0.5, opacity: 0.6, '&:hover': { opacity: 1 } }}
+                        title={t('report.reportComment', 'Report Comment')}
+                      >
+                        <FlagIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                  </Box>
+                  
+                  {/* Comment Images */}
+                  {comment.images && comment.images.length > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <ImageGallery 
+                        images={comment.images}
+                        maxColumns={2}
+                        imageHeight={150}
+                      />
+                    </Box>
+                  )}
                 </Box>
               </Box>
             </CardContent>
@@ -385,21 +600,21 @@ const ForumPost = () => {
           </Typography>
         </Box>
       )}
-      
+
       {/* Add Comment Floating Action Button (for logged in users) */}
-      {currentUser && (
+      {user && (
         <Tooltip title="Add comment" arrow placement="left">
           <Fab
             color="primary"
             aria-label="add comment"
-            sx={{ 
-              position: 'fixed', 
-              bottom: 24, 
+            sx={{
+              position: 'fixed',
+              bottom: 24,
               right: 24,
               backgroundColor: '#558b2f',
               '&:hover': {
                 backgroundColor: '#33691e',
-              }
+              },
             }}
             onClick={() => setCommentDialogOpen(true)}
           >
@@ -407,7 +622,7 @@ const ForumPost = () => {
           </Fab>
         </Tooltip>
       )}
-      
+
       {/* Comment Dialog Component */}
       <CommentCreateDialog
         open={commentDialogOpen}
@@ -415,12 +630,16 @@ const ForumPost = () => {
         postId={postId}
         onCommentCreated={handleCommentCreated}
       />
-      
+
+      <ReportDialog
+        open={reportConfig.open}
+        onClose={() => setReportConfig({ ...reportConfig, open: false })}
+        contentType={reportConfig.type}
+        objectId={reportConfig.id}
+      />
+
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Delete Post</DialogTitle>
         <DialogContent>
           <DialogContentText>

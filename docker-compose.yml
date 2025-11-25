@@ -6,10 +6,13 @@ services:
       context: ./frontend
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - backend
     env_file:
       - ./frontend/.env
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - app-network
 
@@ -43,15 +46,20 @@ services:
     env_file:
       - ./gardenPlannerBackend/.env
     environment:
+      - TZ=Europe/Istanbul
       - DEBUG=True
       - DB_NAME=gardenplanner
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_HOST=postgres
       - DB_PORT=5432
+      - PYTHONUNBUFFERED=1
+      - FIREBASE_SERVICE_ACCOUNT_KEY=firebase-service-account.json
     command: >
       sh -c "python manage.py migrate && 
+             (python manage.py run_scheduler &) &&
              python manage.py runserver 0.0.0.0:8000"
+    # run migrations, start scheduler in background, then start server
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,6 +74,7 @@ services:
       - "19001:19001"  # Metro
       - "19002:19002"  # DevTools
       - "8081:8081" # React Native Web
+      - "8082:8082" # Alternative port for tunnel
     volumes:
       - ./MOBILE/CommunityGardenApp:/app
       - /app/node_modules
@@ -73,6 +82,9 @@ services:
       - ./MOBILE/CommunityGardenApp/.env
     environment:
       - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - CI=1
+    command: >
+      sh -c "npm install -g @expo/ngrok@^4.1.0 && npx expo start --tunnel"
     networks:
       - app-network
 

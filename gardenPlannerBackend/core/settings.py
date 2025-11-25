@@ -21,16 +21,12 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Add the gardenplanner/apps directory to Python path
-APPS_DIR = os.path.join(BASE_DIR, 'gardenplanner', 'apps')
-sys.path.insert(0, APPS_DIR)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
-RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')
 OPENWEATHERMAP_API_KEY = os.getenv('OPENWEATHERMAP_API_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -53,9 +49,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'drf_yasg',
     
     # Local apps
-    'garden',
+    'gardenplanner.apps.garden',
+    'gardenplanner.apps.chat',
+
+    'push_notifications',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -70,11 +71,28 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Security settings for HTTPS
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = True
+
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "http://164.92.202.177:5173",
+    "http://localhost:5173",
+    "https://communitygarden.app",
+    "https://localhost:5173",
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -107,7 +125,7 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', 'gardenplanner'),
         'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
-        'HOST': os.getenv('DB_HOST', '164.92.202.177'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
@@ -173,17 +191,43 @@ REST_FRAMEWORK = {
 
 
 
-# Dev/testing only — use console to print emails
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
-# For real email sending (e.g., with Gmail or SMTP server), you'd use:
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your_email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'your_app_password'
+# For development/testing only — use console to print emails instead of sending:
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Ensure trailing slashes are handled correctly
 APPEND_SLASH = True
 
+PUSH_NOTIFICATIONS_SETTINGS = {
+    "FCM_SERVICE_ACCOUNT_FILE": os.path.join(BASE_DIR, "firebase-service-account.json"), 
+}
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',  # Change this to 'INFO', 'WARNING', 'ERROR', or 'CRITICAL' as needed
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',  # Specifically for Django's internal logs
+            'propagate': False,
+        },
+    },
+}
+
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"

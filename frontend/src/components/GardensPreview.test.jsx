@@ -5,11 +5,11 @@ import GardensPreview from './GardensPreview';
 import { useAuth } from '../contexts/AuthContextUtils';
 
 vi.mock('../contexts/AuthContextUtils', () => ({
-  useAuth: vi.fn()
+  useAuth: vi.fn(),
 }));
 
 vi.mock('react-router-dom', () => ({
-  useNavigate: () => vi.fn()
+  useNavigate: () => vi.fn(),
 }));
 
 const mockGardens = [
@@ -19,7 +19,7 @@ const mockGardens = [
     description: 'A test garden description',
     location: 'Test Location 1',
     members: 5,
-    tasks: 3
+    tasks: 3,
   },
   {
     id: 2,
@@ -27,17 +27,23 @@ const mockGardens = [
     description: 'Another test garden description',
     location: 'Test Location 2',
     members: 3,
-    tasks: 7
-  }
+    tasks: 7,
+  },
 ];
 
 describe('GardensPreview component', () => {
   beforeEach(() => {
-    window.fetch = vi.fn();
-    vi.resetAllMocks();
+    // align fetch mocking with other tests: provide a default resolved value
+    // individual tests may override with mockResolvedValueOnce or mockRejectedValueOnce
+    vi.clearAllMocks();
     useAuth.mockReturnValue({
       token: 'mock-token',
-      currentUser: { id: 1, username: 'testuser' }
+      user: { id: 1, username: 'testuser' },
+    });
+
+    window.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGardens,
     });
   });
 
@@ -50,31 +56,25 @@ describe('GardensPreview component', () => {
   });
 
   it('renders gardens when data is loaded', async () => {
-    // Mock profile response
-    window.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ username: 'testuser' })
-    });
-    
     // Mock memberships response
     window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [
         { status: 'ACCEPTED', username: 'testuser', garden: 1 },
-        { status: 'ACCEPTED', username: 'testuser', garden: 2 }
-      ]
+        { status: 'ACCEPTED', username: 'testuser', garden: 2 },
+      ],
     });
-    
+
     // Mock garden 1 response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => mockGardens[0]
+      json: async () => mockGardens[0],
     });
-    
+
     // Mock garden 2 response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => mockGardens[1]
+      json: async () => mockGardens[1],
     });
 
     render(<GardensPreview />);
@@ -85,35 +85,30 @@ describe('GardensPreview component', () => {
       expect(screen.getByText('Test Garden 2')).toBeInTheDocument();
     });
   });
+
   it('respects the limit prop', async () => {
-    // Mock profile response
-    window.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ username: 'testuser' })
-    });
-    
     // Mock memberships response
     window.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [
         { status: 'ACCEPTED', username: 'testuser', garden: 1 },
         { status: 'ACCEPTED', username: 'testuser', garden: 2 },
-        { status: 'ACCEPTED', username: 'testuser', garden: 3 }
-      ]
+        { status: 'ACCEPTED', username: 'testuser', garden: 3 },
+      ],
     });
-    
+
     // Mock garden 1 response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => mockGardens[0]
+      json: async () => mockGardens[0],
     });
-    
+
     // Mock garden 2 response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => mockGardens[1]
+      json: async () => mockGardens[1],
     });
-    
+
     // Mock garden 3 response
     window.fetch.mockResolvedValueOnce({
       ok: true,
@@ -123,8 +118,8 @@ describe('GardensPreview component', () => {
         description: 'Yet another garden',
         location: 'Test Location 3',
         members: 1,
-        tasks: 2
-      })
+        tasks: 2,
+      }),
     });
 
     render(<GardensPreview limit={2} />);
@@ -138,16 +133,10 @@ describe('GardensPreview component', () => {
   });
 
   it('displays message when no gardens are available', async () => {
-    // Mock profile response
-    window.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ username: 'testuser' })
-    });
-    
     // Mock memberships response with empty array
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => []
+      json: async () => [],
     });
 
     render(<GardensPreview />);
@@ -160,13 +149,13 @@ describe('GardensPreview component', () => {
   it('handles public gardens for non-logged in users', async () => {
     useAuth.mockReturnValue({
       token: null,
-      currentUser: null
+      user: null,
     });
 
     // Mock public gardens response
     window.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => mockGardens
+      json: async () => mockGardens,
     });
 
     render(<GardensPreview />);
@@ -179,7 +168,7 @@ describe('GardensPreview component', () => {
   });
 
   it('handles error state gracefully', async () => {
-    // Mock failed profile fetch
+    // Mock failed memberships fetch
     window.fetch.mockRejectedValueOnce(new Error('Failed to fetch'));
     console.error = vi.fn(); // Silence console errors in test
 

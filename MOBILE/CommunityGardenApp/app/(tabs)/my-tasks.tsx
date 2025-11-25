@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
 import axios from 'axios';
-import { API_URL, COLORS } from '../../constants/Config';
+import { API_URL } from '../../constants/Config';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 export default function MyTasksScreen() {
   const { token, user } = useAuth();
+  const colors = useAccessibleColors();
   const [groupedTasks, setGroupedTasks] = useState([]);
   const router = useRouter();
+  const { t } = useTranslation();
 
   useFocusEffect(
     useCallback(() => {
@@ -65,27 +69,27 @@ export default function MyTasksScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>My Tasks</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.header, { color: colors.text }]}>{t('tasks.myTasks')}</Text>
       <ScrollView>
         {groupedTasks.map(group => (
           <View key={group.gardenId} style={styles.gardenSection}>
-            <Text style={styles.gardenHeader}>{group.gardenName}</Text>
+            <Text style={[styles.gardenHeader, { color: colors.primary }]}>{group.gardenName}</Text>
             {group.tasks.map(task => (
               <TouchableOpacity
                 key={task.id}
-                style={styles.card}
+                style={[styles.card, { backgroundColor: colors.surface }]}
                 onPress={() => router.push(`/tasks/task-detail?taskId=${task.id}`)}
               >
-                <Text style={styles.title}>{task.title}</Text>
-                <Text style={styles.status}>Status: {task.status}</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{task.title}</Text>
+                <Text style={[styles.status, { color: colors.primary }]}>{t('tasks.status')}: {task.status}</Text>
               </TouchableOpacity>
             ))}
           </View>
         ))}
         {groupedTasks.length === 0 && (
-          <Text style={{ marginTop: 20, textAlign: 'center', color: COLORS.text }}>
-            You don't have any assigned tasks.
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            {t('tasks.noTasks')}
           </Text>
         )}
       </ScrollView>
@@ -94,16 +98,16 @@ export default function MyTasksScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, flex: 1, backgroundColor: COLORS.background },
+  container: { padding: 20, flex: 1 },
   header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
   gardenSection: { marginBottom: 24 },
-  gardenHeader: { fontSize: 18, fontWeight: 'bold', color: COLORS.primaryDark, marginBottom: 8 },
+  gardenHeader: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
   card: {
-    backgroundColor: '#f0f4f8',
     padding: 12,
     borderRadius: 8,
     marginBottom: 10,
   },
   title: { fontSize: 16, fontWeight: 'bold' },
-  status: { fontSize: 14, color: COLORS.primaryDark },
+  status: { fontSize: 14 },
+  emptyText: { marginTop: 20, textAlign: 'center' },
 });

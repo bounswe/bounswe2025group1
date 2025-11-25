@@ -1,11 +1,21 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import './App.css';
+import { useTranslation } from 'react-i18next';
+
+// Initialize i18n
+import './i18n/config';
+
+// Helper to check if current language is RTL
+const isRTLLanguage = (lang) => {
+  const RTL_LANGUAGES = ['ar', 'fa', 'ur'];
+  return RTL_LANGUAGES.includes(lang);
+};
 
 // Components
 import Navbar from './components/Navbar';
+import ChatWidget from './components/ChatWidget';
 // Pages
 import Home from './pages/home/Home';
 import Login from './pages/auth/Login';
@@ -17,119 +27,44 @@ import ForumPost from './pages/forum/ForumPost';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Profile from './pages/profile/Profile';
+import ModerationDashboard from './pages/moderation/ModerationDashboard';
+import InfohubHome from './pages/infohub/InfohubHome';
+import InfohubDetail from './pages/infohub/InfohubDetail';
 import { ToastContainer } from 'react-toastify';
 import Tasks from './pages/task/Tasks';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Context providers
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
-// Create theme with custom green palette for our garden app
-let theme = createTheme({
-  palette: {
-    primary: {
-      main: '#558b2f',
-      light: '#7cb342',
-      dark: '#33691e',
-    },
-    secondary: {
-      main: '#ff9800',
-      light: '#ffb74d',
-      dark: '#f57c00',
-    },
-    background: {
-      default: '#f9fbf6',
-    },
-  },
-  typography: {
-    fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 500,
-    },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 6,
-          textTransform: 'none',
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-        },
-      },
-    },
-    MuiContainer: {
-      styleOverrides: {
-        root: {
-          paddingLeft: 16,
-          paddingRight: 16,
-          '@media (min-width:600px)': {
-            paddingLeft: 24,
-            paddingRight: 24,
-          },
-          maxWidth: '100%',
-        },
-      },
-    },
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          width: '100%',
-        },
-      },
-    },
-  },
-  breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 900,
-      lg: 1200,
-      xl: 1536,
-    },
-  },
-});
+function AppContent() {
+  const { currentTheme } = useTheme();
+  const { i18n } = useTranslation();
 
-// Make typography responsive
-theme = responsiveFontSizes(theme);
+  const getToastTheme = () => {
+    if (currentTheme === 'dark') return 'dark';
+    if (currentTheme === 'highContrast') return 'light';
+    return 'light';
+  };
 
-function App() {
+  const isRTL = isRTLLanguage(i18n.language);
+
   return (
-    <ThemeProvider theme={theme}>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light" // options: 'light', 'dark', 'colored'
-        toastClassName="custom-toast"
-        bodyClassName="custom-toast-body"
-      />
-
+    <>
       <CssBaseline />
       <AuthProvider>
         <Router>
-          <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: '100vh',
+              width: '100%',
+              maxWidth: '100%',
+              overflow: 'hidden',
+            }}
+          >
             <Navbar />
             <Box
               component="main"
@@ -142,7 +77,7 @@ function App() {
                 overflowX: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'stretch'
+                alignItems: 'stretch',
               }}
             >
               <Routes>
@@ -151,26 +86,36 @@ function App() {
                 <Route path="/auth/register" element={<Register />} />
                 <Route path="/gardens" element={<GardenList />} />
                 <Route path="/gardens/:gardenId" element={<GardenDetail />} />
-                <Route path='/tasks' element={<Tasks />} />
+                <Route path="/tasks" element={<Tasks />} />
                 <Route path="/forum" element={<ForumList />} />
                 <Route path="/forum/:postId" element={<ForumPost />} />
+                <Route path="/infohub" element={<InfohubHome />} />
+                <Route path="/infohub/:categoryId" element={<InfohubDetail />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
+                <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:userId" element={<Profile />} />
+                <Route path="/moderation" element={<ModerationDashboard />} />
                 {/* Additional routes will be implemented later */}
                 <Route path="*" element={<Home />} />
               </Routes>
             </Box>
+
+            {/* Chat Widget - appears on all pages when user is logged in */}
+            <ChatWidget />
+
             <Box
               component="footer"
               sx={{
                 py: 3,
                 px: 2,
                 mt: 'auto',
-                backgroundColor: '#f5f5f5',
+                backgroundColor: 'background.paper',
                 textAlign: 'center',
-                width: '100%'
+                width: '100%',
+                borderTop: '1px solid',
+                borderColor: 'divider',
               }}
             >
               <Box sx={{ color: 'text.secondary' }}>
@@ -180,7 +125,31 @@ function App() {
           </Box>
         </Router>
       </AuthProvider>
-    </ThemeProvider>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        toastClassName="custom-toast"
+        bodyClassName="custom-toast-body"
+      />
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </>
   );
 }
 

@@ -1,56 +1,95 @@
 import { Stack } from 'expo-router';
 import { AuthProvider } from '../contexts/AuthContext';
+import { AccessibilityProvider, useAccessibleColors } from '../contexts/AccessibilityContextSimple';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
-import { COLORS } from '../constants/Config';
+import { useTranslation } from 'react-i18next';
+import '../i18n';
+
+function StackNavigator() {
+  const colors = useAccessibleColors();
+  const { t } = useTranslation();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.primary,
+        },
+        headerTintColor: colors.white,
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+        headerBackTitleVisible: false,
+        contentStyle: {
+          backgroundColor: colors.background,
+        },
+      }}
+    >
+      <Stack.Screen
+        name="(tabs)"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="auth/login"
+        options={{
+          title: 'Sign In',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="auth/register"
+        options={{
+          title: 'Sign Up',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="auth/forgot-password"
+        options={{
+          title: 'Forgot Password',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="garden/CreateGardenScreen"
+        options={{
+          title: t('garden.create.title'),
+        }}
+      />
+      <Stack.Screen
+        name="garden/[id]"
+        options={{
+          title: t('garden.detail.title'),
+        }}
+      />
+      <Stack.Screen
+        name="tasks/create-task"
+        options={{
+          title: 'Create Task',
+        }}
+      />
+      <Stack.Screen
+        name="messages/[chatId]"
+        options={{
+          title: 'Chat',
+          headerBackTitle: 'Back',
+        }}
+      />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
     <AuthProvider>
-      <Stack
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: COLORS.primary,
-          },
-          headerTintColor: COLORS.white,
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-          contentStyle: {
-            backgroundColor: COLORS.background,
-          },
-        }}
-      >
-        <Stack.Screen
-          name="(tabs)"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="auth/login"
-          options={{
-            title: 'Sign In',
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="auth/register"
-          options={{
-            title: 'Sign Up',
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="auth/forgot-password"
-          options={{
-            title: 'Forgot Password',
-            headerShown: false,
-          }}
-        />
-      </Stack>
+      <AccessibilityProvider>
+        <StackNavigator />
+      </AccessibilityProvider>
     </AuthProvider>
   );
 }

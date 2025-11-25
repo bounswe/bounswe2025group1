@@ -1,148 +1,199 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  Modal, Fade, Backdrop, Box, Typography, TextField, MenuItem, Button, FormControl,
-  InputLabel, Select, OutlinedInput, CircularProgress
+  Modal,
+  Fade,
+  Backdrop,
+  Box,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  OutlinedInput,
+  CircularProgress,
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
+import 'dayjs/locale/tr';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useAuth } from '../contexts/AuthContextUtils';
+import { createFormKeyboardHandler, createButtonKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
+import { useTranslation } from 'react-i18next';
 
 const TaskModal = ({
   open,
   onClose,
   onSubmit,
   onDelete,
+  handleAcceptTask,
+  handleDeclineTask,
   mode = 'create',
-  initialData = {},
-  gardenId // Current garden ID for creating tasks
+  task,
+  gardenId, // Current garden ID for creating tasks
+  members, // Optional: pass members from parent to avoid refetching
 }) => {
+  const { t, i18n } = useTranslation();
+  const { user, token } = useAuth();
   // Initialize with default empty values
   const [taskForm, setTaskForm] = useState({
     title: '',
     description: '',
     status: 'PENDING',
-    assigned_to: null,
-    custom_type: null,
+    assigned_to: "",
+    custom_type: "",
     garden: parseInt(gardenId),
-    ...initialData
+    ...(task || {}),
   });
 
   // States for data from API
   const [gardenMembers, setGardenMembers] = useState([]);
   const [customTaskTypes, setCustomTaskTypes] = useState([]);
-  
+
   // Loading states
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [loadingTaskTypes, setLoadingTaskTypes] = useState(false);
 
-  const [deadline, setDeadline] = useState(
-    initialData?.due_date ? dayjs(initialData.due_date) : dayjs()
-  );
+  const [deadline, setDeadline] = useState(task?.due_date ? dayjs(task.due_date) : dayjs());
 
   const [newTaskTypeName, setNewTaskTypeName] = useState('');
   const [newTaskTypeDescription, setNewTaskTypeDescription] = useState('');
+  const modalRef = useRef(null);
+  const focusableElementsRef = useRef([]);
 
-  // Get token from localStorage
-  const getToken = () => localStorage.getItem('token');
+  // NOTE: fetch helpers moved into the useEffect below to avoid changing the
+  // useEffect dependency array on every render (fixes react-hooks/exhaustive-deps).
 
-  // Fetch garden members (users who can be assigned to tasks)
-  const fetchGardenMembers = async () => {
-    if (!gardenId) return;
-    
-    setLoadingMembers(true);
-    try {
-      const token = getToken();
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch garden members');
-      }
-      
-      const data = await response.json();
-      // Filter members for this garden and transform to the format we need
-      const members = data
-        .filter(member => member.garden === parseInt(gardenId) && member.status === 'ACCEPTED')
-        .map(member => ({
-          id: member.user_id,
-          name: member.username
-        }));
-      setGardenMembers(members);
-    } catch (error) {
-      console.error('Error fetching garden members:', error);
-    } finally {
+  // Update garden members when members prop changes
+  useEffect(() => {
+    if (members) {
+      // Use members passed from parent (already filtered and formatted)
+      const formattedMembers = members
+        .filter((member) => member.status === 'ACCEPTED')
+        .map((member) => ({ id: member.user_id, name: member.username }));
+      setGardenMembers(formattedMembers);
       setLoadingMembers(false);
     }
-  };
 
-  // Fetch custom task types for this garden
-  const fetchCustomTaskTypes = async () => {
-    if (!gardenId) return;
-    
-    setLoadingTaskTypes(true);
-    try {
-      const token = getToken();
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
+    // Fallback: fetch members if not provided
+    if (!gardenId || !token) return;
+
+    const fetchGardenMembers = async () => {
+      setLoadingMembers(true);
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/members/`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          toast.error(t('errors.failedToFetchMembers'));
+          setLoadingMembers(false);
+          return;
         }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch custom task types');
+
+        const data = await response.json();
+        const fetchedMembers = data
+          .filter((member) => member.status === 'ACCEPTED')
+          .map((member) => ({ id: member.user_id, name: member.username }));
+        setGardenMembers(fetchedMembers);
+      } catch (error) {
+        console.error('Error fetching garden members:', error);
+      } finally {
+        setLoadingMembers(false);
       }
-      
-      const data = await response.json();
-      // Map response to the format we need
-      const taskTypes = data.map(type => ({
-        id: type.id,
-        name: type.name,
-        description: type.description
-      }));
-      
-      setCustomTaskTypes(taskTypes);
-    } catch (error) {
-      console.error('Error fetching custom task types:', error);
-    } finally {
-      setLoadingTaskTypes(false);
-    }
-  };
-  
-  // Fetch data when component mounts
-  useEffect(() => {
+    };
+
+    const fetchCustomTaskTypes = async () => {
+      setLoadingTaskTypes(true);
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/task-types/?garden=${gardenId}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          toast.error(t('errors.failedToFetchTaskTypes'));
+          setLoadingTaskTypes(false);
+          return;
+        }
+
+        const data = await response.json();
+        const taskTypes = data.map((type) => ({
+          id: type.id,
+          name: type.name,
+          description: type.description,
+        }));
+        setCustomTaskTypes(taskTypes);
+      } catch (error) {
+        console.error('Error fetching custom task types:', error);
+      } finally {
+        setLoadingTaskTypes(false);
+      }
+    };
+
     fetchGardenMembers();
     fetchCustomTaskTypes();
-  }, [gardenId]);
-  // Update the form state whenever initialData changes
+  }, [gardenId, token, members, t]);
+
+  // Update the form state whenever task changes
   useEffect(() => {
-    // Update taskForm with initialData while preserving existing values
-    setTaskForm(prev => ({
+    setTaskForm((prev) => ({
       ...prev,
-      ...initialData
+      ...(task || {}),
     }));
-    
-    // Update the deadline state if due_date exists
-    if (initialData?.due_date) {
-      setDeadline(dayjs(initialData.due_date));
+    setDeadline(task?.due_date ? dayjs(task.due_date) : dayjs());
+  }, [task]);
+
+  // Set dayjs locale based on current language
+  useEffect(() => {
+    dayjs.locale(i18n.language === 'tr' ? 'tr' : 'en');
+  }, [i18n.language]);
+
+  // Reset form when modal is closed so the form is empty next time it's opened
+  useEffect(() => {
+    if (!open) {
+      setTaskForm({
+        title: '',
+        description: '',
+        status: 'PENDING',
+        assigned_to: '',
+        custom_type: '',
+        garden: parseInt(gardenId),
+      });
+      setDeadline(dayjs());
+      setNewTaskTypeName('');
+      setNewTaskTypeDescription('');
     }
-  }, [initialData]);
+    // We intentionally only reset when modal closes. When in edit mode,
+    // the `task` prop effect above will repopulate the form when a task
+    // is provided by the parent.
+  }, [open, gardenId]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setTaskForm(prev => ({ ...prev, [name]: value }));
+    setTaskForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAssigneeChange = (event) => {
     const { value } = event.target;
-    setTaskForm(prev => ({ ...prev, assigned_to: value }));
+    setTaskForm((prev) => ({ ...prev, assigned_to: value }));
   };
 
   // Create a new custom task type
@@ -150,43 +201,54 @@ const TaskModal = ({
     if (!newTaskTypeName || !gardenId) return null;
 
     try {
-      const token = getToken();
       const response = await fetch(`${import.meta.env.VITE_API_URL}/task-types/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify({
           garden: gardenId,
           name: newTaskTypeName,
-          description: newTaskTypeDescription || `Tasks related to ${newTaskTypeName}`
-        })
+          description: newTaskTypeDescription || t('tasks.tasksRelatedTo', { name: newTaskTypeName }),
+        }),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to create custom task type');
+        toast.error(t('tasks.failedToCreateTaskType'));
+        return null;
       }
-      
+
       const data = await response.json();
-      
+
       // Add the new task type to the list
-      setCustomTaskTypes(prev => [...prev, {
-        id: data.id,
-        name: data.name,
-        description: data.description
-      }]);
-      
+      setCustomTaskTypes((prev) => [
+        ...prev,
+        {
+          id: data.id,
+          name: data.name,
+          description: data.description,
+        },
+      ]);
+
       // Return the ID to set it as the selected value
       return data.id;
     } catch (error) {
       console.error('Error creating custom task type:', error);
       return null;
     }
-  };  const handleSubmit = async (e) => {
+  };
+
+  // Add validation to ensure task type is mandatory
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!taskForm.custom_type) {
+      toast.error(t('tasks.taskTypeRequired'));
+      return;
+    }
+
     const updatedForm = { ...taskForm };
-    
+
     // Ensure deadline is a valid dayjs object before calling toISOString
     if (deadline && dayjs(deadline).isValid()) {
       const formattedDeadline = deadline.toISOString();
@@ -194,8 +256,6 @@ const TaskModal = ({
     } else {
       updatedForm.due_date = dayjs().toISOString();
     }
-    
-    console.log('Form values before submission:', updatedForm);
 
     // If we have a new task type to create
     if (taskForm.custom_type === 'new' && newTaskTypeName) {
@@ -205,62 +265,147 @@ const TaskModal = ({
       } else {
         updatedForm.custom_type = null;
       }
-    }    // Final form should match the API requirements
+    } // Final form should match the API requirements
     const finalForm = {
-      id: updatedForm.id, // Preserve ID for edit mode
+      id: updatedForm.id,
       garden: parseInt(gardenId),
       title: updatedForm.title,
       description: updatedForm.description,
       status: updatedForm.status || 'PENDING',
-      assigned_to: updatedForm.assigned_to === 'Not Assigned' ? null : updatedForm.assigned_to || null,
+      assigned_to:
+        updatedForm.assigned_to === 'Not Assigned' ? null : updatedForm.assigned_to || null,
       due_date: updatedForm.due_date,
-      custom_type: updatedForm.custom_type === 'new' ? null : 
-                   updatedForm.custom_type === 'No Type' ? null : 
-                   updatedForm.custom_type
+      custom_type:
+        updatedForm.custom_type === 'new'
+          ? null
+          : updatedForm.custom_type || null,
     };
-    
+
     onSubmit(finalForm);
     onClose();
   };
 
-  return (
-    <Modal open={open} onClose={onClose} closeAfterTransition BackdropComponent={Backdrop} BackdropProps={{ timeout: 500 }}>
-      <Fade in={open}>
-        <Box component="form" onSubmit={handleSubmit} sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 500, bgcolor: 'background.paper', borderRadius: 2, boxShadow: 24, p: 4 }}>
-          <Typography variant="h6" gutterBottom>{mode === 'edit' ? 'Edit Task' : 'Add Task'}</Typography>
+  // Create keyboard handler for the form
+  const formKeyboardHandler = createFormKeyboardHandler(handleSubmit, onClose);
 
-          <TextField label="Title" name="title" fullWidth margin="normal" value={taskForm.title} onChange={handleFormChange} required />
-          <TextField label="Description" name="description" fullWidth margin="normal" multiline rows={3} value={taskForm.description} onChange={handleFormChange} />
+  // Set up focus trap when modal opens
+  useEffect(() => {
+    if (open && modalRef.current) {
+      // Get all focusable elements within the modal
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      focusableElementsRef.current = Array.from(focusableElements);
+      
+      // Focus the first element
+      if (focusableElementsRef.current.length > 0) {
+        focusableElementsRef.current[0].focus();
+      }
+      
+      // Set up focus trap
+      const cleanup = trapFocus(modalRef.current, focusableElementsRef.current);
+      return cleanup;
+    }
+  }, [open]);
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      closeAfterTransition
+      BackdropComponent={Backdrop}
+      BackdropProps={{ timeout: 500 }}
+    >
+      <Fade in={open}>
+        <Box
+          ref={modalRef}
+          component="form"
+          onSubmit={handleSubmit}
+          onKeyDown={formKeyboardHandler}
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: { xs: '95%', sm: '90%', md: 600 },
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            boxShadow: 24,
+            p: { xs: 2, sm: 3, md: 4 },
+            overflow: 'auto',
+            '&:focus': {
+              outline: 'none',
+            },
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="task-modal-title"
+        >
+          <Typography id="task-modal-title" variant="h6" gutterBottom>
+            {mode === 'edit' ? t('tasks.editTask') : t('tasks.addTask')}
+          </Typography>
+
+          <TextField
+            label={t('tasks.taskTitle')}
+            name="title"
+            fullWidth
+            margin="normal"
+            value={taskForm.title}
+            onChange={handleFormChange}
+            required
+          />
+          <TextField
+            label={t('tasks.description')}
+            name="description"
+            fullWidth
+            margin="normal"
+            multiline
+            rows={3}
+            value={taskForm.description}
+            onChange={handleFormChange}
+            placeholder={t('tasks.taskDescriptionPlaceholder')}
+          />
 
           <FormControl fullWidth margin="normal">
-            <InputLabel>Status</InputLabel>
+            <InputLabel>{t('tasks.status')}</InputLabel>
             <Select
               name="status"
               value={taskForm.status || 'PENDING'}
               onChange={handleFormChange}
               input={<OutlinedInput label="Status" />}
             >
-              <MenuItem value="PENDING">Pending</MenuItem>
-              <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
-              <MenuItem value="COMPLETED">Completed</MenuItem>
+              <MenuItem value="PENDING">{t('tasks.pending')}</MenuItem>
+              <MenuItem value="IN_PROGRESS">{t('tasks.inProgress')}</MenuItem>
+              <MenuItem value="COMPLETED">{t('tasks.completed')}</MenuItem>
+              <MenuItem value="DECLINED">{t('tasks.declined')}</MenuItem>
             </Select>
           </FormControl>
 
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <LocalizationProvider 
+            dateAdapter={AdapterDayjs} 
+            adapterLocale={i18n.language === 'tr' ? 'tr' : 'en'}
+          >
             <Box sx={{ mt: 2 }}>
               <DateTimePicker
-                label="Deadline"
+                label={t('tasks.deadline')}
                 value={deadline}
                 onChange={(newValue) => setDeadline(newValue)}
                 slotProps={{
-                  textField: { fullWidth: true, variant: 'outlined', margin: 'normal', size: 'medium' }
+                  textField: {
+                    fullWidth: true,
+                    variant: 'outlined',
+                    margin: 'normal',
+                    size: 'medium',
+                  },
                 }}
               />
             </Box>
           </LocalizationProvider>
 
           <FormControl fullWidth margin="normal">
-            <InputLabel>Assignee</InputLabel>
+            <InputLabel>{t('tasks.assignee')}</InputLabel>
             {loadingMembers ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
                 <CircularProgress size={24} />
@@ -272,7 +417,7 @@ const TaskModal = ({
                 input={<OutlinedInput label="Assignee" />}
               >
                 <MenuItem value="Not Assigned">
-                  <em>Not Assigned</em>
+                  <em>{t('tasks.notAssigned')}</em>
                 </MenuItem>
                 {gardenMembers.map((user) => (
                   <MenuItem key={user.id} value={user.id}>
@@ -284,7 +429,7 @@ const TaskModal = ({
           </FormControl>
 
           <FormControl fullWidth margin="normal">
-            <InputLabel>Task Type</InputLabel>
+            <InputLabel>{t('tasks.taskType')}</InputLabel>
             {loadingTaskTypes ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
                 <CircularProgress size={24} />
@@ -296,48 +441,130 @@ const TaskModal = ({
                 onChange={handleFormChange}
                 input={<OutlinedInput label="Task Type" />}
               >
-                <MenuItem value="No Type">
-                  <em>No Type</em>
-                </MenuItem>
                 {customTaskTypes.map((type) => (
                   <MenuItem key={type.id} value={type.id}>
                     {type.name}
                   </MenuItem>
                 ))}
-                <MenuItem value="new">+ Create New Type</MenuItem>
+                <MenuItem value="new">{t('tasks.createNewType')}</MenuItem>
               </Select>
             )}
           </FormControl>
 
           {taskForm.custom_type === 'new' && (
             <Box sx={{ mt: 2 }}>
-              <TextField 
-                label="New Task Type Name" 
-                fullWidth 
-                margin="normal" 
+              <TextField
+                label={t('tasks.newTaskTypeName')}
+                fullWidth
+                margin="normal"
                 value={newTaskTypeName}
                 onChange={(e) => setNewTaskTypeName(e.target.value)}
-                required 
+                required
               />
-              <TextField 
-                label="Description (optional)" 
-                fullWidth 
-                margin="normal" 
+              <TextField
+                label={t('tasks.descriptionOptional')}
+                fullWidth
+                margin="normal"
                 value={newTaskTypeDescription}
                 onChange={(e) => setNewTaskTypeDescription(e.target.value)}
               />
             </Box>
           )}
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
-            <Button type="submit" variant="contained" sx={{ backgroundColor: '#558b2f' }}>
-              {mode === 'edit' ? 'Save Changes' : 'Create Task'}
-            </Button>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'flex-end', 
+            mt: 3, 
+            gap: 2 
+          }}>
+            {user && task?.assigned_to === user.user_id && task?.status === 'PENDING' && (
+              <>
+                <Button
+                  variant="outlined"
+                  color="success"
+                  fullWidth={{ xs: true, sm: false }}
+                  onClick={() => {
+                    handleAcceptTask(task);
+                  }}
+                  onKeyDown={createButtonKeyboardHandler(() => {
+                    handleAcceptTask(task);
+                  })}
+                  sx={{
+                    '&:focus': {
+                      outline: '2px solid #4caf50',
+                      outlineOffset: '2px',
+                    },
+                  }}
+                >
+                  {t('tasks.acceptTask')}
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  fullWidth={{ xs: true, sm: false }}
+                  onClick={() => {
+                    handleDeclineTask(task);
+                  }}
+                  onKeyDown={createButtonKeyboardHandler(() => {
+                    handleDeclineTask(task);
+                  })}
+                  sx={{
+                    '&:focus': {
+                      outline: '2px solid #f44336',
+                      outlineOffset: '2px',
+                    },
+                  }}
+                >
+                  {t('tasks.declineTask')}
+                </Button>
+              </>
+            )}
             {mode === 'edit' && (
-              <Button variant="contained" color="error" onClick={onDelete}>
-                Delete Task
+              <Button 
+                variant="contained" 
+                color="error" 
+                fullWidth={{ xs: true, sm: false }}
+                onClick={onDelete}
+                onKeyDown={createButtonKeyboardHandler(onDelete)}
+                sx={{
+                  '&:focus': {
+                    outline: '2px solid #f44336',
+                    outlineOffset: '2px',
+                  },
+                }}
+              >
+                {t('tasks.deleteTask')}
               </Button>
             )}
+            <Button 
+              variant="outlined" 
+              fullWidth={{ xs: true, sm: false }}
+              onClick={onClose}
+              onKeyDown={createButtonKeyboardHandler(onClose)}
+              sx={{
+                '&:focus': {
+                  outline: '2px solid #1976d2',
+                  outlineOffset: '2px',
+                },
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              fullWidth={{ xs: true, sm: false }}
+              sx={{ 
+                backgroundColor: '#558b2f',
+                '&:focus': {
+                  outline: '2px solid #558b2f',
+                  outlineOffset: '2px',
+                },
+              }}
+            >
+              {mode === 'edit' ? t('tasks.saveChanges') : t('tasks.createTask')}
+            </Button>
           </Box>
         </Box>
       </Fade>

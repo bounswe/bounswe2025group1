@@ -1,4 +1,4 @@
-export const API_URL = 'http://164.92.202.177:8000/api';
+export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://communitygarden.app/api';
 
 export const COLORS = {
   primary: '#8bc34a',

@@ -1,119 +1,176 @@
-import { useState } from 'react';
-import { 
-  Dialog, 
-  DialogTitle, 
+import { useState, useRef, useEffect } from 'react';
+import {
+  Dialog,
+  DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
   TextField,
   Button,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Divider,
+  Box,
 } from '@mui/material';
 import ForumIcon from '@mui/icons-material/Forum';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
 import React from 'react';
+import { createFormKeyboardHandler, trapFocus } from '../utils/keyboardNavigation';
+import { useTranslation } from 'react-i18next';
+import InlineImageUpload from './InlineImageUpload';
 
 const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { token } = useAuth();
+  const dialogRef = useRef(null);
+  const focusableElementsRef = useRef([]);
 
   const handleCreatePost = async () => {
     // Validation
     if (!title.trim() || !content.trim()) {
-      setError('Title and content are required.');
+      setError(t('forum.titleAndContentRequired'));
       return;
     }
-    
+
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/forum/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify({
           title,
-          content
-        })
+          content,
+          images_base64: images,
+        }),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to create post');
+        toast.error(t('forum.failedToCreatePost'));
+        setError(t('forum.failedToCreatePostTryAgain'));
+        setLoading(false);
+        return;
       }
-      
+
       const newPost = await response.json();
-      
+
       // Reset form
       setTitle('');
       setContent('');
+      setImages([]);
       setLoading(false);
-      
+
       // Show success toast notification
-      toast.success('Post created successfully!');
-      
+      toast.success(t('forum.postCreatedSuccessfully'));
+
       // Call the callback function with the new post data
       onPostCreated(newPost);
     } catch (error) {
       console.error('Error creating post:', error);
-      setError('Failed to create post. Please try again later.');
+      setError(t('forum.failedToCreatePostTryLater'));
       setLoading(false);
-      
+
       // Show error toast notification
-      toast.error('Failed to create post. Please try again.');
+      toast.error(t('forum.failedToCreatePostTryAgain'));
     }
   };
 
   const handleClose = () => {
     setTitle('');
     setContent('');
+    setImages([]);
     setError(null);
     onClose();
   };
 
+  // Create keyboard handler for the form
+  const formKeyboardHandler = createFormKeyboardHandler(handleCreatePost, handleClose);
+
+  // Set up focus trap when dialog opens
+  useEffect(() => {
+    if (open && dialogRef.current) {
+      // Get all focusable elements within the dialog
+      const focusableElements = dialogRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      focusableElementsRef.current = Array.from(focusableElements);
+      
+      // Focus the first element
+      if (focusableElementsRef.current.length > 0) {
+        focusableElementsRef.current[0].focus();
+      }
+      
+      // Set up focus trap
+      const cleanup = trapFocus(dialogRef.current, focusableElementsRef.current);
+      return cleanup;
+    }
+  }, [open]);
+
   return (
     <Dialog 
       open={open} 
-      onClose={handleClose}
-      fullWidth
+      onClose={handleClose} 
+      fullWidth 
       maxWidth="md"
+      ref={dialogRef}
+      onKeyDown={formKeyboardHandler}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="forum-create-title"
     >
-      <DialogTitle sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}>
-        <ForumIcon sx={{ mr: 1 }} /> Create New Post
+      <DialogTitle 
+        id="forum-create-title"
+        sx={{ color: '#2e7d32', display: 'flex', alignItems: 'center' }}
+      >
+        <ForumIcon />
+        <Box component="span" sx={{ ml: 1 }} />
+        {t('forum.createPost')}
       </DialogTitle>
-      
+
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
-        
+
         <DialogContentText sx={{ mb: 2 }}>
-          Share your gardening experiences, questions, or tips with the community.
+          {t('forum.createPostDescription')}
         </DialogContentText>
-        
+
         <TextField
           autoFocus
           margin="dense"
-          label="Title"
+          label={t('forum.postTitle')}
           fullWidth
           variant="outlined"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
-          sx={{ mb: 2 }}
+          sx={{ 
+            mb: 2,
+            '& .MuiOutlinedInput-root': {
+              '&:focus-within': {
+                outline: '2px solid #558b2f',
+                outlineOffset: '2px',
+              },
+            },
+          }}
+          aria-label="Post title"
         />
-        
+
         <TextField
-          label="Content"
+          label={t('forum.postContent')}
           multiline
           rows={10}
           fullWidth
@@ -121,30 +178,71 @@ const ForumCreateDialog = ({ open, onClose, onPostCreated }) => {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           required
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              '&:focus-within': {
+                outline: '2px solid #558b2f',
+                outlineOffset: '2px',
+              },
+            },
+          }}
+          aria-label="Post content"
         />
+
+        {/* Inline Image Upload */}
+        <Box sx={{ mt: 2 }}>
+          <InlineImageUpload
+            onImagesChange={setImages}
+            maxImages={5}
+            maxSizeMB={5}
+            initialImages={images.map((img, index) => ({ 
+              base64: img, 
+              name: `image-${index + 1}.jpg` 
+            }))}
+            disabled={false}
+            compact={false}
+          />
+        </Box>
       </DialogContent>
-      
-      <DialogActions sx={{ p: 3 }}>
-        <Button onClick={handleClose} variant="outlined">
-          Cancel
-        </Button>
+
+      <DialogActions sx={{ p: 3, gap: 2 }}>
         <Button 
+          onClick={handleClose} 
+          variant="outlined"
+          onKeyDown={createFormKeyboardHandler(handleClose)}
+          sx={{
+            '&:focus': {
+              outline: '2px solid #558b2f',
+              outlineOffset: '2px',
+            },
+          }}
+        >
+          {t('common.cancel')}
+        </Button>
+        <Button
           onClick={handleCreatePost}
           variant="contained"
           disabled={loading}
-          sx={{ 
-            bgcolor: '#558b2f', 
-            '&:hover': { 
-              bgcolor: '#33691e' 
-            }
+          onKeyDown={createFormKeyboardHandler(handleCreatePost)}
+          sx={{
+            bgcolor: '#558b2f',
+            '&:hover': {
+              bgcolor: '#33691e',
+            },
+            '&:focus': {
+              outline: '2px solid #558b2f',
+              outlineOffset: '2px',
+            },
           }}
         >
           {loading ? (
             <>
-              <CircularProgress size={20} sx={{ mr: 1 }} />
-              Posting...
+              <CircularProgress size={20} sx={{ mr: 1.5, ml: 1.5 }} />
+              {t('forum.posting')}
             </>
-          ) : 'Post'}
+          ) : (
+            t('forum.post')
+          )}
         </Button>
       </DialogActions>
     </Dialog>

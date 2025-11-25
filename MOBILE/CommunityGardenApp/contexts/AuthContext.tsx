@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { API_URL } from '../constants/Config';
+import { registerDeviceForPushNotifications } from '../utils/pushNotifications';
 
 interface User {
   id: number;
@@ -48,12 +49,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (username: string, password: string,captcha: string) => {
+  const login = async (username: string, password: string) => {
     try {
       const response = await axios.post(`${API_URL}/login/`, {
         username,
         password,
-        captcha,
       });
 
       const { token: newToken, user_id, username: responseUsername } = response.data;
@@ -70,6 +70,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(newToken);
       setUser(userData);
       axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
+
+      // Register device for push notifications
+      registerDeviceForPushNotifications(newToken).catch(err => {
+        console.warn('Failed to register for push notifications:', err);
+      });
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message);
       throw error;
@@ -97,7 +102,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(newToken);
       setUser(user);
       axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
-  
+
+      // Register device for push notifications
+      registerDeviceForPushNotifications(newToken).catch(err => {
+        console.warn('Failed to register for push notifications:', err);
+      });
+
       // ✅ Step 4: Ensure profile exists
       try {
         await axios.put(`${API_URL}/profile/`, {

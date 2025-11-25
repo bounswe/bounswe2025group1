@@ -135,4 +135,37 @@ class IsTaskAssignee(permissions.BasePermission):
         if hasattr(obj, 'assigned_to') and obj.assigned_to == request.user:
             return True
             
+        return False
+
+
+class CanDeleteMembership(permissions.BasePermission):
+    """
+    Allows users to delete their own membership (leave garden) or
+    allows garden managers to delete any membership in their garden.
+    """
+    def has_object_permission(self, request, view, obj):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        # System administrators have full access
+        if request.user.profile.role == 'ADMIN':
+            return True
+        
+        # Users can always delete their own membership (leave garden)
+        if isinstance(obj, GardenMembership) and obj.user == request.user:
+            return True
+        
+        # Garden managers can delete any membership in their garden
+        if isinstance(obj, GardenMembership):
+            garden_id = obj.garden_id
+            try:
+                membership = GardenMembership.objects.get(
+                    user=request.user,
+                    garden_id=garden_id,
+                    status='ACCEPTED'
+                )
+                return membership.role == 'MANAGER'
+            except GardenMembership.DoesNotExist:
+                return False
+        
         return False 

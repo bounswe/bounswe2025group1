@@ -1,69 +1,70 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Paper, Typography, CircularProgress } from '@mui/material';
-import { useAuth } from '../contexts/AuthContextUtils';
 import GardenCard from './GardenCard';
+import { useAuth } from '../contexts/AuthContextUtils';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 
 const GardensPreview = ({ limit = 2 }) => {
+  const { t } = useTranslation();
   const [gardens, setGardens] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { token } = useAuth();
+  const { user, token } = useAuth();
 
   useEffect(() => {
     const fetchGardens = async () => {
       try {
         if (token) {
-          // First get user profile to get the username
-          const profileResponse = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Token ${token}`
-            }
-          });
-
-          if (!profileResponse.ok) {
-            throw new Error('Failed to fetch profile');
-          }
-
-          const profileData = await profileResponse.json();
-          
-          // Then get all memberships
-          const membershipsResponse = await fetch(`${import.meta.env.VITE_API_URL}/memberships/`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Token ${token}`
-            }
-          });
-
-          if (!membershipsResponse.ok) {
-            throw new Error('Failed to fetch memberships');
-          }
-
-          const membershipsData = await membershipsResponse.json();
-          
-          // Filter memberships where status is ACCEPTED and username matches
-          const acceptedGardenIds = membershipsData
-            .filter(m => m.status === 'ACCEPTED' && m.username === profileData.username)
-            .map(m => m.garden);
-          
-          // Fetch each garden by ID
-          const gardensData = [];
-          for (const gardenId of acceptedGardenIds) {
-            const gardenResponse = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
+          const membershipsResponse = await fetch(
+            `${import.meta.env.VITE_API_URL}/memberships/`,
+            {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token ${token}`
+                Authorization: `Token ${token}`,
+              },
+            }
+          );
+
+          if (!membershipsResponse.ok) {
+            toast.error(t('errors.failedToFetchMemberships'));
+            setLoading(false);
+            return;
+          }
+
+          const membershipsData = await membershipsResponse.json();
+          console.log('All memberships:', membershipsData);
+          console.log('Current user:', user.username);
+
+          // Filter memberships where status is ACCEPTED and username matches current user
+          const acceptedGardenIds = membershipsData
+            .filter((m) => m.status === 'ACCEPTED' && m.username === user.username)
+            .map((m) => m.garden);
+          
+          console.log('Accepted garden IDs for user:', acceptedGardenIds);
+
+          // Fetch each garden by ID
+          const gardensData = [];
+          for (const gardenId of acceptedGardenIds) {
+            const gardenResponse = await fetch(
+              `${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`,
+              {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Token ${token}`,
+                },
               }
-            });
-            
+            );
+
             if (gardenResponse.ok) {
               const gardenData = await gardenResponse.json();
               gardensData.push(gardenData);
             }
           }
-          
+
+          console.log('Final gardens data:', gardensData);
           setGardens(gardensData);
         } else {
           // For non-authenticated users, fetch public gardens
@@ -71,17 +72,19 @@ const GardensPreview = ({ limit = 2 }) => {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-            }
+            },
           });
 
           if (!response.ok) {
-            throw new Error('Failed to fetch gardens');
+            toast.error(t('errors.failedToFetchGardens'));
+            setLoading(false);
+            return;
           }
 
           const data = await response.json();
           setGardens(data);
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching gardens:', error);
@@ -90,17 +93,20 @@ const GardensPreview = ({ limit = 2 }) => {
     };
 
     fetchGardens();
-  }, [token]);
+  }, [token, user]);
 
   if (loading) {
     return (
-      <Paper elevation={1} sx={{ 
-        p: 2, 
-        height: '100%', 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center'
-      }}>
+      <Paper
+        elevation={1}
+        sx={{
+          p: 2,
+          height: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <CircularProgress color="success" />
       </Paper>
     );
@@ -108,19 +114,22 @@ const GardensPreview = ({ limit = 2 }) => {
 
   if (gardens.length === 0) {
     return (
-      <Paper elevation={1} sx={{ 
-        p: 2, 
-        height: '100%', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        alignItems: 'center'
-      }}>
+      <Paper
+        elevation={1}
+        sx={{
+          p: 2,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <Typography variant="h6" gutterBottom>
-          Gardens
+          {t('navigation.gardens')}
         </Typography>
         <Typography variant="body1" color="textSecondary">
-          {token ? 'You have no gardens yet.' : 'No gardens available.'}
+          {token ? t('gardens.noGardensYet') : t('gardens.noGardensAvailable')}
         </Typography>
       </Paper>
     );
@@ -129,11 +138,23 @@ const GardensPreview = ({ limit = 2 }) => {
   return (
     <>
       <Typography variant="h5" gutterBottom>
-        {token ? 'My Gardens' : 'Featured Gardens'}
+        {token ? t('gardens.myGardens') : t('gardens.featuredGardens')}
       </Typography>
-      <Box display="flex" justifyContent="center" gap={2}>
+      <Box 
+        display="flex" 
+        justifyContent="center" 
+        gap={2}
+        sx={{
+          flexWrap: 'wrap',
+          '& > *': {
+            flex: '1 1 auto',
+            minWidth: { xs: '100%', sm: '280px' },
+            maxWidth: { xs: '100%', sm: '350px' },
+          },
+        }}
+      >
         {gardens.slice(0, limit).map((garden) => (
-          <Box key={garden.id} width="300px">
+          <Box key={garden.id}>
             <GardenCard
               garden={{ ...garden, image: `/gardens/garden${garden.id % 5}.png` }}
               variant="compact"
