@@ -81,7 +81,7 @@ const Profile = () => {
       }
 
       if (userId && isNaN(Number(userId))) {
-        return; 
+        return;
       }
 
       try {
@@ -108,15 +108,6 @@ const Profile = () => {
           location: data.profile?.location || '',
           receives_notifications: data.profile.receives_notifications,
         });
-        
-        // Set earned badges from profile data (if available)
-        // For now, defaulting to empty array - backend can provide badges array
-        // Tiny Sprout is always earned
-        const badges = data.badges || data.profile?.badges || [];
-        if (!badges.includes('Tiny Sprout') && !badges.some(b => typeof b === 'string' ? b === 'Tiny Sprout' : b?.name === 'Tiny Sprout')) {
-          badges.push('Tiny Sprout');
-        }
-        setEarnedBadges(badges);
 
         // Check if current user is following this profile
         if (!isOwnProfile && user) {
@@ -162,6 +153,27 @@ const Profile = () => {
       }
     };
 
+    const fetchUserBadges = async () => {
+      if (!token) return;
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/user/${userId}/badges/`,
+          {
+            headers: {
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const badgesData = await response.json();
+          setEarnedBadges(badgesData);
+        }
+      } catch (badgeError) {
+        console.error('Error fetching badges:', badgeError);
+      }
+    };
+
     const fetchRelationships = async () => {
       if (!token) return;
 
@@ -199,6 +211,7 @@ const Profile = () => {
       setLoading(true);
       await fetchProfileData();
       await fetchUserGardens();
+      await fetchUserBadges(); 
       await fetchRelationships();
       setLoading(false);
     };
@@ -302,7 +315,7 @@ const Profile = () => {
             receives_notifications: updatedProfile.profile.receives_notifications,
           },
         };
-        
+
         updateUser(updatedUserData);
       }
 
@@ -405,10 +418,10 @@ const Profile = () => {
             />
 
             {isEditing && (
-              <Button 
-                variant="outlined" 
-                component="label" 
-                sx={{ 
+              <Button
+                variant="outlined"
+                component="label"
+                sx={{
                   mb: 2,
                   '&:focus': {
                     outline: '2px solid #558b2f',
@@ -443,7 +456,7 @@ const Profile = () => {
                   startIcon={isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
                   onClick={handleFollowToggle}
                   onKeyDown={createButtonKeyboardHandler(handleFollowToggle)}
-                  sx={{ 
+                  sx={{
                     '&:focus': {
                       outline: '2px solid #558b2f',
                       outlineOffset: '2px',
@@ -453,7 +466,7 @@ const Profile = () => {
                 >
                   {isFollowing ? t('profile.unfollow') : t('profile.follow')}
                 </Button>
-                <DirectMessageButton 
+                <DirectMessageButton
                   targetUserId={parseInt(userId)}
                   variant="contained"
                   size="medium"
@@ -474,7 +487,7 @@ const Profile = () => {
                 startIcon={<EditIcon />}
                 onClick={() => setIsEditing(true)}
                 onKeyDown={createButtonKeyboardHandler(() => setIsEditing(true))}
-                sx={{ 
+                sx={{
                   mb: 2,
                   '&:focus': {
                     outline: '2px solid #558b2f',
@@ -489,9 +502,9 @@ const Profile = () => {
 
             {isEditing && (
               <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <Button 
-                  variant="contained" 
-                  startIcon={<SaveIcon />} 
+                <Button
+                  variant="contained"
+                  startIcon={<SaveIcon />}
                   onClick={handleSaveProfile}
                   onKeyDown={createButtonKeyboardHandler(handleSaveProfile)}
                   sx={{
@@ -504,9 +517,9 @@ const Profile = () => {
                 >
                   {t('profile.save')}
                 </Button>
-                <Button 
-                  variant="outlined" 
-                  startIcon={<CancelIcon />} 
+                <Button
+                  variant="outlined"
+                  startIcon={<CancelIcon />}
                   onClick={handleCancelEdit}
                   onKeyDown={createButtonKeyboardHandler(handleCancelEdit)}
                   sx={{
@@ -590,9 +603,9 @@ const Profile = () => {
                     aria-label="profile tabs"
                     role="tablist"
                   >
-                    <Tab 
+                    <Tab
                       ref={(el) => (tabRefs.current[0] = el)}
-                      label={t('profile.gardens')} 
+                      label={t('profile.gardens')}
                       id="tab-0"
                       role="tab"
                       aria-selected={tabValue === 0}
@@ -616,9 +629,9 @@ const Profile = () => {
                         },
                       }}
                     />
-                    <Tab 
+                    <Tab
                       ref={(el) => (tabRefs.current[1] = el)}
-                      label={t('profile.followers')} 
+                      label={t('profile.followers')}
                       id="tab-1"
                       role="tab"
                       aria-selected={tabValue === 1}
@@ -642,9 +655,9 @@ const Profile = () => {
                         },
                       }}
                     />
-                    <Tab 
+                    <Tab
                       ref={(el) => (tabRefs.current[2] = el)}
-                      label={t('profile.following')} 
+                      label={t('profile.following')}
                       id="tab-2"
                       role="tab"
                       aria-selected={tabValue === 2}
@@ -668,9 +681,9 @@ const Profile = () => {
                         },
                       }}
                     />
-                    <Tab 
+                    <Tab
                       ref={(el) => (tabRefs.current[3] = el)}
-                      label={t('profile.badges')} 
+                      label={t('profile.badges')}
                       id="tab-3"
                       role="tab"
                       aria-selected={tabValue === 3}
@@ -878,11 +891,16 @@ const Profile = () => {
                       <Grid container spacing={3}>
                         {ALL_BADGES.map((badge) => {
                           const BadgeComponent = badge.component;
-                          // Tiny Sprout is always earned
-                          const isEarned = badge.name === 'Tiny Sprout' || earnedBadges.includes(badge.name) || earnedBadges.some(b => 
-                            typeof b === 'string' ? b === badge.name : b?.name === badge.name
-                          );
-                          
+
+                          const isEarned =
+                            badge.name === 'Tiny Sprout' ||
+                            earnedBadges.some(b => {
+                              if (b.badge && b.badge.name) return b.badge.name === badge.name;
+                              if (b.name) return b.name === badge.name;
+                              if (typeof b === 'string') return b === badge.name;
+                              return false;
+                            });
+
                           // Get description - seasonal badges get time-sensitive descriptions
                           let description = '';
                           if (badge.descriptionKey) {
@@ -984,3 +1002,4 @@ const Profile = () => {
 };
 
 export default Profile;
+
