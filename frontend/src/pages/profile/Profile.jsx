@@ -81,7 +81,6 @@ const Profile = () => {
       }
 
       if (userId && isNaN(Number(userId))) {
-        return; 
         return;
       }
 
