@@ -49,8 +49,7 @@ describe('InfohubDetail Component', () => {
       // heading exists (title is translation-driven; do not assert exact text)
       expect(screen.getAllByRole('heading').length).toBeGreaterThan(0);
 
-      // back buttons should be present
-      expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument();
+      // back button should be present
       expect(screen.getByRole('button', { name: /back to all categories/i })).toBeInTheDocument();
     });
 
