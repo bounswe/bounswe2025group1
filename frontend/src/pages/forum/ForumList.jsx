@@ -39,7 +39,7 @@ const ForumList = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
-  
+
 
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -58,7 +58,7 @@ const ForumList = () => {
           headers['Authorization'] = `Token ${token.trim()}`;
         }
 
-        const url = followedOnly 
+        const url = followedOnly
           ? `${import.meta.env.VITE_API_URL}/forum?include_comments=true&following=true`
           : `${import.meta.env.VITE_API_URL}/forum?include_comments=true`;
 
@@ -153,7 +153,7 @@ const ForumList = () => {
       const newPost = await response.json();
       setPosts([newPost, ...posts]);
       setFilteredPosts([newPost, ...filteredPosts]);
-      
+
       toast.success('Post created successfully!');
     } catch (error) {
       console.error('Error creating post:', error);
@@ -183,32 +183,32 @@ const ForumList = () => {
       }
 
       const newComment = await response.json();
-      
+
       // Update the posts list to include the new comment
-      setPosts(prevPosts => 
-        prevPosts.map(post => 
-          post.id === postId 
-            ? { 
-                ...post, 
-                comments: [...(post.comments || []), newComment],
-                comments_count: (post.comments_count || 0) + 1
-              }
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId
+            ? {
+              ...post,
+              comments: [...(post.comments || []), newComment],
+              comments_count: (post.comments_count || 0) + 1
+            }
             : post
         )
       );
-      
-      setFilteredPosts(prevPosts => 
-        prevPosts.map(post => 
-          post.id === postId 
-            ? { 
-                ...post, 
-                comments: [...(post.comments || []), newComment],
-                comments_count: (post.comments_count || 0) + 1
-              }
+
+      setFilteredPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId
+            ? {
+              ...post,
+              comments: [...(post.comments || []), newComment],
+              comments_count: (post.comments_count || 0) + 1
+            }
             : post
         )
       );
-      
+
       toast.success('Comment posted successfully!');
     } catch (error) {
       console.error('Error posting comment:', error);
@@ -233,7 +233,7 @@ const ForumList = () => {
       // Remove the post from the local state
       setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
       setFilteredPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
-      
+
       toast.success('Post deleted successfully!');
     } catch (error) {
       console.error('Error deleting post:', error);
@@ -341,6 +341,7 @@ const ForumList = () => {
             {user && (
               <>
                 <Button
+                  data-testid="followed-only-button"
                   variant={followedOnly ? 'contained' : 'outlined'}
                   startIcon={<PeopleIcon />}
                   onClick={() => setFollowedOnly(!followedOnly)}
@@ -349,7 +350,7 @@ const ForumList = () => {
                     bgcolor: followedOnly ? '#558b2f' : 'transparent',
                     color: followedOnly ? 'white' : '#558b2f',
                     borderColor: '#558b2f',
-                    '&:hover': { 
+                    '&:hover': {
                       bgcolor: followedOnly ? '#33691e' : 'rgba(85, 139, 47, 0.08)',
                       borderColor: '#33691e',
                     },
@@ -368,6 +369,7 @@ const ForumList = () => {
                   {followedOnly ? t('forum.showAll') : t('forum.following')}
                 </Button>
                 <Button
+                  data-testid="create-post-button"
                   variant="contained"
                   startIcon={<AddIcon />}
                   onClick={() => setCreateDialogOpen(true)}
