@@ -5,6 +5,7 @@ import GardenCard from './GardenCard';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as locationUtils from '../utils/locationUtils';
+import { useAuth } from '../contexts/AuthContextUtils';
 
 // Mock the modules/hooks
 vi.mock('react-router-dom', () => ({
@@ -19,6 +20,9 @@ vi.mock('../utils/locationUtils', () => ({
   translateLocationString: vi.fn((location) => location),
 }));
 
+vi.mock('../contexts/AuthContextUtils', () => ({
+  useAuth: vi.fn(),
+}));
 describe('GardenCard Component', () => {
   const mockNavigate = vi.fn();
   const mockT = vi.fn((key) => key);
@@ -33,6 +37,11 @@ describe('GardenCard Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    useAuth.mockReturnValue({
+      token: 'mock-token',
+      user: { id: 1, username: 'testuser' },
+    });
     useNavigate.mockReturnValue(mockNavigate);
     useTranslation.mockReturnValue({
       t: mockT,
@@ -220,7 +229,7 @@ describe('GardenCard Component', () => {
         t: mockT,
         i18n: { language: 'tr' },
       });
-      
+
       render(<GardenCard garden={mockGarden} />);
 
       expect(locationUtils.translateLocationString).toHaveBeenCalledWith('Istanbul, Turkey', 'tr');
@@ -230,21 +239,21 @@ describe('GardenCard Component', () => {
   describe('Variant Styles', () => {
     test('renders with default variant styles', () => {
       const { container } = render(<GardenCard garden={mockGarden} variant="default" />);
-      
+
       const card = container.querySelector('.MuiCard-root');
       expect(card).toBeInTheDocument();
     });
 
     test('renders with compact variant styles', () => {
       const { container } = render(<GardenCard garden={mockGarden} variant="compact" />);
-      
+
       const card = container.querySelector('.MuiCard-root');
       expect(card).toBeInTheDocument();
     });
 
     test('renders with featured variant styles', () => {
       const { container } = render(<GardenCard garden={mockGarden} variant="featured" />);
-      
+
       const card = container.querySelector('.MuiCard-root');
       expect(card).toBeInTheDocument();
     });

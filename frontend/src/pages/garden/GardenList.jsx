@@ -82,7 +82,7 @@ const GardenList = () => {
           if (profileResponse.ok) {
             const profileData = await profileResponse.json();
             const profileLocation = profileData?.profile?.location || profileData?.location;
-            
+
             if (profileLocation) {
               // Geocode the profile location
               locationCoords = await geocodeAddress(profileLocation);
@@ -177,12 +177,12 @@ const GardenList = () => {
       }
 
       setLoadingLocation(true);
-      
+
       // Geocode addresses with delay to respect rate limits (1 request per second)
       const gardensWithDist = [];
       for (let i = 0; i < gardens.length; i++) {
         const garden = gardens[i];
-        
+
         if (!garden.location) {
           gardensWithDist.push({ ...garden, distance: null });
           continue;
@@ -237,8 +237,8 @@ const GardenList = () => {
     const value = event.target.value;
     setSearchTerm(value);
 
-    const sourceGardens = showNearby && gardensWithDistance.length > 0 
-      ? gardensWithDistance 
+    const sourceGardens = showNearby && gardensWithDistance.length > 0
+      ? gardensWithDistance
       : gardens;
 
     const filtered = applyFilters(sourceGardens, value, radiusFilter, showNearby);
@@ -249,8 +249,8 @@ const GardenList = () => {
     const newRadius = event.target.value;
     setRadiusFilter(newRadius);
 
-    const sourceGardens = showNearby && gardensWithDistance.length > 0 
-      ? gardensWithDistance 
+    const sourceGardens = showNearby && gardensWithDistance.length > 0
+      ? gardensWithDistance
       : gardens;
 
     const filtered = applyFilters(sourceGardens, searchTerm, newRadius, showNearby);
@@ -260,7 +260,7 @@ const GardenList = () => {
   const handleToggleNearby = () => {
     const newShowNearby = !showNearby;
     setShowNearby(newShowNearby);
-    
+
     if (newShowNearby) {
       // Filter out gardens without distance and apply radius filter
       const nearbyGardens = gardensWithDistance.filter(g => g.distance !== null);
@@ -288,7 +288,7 @@ const GardenList = () => {
     try {
       // Extract image data if provided
       const { cover_image_base64, gallery_base64, ...basicFormData } = formData || form;
-      
+
       const requestBody = {
         name: basicFormData.name || form.name,
         location: basicFormData.location || form.location,
@@ -414,6 +414,7 @@ const GardenList = () => {
           >
             {user && (
               <Button
+                data-testid="toggle-nearby-button"
                 variant={showNearby ? "contained" : "outlined"}
                 color="primary"
                 startIcon={<LocationOnIcon />}
@@ -423,7 +424,7 @@ const GardenList = () => {
                   backgroundColor: showNearby ? '#558b2f' : 'transparent',
                   color: showNearby ? 'white' : '#558b2f',
                   borderColor: '#558b2f',
-                  '&:hover': { 
+                  '&:hover': {
                     backgroundColor: showNearby ? '#33691e' : 'rgba(85, 139, 47, 0.1)',
                     borderColor: '#33691e',
                   },

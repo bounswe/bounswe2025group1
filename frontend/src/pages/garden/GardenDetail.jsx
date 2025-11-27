@@ -95,7 +95,7 @@ const GardenDetail = () => {
         if (token) {
           gardenHeaders.Authorization = `Token ${token}`;
         }
-        
+
         const gardenRes = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
           method: 'GET',
           headers: gardenHeaders,
@@ -209,7 +209,7 @@ const GardenDetail = () => {
       const wasUnassigned = !selectedTask?.assigned_to || selectedTask.assigned_to === null;
       const isSelfAssignment = updatedTask.assigned_to === user?.user_id;
       const isUnassigning = !updatedTask.assigned_to || updatedTask.assigned_to === null;
-      
+
       if (wasUnassigned && isSelfAssignment && !isManager && !isUnassigning) {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${updatedTask.id}/self-assign/`, {
           method: 'POST',
@@ -564,7 +564,7 @@ const GardenDetail = () => {
     try {
       // Extract image data if provided
       const { cover_image_base64, gallery_base64, ...basicFormData } = formData || editForm;
-      
+
       const requestBody = {
         name: basicFormData.name || editForm.name,
         description: basicFormData.description || editForm.description,
@@ -658,19 +658,19 @@ const GardenDetail = () => {
             }}
           >
             {/* Content overlay */}
-            <Box sx={{ 
-              position: 'absolute', 
-              bottom: 0, 
-              left: 0, 
-              right: 0, 
+            <Box sx={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
               p: { xs: 3, sm: 4, md: 5 },
               zIndex: 2,
               background: 'linear-gradient(transparent, rgba(0,0,0,0.8))'
             }}>
-              <Typography 
-                variant="h2" 
-                sx={{ 
-                  color: 'white', 
+              <Typography
+                variant="h2"
+                sx={{
+                  color: 'white',
                   fontWeight: 700,
                   fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
                   textShadow: '0 2px 8px rgba(0,0,0,0.6)',
@@ -682,9 +682,9 @@ const GardenDetail = () => {
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <LocationOnIcon sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.2rem' }} />
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
+                <Typography
+                  variant="h6"
+                  sx={{
                     color: 'rgba(255,255,255,0.9)',
                     textShadow: '0 1px 4px rgba(0,0,0,0.6)',
                     fontWeight: 400
@@ -694,9 +694,9 @@ const GardenDetail = () => {
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 0.5,
                   px: 2,
                   py: 1,
@@ -709,9 +709,9 @@ const GardenDetail = () => {
                     {t('gardens.members', { count: members.length })}
                   </Typography>
                 </Box>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 0.5,
                   px: 2,
                   py: 1,
@@ -749,7 +749,7 @@ const GardenDetail = () => {
                   icon={<LocationOnIcon />}
                   label={translateLocationString(garden.location, i18n.language)}
                   size="small"
-                  sx={{ 
+                  sx={{
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
                     color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
                   }}
@@ -758,7 +758,7 @@ const GardenDetail = () => {
                   icon={<GroupIcon />}
                   label={t('gardens.members', { count: members.length })}
                   size="small"
-                  sx={{ 
+                  sx={{
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
                     color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
                   }}
@@ -767,7 +767,7 @@ const GardenDetail = () => {
                   icon={<TaskIcon />}
                   label={t('gardens.tasks', { count: tasks.length })}
                   size="small"
-                  sx={{ 
+                  sx={{
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
                     color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
                   }}
@@ -790,6 +790,7 @@ const GardenDetail = () => {
                   </Button>
                 ) : (
                   <Button
+                    data-testid="leave-garden-button"
                     variant="outlined"
                     color="error"
                     onClick={handleLeaveGarden}
@@ -800,6 +801,7 @@ const GardenDetail = () => {
                 )
               ) : (
                 <Button
+                  data-testid="join-garden-button"
                   variant="contained"
                   onClick={handleJoinGarden}
                   sx={{ mr: 1 }}
@@ -818,6 +820,7 @@ const GardenDetail = () => {
             )}
             {isManager && (
               <Button
+                data-testid="edit-garden-button"
                 variant="outlined"
                 color="primary"
                 onClick={handleOpenGardenEditModal}
@@ -868,8 +871,8 @@ const GardenDetail = () => {
             </Box>
 
             {!token ? (
-              <Box sx={{ 
-                display: 'flex', 
+              <Box sx={{
+                display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -902,8 +905,8 @@ const GardenDetail = () => {
         {activeTab === 1 && (
           <Box>
             {!token ? (
-              <Box sx={{ 
-                display: 'flex', 
+              <Box sx={{
+                display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -924,84 +927,84 @@ const GardenDetail = () => {
             ) : (
               <List>
                 {members.map((member) => (
-                <Paper key={member.id} elevation={1} sx={{ mb: 2 }}>
-                  <ListItem>
-                    <ListItemAvatar>
-                      <Avatar>
-                        <AccountCircleIcon />
-                      </Avatar>
-                    </ListItemAvatar>{' '}
-                    <ListItemText
-                      primary={
-                        <Typography
-                          variant="body1"
-                          sx={{ cursor: 'pointer' }}
-                          onClick={() => navigate(`/profile/${member.user_id}`)}
-                        >
-                          {member.username || `User ${member.id || 'Unknown'}`}
-                        </Typography>
-                      }
-                      secondary={`${t('gardens.role')}: ${t(`gardens.${member.role.toLowerCase()}`)} • ${t('gardens.status')}: ${t(`gardens.${member.status.toLowerCase()}`)}`}
-                    />{' '}
-                    {/* Show Direct Message button for accepted members (except yourself) */}
-                    {member.status === 'ACCEPTED' && user && member.user_id !== user.id && (
-                      <DirectMessageButton 
-                        targetUserId={member.user_id}
-                        variant="outlined"
-                        size="small"
-                        sx={{ mr: 1 }}
-                      />
-                    )}
-                    {isManager && member.id !== userMembership?.id && (
-                      <>
-                        {member.status === 'PENDING' ? (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            color="success"
-                            onClick={() => handleAcceptMember(member.id)}
-                            sx={{ mr: 1 }}
+                  <Paper key={member.id} elevation={1} sx={{ mb: 2 }}>
+                    <ListItem>
+                      <ListItemAvatar>
+                        <Avatar>
+                          <AccountCircleIcon />
+                        </Avatar>
+                      </ListItemAvatar>{' '}
+                      <ListItemText
+                        primary={
+                          <Typography
+                            variant="body1"
+                            sx={{ cursor: 'pointer' }}
+                            onClick={() => navigate(`/profile/${member.user_id}`)}
                           >
-                            {t('gardens.accept')}
-                          </Button>
-                        ) : (
+                            {member.username || `User ${member.id || 'Unknown'}`}
+                          </Typography>
+                        }
+                        secondary={`${t('gardens.role')}: ${t(`gardens.${member.role.toLowerCase()}`)} • ${t('gardens.status')}: ${t(`gardens.${member.status.toLowerCase()}`)}`}
+                      />{' '}
+                      {/* Show Direct Message button for accepted members (except yourself) */}
+                      {member.status === 'ACCEPTED' && user && member.user_id !== user.id && (
+                        <DirectMessageButton
+                          targetUserId={member.user_id}
+                          variant="outlined"
+                          size="small"
+                          sx={{ mr: 1 }}
+                        />
+                      )}
+                      {isManager && member.id !== userMembership?.id && (
+                        <>
+                          {member.status === 'PENDING' ? (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="success"
+                              onClick={() => handleAcceptMember(member.id)}
+                              sx={{ mr: 1 }}
+                            >
+                              {t('gardens.accept')}
+                            </Button>
+                          ) : (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="primary"
+                              onClick={() =>
+                                handleChangeMemberRole(
+                                  member.id,
+                                  member.role === 'MANAGER' ? 'WORKER' : 'MANAGER'
+                                )
+                              }
+                              sx={{ mr: 1 }}
+                            >
+                              {member.role === 'MANAGER' ? t('gardens.demote') : t('gardens.promote')}
+                            </Button>
+                          )}
                           <Button
                             size="small"
                             variant="outlined"
-                            color="primary"
-                            onClick={() =>
-                              handleChangeMemberRole(
-                                member.id,
-                                member.role === 'MANAGER' ? 'WORKER' : 'MANAGER'
-                              )
-                            }
-                            sx={{ mr: 1 }}
+                            color="error"
+                            onClick={() => handleRemoveMember(member.id)}
                           >
-                            {member.role === 'MANAGER' ? t('gardens.demote') : t('gardens.promote')}
+                            {t('gardens.remove')}
                           </Button>
-                        )}
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="error"
-                          onClick={() => handleRemoveMember(member.id)}
-                        >
-                          {t('gardens.remove')}
-                        </Button>
-                      </>
-                    )}
-                  </ListItem>
-                </Paper>
-              ))}
-              {members.length === 0 && (
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                  sx={{ textAlign: 'center', mt: 3 }}
-                >
-                  {t('gardens.noMembersFound')}
-                </Typography>
-              )}
+                        </>
+                      )}
+                    </ListItem>
+                  </Paper>
+                ))}
+                {members.length === 0 && (
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    sx={{ textAlign: 'center', mt: 3 }}
+                  >
+                    {t('gardens.noMembersFound')}
+                  </Typography>
+                )}
               </List>
             )}
           </Box>
@@ -1030,8 +1033,8 @@ const GardenDetail = () => {
             </Box>
 
             {!token ? (
-              <Box sx={{ 
-                display: 'flex', 
+              <Box sx={{
+                display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -1050,10 +1053,10 @@ const GardenDetail = () => {
                 </Button>
               </Box>
             ) : events.length === 0 ? (
-              <Box sx={{ 
-                p: 4, 
-                textAlign: 'center', 
-                backgroundColor: 'background.paper', 
+              <Box sx={{
+                p: 4,
+                textAlign: 'center',
+                backgroundColor: 'background.paper',
                 borderRadius: 2,
                 border: '2px dashed',
                 borderColor: 'divider'
@@ -1101,8 +1104,8 @@ const GardenDetail = () => {
         {/* Calendar Tab */}
         {activeTab === 3 && (
           !token ? (
-            <Box sx={{ 
-              display: 'flex', 
+            <Box sx={{
+              display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
@@ -1137,12 +1140,12 @@ const GardenDetail = () => {
 
         {/* Gallery Tab */}
         {activeTab === 4 && (
-          <Box>
+          <Box data-testid="image-gallery">
             <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, mb: 3 }}>
               {t('gardens.gardenGallery')}
             </Typography>
             {garden?.images && garden.images.length > 0 ? (
-              <ImageGallery 
+              <ImageGallery
                 images={garden.images}
                 coverImage={garden.cover_image}
                 maxColumns={3}
@@ -1150,10 +1153,10 @@ const GardenDetail = () => {
                 showCoverBadge={true}
               />
             ) : (
-              <Box sx={{ 
-                p: 4, 
-                textAlign: 'center', 
-                backgroundColor: 'background.paper', 
+              <Box sx={{
+                p: 4,
+                textAlign: 'center',
+                backgroundColor: 'background.paper',
                 borderRadius: 2,
                 border: '2px dashed',
                 borderColor: 'divider'

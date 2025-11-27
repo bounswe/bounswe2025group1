@@ -1,264 +1,144 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import LocationPicker from './LocationPicker';
 
-// Create a simple mock component that tests the core functionality
-const MockLocationPicker = ({ 
-  label = 'Location', 
-  isMapMode = true, 
-  showCurrentLocation = false,
-  disabled = false,
-  required = false,
-  height = 300,
-  onChange = () => {},
-  onLocationChange = () => {}
-}) => {
-  const [mode, setMode] = React.useState(isMapMode);
-  const [locationText, setLocationText] = React.useState('');
-  const [country, setCountry] = React.useState('');
-  const [city, setCity] = React.useState('');
-  const [district, setDistrict] = React.useState('');
-  const [street, setStreet] = React.useState('');
-  const [description, setDescription] = React.useState('');
+// Mock MUI icons to avoid EMFILE errors
+vi.mock('@mui/icons-material', () => ({
+  Map: () => <div data-testid="map-icon" />,
+  LocationOn: () => <div data-testid="location-icon" />,
+  Edit: () => <div data-testid="edit-icon" />,
+  MyLocation: () => <div data-testid="my-location-icon" />,
+}));
 
-  const handleTextChange = (field, value) => {
-    let newCountry = country;
-    let newCity = city;
-    let newDistrict = district;
-    let newStreet = street;
-    let newDescription = description;
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key) => key,
+    i18n: { language: 'en' },
+  }),
+}));
 
-    switch (field) {
-      case 'country':
-        newCountry = value;
-        setCountry(value);
-        break;
-      case 'city':
-        newCity = value;
-        setCity(value);
-        break;
-      case 'district':
-        newDistrict = value;
-        setDistrict(value);
-        break;
-      case 'street':
-        newStreet = value;
-        setStreet(value);
-        break;
-      case 'description':
-        newDescription = value;
-        setDescription(value);
-        break;
-      default:
-        setLocationText(value);
-        return;
-    }
-    
-    // Simulate address construction with updated values
-    const address = [newStreet, newDistrict, newCity, newCountry]
-      .filter(Boolean)
-      .join(', ') + (newDescription ? ` (${newDescription})` : '');
-    
-    if (address.trim()) {
-      onChange(address);
-    }
-  };
+// Mock react-leaflet
+vi.mock('react-leaflet', () => ({
+  MapContainer: ({ children }) => <div data-testid="map-container">{children}</div>,
+  TileLayer: () => <div data-testid="tile-layer" />,
+  Marker: ({ children }) => <div data-testid="marker">{children}</div>,
+  Popup: ({ children }) => <div data-testid="popup">{children}</div>,
+  useMapEvents: ({ click }) => {
+    // Expose click handler to global for testing if needed, or just mock it
+    // Better: create a button to trigger click
+    return null;
+  },
+}));
 
-  return (
-    <div data-testid="location-picker">
-      <h2>{label}{required ? ' *' : ''}</h2>
-      
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={mode}
-            onChange={(e) => setMode(e.target.checked)}
-            disabled={disabled}
-          />
-          {mode ? 'Map Mode' : 'Text Mode'}
-        </label>
-      </div>
+// Mock Leaflet
+vi.mock('leaflet', () => ({
+  default: {
+    Icon: {
+      Default: {
+        mergeOptions: vi.fn(),
+        prototype: { _getIconUrl: vi.fn() },
+      },
+    },
+    divIcon: vi.fn(),
+  },
+}));
 
-      {mode ? (
-        <div>
-          <div data-testid="map-container" style={{ height: `${height}px` }}>
-            Map Container
-          </div>
-          <input
-            type="text"
-            placeholder="Selected location will appear here..."
-            value={locationText}
-            onChange={(e) => handleTextChange('text', e.target.value)}
-            disabled={disabled}
-          />
-        </div>
-      ) : (
-        <div>
-          <input
-            type="text"
-            placeholder="Country"
-            value={country}
-            onChange={(e) => handleTextChange('country', e.target.value)}
-            disabled={disabled}
-            aria-label="Country"
-          />
-          <input
-            type="text"
-            placeholder="City"
-            value={city}
-            onChange={(e) => handleTextChange('city', e.target.value)}
-            disabled={disabled}
-            aria-label="City"
-          />
-          <input
-            type="text"
-            placeholder="District/Neighborhood"
-            value={district}
-            onChange={(e) => handleTextChange('district', e.target.value)}
-            disabled={disabled}
-            aria-label="District/Neighborhood"
-          />
-          <input
-            type="text"
-            placeholder="Street"
-            value={street}
-            onChange={(e) => handleTextChange('street', e.target.value)}
-            disabled={disabled}
-            aria-label="Street"
-          />
-          <input
-            type="text"
-            placeholder="Description (Optional)"
-            value={description}
-            onChange={(e) => handleTextChange('description', e.target.value)}
-            disabled={disabled}
-            aria-label="Description (Optional)"
-          />
-        </div>
-      )}
-
-      {showCurrentLocation && (
-        <button disabled={disabled}>
-          Use My Current Location
-        </button>
-      )}
-    </div>
-  );
+// Mock navigator.geolocation
+const mockGeolocation = {
+  getCurrentPosition: vi.fn(),
 };
+global.navigator.geolocation = mockGeolocation;
 
-describe('LocationPicker Basic Functionality', () => {
-  it('renders with default props', () => {
-    render(<MockLocationPicker />);
-    
-    expect(screen.getByText('Location')).toBeInTheDocument();
-    expect(screen.getByText('Map Mode')).toBeInTheDocument();
-    expect(screen.getByTestId('map-container')).toBeInTheDocument();
+describe('LocationPicker Component', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('renders with custom props', () => {
-    render(
-      <MockLocationPicker
-        label="Custom Location"
-        required={true}
-        height={400}
-      />
-    );
-    
-    expect(screen.getByText('Custom Location *')).toBeInTheDocument();
-    expect(screen.getByTestId('map-container')).toHaveStyle({ height: '400px' });
+  it('renders in map mode by default', () => {
+    render(<LocationPicker />);
+    expect(screen.getByTestId('map-container')).toBeInTheDocument();
+    expect(screen.getByText('location.mapMode')).toBeInTheDocument();
   });
 
-  it('switches between map and text modes', () => {
-    render(<MockLocationPicker />);
-    
-    const checkbox = screen.getByRole('checkbox');
-    
-    // Initially in map mode
-    expect(screen.getByText('Map Mode')).toBeInTheDocument();
-    expect(screen.getByTestId('map-container')).toBeInTheDocument();
-    
-    // Switch to text mode
-    fireEvent.click(checkbox);
-    expect(screen.getByText('Text Mode')).toBeInTheDocument();
+  it('switches to text mode', () => {
+    render(<LocationPicker />);
+    const switchControl = screen.getByTestId('location-mode-switch');
+    fireEvent.click(switchControl);
+
     expect(screen.queryByTestId('map-container')).not.toBeInTheDocument();
+    expect(screen.getByText('location.textMode')).toBeInTheDocument();
+    expect(screen.getByLabelText('location.country')).toBeInTheDocument();
   });
 
-  it('shows text mode inputs when in text mode', () => {
-    render(<MockLocationPicker isMapMode={false} />);
-    
-    expect(screen.getByLabelText('Country')).toBeInTheDocument();
-    expect(screen.getByLabelText('City')).toBeInTheDocument();
-    expect(screen.getByLabelText('District/Neighborhood')).toBeInTheDocument();
-    expect(screen.getByLabelText('Street')).toBeInTheDocument();
-    expect(screen.getByLabelText('Description (Optional)')).toBeInTheDocument();
+  it('handles manual text input in text mode', () => {
+    const handleChange = vi.fn();
+    render(<LocationPicker onChange={handleChange} />);
+
+    // Switch to text mode
+    fireEvent.click(screen.getByTestId('location-mode-switch'));
+
+    const cityInput = screen.getByLabelText('location.city');
+    fireEvent.change(cityInput, { target: { value: 'Istanbul' } });
+
+    expect(handleChange).toHaveBeenCalledWith(expect.stringContaining('Istanbul'));
   });
 
-  it('shows current location button when enabled', () => {
-    render(<MockLocationPicker showCurrentLocation={true} />);
-    
-    const button = screen.getByRole('button', { name: /use my current location/i });
-    expect(button).toBeInTheDocument();
+  it('parses initial value correctly', () => {
+    render(<LocationPicker value="Istanbul, Turkey" />);
+
+    // Switch to text mode to check fields
+    fireEvent.click(screen.getByTestId('location-mode-switch'));
+
+    expect(screen.getByLabelText('location.city')).toHaveValue('Istanbul');
+    expect(screen.getByLabelText('location.country')).toHaveValue('Turkey');
   });
 
-  it('hides current location button when disabled', () => {
-    render(<MockLocationPicker showCurrentLocation={false} />);
-    
-    const button = screen.queryByRole('button', { name: /use my current location/i });
-    expect(button).not.toBeInTheDocument();
+  it('handles geolocation success', async () => {
+    mockGeolocation.getCurrentPosition.mockImplementation((success) => {
+      success({
+        coords: {
+          latitude: 41.0082,
+          longitude: 28.9784,
+        },
+      });
+    });
+
+    render(<LocationPicker showCurrentLocation={true} />);
+
+    const locationButton = screen.getByRole('button'); // The tooltip button
+    fireEvent.click(locationButton);
+
+    await waitFor(() => {
+      expect(mockGeolocation.getCurrentPosition).toHaveBeenCalled();
+    });
   });
 
-  it('disables all inputs when disabled prop is true', () => {
-    render(<MockLocationPicker disabled={true} showCurrentLocation={true} />);
-    
-    const checkbox = screen.getByRole('checkbox');
-    const button = screen.getByRole('button');
-    
-    expect(checkbox).toBeDisabled();
-    expect(button).toBeDisabled();
+  it('handles geolocation error', async () => {
+    mockGeolocation.getCurrentPosition.mockImplementation((success, error) => {
+      error({
+        code: 1, // PERMISSION_DENIED
+        message: 'User denied Geolocation',
+      });
+    });
+
+    render(<LocationPicker showCurrentLocation={true} />);
+
+    const locationButton = screen.getByRole('button');
+    fireEvent.click(locationButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
   });
 
-  it('updates address when text fields change', () => {
-    const mockOnChange = vi.fn();
-    render(
-      <MockLocationPicker
-        isMapMode={false}
-        onChange={mockOnChange}
-      />
-    );
-    
-    const countryInput = screen.getByLabelText('Country');
-    const cityInput = screen.getByLabelText('City');
-    const streetInput = screen.getByLabelText('Street');
-    
-    fireEvent.change(countryInput, { target: { value: 'Turkey' } });
-    fireEvent.change(cityInput, { target: { value: 'Ankara' } });
-    fireEvent.change(streetInput, { target: { value: 'Test Street' } });
-    
-    expect(mockOnChange).toHaveBeenCalledWith('Test Street, Ankara, Turkey');
-  });
+  it('updates when value prop changes', () => {
+    const { rerender } = render(<LocationPicker value="" />);
 
-  it('handles empty fields correctly', () => {
-    const mockOnChange = vi.fn();
-    render(
-      <MockLocationPicker
-        isMapMode={false}
-        onChange={mockOnChange}
-      />
-    );
-    
-    const countryInput = screen.getByLabelText('Country');
-    const cityInput = screen.getByLabelText('City');
-    
-    fireEvent.change(countryInput, { target: { value: 'Turkey' } });
-    fireEvent.change(cityInput, { target: { value: 'Ankara' } });
-    
-    expect(mockOnChange).toHaveBeenCalledWith('Ankara, Turkey');
-  });
+    rerender(<LocationPicker value="Ankara, Turkey" />);
 
-  it('shows required asterisk when required prop is true', () => {
-    render(<MockLocationPicker required={true} />);
-    
-    expect(screen.getByText('Location *')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('location-mode-switch')); // Switch to text mode
+    expect(screen.getByLabelText('location.city')).toHaveValue('Ankara');
   });
 });

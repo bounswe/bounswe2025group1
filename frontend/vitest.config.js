@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     watch: false,
     environment: 'jsdom',
-    globals: true,            
+    globals: true,
     setupFiles: './src/setupTests.js',
     coverage: {
       provider: 'istanbul',
@@ -23,6 +23,7 @@ export default defineConfig({
       reportsDirectory: './coverage',
       enabled: true,
       reportOnFailure: true,
+      all: false,
     }
   },
   server: {
