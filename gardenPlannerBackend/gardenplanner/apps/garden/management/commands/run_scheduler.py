@@ -9,6 +9,7 @@ from django_apscheduler import util
 
 # --- IMPORT THE WORKER FUNCTION ---
 from .send_deadline_reminders import deadline_reminder_sender
+from .send_weather_reminders import check_weather_and_notify
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,12 @@ def deadline_reminders_job():
     """Wraps the logic function for the scheduler."""
     print("Scheduler: Running deadline reminders...")
     result = deadline_reminder_sender()
+    print(f"Scheduler: {result}")
+
+def weather_reminders_job():
+    """Sends weather reminders to users."""
+    print("Scheduler: Running weather reminders...")
+    result = check_weather_and_notify()
     print(f"Scheduler: {result}")
 
 @util.close_old_connections
@@ -35,12 +42,23 @@ class Command(BaseCommand):
         scheduler.add_job(
             deadline_reminders_job,
             trigger=CronTrigger(hour="08", minute="15"),
-            # trigger=CronTrigger(minute="*"), every minute for testing the feature
+            # trigger=CronTrigger(minute="*"), # every minute for testing the feature
             id="send_deadline_reminders",
             max_instances=1,
             replace_existing=True,
         )
         print("Added job 'send_deadline_reminders'.")
+
+        # Run every day at 21:15
+        scheduler.add_job(
+            weather_reminders_job,
+            trigger=CronTrigger(hour="21", minute="15"),
+            # trigger=CronTrigger(minute="*"), # for testing
+            id="weather_reminders",
+            max_instances=1,
+            replace_existing=True,
+        )
+        print("Added job 'weather_reminders'.")
 
         # Clean up old logs every week
         scheduler.add_job(
