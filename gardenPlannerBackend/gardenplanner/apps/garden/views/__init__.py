@@ -49,6 +49,14 @@ from .badge import (
     UserBadgeListView
 )
 
+from .infohub import (
+    PlantSearchView,
+    PlantDetailView,
+    PlantBookmarkListCreateView,
+    PlantBookmarkDetailView,
+    PlantBookmarkCheckView
+)
+
 
 __all__ = [
     # Forum and Comment Views
@@ -86,9 +94,18 @@ __all__ = [
     "TaskUpdateView",
     # Event Views
     "GardenEventViewSet",
-    # Report Vİews
+    # Report Views
     "ReportViewSet",
-    "AdminReportViewSet"
+    "AdminReportViewSet",
+    # Badge Views
+    "BadgeListView",
+    "UserBadgeListView",
+    # Infohub Views
+    "PlantSearchView",
+    "PlantDetailView",
+    "PlantBookmarkListCreateView",
+    "PlantBookmarkDetailView",
+    "PlantBookmarkCheckView",
     # Other Views
     "WeatherDataView",
 ]
