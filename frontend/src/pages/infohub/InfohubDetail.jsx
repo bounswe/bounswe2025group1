@@ -12,12 +12,12 @@ const InfohubDetail = () => {
 
   // Map category IDs to translation keys
   const categoryMap = {
-    'plant-care': 'plantCare',
-    'pest-disease': 'pestDisease',
-    'soil-composting': 'soilComposting',
-    'gardening-calendar': 'gardeningCalendar',
-    'tools-techniques': 'toolsTechniques',
-    'sustainable-gardening': 'sustainableGardening'
+    'gardening-basics': 'gardeningBasics',
+    'soil-types': 'soilTypes',
+    'tool-guide': 'toolGuide',
+    'community-rules-safety': 'communityRulesSafety',
+    'faq': 'faq',
+    'support': 'support'
   };
 
   const translationKey = categoryMap[categoryId];
