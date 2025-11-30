@@ -1,0 +1,212 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Box,
+  Typography,
+  Paper,
+  TextField,
+  InputAdornment,
+  Chip,
+  Card,
+  CardContent,
+  Button,
+  Pagination,
+  useTheme,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import plantsData from '../../data/plants.json';
+import { getTranslatedField } from '../../utils/plantTranslations';
+
+const PlantList = () => {
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
+  const [page, setPage] = useState(1);
+  const plantsPerPage = 20;
+  const currentLang = i18n.language || 'en';
+
+  const plants = plantsData.plants;
+  const types = ['all', 'vegetable', 'herb', 'flower', 'tree', 'fruit', 'succulent', 'shrub'];
+
+  const filteredPlants = plants.filter((plant) => {
+    const plantName = getTranslatedField(plant, 'name', currentLang);
+    const matchesSearch = plantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      plant.scientificName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = selectedType === 'all' || plant.type === selectedType;
+    return matchesSearch && matchesType;
+  });
+
+  const totalPages = Math.ceil(filteredPlants.length / plantsPerPage);
+  const startIndex = (page - 1) * plantsPerPage;
+  const endIndex = startIndex + plantsPerPage;
+  const currentPlants = filteredPlants.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search or filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, selectedType]);
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <Box sx={{ 
+      width: '100%', 
+      minHeight: '100vh',
+      backgroundColor: theme.palette.background.default 
+    }}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        {/* Back Button */}
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/infohub')}
+          sx={{ mb: 2 }}
+        >
+          {t('infohub.backToCategories', 'Back to Infohub')}
+        </Button>
+
+        {/* Header */}
+        <Paper
+          sx={{
+            p: 4,
+            mb: 4,
+            background: `linear-gradient(135deg, ${theme.palette.success.dark} 0%, ${theme.palette.success.main} 100%)`,
+            color: 'white',
+          }}
+        >
+          <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 1 }}>
+            🌱 {t('infohub.plantEncyclopedia.title', 'Plant Encyclopedia')}
+          </Typography>
+          <Typography variant="h6" sx={{ opacity: 0.9 }}>
+            {t('infohub.plantEncyclopedia.subtitle', 'Browse our collection of plants with care guides')}
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+            {filteredPlants.length} {t('infohub.plantEncyclopedia.plants', 'plants')} {searchQuery && t('infohub.plantEncyclopedia.found', 'found')} • {t('infohub.plantEncyclopedia.page', 'Page')} {totalPages > 0 ? page : 0} {t('infohub.plantEncyclopedia.of', 'of')} {totalPages}
+          </Typography>
+        </Paper>
+
+        {/* Search and Filter */}
+        <Paper sx={{ p: 3, mb: 4 }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'center' }}>
+            <TextField
+              fullWidth
+              placeholder={t('infohub.plantEncyclopedia.searchPlaceholder', 'Search plants...')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={{ flex: 1 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {types.map((type) => (
+                <Chip
+                  key={type}
+                  label={type === 'all' ? t('infohub.plantEncyclopedia.all', 'All') : t(`infohub.plantTypes.${type}`, type.charAt(0).toUpperCase() + type.slice(1))}
+                  onClick={() => setSelectedType(type)}
+                  color={selectedType === type ? 'primary' : 'default'}
+                  variant={selectedType === type ? 'filled' : 'outlined'}
+                />
+              ))}
+            </Box>
+          </Box>
+        </Paper>
+
+        {filteredPlants.length === 0 ? (
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <Typography variant="h6" color="text.secondary">
+              {t('infohub.plantEncyclopedia.noResults', 'No plants found matching your search.')}
+            </Typography>
+          </Paper>
+        ) : (
+          <>
+            {/* Plant Grid */}
+            <Box 
+              sx={{ 
+                display: 'grid',
+                gridTemplateColumns: { 
+                  xs: '1fr', 
+                  sm: 'repeat(2, 1fr)', 
+                  md: 'repeat(3, 1fr)',
+                  lg: 'repeat(4, 1fr)',
+                },
+                gap: 3,
+                mb: 4,
+              }}
+            >
+              {currentPlants.map((plant) => (
+                <Card
+                  key={plant.id}
+                  sx={{
+                    height: '100%',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: 6,
+                    },
+                  }}
+                  onClick={() => navigate(`/infohub/plants/${plant.id}`)}
+                >
+                  <Box
+                    sx={{
+                      height: 160,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: theme.palette.action.hover,
+                      fontSize: '5rem',
+                    }}
+                  >
+                    {plant.image}
+                  </Box>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      {getTranslatedField(plant, 'name', currentLang)}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mb: 1 }}>
+                      {plant.scientificName}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                      <Chip size="small" label={plant.type} color="success" variant="outlined" />
+                      <Chip size="small" label={plant.difficulty} variant="outlined" />
+                      <Chip size="small" label={plant.season} variant="outlined" />
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={handlePageChange}
+                  color="primary"
+                  size="large"
+                  showFirstButton
+                  showLastButton
+                />
+              </Box>
+            )}
+          </>
+        )}
+      </Container>
+    </Box>
+  );
+};
+
+export default PlantList;
