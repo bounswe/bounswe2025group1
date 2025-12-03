@@ -38,13 +38,14 @@ class ProfileSerializer(serializers.ModelSerializer):
     location = serializers.SerializerMethodField()
     role = serializers.CharField(read_only=True)
     receives_notifications = serializers.BooleanField(read_only=True)
+    is_private = serializers.BooleanField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Profile
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 
-                  'profile_picture', 'location', 'role', 'receives_notifications', 'created_at', 'updated_at']
+                  'profile_picture', 'location', 'role', 'receives_notifications', 'is_private', 'created_at', 'updated_at']
         read_only_fields = ['id', 'role', 'created_at', 'updated_at']
 
     def get_profile_picture(self, obj):
@@ -74,7 +75,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ['profile_picture', 'location', 'receives_notifications']
+        fields = ['profile_picture', 'location', 'receives_notifications', 'is_private']
 
     def update(self, instance, validated_data):
         request = self.context.get('request') if hasattr(self, 'context') else None
