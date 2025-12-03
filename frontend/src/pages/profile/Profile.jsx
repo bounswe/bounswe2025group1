@@ -70,7 +70,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (userId && isNaN(Number(userId))) {
-      toast.error('Invalid profile ID');
+      toast.error(t('profile.invalidProfileId'));
       navigate('/profile');
       return;
     }
@@ -79,6 +79,11 @@ const Profile = () => {
   // Fetch profile data
   useEffect(() => {
     setIsEditing(false);
+    setIsPrivateProfile(false);
+    setIsFollowing(false);
+    setProfile(null);
+    setError(null);
+    setLoading(true);
 
     const fetchProfileData = async () => {
       if (!token) {
@@ -106,7 +111,7 @@ const Profile = () => {
               return;
             }
           }
-          toast.error('Failed to load profile');
+          toast.error(t('profile.failedToLoadProfile'));
           return;
         }
 
@@ -142,7 +147,7 @@ const Profile = () => {
         }
       } catch (err) {
         setError(err.message);
-        toast.error('Error loading profile');
+        toast.error(t('profile.errorLoadingProfile'));
       }
     };
 
@@ -304,7 +309,7 @@ const Profile = () => {
       });
 
       if (!response.ok) {
-        toast.error('Failed to update profile');
+        toast.error(t('profile.failedToUpdateProfile'));
         return;
       }
 
@@ -364,7 +369,7 @@ const Profile = () => {
       });
 
       if (!response.ok) {
-        toast.error('Failed to update follow status');
+        toast.error(t('profile.failedToUpdateFollowStatus'));
         return;
       }
 
@@ -403,10 +408,10 @@ const Profile = () => {
       <Container>
         <Box my={4} textAlign="center">
           <Typography variant="h5" color="error">
-            Error: {error}
+            {t('common.error')}: {error}
           </Typography>
           <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => navigate('/')}>
-            Go Home
+            {t('common.goHome')}
           </Button>
         </Box>
       </Container>
@@ -418,10 +423,10 @@ const Profile = () => {
       <Container>
         <Box my={4} textAlign="center">
           <Typography variant="h4" gutterBottom>
-            {t('profile.privateProfile', 'Private Profile')}
+            {t('profile.privateProfile')}
           </Typography>
           <Typography variant="body1" color="textSecondary">
-            {t('profile.privateProfileMessage', 'This profile is private. Only the owner can view it.')}
+            {t('profile.privateProfileMessage')}
           </Typography>
           <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => navigate('/')}>
             {t('common.goHome', 'Go Home')}
@@ -435,9 +440,9 @@ const Profile = () => {
     return (
       <Container>
         <Box my={4} textAlign="center">
-          <Typography variant="h5">User not found</Typography>
+          <Typography variant="h5">{t('profile.userNotFound')}</Typography>
           <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => navigate('/')}>
-            Go Home
+            {t('common.goHome')}
           </Button>
         </Box>
       </Container>
@@ -513,7 +518,7 @@ const Profile = () => {
                   size="medium"
                 />
                 {user && (
-                  <Tooltip title={t('report.reportUser', 'Report User')}>
+                  <Tooltip title={t('report.reportUser')}>
                     <IconButton onClick={() => setReportOpen(true)} color="default">
                       <FlagIcon />
                     </IconButton>
@@ -623,7 +628,7 @@ const Profile = () => {
                       type="checkbox"
                     />
                   }
-                  label={t('Would you like to receive notifications?')}
+                  label={t('profile.receiveNotifications')}
                   sx={{ mt: 1, mb: 1, display: 'block' }}
                 />
                 <FormControlLabel
@@ -635,7 +640,7 @@ const Profile = () => {
                       type="checkbox"
                     />
                   }
-                  label={t('profile.makeProfilePrivate', 'Make Profile Private')}
+                  label={t('profile.makeProfilePrivate')}
                   sx={{ mt: 1, mb: 1, display: 'block' }}
                 />
                 { }

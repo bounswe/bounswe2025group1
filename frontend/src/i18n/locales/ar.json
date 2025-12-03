@@ -18,7 +18,8 @@
     "reset": "إعادة تعيين",
     "confirm": "تأكيد",
     "submitting": "جاري الإرسال...",
-    "errorOccurred": "حدث خطأ"
+    "errorOccurred": "حدث خطأ",
+    "goHome": "الذهاب إلى الصفحة الرئيسية"
   },
   "navigation": {
     "home": "الرئيسية",
@@ -182,7 +183,19 @@
     "followers": "المتابعون",
     "following": "المتابَع",
     "noFollowers": "لا يوجد متابعون",
-    "noFollowing": "لا تتابع أحداً"
+    "noFollowing": "لا تتابع أحداً",
+    "notFollowingAnyoneYet": "لا تتابع أحداً بعد.",
+    "badges": "الشارات",
+    "invalidProfileId": "معرف الملف الشخصي غير صالح",
+    "failedToLoadProfile": "فشل تحميل الملف الشخصي",
+    "errorLoadingProfile": "خطأ في تحميل الملف الشخصي",
+    "privateProfile": "ملف شخصي خاص",
+    "privateProfileMessage": "هذا الملف الشخصي خاص. يمكن للمالك فقط رؤيته.",
+    "makeProfilePrivate": "اجعل الملف الشخصي خاصاً",
+    "userNotFound": "المستخدم غير موجود",
+    "failedToUpdateFollowStatus": "فشل تحديث حالة المتابعة",
+    "failedToUpdateProfile": "فشل تحديث الملف الشخصي",
+    "receiveNotifications": "تلقي الإشعارات"
   },
   "notifications": {
     "title": "الإشعارات",
@@ -328,7 +341,8 @@
     "alreadyReported": "لقد أبلغت عن هذا المحتوى مسبقاً.",
     "reportPost": "الإبلاغ عن المنشور",
     "reportComment": "الإبلاغ عن التعليق",
-    "reportGarden": "الإبلاغ عن الحديقة"
+    "reportGarden": "الإبلاغ عن الحديقة",
+    "reportUser": "الإبلاغ عن المستخدم"
   },
   "moderation": {
     "title": "لوحة الإشراف",
