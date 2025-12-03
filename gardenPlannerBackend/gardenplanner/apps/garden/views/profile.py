@@ -19,7 +19,7 @@ class ProfileView(APIView):
 
     def get(self, request):
         """Get current user's profile"""
-        serializer = UserSerializer(request.user)
+        serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
     def put(self, request):
@@ -45,7 +45,7 @@ class UserProfileView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
             
-        serializer = UserSerializer(user)
+        serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data)
     
 

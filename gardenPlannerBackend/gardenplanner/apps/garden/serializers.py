@@ -35,6 +35,12 @@ class ProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email', read_only=True)
     profile_picture = serializers.SerializerMethodField()
     
+    location = serializers.SerializerMethodField()
+    role = serializers.CharField(read_only=True)
+    receives_notifications = serializers.BooleanField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+
     class Meta:
         model = Profile
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 
@@ -47,6 +53,23 @@ class ProfileSerializer(serializers.ModelSerializer):
             mime = getattr(obj, 'profile_picture_mime_type', 'image/jpeg')
             return f"data:{mime};base64,{b64}"
         return None
+
+    def get_location(self, obj):
+        if not obj.location:
+            return None
+            
+        # If the requesting user is the owner, return full location
+        request = self.context.get('request')
+        if request and request.user == obj.user:
+            return obj.location
+            
+        parts = [p.strip() for p in obj.location.split(',')]
+        
+        if len(parts) >= 6:
+            masked_parts = parts[-6:-3]
+            return ", ".join(masked_parts)
+             
+        return obj.location
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
