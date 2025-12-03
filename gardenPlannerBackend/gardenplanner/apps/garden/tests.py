@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 from django.utils import timezone
 from datetime import timedelta
 from push_notifications.models import GCMDevice
-
+from .serializers import ProfileSerializer
 
 class ModelTests(TestCase):
     """Tests for the model functionality"""
@@ -4131,3 +4131,64 @@ class BadgeSystemTests(TestCase):
         # Test Not GOING status doesn't award (User A attempts to earn)
         EventAttendance.objects.create(event=event_summer, user=self.user_a, status='NOT_GOING')
         self.assertBadgeNotEarned(self.user_a, 'event_1')
+
+
+class LocationMaskingTests(TestCase):
+    def setUp(self):
+        self.user_owner = User.objects.create_user(username='owner', password='password')
+        self.user_other = User.objects.create_user(username='other', password='password')
+        self.factory = APIClient()
+        
+        # Set up a profile with a full address
+        # Bodur Sokağı, Aşiyan, Bebek Mahallesi, Beşiktaş, Istanbul, Marmara Region, 34342, Turkey
+        self.full_address = "Bodur Sokağı, Aşiyan, Bebek Mahallesi, Beşiktaş, Istanbul, Marmara Region, 34342, Turkey"
+        self.user_owner.profile.location = self.full_address
+        self.user_owner.profile.save()
+
+    def test_location_full_for_owner(self):
+        """Owner should see the full location string."""
+        self.factory.force_authenticate(user=self.user_owner)
+        
+        request = MagicMock()
+        request.user = self.user_owner
+        
+        serializer = ProfileSerializer(self.user_owner.profile, context={'request': request})
+        self.assertEqual(serializer.data['location'], self.full_address)
+
+    def test_location_masked_for_other_user(self):
+        """Other users should see the masked location (Neighborhood, District, City)."""
+        # Expected: Bebek Mahallesi, Beşiktaş, Istanbul
+        expected_masked = "Bebek Mahallesi, Beşiktaş, Istanbul"
+                
+        request = MagicMock()
+        request.user = self.user_other
+        
+        serializer = ProfileSerializer(self.user_owner.profile, context={'request': request})
+        self.assertEqual(serializer.data['location'], expected_masked)
+
+    def test_location_masking_short_address(self):
+        """Test with a shorter address that might not have all components."""
+        short_address = "Istanbul, Turkey"
+        self.user_owner.profile.location = short_address
+        self.user_owner.profile.save()
+                
+        request = MagicMock()
+        request.user = self.user_other
+        
+        serializer = ProfileSerializer(self.user_owner.profile, context={'request': request})
+        # Should fallback to full address if parsing fails or is ambiguous
+        self.assertEqual(serializer.data['location'], short_address)
+
+    def test_location_masking_another_format(self):
+        """Test with another example format."""
+        # Yanarsu Sokağı, Etiler Mahallesi, Beşiktaş, Istanbul, Marmara Region, 34337, Turkey
+        address = "Yanarsu Sokağı, Etiler Mahallesi, Beşiktaş, Istanbul, Marmara Region, 34337, Turkey"
+        self.user_owner.profile.location = address
+        self.user_owner.profile.save()
+                
+        request = MagicMock()
+        request.user = self.user_other
+        
+        serializer = ProfileSerializer(self.user_owner.profile, context={'request': request})
+        expected_masked = "Etiler Mahallesi, Beşiktaş, Istanbul"
+        self.assertEqual(serializer.data['location'], expected_masked)
