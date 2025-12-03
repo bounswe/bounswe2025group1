@@ -42,13 +42,17 @@ const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isPrivateProfile, setIsPrivateProfile] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   const [editedProfile, setEditedProfile] = useState({
     username: '',
     email: '',
     location: '',
+    email: '',
+    location: '',
     receives_notifications: false,
+    is_private: false,
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [gardens, setGardens] = useState([]);
@@ -74,6 +78,8 @@ const Profile = () => {
 
   // Fetch profile data
   useEffect(() => {
+    setIsEditing(false);
+
     const fetchProfileData = async () => {
       if (!token) {
         navigate('/auth/login');
@@ -92,6 +98,14 @@ const Profile = () => {
         });
 
         if (!response.ok) {
+          if (response.status === 403) {
+            const errorData = await response.json();
+            if (errorData.detail === "This profile is private.") {
+              setIsPrivateProfile(true);
+              setLoading(false);
+              return;
+            }
+          }
           toast.error('Failed to load profile');
           return;
         }
@@ -107,6 +121,7 @@ const Profile = () => {
           email: data.email,
           location: data.profile?.location || '',
           receives_notifications: data.profile.receives_notifications,
+          is_private: data.profile.is_private,
         });
 
         // Check if current user is following this profile
@@ -211,7 +226,7 @@ const Profile = () => {
       setLoading(true);
       await fetchProfileData();
       await fetchUserGardens();
-      await fetchUserBadges(); 
+      await fetchUserBadges();
       await fetchRelationships();
       setLoading(false);
     };
@@ -225,7 +240,9 @@ const Profile = () => {
       username: profile.username,
       email: profile.email,
       location: profile.profile?.location || '',
+      location: profile.profile?.location || '',
       receives_notifications: profile.receives_notifications ?? false,
+      is_private: profile.profile?.is_private ?? false,
     });
     setSelectedFile(null);
   };
@@ -270,7 +287,9 @@ const Profile = () => {
       formData.append('username', editedProfile.username);
       formData.append('email', editedProfile.email);
       formData.append('location', editedProfile.location);
+      formData.append('location', editedProfile.location);
       formData.append('receives_notifications', editedProfile.receives_notifications);
+      formData.append('is_private', editedProfile.is_private);
 
       if (selectedFile) {
         formData.append('profile_picture', selectedFile);
@@ -298,7 +317,9 @@ const Profile = () => {
           ...profile.profile,
           profile_picture: updatedProfile.profile.profile_picture,
           location: updatedProfile.profile.location,
+          location: updatedProfile.profile.location,
           receives_notifications: updatedProfile.profile.receives_notifications,
+          is_private: updatedProfile.profile.is_private,
         },
       });
 
@@ -312,7 +333,9 @@ const Profile = () => {
             ...user.profile,
             profile_picture: updatedProfile.profile.profile_picture,
             location: updatedProfile.profile.location,
+            location: updatedProfile.profile.location,
             receives_notifications: updatedProfile.profile.receives_notifications,
+            is_private: updatedProfile.profile.is_private,
           },
         };
 
@@ -390,6 +413,24 @@ const Profile = () => {
     );
   }
 
+  if (isPrivateProfile) {
+    return (
+      <Container>
+        <Box my={4} textAlign="center">
+          <Typography variant="h4" gutterBottom>
+            {t('profile.privateProfile', 'Private Profile')}
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            {t('profile.privateProfileMessage', 'This profile is private. Only the owner can view it.')}
+          </Typography>
+          <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => navigate('/')}>
+            {t('common.goHome', 'Go Home')}
+          </Button>
+        </Box>
+      </Container>
+    );
+  }
+
   if (!profile) {
     return (
       <Container>
@@ -428,7 +469,7 @@ const Profile = () => {
                     outlineOffset: '2px',
                   },
                 }}
-                onKeyDown={createButtonKeyboardHandler(() => {})}
+                onKeyDown={createButtonKeyboardHandler(() => { })}
               >
                 {t('profile.uploadPhoto')}
                 <input
@@ -585,7 +626,19 @@ const Profile = () => {
                   label={t('Would you like to receive notifications?')}
                   sx={{ mt: 1, mb: 1, display: 'block' }}
                 />
-                {}
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={editedProfile.is_private}
+                      onChange={handleInputChange}
+                      name="is_private"
+                      type="checkbox"
+                    />
+                  }
+                  label={t('profile.makeProfilePrivate', 'Make Profile Private')}
+                  sx={{ mt: 1, mb: 1, display: 'block' }}
+                />
+                { }
                 <LocationPicker
                   value={editedProfile.location}
                   onChange={(value) => setEditedProfile({ ...editedProfile, location: value })}
