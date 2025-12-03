@@ -4192,3 +4192,35 @@ class LocationMaskingTests(TestCase):
         serializer = ProfileSerializer(self.user_owner.profile, context={'request': request})
         expected_masked = "Etiler Mahallesi, Beşiktaş, Istanbul"
         self.assertEqual(serializer.data['location'], expected_masked)
+
+
+class PrivateProfileTests(APITestCase):
+    def setUp(self):
+        self.user_private = User.objects.create_user(username='private_user', password='password')
+        self.user_private.profile.is_private = True
+        self.user_private.profile.save()
+        
+        self.user_public = User.objects.create_user(username='public_user', password='password')
+        
+        self.client = APIClient()
+
+    def test_owner_can_access_private_profile(self):
+        self.client.force_authenticate(user=self.user_private)
+        url = reverse('garden:user-profile', args=[self.user_private.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], 'private_user')
+
+    def test_other_user_cannot_access_private_profile(self):
+        self.client.force_authenticate(user=self.user_public)
+        url = reverse('garden:user-profile', args=[self.user_private.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.data['detail'], 'This profile is private.')
+
+    def test_public_profile_accessible(self):
+        self.client.force_authenticate(user=self.user_private)
+        url = reverse('garden:user-profile', args=[self.user_public.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], 'public_user')
