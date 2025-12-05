@@ -16,10 +16,22 @@ import {
   TextField,
   DialogActions,
   useTheme,
+  CircularProgress,
+  DialogTitle,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CommentIcon from '@mui/icons-material/Comment';
 import SendIcon from '@mui/icons-material/Send';
+
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
+import { useAuth } from '../contexts/AuthContextUtils';
+import { toast } from 'react-toastify';
+
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import ImageGallery from './ImageGallery';
@@ -39,6 +51,82 @@ const PostCard = ({
   const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
+  const { token } = useAuth();
+  const [isLiked, setIsLiked] = useState(post.is_liked || false);
+  const [likesCount, setLikesCount] = useState(post.likes_count || 0);
+  const [isLiking, setIsLiking] = useState(false);
+
+  const handleToggleLike = async () => {
+    if (!token) {
+      toast.error(t('auth.loginRequired', "Please login to like posts"));
+      return;
+    }
+    
+    if (isLiking) return;
+    setIsLiking(true);
+
+    // Optimistic Update: Update UI immediately
+    const previousLiked = isLiked;
+    const previousCount = likesCount;
+  
+    setIsLiked(!isLiked);
+    setLikesCount(isLiked ? likesCount - 1 : likesCount + 1);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/forum-posts/${post.id}/like/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error('Failed to toggle like');
+    } catch (error) {
+      console.error("Like error:", error);
+      // Revert UI if API fails
+      setIsLiked(previousLiked);
+      setLikesCount(previousCount);
+      toast.error(t('errors.generic', "Something went wrong"));
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
+  // LIKES DIALOG STATE
+  const [likesDialogOpen, setLikesDialogOpen] = useState(false);
+  const [likedUsers, setLikedUsers] = useState([]);
+  const [loadingLikes, setLoadingLikes] = useState(false);
+
+  const handleOpenLikesDialog = async () => {
+    if (likesCount === 0) return; // Don't open if 0 likes
+    
+    setLikesDialogOpen(true);
+    setLoadingLikes(true);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/forum-posts/${post.id}/likes/list/`, {
+        headers: {
+          'Authorization': `Token ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setLikedUsers(data);
+      }
+    } catch (error) {
+      console.error("Error fetching likes:", error);
+    } finally {
+      setLoadingLikes(false);
+    }
+  };
+
+  const handleLikerClick = (userId) => {
+    setLikesDialogOpen(false); // Close dialog
+    navigate(`/profile/${userId}`); // Go to profile
+  };
+
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [commentImages, setCommentImages] = useState([]);
@@ -200,32 +288,72 @@ const PostCard = ({
         )}
 
         {/* Engagement Stats */}
-        {hasComments && (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mb: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, gap: 2 }}>
+          {/* Likes Count Text - Clickable */}
+          {likesCount > 0 && (
+            <Typography 
+              variant="body1" 
+              color="darkred"
+              onClick={handleOpenLikesDialog}
+              sx={{ 
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                '&:hover': {
+                  textDecoration: 'underline',
+                  color: 'primary.main'
+                }
+              }}
+            >
+              {/* Used a template string to keep spaces clean */}
+              {`${likesCount} ${likesCount === 1 ? t('forum.like', 'Like') : t('forum.likes', 'Likes')}`}
+            </Typography>
+          )}
+
+          {/* Comments Toggle Text */}
+          {hasComments && (
             <Button
               variant="text"
               size="small"
               onClick={() => setShowComments(!showComments)}
               sx={{
                 color: 'text.secondary',
-                fontSize: '0.8rem',
+                fontSize: '0.85rem',
                 textTransform: 'none',
                 minWidth: 'auto',
-                px: 1,
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                },
+                p: 0,
+                '&:hover': { backgroundColor: 'transparent', textDecoration: 'underline' },
               }}
             >
               {showComments ? t('forum.hideComments') : t('forum.showComments', { count: post.comments_count })}
             </Button>
-          </Box>
-        )}
+          )}
+        </Box>
+
 
         <Divider sx={{ my: 1 }} />
-
         {/* Action Buttons */}
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-around' }}> {}
+          
+          {/* LIKE BUTTON */}
+          <Button
+            startIcon={isLiked ? <ThumbUpIcon /> : <ThumbUpOutlinedIcon />}
+            onClick={handleToggleLike}
+            sx={{
+              color: isLiked ? 'primary.main' : 'text.secondary',
+              fontWeight: 400,
+              fontSize: '0.9rem',
+              textTransform: 'none',
+              flex: 1, // Make buttons take equal width
+              '&:hover': {
+                backgroundColor: 'rgba(25, 118, 210, 0.08)',
+              },
+            }}
+          >
+            {isLiked ? t('forum.liked', 'Liked') : t('forum.like', 'Like')}
+          </Button>
+
+          {/* COMMENT BUTTON */}
           <Button
             startIcon={<CommentIcon />}
             onClick={handleComment}
@@ -234,13 +362,9 @@ const PostCard = ({
               fontWeight: 400,
               fontSize: '0.9rem',
               textTransform: 'none',
-              '& .MuiButton-startIcon': {
-                marginRight: 1,
-                marginLeft: 1,
-              },
-              '&:hover': {
-                backgroundColor: 'rgba(25, 118, 210, 0.08)',
-              },
+              flex: 1, // Make buttons take equal width
+              '& .MuiButton-startIcon': { marginRight: 1 },
+              '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.08)' },
             }}
           >
             {t('forum.comment')}
@@ -431,6 +555,51 @@ const PostCard = ({
         contentType="forumpost"
         objectId={post.id}
       />
+
+      {/* LIKES LIST DIALOG */}
+      <Dialog 
+        open={likesDialogOpen} 
+        onClose={() => setLikesDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
+          {t('forum.likedBy', 'Liked by')}
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 0 }}>
+          {loadingLikes ? (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : (
+            <List sx={{ pt: 0, pb: 0 }}>
+              {likedUsers.map((user) => (
+                <ListItem 
+                  key={user.id} 
+                  button 
+                  onClick={() => handleLikerClick(user.id)}
+                >
+                  <ListItemAvatar>
+                    <Avatar src={user.profile_picture} />
+                  </ListItemAvatar>
+                  <ListItemText 
+                    primary={user.username} 
+                    primaryTypographyProps={{ 
+                      fontWeight: 500, 
+                      fontSize: '0.9rem' 
+                    }} 
+                  />
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setLikesDialogOpen(false)}>
+            {t('common.close', 'Close')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 };
