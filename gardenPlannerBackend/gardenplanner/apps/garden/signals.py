@@ -1,10 +1,22 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from push_notifications.models import GCMDevice
-from .models import Notification, NotificationCategory, Task, Profile, Comment, Badge, UserBadge, ForumPost, GardenMembership, EventAttendance
+from .models import (
+    Notification, 
+    NotificationCategory, 
+    Task, 
+    Profile, 
+    Comment, 
+    Badge, 
+    UserBadge, 
+    ForumPost, 
+    GardenMembership, 
+    EventAttendance, 
+    ForumPostLike, 
+    CommentLike,
+)
 
-
-def _send_notification(notification_receiver, notification_title, notification_message, notification_category, link=None):
+def _send_notification(notification_receiver, notification_title, notification_message, notification_category, link=None, send_push_notification=True):
 
     if notification_receiver == None:
         return
@@ -19,6 +31,11 @@ def _send_notification(notification_receiver, notification_title, notification_m
         category=notification_category,
         link=link
     )
+
+    # We may choose to skip push notifications in certain cases
+    # to avoid spamming users, and relieve server load.
+    if not send_push_notification:
+        return
 
     devices = GCMDevice.objects.filter(user=notification_receiver, active=True)
     
@@ -113,6 +130,64 @@ def new_comment_notification(sender, instance, created, **kwargs):
         notification_message=message,
         notification_category=NotificationCategory.FORUM,
         link=f"/forum/{instance.forum_post.id}"
+    )
+
+
+@receiver(post_save, sender=ForumPostLike)
+def new_post_like_notification(sender, instance, created, **kwargs):
+    """
+    Sends a notification to the post author when someone likes their post.
+    'instance' is the ForumPostLike object.
+    """
+    if not created:
+        return
+
+    liker = instance.user
+    post = instance.post
+    post_author = post.author
+
+    # Do not notify if the user liked their own post
+    if liker == post_author:
+        return
+
+    message = f"{liker.username} liked your post: '{post.title}'."
+
+    _send_notification(
+        notification_receiver=post_author,
+        notification_title="New Like",
+        notification_message=message,
+        notification_category=NotificationCategory.SOCIAL,
+        link=f"/forum/{post.id}",
+        send_push_notification=False
+    )
+
+
+@receiver(post_save, sender=CommentLike)
+def new_comment_like_notification(sender, instance, created, **kwargs):
+    """
+    Sends a notification to the comment author when someone likes their comment.
+    'instance' is the CommentLike object.
+    """
+    if not created:
+        return
+
+    liker = instance.user
+    comment = instance.comment
+    comment_author = comment.author
+
+    # Do not notify if the user liked their own comment
+    if liker == comment_author:
+        return
+
+    message = f"{liker.username} liked your comment on '{comment.forum_post.title}'."
+
+    _send_notification(
+        notification_receiver=comment_author,
+        notification_title="New Like",
+        notification_message=message,
+        notification_category=NotificationCategory.SOCIAL,
+        link=f"/forum/{comment.forum_post.id}" ,
+        send_push_notification=False
     )
 
 
