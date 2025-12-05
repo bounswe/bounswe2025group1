@@ -22,6 +22,7 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  ListItemButton,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CommentIcon from '@mui/icons-material/Comment';
@@ -38,6 +39,7 @@ import ImageGallery from './ImageGallery';
 import InlineImageUpload from './InlineImageUpload';
 
 import ReportDialog from './ReportDialog';
+import CommentItem from './CommentItem';
 import FlagIcon from '@mui/icons-material/Flag';
 
 const PostCard = ({
@@ -448,76 +450,11 @@ const PostCard = ({
             {hasComments && (
               <Box sx={{ ml: 0 }}>
                 {post.comments.map((comment) => (
-                  <Box key={comment.id} sx={{ display: 'flex', gap: 0.5, mb: 1, alignItems: 'flex-start' }}>
-                    <Avatar 
-                      src={comment.author_profile_picture || '/default-avatar.png'}
-                      onClick={() => handleCommentAuthorClick(comment.author)}
-                      sx={{ 
-                        width: 24, 
-                        height: 24,
-                        bgcolor: '#8bc34a',
-                        fontSize: '0.7rem',
-                        flexShrink: 0,
-                        cursor: 'pointer',
-                        '&:hover': {
-                          opacity: 0.8,
-                        },
-                      }}
-                    >
-                      {comment.author_username?.charAt(0) || 'U'}
-                    </Avatar>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Box sx={{ 
-                        backgroundColor: theme.palette.action.hover, 
-                        borderRadius: 1.5, 
-                        p: 0.8,
-                        mb: 0.3,
-                      }}>
-                        <Typography 
-                          variant="subtitle2" 
-                          onClick={() => handleCommentAuthorClick(comment.author)}
-                          sx={{ 
-                            fontWeight: 600, 
-                            fontSize: '0.75rem',
-                            color: theme.palette.primary.main,
-                            mb: 0.2,
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            '&:hover': {
-                              textDecoration: 'underline',
-                            },
-                          }}
-                        >
-                          {comment.author_username || t('forum.unknownUser')}
-                        </Typography>
-                        <Typography variant="body2" sx={{ 
-                          fontSize: '0.8rem',
-                          lineHeight: 1.3,
-                          textAlign: 'left',
-                        }}>
-                          {comment.content}
-                        </Typography>
-                        {comment.images && comment.images.length > 0 && (
-                          <Box sx={{ mt: 0.5 }}>
-                            <ImageGallery 
-                              images={comment.images}
-                              maxColumns={2}
-                              imageHeight={60}
-                              showCoverBadge={false}
-                            />
-                          </Box>
-                        )}
-                      </Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ 
-                        fontSize: '0.65rem', 
-                        ml: 0.5,
-                        display: 'block',
-                        textAlign: 'right',
-                      }}>
-                        {formatTimeAgo(comment.created_at)}
-                      </Typography>
-                    </Box>
-                  </Box>
+                  <CommentItem 
+                    key={comment.id} 
+                    comment={comment} 
+                    onAuthorClick={handleCommentAuthorClick}
+                  />
                 ))}
               </Box>
             )}
@@ -573,24 +510,40 @@ const PostCard = ({
             </Box>
           ) : (
             <List sx={{ pt: 0, pb: 0 }}>
-              {likedUsers.map((user) => (
-                <ListItem 
-                  key={user.id} 
-                  button 
-                  onClick={() => handleLikerClick(user.id)}
-                >
-                  <ListItemAvatar>
-                    <Avatar src={user.profile_picture} />
-                  </ListItemAvatar>
-                  <ListItemText 
-                    primary={user.username} 
-                    primaryTypographyProps={{ 
-                      fontWeight: 500, 
-                      fontSize: '0.9rem' 
-                    }} 
-                  />
-                </ListItem>
-              ))}
+              {Array.isArray(likedUsers) && likedUsers.length > 0 ? (
+                likedUsers.map((user) => (
+                  <ListItem key={user.id} disablePadding>
+                    <ListItemButton 
+                      onClick={() => handleLikerClick(user.id)}
+                      sx={{
+                        // Add a smooth transition
+                        transition: 'background-color 0.2s',
+                        '&:hover': {
+                          backgroundColor: 'action.hover', 
+                        }
+                      }}
+                    >
+                      <ListItemAvatar>
+                        <Avatar src={user.profile_picture} />
+                      </ListItemAvatar>
+                      <ListItemText 
+                        primary={user.username} 
+                        primaryTypographyProps={{ 
+                          fontWeight: 500, 
+                          fontSize: '0.9rem',
+                          color: 'text.primary'
+                        }} 
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))
+              ) : (
+                <Box sx={{ p: 2, textAlign: 'center' }}>
+                   <Typography variant="body2" color="text.secondary">
+                     {t('forum.noLikesYet', 'No likes yet')}
+                   </Typography>
+                </Box>
+              )}
             </List>
           )}
         </DialogContent>
