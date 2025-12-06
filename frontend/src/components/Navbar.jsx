@@ -41,6 +41,7 @@ import { createRovingTabindex, createButtonKeyboardHandler, createLinkKeyboardHa
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 import NotificationBell from './NotificationBell';
+import FontSizeSelector from './FontSizeSelector';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
@@ -295,10 +296,11 @@ function Navbar() {
             ))}
           </Box>
 
-          {/* Theme and Language toggles - always visible */}
+          {/* Theme, Language, and Font Size toggles - always visible */}
           <Box sx={{ display: 'flex', alignItems: 'center', mr: user ? 2 : 0 }}>
             <LanguageToggle />
             <ThemeToggle />
+            <FontSizeSelector />
             {user && <NotificationBell />}
           </Box>
 
@@ -518,6 +520,19 @@ function Navbar() {
             </ListItem>
           ))}
         </List>
+
+        <Divider sx={{ my: 1 }} />
+
+        {/* Font Size Selector in mobile drawer */}
+        <Box sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 'bold', color: 'text.secondary' }}
+          >
+            {t('accessibility.fontSize.title')}:
+          </Typography>
+          <FontSizeSelector />
+        </Box>
 
         <Divider sx={{ my: 1 }} />
 
