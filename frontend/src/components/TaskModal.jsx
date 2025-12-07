@@ -13,6 +13,8 @@ import {
   Select,
   OutlinedInput,
   CircularProgress,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -47,6 +49,9 @@ const TaskModal = ({
     assigned_to: "",
     custom_type: "",
     garden: parseInt(gardenId),
+    is_recurring: false,
+    recurrence_period: '',
+    recurrence_end_date: null,
     ...(task || {}),
   });
 
@@ -59,6 +64,9 @@ const TaskModal = ({
   const [loadingTaskTypes, setLoadingTaskTypes] = useState(false);
 
   const [deadline, setDeadline] = useState(task?.due_date ? dayjs(task.due_date) : dayjs());
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState(
+    task?.recurrence_end_date ? dayjs(task.recurrence_end_date) : null
+  );
 
   const [newTaskTypeName, setNewTaskTypeName] = useState('');
   const [newTaskTypeDescription, setNewTaskTypeDescription] = useState('');
@@ -159,6 +167,7 @@ const TaskModal = ({
       ...(task || {}),
     }));
     setDeadline(task?.due_date ? dayjs(task.due_date) : dayjs());
+    setRecurrenceEndDate(task?.recurrence_end_date ? dayjs(task.recurrence_end_date) : null);
   }, [task]);
 
   // Set dayjs locale based on current language
@@ -176,8 +185,12 @@ const TaskModal = ({
         assigned_to: '',
         custom_type: '',
         garden: parseInt(gardenId),
+        is_recurring: false,
+        recurrence_period: '',
+        recurrence_end_date: null,
       });
       setDeadline(dayjs());
+      setRecurrenceEndDate(null);
       setNewTaskTypeName('');
       setNewTaskTypeDescription('');
     }
@@ -194,6 +207,23 @@ const TaskModal = ({
   const handleAssigneeChange = (event) => {
     const { value } = event.target;
     setTaskForm((prev) => ({ ...prev, assigned_to: value }));
+  };
+
+  const handleRecurringChange = (event) => {
+    const isRecurring = event.target.checked;
+    setTaskForm((prev) => ({
+      ...prev,
+      is_recurring: isRecurring,
+      recurrence_period: isRecurring ? prev.recurrence_period || 'DAILY' : '',
+      recurrence_end_date: isRecurring ? prev.recurrence_end_date : null,
+    }));
+    if (!isRecurring) {
+      setRecurrenceEndDate(null);
+    }
+  };
+
+  const handleRecurrencePeriodChange = (event) => {
+    setTaskForm((prev) => ({ ...prev, recurrence_period: event.target.value }));
   };
 
   // Create a new custom task type
@@ -257,6 +287,14 @@ const TaskModal = ({
       updatedForm.due_date = dayjs().toISOString();
     }
 
+    // Handle recurrence end date
+    if (updatedForm.is_recurring && recurrenceEndDate && dayjs(recurrenceEndDate).isValid()) {
+      updatedForm.recurrence_end_date = recurrenceEndDate.toISOString();
+    } else if (!updatedForm.is_recurring) {
+      updatedForm.recurrence_end_date = null;
+      updatedForm.recurrence_period = null;
+    }
+
     // If we have a new task type to create
     if (taskForm.custom_type === 'new' && newTaskTypeName) {
       const newTypeId = await createCustomTaskType();
@@ -279,6 +317,9 @@ const TaskModal = ({
         updatedForm.custom_type === 'new'
           ? null
           : updatedForm.custom_type || null,
+      is_recurring: updatedForm.is_recurring || false,
+      recurrence_period: updatedForm.is_recurring ? updatedForm.recurrence_period : null,
+      recurrence_end_date: updatedForm.recurrence_end_date,
     };
 
     onSubmit(finalForm);
@@ -468,6 +509,59 @@ const TaskModal = ({
                 value={newTaskTypeDescription}
                 onChange={(e) => setNewTaskTypeDescription(e.target.value)}
               />
+            </Box>
+          )}
+
+          {/* Recurring Task Options */}
+          <Box sx={{ mt: 2 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={taskForm.is_recurring || false}
+                  onChange={handleRecurringChange}
+                />
+              }
+              label={t('tasks.makeRecurring')}
+            />
+          </Box>
+
+          {taskForm.is_recurring && (
+            <Box sx={{ mt: 2 }}>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>{t('tasks.recurrencePeriod')}</InputLabel>
+                <Select
+                  value={taskForm.recurrence_period || ''}
+                  onChange={handleRecurrencePeriodChange}
+                  input={<OutlinedInput label={t('tasks.recurrencePeriod')} />}
+                  required
+                >
+                  <MenuItem value="DAILY">{t('tasks.daily')}</MenuItem>
+                  <MenuItem value="WEEKLY">{t('tasks.weekly')}</MenuItem>
+                  <MenuItem value="MONTHLY">{t('tasks.monthly')}</MenuItem>
+                  <MenuItem value="YEARLY">{t('tasks.yearly')}</MenuItem>
+                </Select>
+              </FormControl>
+
+              <LocalizationProvider 
+                dateAdapter={AdapterDayjs} 
+                adapterLocale={i18n.language === 'tr' ? 'tr' : 'en'}
+              >
+                <Box sx={{ mt: 2 }}>
+                  <DateTimePicker
+                    label={t('tasks.recurrenceEndDate')}
+                    value={recurrenceEndDate}
+                    onChange={(newValue) => setRecurrenceEndDate(newValue)}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: 'outlined',
+                        margin: 'normal',
+                        size: 'medium',
+                      },
+                    }}
+                  />
+                </Box>
+              </LocalizationProvider>
             </Box>
           )}
 

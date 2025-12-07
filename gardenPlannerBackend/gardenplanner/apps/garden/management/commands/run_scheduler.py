@@ -9,6 +9,7 @@ from django_apscheduler import util
 
 # --- IMPORT THE WORKER FUNCTION ---
 from .send_deadline_reminders import deadline_reminder_sender
+from django.core.management import call_command
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,15 @@ def deadline_reminders_job():
     print("Scheduler: Running deadline reminders...")
     result = deadline_reminder_sender()
     print(f"Scheduler: {result}")
+
+def generate_recurring_tasks_job():
+    """Wraps the recurring task generation command for the scheduler."""
+    print("Scheduler: Generating recurring task instances...")
+    try:
+        call_command('generate_recurring_tasks')
+        print("Scheduler: Recurring task generation completed.")
+    except Exception as e:
+        print(f"Scheduler: Error generating recurring tasks: {e}")
 
 @util.close_old_connections
 def delete_old_job_executions(max_age=604_800):
@@ -31,7 +41,7 @@ class Command(BaseCommand):
         scheduler.add_jobstore(DjangoJobStore(), "default")
 
         # --- SCHEDULE THE JOB ---
-        # Run every day at 00:15
+        # Run every day at 08:15
         scheduler.add_job(
             deadline_reminders_job,
             trigger=CronTrigger(hour="08", minute="15"),
@@ -41,6 +51,15 @@ class Command(BaseCommand):
             replace_existing=True,
         )
         print("Added job 'send_deadline_reminders'.")
+
+        scheduler.add_job(
+            generate_recurring_tasks_job,
+            trigger=CronTrigger(hour="08", minute="00"),
+            id="generate_recurring_tasks",
+            max_instances=1,
+            replace_existing=True,
+        )
+        print("Added job 'generate_recurring_tasks'.")
 
         # Clean up old logs every week
         scheduler.add_job(

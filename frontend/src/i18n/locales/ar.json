@@ -170,7 +170,14 @@
     "details": "التفاصيل",
     "taskCalendar": "تقويم المهام",
     "taskTypeRequired": "يرجى اختيار نوع المهمة.",
-    "saveChanges": "حفظ التغييرات"
+    "saveChanges": "حفظ التغييرات",
+    "makeRecurring": "جعل هذه المهمة متكررة",
+    "recurrencePeriod": "فترة التكرار",
+    "recurrenceEndDate": "تاريخ انتهاء التكرار (اختياري)",
+    "daily": "يومي",
+    "weekly": "أسبوعي",
+    "monthly": "شهري",
+    "yearly": "سنوي"
   },
   "profile": {
     "edit": "تعديل",
