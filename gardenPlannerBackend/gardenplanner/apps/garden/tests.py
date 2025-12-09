@@ -5,7 +5,25 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.contenttypes.models import ContentType
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenEvent, EventAttendance, AttendanceStatus, Badge, UserBadge, EventCategory
+from .models import (
+    Profile, 
+    Garden, 
+    GardenMembership, 
+    CustomTaskType, 
+    Task, 
+    ForumPost, 
+    Comment, 
+    Report, 
+    Notification, 
+    GardenEvent, 
+    EventAttendance, 
+    AttendanceStatus, 
+    Badge, 
+    UserBadge, 
+    EventCategory, 
+    ForumPostLike, 
+    CommentLike,
+)
 from unittest.mock import patch, MagicMock
 from django.utils import timezone
 from datetime import timedelta
@@ -4131,3 +4149,61 @@ class BadgeSystemTests(TestCase):
         # Test Not GOING status doesn't award (User A attempts to earn)
         EventAttendance.objects.create(event=event_summer, user=self.user_a, status='NOT_GOING')
         self.assertBadgeNotEarned(self.user_a, 'event_1')
+
+
+class LikeSystemTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='password123')
+        # Ensure profile exists for the List View tests
+        if not hasattr(self.user, 'profile'):
+            Profile.objects.create(user=self.user)
+            
+        self.client.force_authenticate(user=self.user)
+        
+        self.post_obj = ForumPost.objects.create(title='Test Post', content='Content', author=self.user)
+        self.comment_obj = Comment.objects.create(forum_post=self.post_obj, content='Test Comment', author=self.user)
+
+    def test_toggle_like_post_create(self):
+        """Test that posting to toggle endpoint creates a like (Like)"""
+        url = reverse('garden:forum-post-like', args=[self.post_obj.id])
+        
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(ForumPostLike.objects.count(), 1)
+        self.assertEqual(response.data['is_liked'], True)
+
+    def test_toggle_like_post_remove(self):
+        """Test that posting to toggle endpoint removes existing like (Unlike)"""
+        ForumPostLike.objects.create(user=self.user, post=self.post_obj)
+        
+        url = reverse('garden:forum-post-like', args=[self.post_obj.id])
+        
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(ForumPostLike.objects.count(), 0)
+        self.assertEqual(response.data['is_liked'], False)
+
+    def test_list_post_likes(self):
+        """Test that we can retrieve the list of profiles who liked the post"""
+        ForumPostLike.objects.create(user=self.user, post=self.post_obj)
+        
+        url = reverse('garden:post-likes-list', args=[self.post_obj.id])
+        
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['username'], self.user.username)
+
+    def test_toggle_like_comment(self):
+        """Test that the generic toggle view works for Comments as well"""
+        url = reverse('garden:comment-like', args=[self.comment_obj.id])
+        
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CommentLike.objects.count(), 1)
+        self.assertTrue(CommentLike.objects.filter(user=self.user, comment=self.comment_obj).exists())
