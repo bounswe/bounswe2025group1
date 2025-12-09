@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import CalendarTab from './CalendarTab';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import dayjs from 'dayjs';
@@ -56,6 +56,12 @@ describe('CalendarTab Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-11-15'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe('Desktop View', () => {
@@ -114,9 +120,9 @@ describe('CalendarTab Component', () => {
 
       const currentYear = dayjs().year();
       const prevButton = screen.getAllByRole('button')[0];
-      
+
       fireEvent.click(prevButton);
-      
+
       // Month or year should change
       const displayedText = screen.getByText(new RegExp(currentYear.toString()));
       expect(displayedText).toBeInTheDocument();
@@ -133,9 +139,9 @@ describe('CalendarTab Component', () => {
 
       const currentYear = dayjs().year();
       const nextButton = screen.getAllByRole('button')[1];
-      
+
       fireEvent.click(nextButton);
-      
+
       // Month or year should change
       const displayedText = screen.getByText(new RegExp(currentYear.toString()));
       expect(displayedText).toBeInTheDocument();
@@ -182,7 +188,7 @@ describe('CalendarTab Component', () => {
 
       // Find a Paper component (calendar cell) and click it
       const firstPaper = document.querySelector('[class*="MuiPaper-root"]');
-      
+
       if (firstPaper) {
         fireEvent.click(firstPaper);
         expect(mockOnEmptyDayClick).toHaveBeenCalled();
@@ -209,7 +215,7 @@ describe('CalendarTab Component', () => {
 
       const taskChip = screen.getByText('Task today');
       const paperElement = taskChip.closest('[class*="MuiPaper-root"]');
-      
+
       if (paperElement) {
         fireEvent.click(paperElement);
         // Should not call onEmptyDayClick since there are tasks
@@ -381,7 +387,7 @@ describe('CalendarTab Component', () => {
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
       ];
-      
+
       const currentMonthName = monthNames[dayjs().month()];
       expect(screen.getByText(new RegExp(currentMonthName, 'i'))).toBeInTheDocument();
     });
@@ -398,7 +404,7 @@ describe('CalendarTab Component', () => {
       );
 
       const nextButton = screen.getAllByRole('button')[1];
-      
+
       // Navigate through multiple months
       fireEvent.click(nextButton);
       fireEvent.click(nextButton);
@@ -418,7 +424,7 @@ describe('CalendarTab Component', () => {
       );
 
       const firstPaper = document.querySelector('[class*="MuiPaper-root"]');
-      
+
       if (firstPaper) {
         // Should not throw error
         expect(() => fireEvent.click(firstPaper)).not.toThrow();

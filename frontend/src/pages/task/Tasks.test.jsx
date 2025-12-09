@@ -144,7 +144,7 @@ describe('Tasks Page', () => {
   });
 
   it('updates a task', async () => {
-    const mockTasks = [{ id: 1, title: 'Task 1', assigned_to: 1 }];
+    const mockTasks = [{ id: 1, title: 'Task 1', assigned_to: [1] }];
     fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockTasks,
@@ -158,7 +158,7 @@ describe('Tasks Page', () => {
     // Mock update response
     fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ id: 1, title: 'Updated Task', assigned_to: 1 }),
+      json: async () => ({ id: 1, title: 'Updated Task', assigned_to: [1] }),
     });
 
     fireEvent.click(screen.getByText('Save'));
