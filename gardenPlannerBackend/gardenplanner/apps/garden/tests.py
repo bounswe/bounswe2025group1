@@ -4311,3 +4311,25 @@ class MultiAssigneeTaskTests(APITestCase):
         self.assertIn(self.worker3, task.assigned_to.all())
         self.assertNotIn(self.worker1, task.assigned_to.all())
         self.assertNotIn(self.worker2, task.assigned_to.all())
+
+    def test_status_update_triggers_notifications_to_multiple_assignees(self):
+        """Test that updating status triggers the signal and notifies all M2M assignees"""
+        task = Task.objects.create(
+            garden=self.garden,
+            title='Notification Logic Test',
+            assigned_by=self.manager,
+            status='PENDING'
+        )
+        task.assigned_to.add(self.worker1, self.worker2)
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.manager_token.key}')
+        url = reverse('garden:task-update', args=[task.id])
+        data = {'status': 'COMPLETED'}
+        
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+                
+        self.assertEqual(Notification.objects.count(), 3)
+        # Worker1 and worker2 should get notified due to status change
+        # Manager should not get notified due to status is in ['ACCEPTED', 'DECLINED', 'COMPLETED']
+        
