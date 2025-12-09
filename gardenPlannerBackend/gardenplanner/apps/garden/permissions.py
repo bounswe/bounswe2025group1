@@ -131,8 +131,8 @@ class IsTaskAssignee(permissions.BasePermission):
         if request.user.profile.role == 'ADMIN':
             return True
             
-        # Check if user is assigned to this task
-        if hasattr(obj, 'assigned_to') and obj.assigned_to == request.user:
+        # Check if user is in the assigned_to set (ManyToMany field)
+        if hasattr(obj, 'assigned_to') and obj.assigned_to.filter(pk=request.user.pk).exists():
             return True
             
         return False

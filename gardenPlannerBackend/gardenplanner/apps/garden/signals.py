@@ -1,5 +1,6 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
+from django.contrib.auth.models import User
 from push_notifications.models import GCMDevice
 from .models import (
     Notification, 
@@ -55,24 +56,60 @@ def _send_notification(notification_receiver, notification_title, notification_m
 
 
 @receiver(post_save, sender=Task)
-def task_update_notification(sender, instance, created, **kwargs):
-    assignee = instance.assigned_to
-    assigner = instance.assigned_by
-
+def task_update_notification(sender, instance, created, update_fields, **kwargs):
+    """
+    Send notifications for task status changes.
+    Note: M2M notifications for new assignees are handled by task_assignee_changed signal.
+    """
+    # Don't send status notifications for newly created tasks
     if created:
-        # Skip if there's no one assigned
-        if not assignee:
-            return
-
-        message = f"You have been assigned a new task: '{instance.title}'."
-        
+        return
+    
+    # If update_fields is specified and doesn't include 'status', skip
+    if update_fields is not None and 'status' not in update_fields:
+        return
+    
+    # Send notification for status changes to ACCEPTED, DECLINED, or COMPLETED
+    # In a production system, we'd track the old value to avoid duplicate notifications
+    # For now, we'll send on these status values
+    if instance.status in ['ACCEPTED', 'DECLINED', 'COMPLETED'] and instance.assigned_by:
+        status_name = instance.status.title()
+        message = f"Task Your task has been {status_name}."
         _send_notification(
-            notification_receiver=assignee,
-            notification_title="New Task Assigned",
+            notification_receiver=instance.assigned_by,
+            notification_title=f"Task {status_name}",
             notification_message=message,
             notification_category=NotificationCategory.TASK,
             link="/tasks"
         )
+
+
+@receiver(m2m_changed, sender=Task.assigned_to.through)
+def task_assignee_changed(sender, instance, action, pk_set, **kwargs):
+    """Send notifications when assignees are added to a task"""
+    # Only process when assignees are added (post_add action)
+    if action != 'post_add':
+        return
+    
+    # Skip if no assignees were added
+    if not pk_set:
+        return
+    
+    message = f"You have been assigned a new task: '{instance.title}'."
+    
+    # Send notification to newly added assignees
+    for user_id in pk_set:
+        try:
+            assignee = User.objects.get(id=user_id)
+            _send_notification(
+                notification_receiver=assignee,
+                notification_title="New Task Assigned",
+                notification_message=message,
+                notification_category=NotificationCategory.TASK,
+                link="/tasks"
+            )
+        except User.DoesNotExist:
+            pass
 
     
 @receiver(m2m_changed, sender=Profile.following.through)
@@ -252,7 +289,6 @@ def award_badge(user, badge_key):
 
 @receiver(post_save, sender=Task)
 def check_task_badges(sender, instance, created, **kwargs):
-    assigned_user = instance.assigned_to
     created_by_user = instance.assigned_by
 
     if created:
@@ -262,33 +298,43 @@ def check_task_badges(sender, instance, created, **kwargs):
             if total_tasks >= req.get("tasks_created", 0):
                 award_badge(created_by_user, badge.key)
 
-    if instance.status == "COMPLETED" and assigned_user:
-        completed_tasks = Task.objects.filter(
-            assigned_to=assigned_user, status="COMPLETED"
-        ).count()
-        for badge in Badge.objects.filter(category="Task Completion"):
-            req = badge.requirement
-            if completed_tasks >= req.get("tasks_completed", 0):
-                award_badge(assigned_user, badge.key)
+    # For task completion badges, check all assignees
+    if instance.status == "COMPLETED":
+        for assigned_user in instance.assigned_to.all():
+            completed_tasks = Task.objects.filter(
+                assigned_to=assigned_user, status="COMPLETED"
+            ).count()
+            for badge in Badge.objects.filter(category="Task Completion"):
+                req = badge.requirement
+                if completed_tasks >= req.get("tasks_completed", 0):
+                    award_badge(assigned_user, badge.key)
 
 @receiver(m2m_changed, sender=Profile.following.through)
 def check_follow_badges(sender, instance, action, pk_set, **kwargs):
     if action != "post_add":
         return
 
-    user = instance.user
+    # instance is the profile that initiated the follow (follower)
+    follower_profile = instance
+    follower_user = follower_profile.user
 
-    following_count = instance.following.count()
+    # Check "People Followed" badges for the follower
+    following_count = follower_profile.following.count()
     for badge in Badge.objects.filter(category="People Followed"):
         req = badge.requirement
         if following_count >= req.get("following_count", 0):
-            award_badge(user, badge.key)
+            award_badge(follower_user, badge.key)
 
-    followers_count = instance.followers.count()
-    for badge in Badge.objects.filter(category="Followers Gained"):
-        req = badge.requirement
-        if followers_count >= req.get("followers_count", 0):
-            award_badge(user, badge.key)
+    # pk_set contains the IDs of profiles being followed
+    # Check "Followers Gained" badges for each profile being followed
+    for followed_profile_id in pk_set:
+        followed_profile = Profile.objects.get(id=followed_profile_id)
+        followed_user = followed_profile.user
+        followers_count = followed_profile.followers.count()
+        for badge in Badge.objects.filter(category="Followers Gained"):
+            req = badge.requirement
+            if followers_count >= req.get("followers_count", 0):
+                award_badge(followed_user, badge.key)
 
 @receiver(post_save, sender=ForumPost)
 def forum_post_badges(sender, instance, created, **kwargs):
@@ -311,7 +357,7 @@ def forum_comment_badges(sender, instance, created, **kwargs):
     author = instance.author
     comments_count = Comment.objects.filter(author=author, is_deleted=False).count()
 
-    for badge in Badge.objects.filter(category="Forum Answers"):
+    for badge in Badge.objects.filter(category="Forum Answers / Replies"):
         req = badge.requirement
         if comments_count >= req.get("comments_count", 0):
             award_badge(author, badge.key)
