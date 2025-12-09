@@ -279,19 +279,23 @@ class CustomTaskTypeSerializer(serializers.ModelSerializer):
 
 class TaskSerializer(serializers.ModelSerializer):
     assigned_by_username = serializers.CharField(source='assigned_by.username', read_only=True)
-    assigned_to_username = serializers.CharField(source='assigned_to.username', read_only=True, allow_null=True)
+    assigned_to_usernames = serializers.SerializerMethodField(read_only=True)
     garden_name = serializers.CharField(source='garden.name', read_only=True)
     custom_type_name = serializers.CharField(source='custom_type.name', read_only=True, allow_null=True)
     assigned_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, write_only=True)
+    assigned_to = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     
     class Meta:
         model = Task
         fields = ['id', 'garden', 'garden_name', 'title', 'description', 
                  'task_type', 'custom_type', 'custom_type_name', 
                  'assigned_by', 'assigned_by_username', 
-                 'assigned_to', 'assigned_to_username', 
+                 'assigned_to', 'assigned_to_usernames', 
                  'status', 'due_date', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def get_assigned_to_usernames(self, obj):
+        return [user.username for user in obj.assigned_to.all()]
 
     def validate(self, data):
         task_type = data.get('task_type')
@@ -306,6 +310,22 @@ class TaskSerializer(serializers.ModelSerializer):
             data['custom_type'] = None
         
         return data
+    
+    def create(self, validated_data):
+        assigned_to_users = validated_data.pop('assigned_to', [])
+        task = Task.objects.create(**validated_data)
+        if assigned_to_users:
+            task.assigned_to.set(assigned_to_users)
+        return task
+    
+    def update(self, instance, validated_data):
+        assigned_to_users = validated_data.pop('assigned_to', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if assigned_to_users is not None:
+            instance.assigned_to.set(assigned_to_users)
+        return instance
 
 class ForumPostSerializer(serializers.ModelSerializer):
     author_username = serializers.ReadOnlyField(source='author.username')

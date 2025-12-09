@@ -77,35 +77,40 @@ describe('TaskBoard Component', () => {
       title: 'Pending Task',
       status: 'PENDING',
       due_date: '2025-12-01',
-      assigned_to_username: 'user1',
+      assigned_to: [1],
+      assigned_to_usernames: ['user1'],
     },
     {
       id: 2,
       title: 'In Progress Task',
       status: 'IN_PROGRESS',
       due_date: '2025-11-20',
-      assigned_to_username: 'user2',
+      assigned_to: [2],
+      assigned_to_usernames: ['user2'],
     },
     {
       id: 3,
       title: 'Completed Task',
       status: 'COMPLETED',
       due_date: '2025-11-15',
-      assigned_to_username: 'user3',
+      assigned_to: [3],
+      assigned_to_usernames: ['user3'],
     },
     {
       id: 4,
       title: 'Declined Task',
       status: 'DECLINED',
       due_date: null,
-      assigned_to_username: null,
+      assigned_to: [],
+      assigned_to_usernames: [],
     },
     {
       id: 5,
       title: 'Another Pending Task',
       status: 'PENDING',
       due_date: '2025-12-05',
-      assigned_to_username: 'user4',
+      assigned_to: [4, 5],
+      assigned_to_usernames: ['user4', 'user5'],
     },
   ];
 
@@ -204,7 +209,7 @@ describe('TaskBoard Component', () => {
       renderTaskBoard({ onTaskClick: undefined });
 
       const detailsButtons = screen.getAllByText('Details');
-      
+
       expect(() => fireEvent.click(detailsButtons[0])).not.toThrow();
     });
   });
@@ -278,7 +283,8 @@ describe('TaskBoard Component', () => {
           title: 'Full Task',
           status: 'IN_PROGRESS',
           due_date: '2025-12-01',
-          assigned_to_username: 'testuser',
+          assigned_to: [1],
+          assigned_to_usernames: ['testuser'],
         },
       ];
 
