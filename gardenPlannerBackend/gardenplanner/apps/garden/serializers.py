@@ -279,19 +279,23 @@ class CustomTaskTypeSerializer(serializers.ModelSerializer):
 
 class TaskSerializer(serializers.ModelSerializer):
     assigned_by_username = serializers.CharField(source='assigned_by.username', read_only=True)
-    assigned_to_username = serializers.CharField(source='assigned_to.username', read_only=True, allow_null=True)
+    assigned_to_usernames = serializers.SerializerMethodField(read_only=True)
     garden_name = serializers.CharField(source='garden.name', read_only=True)
     custom_type_name = serializers.CharField(source='custom_type.name', read_only=True, allow_null=True)
     assigned_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, write_only=True)
+    assigned_to = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     
     class Meta:
         model = Task
         fields = ['id', 'garden', 'garden_name', 'title', 'description', 
                  'task_type', 'custom_type', 'custom_type_name', 
                  'assigned_by', 'assigned_by_username', 
-                 'assigned_to', 'assigned_to_username', 
+                 'assigned_to', 'assigned_to_usernames', 
                  'status', 'due_date', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def get_assigned_to_usernames(self, obj):
+        return [user.username for user in obj.assigned_to.all()]
 
     def validate(self, data):
         task_type = data.get('task_type')
@@ -306,6 +310,22 @@ class TaskSerializer(serializers.ModelSerializer):
             data['custom_type'] = None
         
         return data
+    
+    def create(self, validated_data):
+        assigned_to_users = validated_data.pop('assigned_to', [])
+        task = Task.objects.create(**validated_data)
+        if assigned_to_users:
+            task.assigned_to.set(assigned_to_users)
+        return task
+    
+    def update(self, instance, validated_data):
+        assigned_to_users = validated_data.pop('assigned_to', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if assigned_to_users is not None:
+            instance.assigned_to.set(assigned_to_users)
+        return instance
 
 class ForumPostSerializer(serializers.ModelSerializer):
     author_username = serializers.ReadOnlyField(source='author.username')
@@ -315,12 +335,21 @@ class ForumPostSerializer(serializers.ModelSerializer):
     delete_image_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     comments = serializers.SerializerMethodField(read_only=True)
     comments_count = serializers.SerializerMethodField(read_only=True)
+    likes_count = serializers.IntegerField(source='likes.count', read_only=True)
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = ForumPost
-        fields = ['id', 'title', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'updated_at', 'images', 'images_base64', 'delete_image_ids', 'comments', 'comments_count']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'author', 'images', 'comments', 'comments_count']
+        fields = ['id', 'title', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 
+                  'updated_at', 'images', 'images_base64', 'delete_image_ids', 'comments', 'comments_count', 'likes_count', 'is_liked']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'author', 'images', 'comments', 'comments_count', 'likes_count', 'is_liked']
 
+    def get_is_liked(self, obj):
+        user = self.context.get('request').user
+        if user.is_authenticated:
+            return obj.likes.filter(user=user).exists()
+        return False
+    
     def get_images(self, obj):
         imgs = obj.images.all().order_by('created_at')
         result = []
@@ -387,11 +416,20 @@ class CommentSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField(read_only=True)
     images_base64 = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     delete_image_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
+    likes_count = serializers.IntegerField(source='likes.count', read_only=True)
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 'images', 'images_base64', 'delete_image_ids']
-        read_only_fields = ['id', 'author', 'author_username', 'created_at', 'images']
+        fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'author_profile_picture', 
+                  'created_at', 'images', 'images_base64', 'delete_image_ids', 'likes_count', 'is_liked']
+        read_only_fields = ['id', 'author', 'author_username', 'created_at', 'images', 'likes_count', 'is_liked']
+    
+    def get_is_liked(self, obj):
+        user = self.context.get('request').user
+        if user.is_authenticated:
+            return obj.likes.filter(user=user).exists()
+        return False
 
     def get_images(self, obj):
         imgs = obj.images.all().order_by('created_at')
@@ -440,8 +478,24 @@ class CommentSerializer(serializers.ModelSerializer):
         
         # Update other fields
         return super().update(instance, validated_data)
-        
-        
+
+
+class LikerSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    profile_picture = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'username', 'profile_picture']
+
+    def get_profile_picture(self, obj):
+        if getattr(obj, 'profile_picture_data', None):
+            b64 = base64.b64encode(obj.profile_picture_data).decode('ascii')
+            mime = getattr(obj, 'profile_picture_mime_type', 'image/jpeg')
+            return f"data:{mime};base64,{b64}"
+        return None
+
+
 class UserGardenSerializer(serializers.ModelSerializer):
     user_role = serializers.SerializerMethodField()
     cover_image = serializers.SerializerMethodField(read_only=True)

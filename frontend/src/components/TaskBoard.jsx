@@ -90,7 +90,9 @@ const TaskBoard = ({ tasks, handleTaskUpdate, onTaskClick }) => {
                               variant="caption"
                               sx={{ color: theme.palette.text.secondary }}
                             >
-                              {task.assigned_to_username || t('tasks.unassigned')}
+                              {task.assigned_to_usernames && task.assigned_to_usernames.length > 0 
+                                ? task.assigned_to_usernames.join(', ') 
+                                : t('tasks.unassigned')}
                             </Typography>
                             <Button
                               size="small"
