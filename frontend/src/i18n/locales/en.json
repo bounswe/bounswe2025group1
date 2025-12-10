@@ -692,7 +692,17 @@
     "filterBy": "Filter by",
     "closeDialog": "Close dialog",
     "uploadImages": "Upload images",
-    "removeImage": "Remove image"
+    "removeImage": "Remove image",
+    "fontSize": {
+      "title": "Font Size",
+      "selector": "Font size selector",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "current": "Current size",
+      "increase": "Increase font size",
+      "decrease": "Decrease font size"
+    }
   },
   "events": {
     "createEvent": "Create Event",

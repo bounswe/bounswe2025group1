@@ -30,8 +30,17 @@ const getInitialTheme = () => {
   return prefersDark ? 'dark' : 'light';
 };
 
+const getInitialFontSize = () => {
+  const savedFontSize = localStorage.getItem('garden-planner-font-size');
+  if (savedFontSize && ['small', 'medium', 'large'].includes(savedFontSize)) {
+    return savedFontSize;
+  }
+  return 'medium'; // Default to medium
+};
+
 export const ThemeProvider = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState(getInitialTheme);
+  const [currentFontSize, setCurrentFontSize] = useState(getInitialFontSize);
   const [direction, setDirection] = useState('ltr');
   
   // Get language from localStorage or window object
@@ -111,9 +120,44 @@ export const ThemeProvider = ({ children }) => {
     }, 1000);
   }, [currentTheme]);
 
+  // Save font size preference and update CSS variables
+  useEffect(() => {
+    localStorage.setItem('garden-planner-font-size', currentFontSize);
+    
+    // Update CSS custom properties for font sizes
+    const root = document.documentElement;
+    
+    const fontSizeMultipliers = {
+      small: 0.875,  // 14px base
+      medium: 1,     // 16px base
+      large: 1.125   // 18px base
+    };
+    
+    const multiplier = fontSizeMultipliers[currentFontSize];
+    
+    // Set font size CSS variables
+    root.style.setProperty('--font-size-xs', `${0.75 * multiplier}rem`);
+    root.style.setProperty('--font-size-sm', `${0.875 * multiplier}rem`);
+    root.style.setProperty('--font-size-base', `${1 * multiplier}rem`);
+    root.style.setProperty('--font-size-lg', `${1.125 * multiplier}rem`);
+    root.style.setProperty('--font-size-xl', `${1.25 * multiplier}rem`);
+    root.style.setProperty('--font-size-2xl', `${1.5 * multiplier}rem`);
+    root.style.setProperty('--font-size-3xl', `${1.875 * multiplier}rem`);
+    root.style.setProperty('--font-size-4xl', `${2.25 * multiplier}rem`);
+    
+    // Update base font size
+    root.style.fontSize = `${multiplier}rem`;
+  }, [currentFontSize]);
+
   const changeTheme = (themeName) => {
     if (themes[themeName]) {
       setCurrentTheme(themeName);
+    }
+  };
+
+  const changeFontSize = (fontSize) => {
+    if (['small', 'medium', 'large'].includes(fontSize)) {
+      setCurrentFontSize(fontSize);
     }
   };
 
@@ -128,6 +172,9 @@ export const ThemeProvider = ({ children }) => {
     isHighContrast: currentTheme === 'highContrast',
     isDarkMode: currentTheme === 'dark',
     availableThemes: Object.keys(themes),
+    currentFontSize,
+    changeFontSize,
+    availableFontSizes: ['small', 'medium', 'large'],
   };
 
   return (
