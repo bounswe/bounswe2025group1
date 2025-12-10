@@ -192,8 +192,8 @@ class GardenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Garden
-        fields = ['id', 'name', 'description', 'location', 'is_public', 'created_at', 'updated_at', 'cover_image', 'images', 'cover_image_base64', 'gallery_base64']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'cover_image', 'images']
+        fields = ['id', 'name', 'description', 'location', 'latitude', 'longitude', 'is_public', 'created_at', 'updated_at', 'cover_image', 'images', 'cover_image_base64', 'gallery_base64']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'cover_image', 'images', 'latitude', 'longitude']
 
     def get_cover_image(self, obj):
         cover = obj.images.filter(is_cover=True).first()
@@ -503,8 +503,8 @@ class UserGardenSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Garden
-        fields = ['id', 'name', 'description', 'location', 'is_public', 'user_role', 'created_at', 'updated_at', 'cover_image', 'images']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'cover_image', 'images']
+        fields = ['id', 'name', 'description', 'location', 'latitude', 'longitude', 'is_public', 'user_role', 'created_at', 'updated_at', 'cover_image', 'images']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'cover_image', 'images', 'latitude', 'longitude']
     
     def get_user_role(self, obj):
         # This assumes that the request context contains the user
