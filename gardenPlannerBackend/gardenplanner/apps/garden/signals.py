@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save, m2m_changed
+from django.db.models.signals import post_save, m2m_changed, pre_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from push_notifications.models import GCMDevice
@@ -15,7 +15,9 @@ from .models import (
     EventAttendance, 
     ForumPostLike, 
     CommentLike,
+    Garden,
 )
+import requests
 
 def _send_notification(notification_receiver, notification_title, notification_message, notification_category, link=None, send_push_notification=True):
 
@@ -435,6 +437,50 @@ def event_attendance_badges(sender, instance, created, **kwargs):
         req = badge.requirement or {}
         if req.get("season") == season:
             award_badge(user, badge.key)
+
+
+@receiver(pre_save, sender=Garden)
+def geocode_garden_location(sender, instance, **kwargs):
+    """
+    Geocode the garden location using Nominatim API when location changes.
+    """
+    if not instance.location:
+        instance.latitude = None
+        instance.longitude = None
+        return
+
+    # Check if location has changed
+    try:
+        old_instance = Garden.objects.get(pk=instance.pk)
+        if old_instance.location == instance.location and instance.latitude is not None:
+            return  # No change in location and we already have coords
+    except Garden.DoesNotExist:
+        pass  # New object
+
+    try:
+        # Use OpenStreetMap Nominatim API
+        headers = {
+            'User-Agent': 'CommunityGardenApp/1.0',
+        }
+        response = requests.get(
+            f"https://nominatim.openstreetmap.org/search?format=json&q={instance.location}&limit=1",
+            headers=headers,
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data and len(data) > 0:
+                instance.latitude = float(data[0]['lat'])
+                instance.longitude = float(data[0]['lon'])
+            else:
+                # Could not geocode
+                instance.latitude = None
+                instance.longitude = None
+    except Exception as e:
+        print(f"Error geocoding garden location: {e}")
+        # Don't fail the save if geocoding fails
+
 
 
 
