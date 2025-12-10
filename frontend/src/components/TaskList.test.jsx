@@ -21,21 +21,21 @@ describe('TaskList Component - Keyboard Navigation', () => {
       title: 'Water the plants',
       due_date: '2025-01-15T10:00:00Z',
       status: 'PENDING',
-      assigned_to: 1,
+      assigned_to: [1],
     },
     {
       id: 2,
       title: 'Harvest tomatoes',
       due_date: '2025-01-16T14:00:00Z',
       status: 'IN_PROGRESS',
-      assigned_to: 2,
+      assigned_to: [2],
     },
     {
       id: 3,
       title: 'Plant new seeds',
       due_date: '2025-01-17T09:00:00Z',
       status: 'PENDING',
-      assigned_to: 1,
+      assigned_to: [1],
     },
   ];
 
@@ -81,11 +81,11 @@ describe('TaskList Component - Keyboard Navigation', () => {
     );
 
     const taskList = screen.getByRole('listbox', { name: /task list/i });
-    
+
     // Test Arrow Down navigation
     fireEvent.keyDown(taskList, { key: 'ArrowDown' });
     // The first task should be focused (this is handled by the list navigation utility)
-    
+
     // Test Arrow Up navigation
     fireEvent.keyDown(taskList, { key: 'ArrowUp' });
     // Should wrap to the last task
@@ -102,11 +102,11 @@ describe('TaskList Component - Keyboard Navigation', () => {
     );
 
     const taskList = screen.getByRole('listbox', { name: /task list/i });
-    
+
     // Navigate to first task and press Enter
     fireEvent.keyDown(taskList, { key: 'ArrowDown' });
     fireEvent.keyDown(taskList, { key: 'Enter' });
-    
+
     expect(mockHandleTaskClick).toHaveBeenCalledWith(mockTasks[0]);
   });
 
@@ -121,11 +121,11 @@ describe('TaskList Component - Keyboard Navigation', () => {
     );
 
     const taskList = screen.getByRole('listbox', { name: /task list/i });
-    
+
     // Navigate to first task and press Space
     fireEvent.keyDown(taskList, { key: 'ArrowDown' });
     fireEvent.keyDown(taskList, { key: ' ' });
-    
+
     expect(mockHandleTaskClick).toHaveBeenCalledWith(mockTasks[0]);
   });
 
@@ -140,9 +140,9 @@ describe('TaskList Component - Keyboard Navigation', () => {
     );
 
     const taskList = screen.getByRole('listbox', { name: /task list/i });
-    
+
     fireEvent.keyDown(taskList, { key: 'Home' });
-    
+
     // Should focus the first task
     expect(mockHandleTaskClick).toHaveBeenCalledTimes(0); // No selection yet
   });
@@ -158,9 +158,9 @@ describe('TaskList Component - Keyboard Navigation', () => {
     );
 
     const taskList = screen.getByRole('listbox', { name: /task list/i });
-    
+
     fireEvent.keyDown(taskList, { key: 'End' });
-    
+
     // Should focus the last task
     expect(mockHandleTaskClick).toHaveBeenCalledTimes(0); // No selection yet
   });
@@ -178,7 +178,7 @@ describe('TaskList Component - Keyboard Navigation', () => {
     // Check for Accept and Decline buttons for tasks assigned to current user
     const acceptButtons = screen.getAllByRole('button', { name: /accept task/i });
     const declineButtons = screen.getAllByRole('button', { name: /decline task/i });
-    
+
     // Should have buttons for tasks assigned to user (user_id: 1)
     expect(acceptButtons).toHaveLength(2); // Water the plants and Plant new seeds
     expect(declineButtons).toHaveLength(2);
@@ -219,7 +219,7 @@ describe('TaskList Component - Keyboard Navigation', () => {
     // Check that task items have proper tabindex and role
     const taskItems = screen.getAllByRole('option');
     expect(taskItems).toHaveLength(3);
-    
+
     // Each task item should have proper ARIA attributes
     taskItems.forEach((item, index) => {
       expect(item).toHaveAttribute('tabindex', '0');
@@ -252,12 +252,12 @@ describe('TaskList Component - Keyboard Navigation', () => {
     );
 
     const taskList = screen.getByRole('listbox', { name: /task list/i });
-    
+
     // Test that focus management works correctly
     fireEvent.keyDown(taskList, { key: 'ArrowDown' });
     fireEvent.keyDown(taskList, { key: 'ArrowDown' });
     fireEvent.keyDown(taskList, { key: 'ArrowUp' });
-    
+
     // Should be able to navigate without errors
     expect(taskList).toBeInTheDocument();
   });

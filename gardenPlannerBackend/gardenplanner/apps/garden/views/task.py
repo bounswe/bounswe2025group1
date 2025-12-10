@@ -46,7 +46,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         action = getattr(self, 'action', None)
 
         # Ensure update/partial_update also use the membership-based queryset
-        if action in ['retrieve', 'update', 'partial_update', 'assign_task', 'accept_task', 'decline_task', 'complete_task','self_assign_task']:
+        if action in ['retrieve', 'update', 'partial_update', 'destroy', 'assign_task', 'accept_task', 'decline_task', 'complete_task','self_assign_task']:
             memberships = GardenMembership.objects.filter(user=user, status='ACCEPTED')
             garden_ids = memberships.values_list('garden_id', flat=True)
             return Task.objects.filter(garden_id__in=garden_ids)
@@ -82,7 +82,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         garden = serializer.validated_data.get('garden')
         user = self.request.user
-        assigned_to = serializer.validated_data.get('assigned_to')
+        assigned_to_users = serializer.validated_data.get('assigned_to', [])
         
         
         # Check if user has an ACCEPTED membership for this garden
@@ -95,10 +95,11 @@ class TaskViewSet(viewsets.ModelViewSet):
         if not membership:
             raise PermissionDenied("You must be an accepted member of this garden to create tasks.")
         
-        # If assigning to someone, verify they are also an accepted member
-        if assigned_to:
-            if not GardenMembership.objects.filter(user=assigned_to, garden=garden, status='ACCEPTED').exists():
-                raise ValidationError({"assigned_to": "The assigned user must be an accepted member of this garden."})
+        # If assigning to users, verify they are all accepted members
+        if assigned_to_users:
+            for assigned_user in assigned_to_users:
+                if not GardenMembership.objects.filter(user=assigned_user, garden=garden, status='ACCEPTED').exists():
+                    raise ValidationError({"assigned_to": f"User {assigned_user.username} must be an accepted member of this garden."})
         
         serializer.save(assigned_by=user)
     
@@ -107,7 +108,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         """Accept a task (workers only)"""
         task = self.get_object()
         
-        if task.assigned_to != request.user:
+        if not task.assigned_to.filter(pk=request.user.pk).exists():
             return Response(
                 {"error": "You cannot accept a task that is not assigned to you"},
                 status=status.HTTP_403_FORBIDDEN
@@ -128,7 +129,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         """Decline a task (workers only)"""
         task = self.get_object()
         
-        if task.assigned_to != request.user:
+        if not task.assigned_to.filter(pk=request.user.pk).exists():
             return Response(
                 {"error": "You cannot decline a task that is not assigned to you"},
                 status=status.HTTP_403_FORBIDDEN
@@ -149,7 +150,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         """Mark a task as completed (workers only)"""
         task = self.get_object()
         
-        if task.assigned_to != request.user:
+        if not task.assigned_to.filter(pk=request.user.pk).exists():
             return Response(
                 {"error": "You cannot complete a task that is not assigned to you"},
                 status=status.HTTP_403_FORBIDDEN
@@ -167,7 +168,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='assign')
     def assign_task(self, request, pk=None):
-        """Assign a user to a task (manager only)"""
+        """Assign users to a task (manager only)"""
         task = self.get_object()
 
         # Only garden managers or system admins can assign
@@ -182,29 +183,38 @@ class TaskViewSet(viewsets.ModelViewSet):
             return Response({"error": "You do not have permission to assign this task."},
                             status=status.HTTP_403_FORBIDDEN)
 
-        user_id = request.data.get("user_id")
-        if not user_id:
-            return Response({"error": "user_id is required"}, status=400)
-        assigned_user = get_object_or_404(User, id=user_id)
-        # Optional: Check if the assigned user is part of the garden
-        if not GardenMembership.objects.filter(user=assigned_user, garden=task.garden, status='ACCEPTED').exists():
-            return Response({"error": "User is not a member of this garden."}, status=400)
+        user_ids = request.data.get("user_ids", [])
+        if not user_ids:
+            return Response({"error": "user_ids is required (array of user IDs)"}, status=400)
+        
+        # Support single user_id for backward compatibility
+        if not isinstance(user_ids, list):
+            user_ids = [user_ids]
+        
+        assigned_users = []
+        for user_id in user_ids:
+            assigned_user = get_object_or_404(User, id=user_id)
+            # Check if the assigned user is part of the garden
+            if not GardenMembership.objects.filter(user=assigned_user, garden=task.garden, status='ACCEPTED').exists():
+                return Response({"error": f"User {assigned_user.username} is not a member of this garden."}, status=400)
+            assigned_users.append(assigned_user)
 
-        task.assigned_to = assigned_user
+        task.assigned_to.set(assigned_users)
         task.status = 'PENDING'  # optionally reset status
         task.save()
         return Response(TaskSerializer(task).data)
 
     @action(detail=True, methods=['post'], url_path='self-assign')
     def self_assign_task(self, request, pk=None):
-        """Allow a member to self-assign an unassigned or declined task"""
+        """Allow a member to self-assign to a task"""
         task = self.get_object()
         user = request.user
 
-        if task.assigned_to is not None and task.assigned_to != user:
+        # Check if user is already assigned
+        if task.assigned_to.filter(pk=user.pk).exists():
             return Response(
-                {"error": "This task is already assigned to someone else."},
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "You are already assigned to this task."},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         if task.status not in ['PENDING', 'DECLINED']:
@@ -224,7 +234,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             return Response({"error": "You are not a member of this garden."},
                             status=status.HTTP_403_FORBIDDEN)
 
-        task.assigned_to = user
+        task.assigned_to.add(user)
         task.status = 'IN_PROGRESS'  # 🚀 Directly move to active work
         task.save()
 

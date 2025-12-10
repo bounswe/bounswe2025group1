@@ -210,11 +210,12 @@ const GardenDetail = () => {
 
   const handleTaskUpdate = async (updatedTask) => {
     try {
-      const wasUnassigned = !selectedTask?.assigned_to || selectedTask.assigned_to === null;
-      const isSelfAssignment = updatedTask.assigned_to === user?.user_id;
-      const isUnassigning = !updatedTask.assigned_to || updatedTask.assigned_to === null;
+      const wasUnassigned = !selectedTask?.assigned_to || selectedTask.assigned_to.length === 0;
+      const isSelfAssignment = updatedTask.assigned_to && updatedTask.assigned_to.includes(user?.user_id);
+      const isUnassigning = !updatedTask.assigned_to || updatedTask.assigned_to.length === 0;
+      const wasNotAssignedToUser = !selectedTask?.assigned_to?.includes(user?.user_id);
 
-      if (wasUnassigned && isSelfAssignment && !isManager && !isUnassigning) {
+      if (wasUnassigned && isSelfAssignment && !isManager && !isUnassigning && wasNotAssignedToUser) {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${updatedTask.id}/self-assign/`, {
           method: 'POST',
           headers: {
