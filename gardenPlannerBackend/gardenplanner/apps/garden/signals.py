@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save, m2m_changed, pre_save
+from django.db.models.signals import post_save, m2m_changed, pre_save, post_delete
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from push_notifications.models import GCMDevice
@@ -13,6 +13,7 @@ from .models import (
     ForumPost, 
     GardenMembership, 
     EventAttendance, 
+    Garden,
     ForumPostLike, 
     CommentLike,
     Garden,
@@ -409,6 +410,7 @@ def get_season(dt):
         return "autumn"
     return "winter"
 
+
 @receiver(post_save, sender=EventAttendance)
 def event_attendance_badges(sender, instance, created, **kwargs):
     user = instance.user
@@ -439,6 +441,20 @@ def event_attendance_badges(sender, instance, created, **kwargs):
             award_badge(user, badge.key)
 
 
+@receiver(post_delete, sender=Garden)
+def delete_garden_chat(sender, instance, **kwargs):
+    """
+    Delete the garden chat from Firebase when the garden is deleted.
+    """
+    try:
+        from gardenplanner.apps.chat.firebase_config import get_firestore_client
+        db = get_firestore_client()
+        if db:
+            chat_ref = db.collection('chats').document(f'garden_{instance.id}')
+            chat_ref.delete()
+            print(f"Garden chat deleted for garden: {instance.name} (ID: {instance.id})")
+    except Exception as e:
+        print(f"Warning: Could not delete garden chat: {e}")
 @receiver(pre_save, sender=Garden)
 def geocode_garden_location(sender, instance, **kwargs):
     """
