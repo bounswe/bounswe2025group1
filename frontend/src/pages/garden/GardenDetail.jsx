@@ -77,6 +77,8 @@ const GardenDetail = () => {
     name: '',
     description: '',
     location: '',
+    latitude: null,
+    longitude: null,
     isPublic: false,
   });
 
@@ -158,6 +160,8 @@ const GardenDetail = () => {
           name: gardenData.name || '',
           description: gardenData.description || '',
           location: gardenData.location || '',
+          latitude: gardenData.latitude || null,
+          longitude: gardenData.longitude || null,
           isPublic: gardenData.is_public || false,
         });
       } catch (error) {
@@ -569,6 +573,8 @@ const GardenDetail = () => {
         name: basicFormData.name || editForm.name,
         description: basicFormData.description || editForm.description,
         location: basicFormData.location || editForm.location,
+        latitude: basicFormData.latitude !== undefined ? basicFormData.latitude : editForm.latitude,
+        longitude: basicFormData.longitude !== undefined ? basicFormData.longitude : editForm.longitude,
         is_public: basicFormData.isPublic !== undefined ? basicFormData.isPublic : editForm.isPublic,
       };
 

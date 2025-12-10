@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.core.management import call_command
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -2309,6 +2310,45 @@ class SignalTests(TestCase):
         self.assertIn('extra', call_args[1])
         self.assertIn('link', call_args[1]['extra'])
         self.assertEqual(call_args[1]['extra']['link'], f'/gardens/{self.garden.id}')
+
+
+    @patch('gardenplanner.apps.garden.management.commands.send_weather_reminders.requests.get') 
+    def test_weather_alert_command_sends_notification(self, mock_requests_get):
+        """
+        Test that the weather command finds gardens with coordinates,
+        detects bad weather, and notifies the member/manager.
+        """
+
+        GardenMembership.objects.create(
+            user=self.user, 
+            garden=self.garden, 
+            role='MANAGER', 
+            status='ACCEPTED'
+        )
+
+        self.garden.latitude = 41.0
+        self.garden.longitude = 29.0
+        self.garden.save()
+        Notification.objects.all().delete()
+
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            'daily': {
+                'weather_code': [0, 95],
+                'temperature_2m_max': [20, 25],
+                'temperature_2m_min': [10, 5]
+            }
+        }
+
+        mock_requests_get.return_value = mock_response
+
+        call_command('send_weather_reminders')
+
+        notifications = Notification.objects.filter(recipient=self.user)
+        
+        self.assertEqual(notifications.count(), 1)
+        self.assertIn("Thunderstorm", notifications.first().message)
+        self.assertIn("Test Garden", notifications.first().message)
 
 
 

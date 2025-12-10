@@ -192,7 +192,7 @@ class GardenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Garden
-        fields = ['id', 'name', 'description', 'location', 'is_public', 'created_at', 'updated_at', 'cover_image', 'images', 'cover_image_base64', 'gallery_base64']
+        fields = ['id', 'name', 'description', 'location', 'latitude', 'longitude', 'is_public', 'created_at', 'updated_at', 'cover_image', 'images', 'cover_image_base64', 'gallery_base64']
         read_only_fields = ['id', 'created_at', 'updated_at', 'cover_image', 'images']
 
     def get_cover_image(self, obj):

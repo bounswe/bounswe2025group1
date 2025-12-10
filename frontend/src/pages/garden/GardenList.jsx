@@ -58,6 +58,8 @@ const GardenList = () => {
     name: '',
     description: '',
     location: '',
+    latitude: null,
+    longitude: null,
     size: '',
     isPublic: true,
   });
@@ -292,6 +294,8 @@ const GardenList = () => {
       const requestBody = {
         name: basicFormData.name || form.name,
         location: basicFormData.location || form.location,
+        latitude: basicFormData.latitude !== undefined ? basicFormData.latitude : form.latitude,
+        longitude: basicFormData.longitude !== undefined ? basicFormData.longitude : form.longitude,
         description: basicFormData.description || form.description,
         is_public: basicFormData.isPublic !== undefined ? basicFormData.isPublic : form.isPublic,
       };
@@ -333,6 +337,8 @@ const GardenList = () => {
         name: '',
         description: '',
         location: '',
+        latitude: null,
+        longitude: null,
         size: '',
         isPublic: true,
       });
