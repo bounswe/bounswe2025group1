@@ -353,5 +353,28 @@
     "reviewSuccess": "تمت مراجعة البلاغ بنجاح",
     "reviewError": "فشل إرسال المراجعة",
     "fetchError": "فشل تحميل البلاغات"
+  },
+  "accessibility": {
+    "skipToContent": "انتقل إلى المحتوى الرئيسي",
+    "openMenu": "فتح القائمة",
+    "closeMenu": "إغلاق القائمة",
+    "toggleTheme": "تبديل المظهر",
+    "toggleLanguage": "تبديل اللغة",
+    "searchButton": "بحث",
+    "sortBy": "ترتيب حسب",
+    "filterBy": "تصفية حسب",
+    "closeDialog": "إغلاق الحوار",
+    "uploadImages": "رفع الصور",
+    "removeImage": "إزالة الصورة",
+    "fontSize": {
+      "title": "حجم الخط",
+      "selector": "محدد حجم الخط",
+      "small": "صغير",
+      "medium": "متوسط",
+      "large": "كبير",
+      "current": "الحجم الحالي",
+      "increase": "زيادة حجم الخط",
+      "decrease": "تقليل حجم الخط"
+    }
   }
 }

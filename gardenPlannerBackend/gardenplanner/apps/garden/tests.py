@@ -5,7 +5,25 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.contenttypes.models import ContentType
-from .models import Profile, Garden, GardenMembership, CustomTaskType, Task, ForumPost, Comment, Report, Notification, GardenEvent, EventAttendance, AttendanceStatus, Badge, UserBadge, EventCategory
+from .models import (
+    Profile, 
+    Garden, 
+    GardenMembership, 
+    CustomTaskType, 
+    Task, 
+    ForumPost, 
+    Comment, 
+    Report, 
+    Notification, 
+    GardenEvent, 
+    EventAttendance, 
+    AttendanceStatus, 
+    Badge, 
+    UserBadge, 
+    EventCategory, 
+    ForumPostLike, 
+    CommentLike,
+)
 from unittest.mock import patch, MagicMock
 from django.utils import timezone
 from datetime import timedelta
@@ -176,9 +194,9 @@ class APITests(APITestCase):
             description="An existing task",
             custom_type=self.task_type,
             assigned_by=self.user,
-            assigned_to=self.user2,
             status='PENDING'
         )
+        self.task.assigned_to.add(self.user2)
 
     # Authentication Endpoints
     def test_register_user(self):
@@ -492,7 +510,7 @@ class APITests(APITestCase):
             'description': 'A new task',
             'due_date': '2025-12-31T23:59:59Z',  # This line is required
             'custom_type': self.task_type.id,
-            'assigned_to': None,
+            'assigned_to': [],
             'status': 'PENDING'
         }
         
@@ -844,9 +862,9 @@ class TaskActionTests(APITestCase):
             description='Test Description',
             custom_type=self.task_type,
             assigned_by=self.user,
-            assigned_to=self.user2,
             status='PENDING'
         )
+        self.task.assigned_to.add(self.user2)
     
     def test_accept_task(self):
         """Test accepting a task"""
@@ -942,26 +960,25 @@ class TaskActionTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     
     def test_assign_task(self):
-        """Test assigning a task to a user"""
-        self.task.assigned_to = None
-        self.task.save()
+        """Test assigning a task to users"""
+        self.task.assigned_to.clear()
         
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
         url = reverse('garden:task-assign-task', args=[self.task.id])
-        data = {'user_id': self.user3.id}
+        data = {'user_ids': [self.user3.id]}
         
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         self.task.refresh_from_db()
-        self.assertEqual(self.task.assigned_to, self.user3)
+        self.assertIn(self.user3, self.task.assigned_to.all())
         self.assertEqual(self.task.status, 'PENDING')
     
     def test_assign_task_non_manager(self):
         """Test assigning a task as non-manager"""
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user2_token.key}')
         url = reverse('garden:task-assign-task', args=[self.task.id])
-        data = {'user_id': self.user3.id}
+        data = {'user_ids': [self.user3.id]}
         
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -972,14 +989,14 @@ class TaskActionTests(APITestCase):
         
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
         url = reverse('garden:task-assign-task', args=[self.task.id])
-        data = {'user_id': non_member.id}
+        data = {'user_ids': [non_member.id]}
         
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     
     def test_self_assign_task(self):
         """Test self-assigning a task"""
-        self.task.assigned_to = None
+        self.task.assigned_to.clear()
         self.task.status = 'PENDING'
         self.task.save()
         
@@ -990,20 +1007,23 @@ class TaskActionTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         self.task.refresh_from_db()
-        self.assertEqual(self.task.assigned_to, self.user3)
+        self.assertIn(self.user3, self.task.assigned_to.all())
         self.assertEqual(self.task.status, 'IN_PROGRESS')
     
     def test_self_assign_task_already_assigned(self):
-        """Test self-assigning an already assigned task"""
+        """Test self-assigning when already assigned"""
+        # Add user3 to task
+        self.task.assigned_to.add(self.user3)
+        
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user3_token.key}')
         url = reverse('garden:task-self-assign-task', args=[self.task.id])
         
         response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     
     def test_self_assign_task_invalid_status(self):
         """Test self-assigning a task with invalid status"""
-        self.task.assigned_to = None
+        self.task.assigned_to.clear()
         self.task.status = 'COMPLETED'
         self.task.save()
         
@@ -1046,9 +1066,9 @@ class ProfileEndpointTests(APITestCase):
             garden=self.garden,
             title='Test Task',
             assigned_by=self.user2,
-            assigned_to=self.user2,
             status='PENDING'
         )
+        self.task.assigned_to.add(self.user2)
     
     def test_user_gardens_view(self):
         """Test getting user's gardens"""
@@ -1103,12 +1123,12 @@ class ProfileEndpointTests(APITestCase):
         """Test public garden tasks are visible"""
         private_garden = Garden.objects.create(name='Private Garden', is_public=False)
         GardenMembership.objects.create(user=self.user3, garden=private_garden, role='WORKER', status='ACCEPTED')
-        Task.objects.create(
+        private_task = Task.objects.create(
             garden=private_garden,
             title='Private Task',
-            assigned_by=self.user3,
-            assigned_to=self.user3
+            assigned_by=self.user3
         )
+        private_task.assigned_to.add(self.user3)
         
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
         url = reverse('garden:user-tasks', args=[self.user3.id])
@@ -1386,9 +1406,9 @@ class PermissionTests(TestCase):
             garden=self.garden,
             title='Test Task',
             assigned_by=self.user,
-            assigned_to=self.user,
             status='PENDING'
         )
+        self.task.assigned_to.add(self.user)
         
         self.membership = GardenMembership.objects.get(user=self.user, garden=self.garden)
     
@@ -2103,9 +2123,9 @@ class SignalTests(TestCase):
             garden=self.garden,
             title='New Task',
             assigned_by=self.user,
-            assigned_to=self.user2,
             status='PENDING'
         )
+        task.assigned_to.add(self.user2)
         
         # Check notification was created
         notifications = Notification.objects.filter(recipient=self.user2, category='TASK')
@@ -2126,7 +2146,6 @@ class SignalTests(TestCase):
             garden=self.garden,
             title='Unassigned Task',
             assigned_by=self.user,
-            assigned_to=None,
             status='PENDING'
         )
         
@@ -2143,9 +2162,9 @@ class SignalTests(TestCase):
             garden=self.garden,
             title='Task',
             assigned_by=self.user,
-            assigned_to=self.user2,
             status='PENDING'
         )
+        task.assigned_to.add(self.user2)
         
         # Should not create notification
         notifications = Notification.objects.filter(recipient=self.user2)
@@ -2379,17 +2398,16 @@ class EdgeCaseTests(APITestCase):
             garden=self.garden,
             title='Unassigned Task',
             assigned_by=self.user,
-            assigned_to=None,
             status='PENDING'
         )
         
-        Task.objects.create(
+        assigned_task = Task.objects.create(
             garden=self.garden,
             title='Assigned Task',
             assigned_by=self.user,
-            assigned_to=worker,
             status='PENDING'
         )
+        assigned_task.assigned_to.add(worker)
         
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {worker_token.key}')
         url = reverse('garden:task-list') + f'?garden={self.garden.id}'
@@ -2428,7 +2446,7 @@ class EdgeCaseTests(APITestCase):
         self.assertIn('Private Garden', garden_names)
     
     def test_assign_task_missing_user_id(self):
-        """Test assigning task without user_id"""
+        """Test assigning task without user_ids"""
         task = Task.objects.create(
             garden=self.garden,
             title='Test Task',
@@ -2470,9 +2488,9 @@ class EdgeCaseTests(APITestCase):
             garden=self.garden,
             title='Test Task',
             assigned_by=self.user,
-            assigned_to=self.user2,
             status='PENDING'
         )
+        task.assigned_to.add(self.user2)
         
         # Update task status
         task.status = 'IN_PROGRESS'
@@ -2490,9 +2508,9 @@ class EdgeCaseTests(APITestCase):
             garden=self.garden,
             title='Declined Task',
             assigned_by=self.user,
-            assigned_to=worker,
             status='DECLINED'
         )
+        task.assigned_to.add(worker)
         
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {worker_token.key}')
         url = reverse('garden:task-accept-task', args=[task.id])
@@ -2513,9 +2531,9 @@ class EdgeCaseTests(APITestCase):
             garden=self.garden,
             title='Accepted Task',
             assigned_by=self.user,
-            assigned_to=worker,
             status='ACCEPTED'
         )
+        task.assigned_to.add(worker)
         
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {worker_token.key}')
         url = reverse('garden:task-decline-task', args=[task.id])
@@ -2536,7 +2554,6 @@ class EdgeCaseTests(APITestCase):
             garden=self.garden,
             title='Declined Task',
             assigned_by=self.user,
-            assigned_to=None,
             status='DECLINED'
         )
         
@@ -2547,7 +2564,7 @@ class EdgeCaseTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         task.refresh_from_db()
-        self.assertEqual(task.assigned_to, worker)
+        self.assertIn(worker, task.assigned_to.all())
         self.assertEqual(task.status, 'IN_PROGRESS')
 
 
@@ -2678,7 +2695,7 @@ class AdditionalEdgeCaseTests(APITestCase):
             'garden': self.garden.id,
             'title': 'New Task',
             'custom_type': self.task_type.id,
-            'assigned_to': non_member.id
+            'assigned_to': [non_member.id]
         }
         
         response = self.client.post(url, data, format='json')
@@ -2710,7 +2727,6 @@ class AdditionalEdgeCaseTests(APITestCase):
             garden=self.garden,
             title='Unassigned Task',
             assigned_by=self.user,
-            assigned_to=None,
             status='PENDING'
         )
         
@@ -2719,18 +2735,17 @@ class AdditionalEdgeCaseTests(APITestCase):
             garden=self.garden,
             title='Declined Task',
             assigned_by=self.user,
-            assigned_to=None,
             status='DECLINED'
         )
         
         # Create assigned task
-        Task.objects.create(
+        assigned_task = Task.objects.create(
             garden=self.garden,
             title='Assigned Task',
             assigned_by=self.user,
-            assigned_to=worker,
             status='PENDING'
         )
+        assigned_task.assigned_to.add(worker)
         
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {worker_token.key}')
         url = reverse('garden:task-list') + f'?garden={self.garden.id}'
@@ -2749,13 +2764,13 @@ class AdditionalEdgeCaseTests(APITestCase):
         GardenMembership.objects.create(user=other_worker, garden=self.garden, role='WORKER', status='ACCEPTED')
         
         # Create task assigned to other worker
-        Task.objects.create(
+        other_task = Task.objects.create(
             garden=self.garden,
             title='Other Worker Task',
             assigned_by=self.user,
-            assigned_to=other_worker,
             status='PENDING'
         )
+        other_task.assigned_to.add(other_worker)
         
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {worker_token.key}')
         url = reverse('garden:task-list') + f'?garden={self.garden.id}'
@@ -3067,13 +3082,13 @@ class TaskCreationAssignmentTests(APITestCase):
             'title': 'Assigned Task',
             'task_type': 'CUSTOM',
             'custom_type': self.task_type.id,
-            'assigned_to': self.worker.id,
+            'assigned_to': [self.worker.id],
             'status': 'PENDING'
         }
         resp = self.client.post(url, payload, format='json')
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         task = Task.objects.get(title='Assigned Task')
-        self.assertEqual(task.assigned_to, self.worker)
+        self.assertIn(self.worker, task.assigned_to.all())
         self.assertEqual(task.assigned_by, self.manager)  # auto set
 
     def test_create_task_attempt_override_assigned_by(self):
@@ -3084,7 +3099,7 @@ class TaskCreationAssignmentTests(APITestCase):
             'title': 'Spoof Task',
             'task_type': 'CUSTOM',
             'custom_type': self.task_type.id,
-            'assigned_to': self.worker.id,
+            'assigned_to': [self.worker.id],
             'assigned_by': self.worker.id
         }
         resp = self.client.post(url, payload, format='json')
@@ -3205,9 +3220,9 @@ class SignalHandlerTests(TestCase):
             description="Test task",
             custom_type=self.task_type,
             assigned_by=self.user1,
-            assigned_to=self.user2,
             status='PENDING'
         )
+        task.assigned_to.add(self.user2)
         
         notifications = Notification.objects.filter(recipient=self.user2)
         self.assertEqual(notifications.count(), 1)
@@ -3224,9 +3239,9 @@ class SignalHandlerTests(TestCase):
             description="Test",
             custom_type=self.task_type,
             assigned_by=self.user1,
-            assigned_to=self.user2,
             status='PENDING'
         )
+        task.assigned_to.add(self.user2)
         
         # Clear notifications from creation
         Notification.objects.all().delete()
@@ -3284,7 +3299,6 @@ class SignalHandlerTests(TestCase):
             description="Test",
             custom_type=self.task_type,
             assigned_by=self.user1,
-            assigned_to=self.user2,
             status='PENDING'
         )
         
@@ -4008,9 +4022,10 @@ class BadgeSystemTests(TestCase):
         """Tests that 'Task Completion' badges are awarded after completing tasks."""
         # Create tasks assigned to user_b
         for i in range(1, 101):
-            Task.objects.create(
-                garden=self.garden_1, title=f'T{i}', custom_type=self.task_type, assigned_by=self.user_a, assigned_to=self.user_b
+            task = Task.objects.create(
+                garden=self.garden_1, title=f'T{i}', custom_type=self.task_type, assigned_by=self.user_a
             )
+            task.assigned_to.add(self.user_b)
         
         self.assertBadgeNotEarned(self.user_b, 'task_tiller')
         
@@ -4131,3 +4146,242 @@ class BadgeSystemTests(TestCase):
         # Test Not GOING status doesn't award (User A attempts to earn)
         EventAttendance.objects.create(event=event_summer, user=self.user_a, status='NOT_GOING')
         self.assertBadgeNotEarned(self.user_a, 'event_1')
+
+
+class LikeSystemTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='password123')
+        # Ensure profile exists for the List View tests
+        if not hasattr(self.user, 'profile'):
+            Profile.objects.create(user=self.user)
+            
+        self.client.force_authenticate(user=self.user)
+        
+        self.post_obj = ForumPost.objects.create(title='Test Post', content='Content', author=self.user)
+        self.comment_obj = Comment.objects.create(forum_post=self.post_obj, content='Test Comment', author=self.user)
+
+    def test_toggle_like_post_create(self):
+        """Test that posting to toggle endpoint creates a like (Like)"""
+        url = reverse('garden:forum-post-like', args=[self.post_obj.id])
+        
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(ForumPostLike.objects.count(), 1)
+        self.assertEqual(response.data['is_liked'], True)
+
+    def test_toggle_like_post_remove(self):
+        """Test that posting to toggle endpoint removes existing like (Unlike)"""
+        ForumPostLike.objects.create(user=self.user, post=self.post_obj)
+        
+        url = reverse('garden:forum-post-like', args=[self.post_obj.id])
+        
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(ForumPostLike.objects.count(), 0)
+        self.assertEqual(response.data['is_liked'], False)
+
+    def test_list_post_likes(self):
+        """Test that we can retrieve the list of profiles who liked the post"""
+        ForumPostLike.objects.create(user=self.user, post=self.post_obj)
+        
+        url = reverse('garden:post-likes-list', args=[self.post_obj.id])
+        
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['username'], self.user.username)
+
+    def test_toggle_like_comment(self):
+        """Test that the generic toggle view works for Comments as well"""
+        url = reverse('garden:comment-like', args=[self.comment_obj.id])
+        
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CommentLike.objects.count(), 1)
+        self.assertTrue(CommentLike.objects.filter(user=self.user, comment=self.comment_obj).exists())
+class MultiAssigneeTaskTests(APITestCase):
+    """Tests for multi-assignee task functionality"""
+    
+    def setUp(self):
+        self.client = APIClient()
+        
+        # Create users
+        self.manager = User.objects.create_user(username='manager', password='password123')
+        self.worker1 = User.objects.create_user(username='worker1', password='password123')
+        self.worker2 = User.objects.create_user(username='worker2', password='password123')
+        self.worker3 = User.objects.create_user(username='worker3', password='password123')
+        
+        # Create tokens
+        self.manager_token = Token.objects.create(user=self.manager)
+        self.worker1_token = Token.objects.create(user=self.worker1)
+        self.worker2_token = Token.objects.create(user=self.worker2)
+        self.worker3_token = Token.objects.create(user=self.worker3)
+        
+        # Create garden
+        self.garden = Garden.objects.create(name='Test Garden', is_public=True)
+        
+        # Create memberships
+        GardenMembership.objects.create(user=self.manager, garden=self.garden, role='MANAGER', status='ACCEPTED')
+        GardenMembership.objects.create(user=self.worker1, garden=self.garden, role='WORKER', status='ACCEPTED')
+        GardenMembership.objects.create(user=self.worker2, garden=self.garden, role='WORKER', status='ACCEPTED')
+        GardenMembership.objects.create(user=self.worker3, garden=self.garden, role='WORKER', status='ACCEPTED')
+        
+        # Create task type
+        self.task_type = CustomTaskType.objects.create(garden=self.garden, name='Test Type')
+    
+    def test_create_task_with_multiple_assignees(self):
+        """Test creating a task with multiple assignees"""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.manager_token.key}')
+        url = reverse('garden:task-list')
+        data = {
+            'garden': self.garden.id,
+            'title': 'Multi-Assignee Task',
+            'custom_type': self.task_type.id,
+            'assigned_to': [self.worker1.id, self.worker2.id, self.worker3.id],
+            'status': 'PENDING'
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        task = Task.objects.get(title='Multi-Assignee Task')
+        self.assertEqual(task.assigned_to.count(), 3)
+        self.assertIn(self.worker1, task.assigned_to.all())
+        self.assertIn(self.worker2, task.assigned_to.all())
+        self.assertIn(self.worker3, task.assigned_to.all())
+    
+    def test_assign_multiple_users_to_existing_task(self):
+        """Test assigning multiple users to an existing task"""
+        task = Task.objects.create(
+            garden=self.garden,
+            title='Test Task',
+            assigned_by=self.manager,
+            status='PENDING'
+        )
+        
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.manager_token.key}')
+        url = reverse('garden:task-assign-task', args=[task.id])
+        data = {'user_ids': [self.worker1.id, self.worker2.id]}
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        task.refresh_from_db()
+        self.assertEqual(task.assigned_to.count(), 2)
+        self.assertIn(self.worker1, task.assigned_to.all())
+        self.assertIn(self.worker2, task.assigned_to.all())
+    
+    def test_notifications_sent_to_all_assignees(self):
+        """Test that notifications are sent to all assigned users"""
+        task = Task.objects.create(
+            garden=self.garden,
+            title='Notification Test Task',
+            assigned_by=self.manager,
+            status='PENDING'
+        )
+        
+        # Add multiple assignees (triggers m2m_changed signal)
+        task.assigned_to.add(self.worker1, self.worker2, self.worker3)
+        
+        # Check notifications created for all assignees
+        notifications = Notification.objects.filter(category='TASK')
+        self.assertEqual(notifications.count(), 3)
+        
+        notified_users = [n.recipient for n in notifications]
+        self.assertIn(self.worker1, notified_users)
+        self.assertIn(self.worker2, notified_users)
+        self.assertIn(self.worker3, notified_users)
+    
+    def test_self_assign_adds_to_existing_assignees(self):
+        """Test that self-assign adds user to existing assignees without replacing them"""
+        task = Task.objects.create(
+            garden=self.garden,
+            title='Existing Assignees Task',
+            assigned_by=self.manager,
+            status='PENDING'
+        )
+        task.assigned_to.add(self.worker1)
+        
+        # Worker2 self-assigns
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.worker2_token.key}')
+        url = reverse('garden:task-self-assign-task', args=[task.id])
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        task.refresh_from_db()
+        self.assertEqual(task.assigned_to.count(), 2)
+        self.assertIn(self.worker1, task.assigned_to.all())
+        self.assertIn(self.worker2, task.assigned_to.all())
+    
+    def test_task_permissions_with_multiple_assignees(self):
+        """Test that all assignees have permission to accept/decline/complete task"""
+        task = Task.objects.create(
+            garden=self.garden,
+            title='Permission Test Task',
+            assigned_by=self.manager,
+            status='PENDING'
+        )
+        task.assigned_to.add(self.worker1, self.worker2)
+        
+        # Worker1 accepts
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.worker1_token.key}')
+        url = reverse('garden:task-accept-task', args=[task.id])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Worker2 should also be able to complete
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.worker2_token.key}')
+        url = reverse('garden:task-complete-task', args=[task.id])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    
+    def test_serializer_returns_multiple_assignees(self):
+        """Test that serializer returns array of assignees with usernames"""
+        task = Task.objects.create(
+            garden=self.garden,
+            title='Serializer Test Task',
+            assigned_by=self.manager,
+            status='PENDING'
+        )
+        task.assigned_to.add(self.worker1, self.worker2)
+        
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.manager_token.key}')
+        url = reverse('garden:task-detail', args=[task.id])
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('assigned_to', response.data)
+        self.assertEqual(len(response.data['assigned_to']), 2)
+        self.assertIn('assigned_to_usernames', response.data)
+        self.assertEqual(len(response.data['assigned_to_usernames']), 2)
+        self.assertIn('worker1', response.data['assigned_to_usernames'])
+        self.assertIn('worker2', response.data['assigned_to_usernames'])
+    
+    def test_update_task_assignees_replaces_existing(self):
+        """Test that updating task assignees replaces the existing list"""
+        task = Task.objects.create(
+            garden=self.garden,
+            title='Update Test Task',
+            assigned_by=self.manager,
+            status='PENDING'
+        )
+        task.assigned_to.add(self.worker1, self.worker2)
+        
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.manager_token.key}')
+        url = reverse('garden:task-update', args=[task.id])
+        data = {'assigned_to': [self.worker3.id]}
+        
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        task.refresh_from_db()
+        self.assertEqual(task.assigned_to.count(), 1)
+        self.assertIn(self.worker3, task.assigned_to.all())
+        self.assertNotIn(self.worker1, task.assigned_to.all())
+        self.assertNotIn(self.worker2, task.assigned_to.all())
