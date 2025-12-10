@@ -68,6 +68,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         if len(parts) >= 6:
             masked_parts = parts[-6:-3]
             return ", ".join(masked_parts)
+        elif len(parts) >= 4:
+            masked_parts = parts[1:]
+            return ", ".join(masked_parts)
              
         return obj.location
 
