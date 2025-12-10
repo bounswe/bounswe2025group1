@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('garden', '0015_notification_link'),
+        ('garden', '0017_forumpostlike_commentlike'),
     ]
 
     operations = [
