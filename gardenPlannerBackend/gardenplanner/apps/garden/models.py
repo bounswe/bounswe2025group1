@@ -191,6 +191,31 @@ class Comment(models.Model):
         return f"Comment by {self.author.username} on {self.forum_post.title}"
 
 
+class ForumPostLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_likes")
+    post = models.ForeignKey(ForumPost, on_delete=models.CASCADE, related_name="likes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # Ensures a user can only like a specific post once
+        unique_together = ('user', 'post')
+
+    def __str__(self):
+        return f"{self.user.username} likes {self.post.title}"
+
+
+class CommentLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comment_likes")
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="likes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'comment')
+
+    def __str__(self):
+        return f"{self.user.username} likes comment {self.comment.id}"
+
+
 class ForumPostImage(models.Model):
     post = models.ForeignKey(ForumPost, on_delete=models.CASCADE, related_name='images')
     data = models.BinaryField()
