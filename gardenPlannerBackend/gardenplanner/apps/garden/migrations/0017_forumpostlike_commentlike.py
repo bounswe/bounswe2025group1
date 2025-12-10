@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("garden", "0015_notification_link"),
+        ("garden", "0016_multi_assignee_tasks"),
     ]
 
     operations = [
