@@ -162,7 +162,7 @@ const TaskList = ({
                   },
                 }}
               />
-              {user && task.assigned_to === user.user_id && task.status === 'PENDING' && (
+              {user && task.assigned_to && task.assigned_to.includes(user.user_id) && task.status === 'PENDING' && (
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Chip
                     label={t('gardens.accept')}
