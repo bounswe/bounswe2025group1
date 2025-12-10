@@ -2,7 +2,6 @@
 
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
-from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -164,7 +163,7 @@ class UserTasksView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
-        """Get tasks related to a specific user (assigned to or assigned by).
+        """Get tasks assigned to a specific user.
 
         Visibility rules:
         - Deny if either user has blocked the other.
@@ -181,10 +180,10 @@ class UserTasksView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Tasks either assigned to or assigned by the target user
-        tasks_qs = Task.objects.filter(Q(assigned_to=user) | Q(assigned_by=user)).select_related(
-            'garden', 'assigned_by', 'assigned_to', 'custom_type'
-        )
+        # Tasks assigned to the target user only (not tasks they created)
+        tasks_qs = Task.objects.filter(assigned_to=user).select_related(
+            'garden', 'assigned_by', 'custom_type'
+        ).prefetch_related('assigned_to')
 
         visible_tasks = []
         for task in tasks_qs:

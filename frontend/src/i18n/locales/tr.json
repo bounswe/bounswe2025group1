@@ -700,7 +700,17 @@
     "toggleLanguage": "Dil değiştir",
     "searchButton": "Ara",
     "sortBy": "Sırala",
-    "filterBy": "Filtrele"
+    "filterBy": "Filtrele",
+    "fontSize": {
+      "title": "Yazı Boyutu",
+      "selector": "Yazı boyutu seçici",
+      "small": "Küçük",
+      "medium": "Orta",
+      "large": "Büyük",
+      "current": "Mevcut boyut",
+      "increase": "Yazı boyutunu büyüt",
+      "decrease": "Yazı boyutunu küçült"
+    }
   },
   "events": {
     "createEvent": "Etkinlik Oluştur",
