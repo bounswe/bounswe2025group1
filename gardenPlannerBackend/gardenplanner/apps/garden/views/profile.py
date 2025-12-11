@@ -43,6 +43,13 @@ class UserProfileView(APIView):
                 {"error": "You cannot view this profile due to blocking restrictions."},
                 status=status.HTTP_403_FORBIDDEN
             )
+
+        # Check if profile is private
+        if user.profile.is_private and request.user != user:
+            return Response(
+                {"detail": "This profile is private."},
+                status=status.HTTP_403_FORBIDDEN
+            )
             
         serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data)
