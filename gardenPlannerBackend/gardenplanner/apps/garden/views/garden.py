@@ -173,6 +173,9 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
                 if random_member:
                     random_member.role = 'MANAGER'
                     random_member.save()
+        
+        # Sync chat members after deletion (if garden still exists)
+        self._sync_garden_chat_members(garden.id)
     
     def _sync_garden_chat_members(self, garden_id):
         """Sync garden chat members with accepted memberships"""

@@ -3136,7 +3136,7 @@ class ForumPostSerializerCommentsTests(TestCase):
 
     def test_forum_post_serializer_comments_default_empty(self):
         from .serializers import ForumPostSerializer
-        serializer = ForumPostSerializer(self.post, context={'request': type('R', (), {'query_params': {}})()})
+        serializer = ForumPostSerializer(self.post, context={'request': type('R', (), {'query_params': {}, 'user': self.user})()})
         data = serializer.data
         self.assertIn('comments', data)
         self.assertEqual(len(data['comments']), 0)
@@ -4204,6 +4204,7 @@ class LikeSystemTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CommentLike.objects.count(), 1)
         self.assertTrue(CommentLike.objects.filter(user=self.user, comment=self.comment_obj).exists())
+        
 class MultiAssigneeTaskTests(APITestCase):
     """Tests for multi-assignee task functionality"""
     
