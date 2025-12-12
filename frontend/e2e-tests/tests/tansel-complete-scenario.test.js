@@ -187,7 +187,7 @@ describe('Tansel Complete Scenario - Steps 1, 2, 3, 4, 5, 6', function() {
     
     // Create the task
     console.log('Creating task: ' + taskData.title);
-    await basePage.createTask(taskData.title, taskData.description, taskData.typeName, taskData.typeDescription);
+    await basePage.createTask(gardenData.name, taskData.title, taskData.description, taskData.typeName, taskData.typeDescription);
     await basePage.takeScreenshot('23-after-task-creation');
     
     // Verify task was created
@@ -221,7 +221,7 @@ describe('Tansel Complete Scenario - Steps 1, 2, 3, 4, 5, 6', function() {
     // Navigate to forum to check post
     await basePage.clickForumButton();
     await basePage.sleep(1000);
-    const forumPostStillExists = await basePage.verifyForumPostCreated(forumPostData.title);
+    const forumPostStillExists = await basePage.verifyForumPostCreated(forumPostData.content.slice(0, 10));
     
     console.log('✅ Turkish language active:', languageStillTurkish);
     console.log('✅ User logged in:', stillLoggedIn);

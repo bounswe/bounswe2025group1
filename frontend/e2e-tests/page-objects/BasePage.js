@@ -677,12 +677,11 @@ class BasePage {
     await this.sleep(1000);
   }
   
-  async clickViewGarden() {
-    const viewGardenSelector = '#root > div > main > div > div.MuiGrid-root.MuiGrid-container.MuiGrid-direction-xs-row.MuiGrid-spacing-xs-2.MuiGrid-spacing-sm-3.css-9u4rtm-MuiGrid-root > div:nth-child(1) > div > div.MuiBox-root.css-ydieok > button';
+  async clickViewGarden(gardenName) {
     console.log('Clicking View Garden button...');
     
     try {
-      await this.clickElement(By.css(viewGardenSelector));
+      await this.clickElement(By.xpath(`//h2[contains(text(), "${gardenName}")]/ancestor::div[contains(@class, "MuiCard-root")]//button`));
       console.log('Used specific selector for View Garden button');
     } catch (error) {
       console.log('Specific selector failed, trying fallback...');
@@ -1170,12 +1169,12 @@ class BasePage {
     await this.sleep(3000); // Wait for task creation and modal to close
   }
   
-  async createTask(taskTitle, taskDescription, taskTypeName, taskTypeDescription) {
+  async createTask(gardenName, taskTitle, taskDescription, taskTypeName, taskTypeDescription) {
     console.log(`Creating task: ${taskTitle}`);
     
     // Navigate back to gardens and view the garden
     await this.navigateBackToGardens();
-    await this.clickViewGarden();
+    await this.clickViewGarden(gardenName);
     
     // Click add task button
     await this.clickAddTask();
