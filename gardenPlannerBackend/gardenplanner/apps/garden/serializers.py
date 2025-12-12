@@ -35,10 +35,17 @@ class ProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email', read_only=True)
     profile_picture = serializers.SerializerMethodField()
     
+    location = serializers.SerializerMethodField()
+    role = serializers.CharField(read_only=True)
+    receives_notifications = serializers.BooleanField(read_only=True)
+    is_private = serializers.BooleanField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+
     class Meta:
         model = Profile
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 
-                  'profile_picture', 'location', 'role', 'receives_notifications', 'created_at', 'updated_at']
+                  'profile_picture', 'location', 'role', 'receives_notifications', 'is_private', 'created_at', 'updated_at']
         read_only_fields = ['id', 'role', 'created_at', 'updated_at']
 
     def get_profile_picture(self, obj):
@@ -48,10 +55,30 @@ class ProfileSerializer(serializers.ModelSerializer):
             return f"data:{mime};base64,{b64}"
         return None
 
+    def get_location(self, obj):
+        if not obj.location:
+            return None
+            
+        # If the requesting user is the owner, return full location
+        request = self.context.get('request')
+        if request and request.user == obj.user:
+            return obj.location
+            
+        parts = [p.strip() for p in obj.location.split(',')]
+        
+        if len(parts) >= 6:
+            masked_parts = parts[-6:-3]
+            return ", ".join(masked_parts)
+        elif len(parts) >= 4:
+            masked_parts = parts[1:]
+            return ", ".join(masked_parts)
+             
+        return obj.location
+
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ['profile_picture', 'location', 'receives_notifications']
+        fields = ['profile_picture', 'location', 'receives_notifications', 'is_private']
 
     def update(self, instance, validated_data):
         request = self.context.get('request') if hasattr(self, 'context') else None

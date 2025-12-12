@@ -18,7 +18,7 @@ class ProfileView(APIView):
 
     def get(self, request):
         """Get current user's profile"""
-        serializer = UserSerializer(request.user)
+        serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
     def put(self, request):
@@ -43,8 +43,15 @@ class UserProfileView(APIView):
                 {"error": "You cannot view this profile due to blocking restrictions."},
                 status=status.HTTP_403_FORBIDDEN
             )
+
+        # Check if profile is private
+        if user.profile.is_private and request.user != user:
+            return Response(
+                {"detail": "This profile is private."},
+                status=status.HTTP_403_FORBIDDEN
+            )
             
-        serializer = UserSerializer(user)
+        serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data)
     
 

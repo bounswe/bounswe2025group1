@@ -26,6 +26,7 @@ class Profile(models.Model):
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True)
     blocked_users = models.ManyToManyField('self', symmetrical=False, related_name='blocked_by', blank=True)
     receives_notifications = models.BooleanField(default=True)
+    is_private = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
