@@ -37,7 +37,7 @@ def migrate_assignees_backward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('garden', '0015_notification_link'),
+        ('garden', '0016_garden_latitude_garden_longitude'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
