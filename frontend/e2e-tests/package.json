@@ -1,0 +1,36 @@
+{
+  "name": "community-garden-planner-e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-end tests for Community Garden Planner using Selenium WebDriver",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests/**/*.test.js --timeout 60000",
+    "test:language": "mocha tests/language-selection.test.js --timeout 30000",
+    "test:language-theme": "mocha tests/language-and-theme.test.js --timeout 45000",
+    "test:tansel-complete": "mocha tests/tansel-complete-scenario.test.js --timeout 60000",
+    "test:tansel-steps": "npm run test:tansel-complete",
+    "test:chrome": "BROWSER=chrome npm run test",
+    "test:firefox": "BROWSER=firefox npm run test",
+    "test:headless": "HEADLESS=true npm run test",
+    "setup": "npm install"
+  },
+  "keywords": [
+    "selenium",
+    "webdriver",
+    "e2e",
+    "testing",
+    "mocha",
+    "chai"
+  ],
+  "author": "Community Garden Planner Team",
+  "license": "MIT",
+  "dependencies": {
+    "selenium-webdriver": "^4.15.0",
+    "mocha": "^10.2.0",
+    "chai": "^4.3.10"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
