@@ -2338,6 +2338,7 @@ class SignalTests(TestCase):
         detects bad weather, and notifies the member/manager.
         """
 
+        # Create membership for self.user (self.user2 already has one from setUp)
         GardenMembership.objects.create(
             user=self.user, 
             garden=self.garden, 
@@ -2345,25 +2346,50 @@ class SignalTests(TestCase):
             status='ACCEPTED'
         )
 
-        self.garden.latitude = 41.0
-        self.garden.longitude = 29.0
-        self.garden.save()
+        # Set garden coordinates - update directly via queryset to ensure persistence
+        Garden.objects.filter(id=self.garden.id).update(latitude=41.0, longitude=29.0)
+        
+        # Refresh garden object to get updated values
+        self.garden = Garden.objects.get(id=self.garden.id)
+        
+        # Clear all notifications before the test
         Notification.objects.all().delete()
 
+        # Mock the weather API response with proper structure
         mock_response = MagicMock()
         mock_response.json.return_value = {
             'daily': {
-                'weather_code': [0, 95],
-                'temperature_2m_max': [20, 25],
-                'temperature_2m_min': [10, 5]
+                'weather_code': [0, 95],  # Index 0: today (clear), Index 1: tomorrow (thunderstorm)
+                'temperature_2m_max': [20.0, 25.0],  # Max temperatures as floats
+                'temperature_2m_min': [10.0, 5.0]   # Min temperatures as floats
             }
         }
+        mock_response.status_code = 200
 
         mock_requests_get.return_value = mock_response
 
+        # Verify garden has coordinates before command runs
+        self.assertEqual(self.garden.latitude, 41.0)
+        self.assertEqual(self.garden.longitude, 29.0)
+        
+        # Verify memberships exist
+        memberships = GardenMembership.objects.filter(garden=self.garden, status='ACCEPTED')
+        self.assertGreaterEqual(memberships.count(), 1, "No accepted memberships found")
+
         call_command('send_weather_reminders')
 
-        notifications = Notification.objects.filter(recipient=self.user)
+        # Verify mock was called
+        self.assertTrue(mock_requests_get.called, "Weather API was not called")
+
+        # Check notifications were created
+        notifications = Notification.objects.filter(recipient=self.user, category='WEATHER')
+        
+        # Debug: print all notifications if test fails
+        if notifications.count() == 0:
+            all_notifs = Notification.objects.all()
+            print(f"\nDEBUG: Total notifications in DB: {all_notifs.count()}")
+            for n in all_notifs:
+                print(f"  - Recipient: {n.recipient.username}, Category: {n.category}, Message: {n.message[:50]}")
         
         self.assertEqual(notifications.count(), 1)
         self.assertIn("Thunderstorm", notifications.first().message)
