@@ -54,6 +54,13 @@ function StackNavigator() {
         }}
       />
       <Stack.Screen
+        name="auth/verify-otp"
+        options={{
+          title: t('auth.otp.title'),
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="garden/CreateGardenScreen"
         options={{
           title: t('garden.create.title'),

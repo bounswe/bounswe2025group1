@@ -36,8 +36,21 @@ export default function LoginScreen() {
     setError('');
 
     try {
-      await login(username, password);
-      router.replace('/(tabs)');
+      const result = await login(username, password);
+      
+      // Check if OTP is required
+      if (result?.otpRequired) {
+        router.push({
+          pathname: '/auth/verify-otp',
+          params: {
+            username,
+            deviceIdentifier: result.deviceIdentifier,
+            deviceName: result.deviceName,
+          },
+        });
+      } else {
+        router.replace('/(tabs)');
+      }
     } catch (err) {
       setError(t('auth.login.errors.invalidCredentials'));
     } finally {

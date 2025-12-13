@@ -3,6 +3,7 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
+    "ok": "OK",
     "badges": "Badges",
     "cancel": "Cancel",
     "save": "Save",
@@ -26,6 +27,21 @@
       "errors": {
         "fillAllFields": "Please fill in all fields",
         "invalidCredentials": "Invalid username or password"
+      }
+    },
+    "otp": {
+      "title": "Verify Your Device",
+      "instructions": "We've sent a 6-digit code to your email. Enter it below to verify this device.",
+      "device": "Device",
+      "codeLabel": "Verification Code",
+      "trustDevice": "Trust this device (skip verification next time)",
+      "verify": "Verify",
+      "backToLogin": "Back to Login",
+      "success": "Success",
+      "verificationSuccess": "Device verified successfully!",
+      "errors": {
+        "invalidCode": "Please enter a valid 6-digit code",
+        "verificationFailed": "Invalid or expired verification code"
       }
     },
     "register": {

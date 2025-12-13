@@ -15,6 +15,7 @@ from .userauth import (
     RegisterView,
     CustomLoginView,
     LogoutView,
+    VerifyLoginOTPView,
     PasswordResetAPIView,
     PasswordResetConfirmView
 )

@@ -44,12 +44,29 @@ const Login = () => {
         body: JSON.stringify({ username, password }),
       });
 
+      const data = await response.json();
+
+      // Check if OTP is required (new device)
+      if (response.status === 202 && data.otp_required) {
+        toast.info(t('auth.login.otpRequired'), {
+          position: 'top-right',
+        });
+        
+        // Navigate to OTP verification with device info
+        navigate('/auth/verify-otp', {
+          state: {
+            username,
+            deviceIdentifier: data.device_identifier,
+            deviceName: data.device_name,
+          },
+        });
+        return;
+      }
+
       if (!response.ok) {
         toast.error(t('auth.login.loginFailed'));
         return;
       }
-
-      const data = await response.json();
 
       // Save user and token via context (now async)
       await login(data);
