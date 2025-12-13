@@ -4546,3 +4546,71 @@ class PrivateProfileTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['username'], 'public_user')
+
+
+class BestAnswerTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        
+        self.author = User.objects.create_user(username='author', password='password123')
+        if not hasattr(self.author, 'profile'):
+            Profile.objects.create(user=self.author)
+
+        self.other_user = User.objects.create_user(username='other', password='password123')
+        if not hasattr(self.other_user, 'profile'):
+            Profile.objects.create(user=self.other_user)
+            
+        self.post_obj = ForumPost.objects.create(title='Question', content='Help me', author=self.author)
+        self.comment_1 = Comment.objects.create(forum_post=self.post_obj, content='Answer 1', author=self.other_user)
+        self.comment_2 = Comment.objects.create(forum_post=self.post_obj, content='Answer 2', author=self.other_user)
+
+    def test_mark_best_answer_success(self):
+        """Test that the post author can successfully mark a comment as best answer"""
+        self.client.force_authenticate(user=self.author)
+        
+        url = reverse('garden:mark-best-answer', args=[self.comment_1.id])
+        response = self.client.post(url)
+        
+        self.post_obj.refresh_from_db()
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.post_obj.best_answer, self.comment_1)
+        self.assertTrue(response.data['is_best_answer'])
+        self.assertEqual(response.data['best_answer_id'], self.comment_1.id)
+
+    def test_toggle_and_switch_best_answer(self):
+        """Test unmarking (clicking same comment) and switching (clicking different comment)"""
+        self.client.force_authenticate(user=self.author)
+        
+        # 1. Mark Comment 1 (Setup)
+        self.post_obj.best_answer = self.comment_1
+        self.post_obj.save()
+        
+        # 2. Test Unmarking: Click Comment 1 again
+        url_1 = reverse('garden:mark-best-answer', args=[self.comment_1.id])
+        response = self.client.post(url_1)
+        
+        self.post_obj.refresh_from_db()
+        self.assertEqual(self.post_obj.best_answer, None)
+        self.assertFalse(response.data['is_best_answer'])
+
+        # 3. Test Switching: Mark Comment 2
+        url_2 = reverse('garden:mark-best-answer', args=[self.comment_2.id])
+        self.client.post(url_2)
+        
+        self.post_obj.refresh_from_db()
+        self.assertEqual(self.post_obj.best_answer, self.comment_2)
+
+    def test_mark_best_answer_permission_denied(self):
+        """Test that a non-author user cannot select a best answer"""
+        self.client.force_authenticate(user=self.other_user)
+        
+        url = reverse('garden:mark-best-answer', args=[self.comment_1.id])
+        response = self.client.post(url)
+        
+        self.post_obj.refresh_from_db()
+        
+        # Should be forbidden (403)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # Database should remain unchanged
+        self.assertIsNone(self.post_obj.best_answer)
