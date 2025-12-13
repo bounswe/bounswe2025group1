@@ -27,6 +27,11 @@ class Profile(models.Model):
     blocked_users = models.ManyToManyField('self', symmetrical=False, related_name='blocked_by', blank=True)
     receives_notifications = models.BooleanField(default=True)
     is_private = models.BooleanField(default=False)
+    is_suspended = models.BooleanField(default=False)
+    is_banned = models.BooleanField(default=False)
+    suspension_reason = models.TextField(blank=True, null=True)
+    ban_reason = models.TextField(blank=True, null=True)
+    suspended_until = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

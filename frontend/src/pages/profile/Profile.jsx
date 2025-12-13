@@ -512,8 +512,8 @@ const Profile = () => {
                   variant="contained"
                   size="medium"
                 />
-                {user && (
-                  <Tooltip title={t('report.reportUser')}>
+                {user && !isOwnProfile && (
+                  <Tooltip title={t('report.reportUser', 'Report User')}>
                     <IconButton onClick={() => setReportOpen(true)} color="default">
                       <FlagIcon />
                     </IconButton>

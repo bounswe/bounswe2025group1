@@ -189,6 +189,7 @@ const ModerationDashboard = () => {
       garden: t('moderation.typeGarden', 'Garden'),
       event: t('moderation.typeEvent', 'Event'),
       task: t('moderation.typeTask', 'Task'),
+      user: t('moderation.typeUser', 'User'),
     };
     // Convert to lowercase for matching
     const normalizedType = contentType?.toLowerCase() || '';
@@ -236,6 +237,9 @@ const ModerationDashboard = () => {
           // If we can't fetch the comment, try to show it in a dialog
           fetchContentForPreview(report);
         }
+      } else if (contentType === 'user') {
+        // For users, navigate to their profile
+        navigate(`/profile/${objectId}`);
       } else {
         // For other content types, try to fetch and show in preview
         fetchContentForPreview(report);
@@ -259,6 +263,8 @@ const ModerationDashboard = () => {
         url = `${import.meta.env.VITE_API_URL}/forum/${objectId}/`;
       } else if (contentType === 'comment') {
         url = `${import.meta.env.VITE_API_URL}/forum/comments/${objectId}/`;
+      } else if (contentType === 'user') {
+        url = `${import.meta.env.VITE_API_URL}/profile/${objectId}/`;
       } else {
         toast.error(t('moderation.unsupportedContentType', 'Content type not supported for preview'), {
           position: 'top-right',
@@ -287,6 +293,65 @@ const ModerationDashboard = () => {
     } catch (error) {
       console.error('Error fetching content for preview:', error);
       toast.error(t('moderation.fetchContentError', 'Failed to fetch content'), {
+        position: 'top-right',
+      });
+    }
+  };
+
+  const handleSuspendUser = async (report) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/reports/${report.id}/suspend_user/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify({
+          suspension_days: 7,
+          reason: report.description || '',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to suspend user');
+      }
+
+      toast.success(t('moderation.userSuspended', 'User has been suspended'), {
+        position: 'top-right',
+      });
+      fetchReports(); // Refresh list
+    } catch (error) {
+      console.error('Error suspending user:', error);
+      toast.error(t('moderation.suspendError', 'Failed to suspend user'), {
+        position: 'top-right',
+      });
+    }
+  };
+
+  const handleBanUser = async (report) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/reports/${report.id}/ban_user/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify({
+          reason: report.description || '',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to ban user');
+      }
+
+      toast.success(t('moderation.userBanned', 'User has been banned'), {
+        position: 'top-right',
+      });
+      fetchReports(); // Refresh list
+    } catch (error) {
+      console.error('Error banning user:', error);
+      toast.error(t('moderation.banError', 'Failed to ban user'), {
         position: 'top-right',
       });
     }
@@ -395,24 +460,56 @@ const ModerationDashboard = () => {
                         </Button>
                         {!report.reviewed && (
                           <>
-                            <Button
-                              variant="outlined"
-                              color="error"
-                              size="small"
-                              startIcon={<CheckCircleIcon />}
-                              onClick={() => setReviewDialog({ open: true, report, isValid: true })}
-                            >
-                              {t('moderation.accept', 'Accept')}
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              color="success"
-                              size="small"
-                              startIcon={<CancelIcon />}
-                              onClick={() => setReviewDialog({ open: true, report, isValid: false })}
-                            >
-                              {t('moderation.dismiss', 'Dismiss')}
-                            </Button>
+                            {report.content_type?.toLowerCase() === 'user' ? (
+                              <>
+                                <Button
+                                  variant="outlined"
+                                  color="warning"
+                                  size="small"
+                                  onClick={() => handleSuspendUser(report)}
+                                >
+                                  {t('moderation.suspend', 'Suspend')}
+                                </Button>
+                                <Button
+                                  variant="outlined"
+                                  color="error"
+                                  size="small"
+                                  onClick={() => handleBanUser(report)}
+                                >
+                                  {t('moderation.ban', 'Ban')}
+                                </Button>
+                                <Button
+                                  variant="outlined"
+                                  color="success"
+                                  size="small"
+                                  startIcon={<CancelIcon />}
+                                  onClick={() => setReviewDialog({ open: true, report, isValid: false })}
+                                >
+                                  {t('moderation.dismiss', 'Dismiss')}
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button
+                                  variant="outlined"
+                                  color="error"
+                                  size="small"
+                                  startIcon={<CheckCircleIcon />}
+                                  onClick={() => setReviewDialog({ open: true, report, isValid: true })}
+                                >
+                                  {t('moderation.accept', 'Accept')}
+                                </Button>
+                                <Button
+                                  variant="outlined"
+                                  color="success"
+                                  size="small"
+                                  startIcon={<CancelIcon />}
+                                  onClick={() => setReviewDialog({ open: true, report, isValid: false })}
+                                >
+                                  {t('moderation.dismiss', 'Dismiss')}
+                                </Button>
+                              </>
+                            )}
                           </>
                         )}
                       </Box>
@@ -528,6 +625,70 @@ const ModerationDashboard = () => {
                         </Button>
                       </Box>
                     )}
+                  </CardContent>
+                </Card>
+              )}
+              {viewContentDialog.contentType === 'user' && (
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                      <Avatar 
+                        src={viewContentDialog.content.profile?.profile_picture || '/default-avatar.png'}
+                        sx={{ width: 64, height: 64 }}
+                      >
+                        {viewContentDialog.content.username?.charAt(0)}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="h6">
+                          {viewContentDialog.content.username}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {viewContentDialog.content.email}
+                        </Typography>
+                        {viewContentDialog.content.profile?.location && (
+                          <Typography variant="caption" color="text.secondary">
+                            {viewContentDialog.content.profile.location}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                    <Divider sx={{ my: 2 }} />
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        {t('moderation.profileInfo', 'Profile Information')}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>{t('moderation.role', 'Role')}:</strong> {viewContentDialog.content.profile?.role || 'MEMBER'}
+                      </Typography>
+                      {viewContentDialog.content.profile?.is_suspended && (
+                        <Typography variant="body2" color="warning.main">
+                          <strong>{t('moderation.status', 'Status')}:</strong> {t('moderation.suspended', 'Suspended')}
+                          {viewContentDialog.content.profile.suspension_reason && (
+                            <> - {viewContentDialog.content.profile.suspension_reason}</>
+                          )}
+                        </Typography>
+                      )}
+                      {viewContentDialog.content.profile?.is_banned && (
+                        <Typography variant="body2" color="error.main">
+                          <strong>{t('moderation.status', 'Status')}:</strong> {t('moderation.banned', 'Banned')}
+                          {viewContentDialog.content.profile.ban_reason && (
+                            <> - {viewContentDialog.content.profile.ban_reason}</>
+                          )}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{ mt: 2 }}>
+                      <Button
+                        variant="contained"
+                        startIcon={<OpenInNewIcon />}
+                        onClick={() => {
+                          navigate(`/profile/${viewContentDialog.content.id}`);
+                          setViewContentDialog({ open: false, content: null, contentType: null });
+                        }}
+                      >
+                        {t('moderation.viewProfile', 'View Full Profile')}
+                      </Button>
+                    </Box>
                   </CardContent>
                 </Card>
               )}

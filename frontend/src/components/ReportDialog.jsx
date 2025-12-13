@@ -50,6 +50,8 @@ const ReportDialog = ({ open, onClose, contentType, objectId }) => {
         let translatedError = errorMessage;
         if (errorMessage.includes('already reported') || errorMessage.includes('You already reported')) {
           translatedError = t('report.alreadyReported', 'You have already reported this content.');
+        } else if (errorMessage.includes('cannot report yourself') || errorMessage.includes('report yourself')) {
+          translatedError = t('report.cannotReportSelf', 'You cannot report yourself.');
         }
         
         throw new Error(translatedError);

@@ -4,6 +4,9 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import timedelta
 from ..models import Report
 from ..serializers import ReportSerializer
 from ..permissions import IsMember, IsSystemAdministrator, IsModerator
@@ -37,6 +40,15 @@ class ReportViewSet(viewsets.ModelViewSet):
         except ContentType.DoesNotExist:
             return Response({'detail': 'Invalid content type.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Prevent self-reporting for users
+        if content_type_str.lower() == 'user':
+            try:
+                reported_user = User.objects.get(pk=object_id)
+                if reported_user == request.user:
+                    return Response({'detail': 'You cannot report yourself.'}, status=status.HTTP_400_BAD_REQUEST)
+            except User.DoesNotExist:
+                return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
         # Prevent duplicate reports by the same user
         if Report.objects.filter(reporter=request.user, content_type=content_type, object_id=object_id).exists():
             return Response({'detail': 'You already reported this content.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -63,6 +75,7 @@ class AdminReportViewSet(viewsets.ModelViewSet):
     def review(self, request, pk=None):
         report = self.get_object()
         is_valid = request.data.get('is_valid')
+        action_type = request.data.get('action_type')  # 'suspend' or 'ban' for user reports
 
         report.reviewed = True
         report.is_valid = bool(is_valid)
@@ -70,7 +83,71 @@ class AdminReportViewSet(viewsets.ModelViewSet):
 
         if report.is_valid:
             obj = report.content_object
-            if hasattr(obj, "delete"):
-                obj.delete()
+            
+            # Handle user reports differently - don't auto-ban/suspend, let suspend_user/ban_user actions handle it
+            # For other content types (posts, comments), delete them
+            if report.content_type.model != 'user':
+                if hasattr(obj, "delete"):
+                    obj.delete()
 
         return Response({'detail': 'Report reviewed successfully.'})
+    
+    @action(detail=True, methods=['post'])
+    def suspend_user(self, request, pk=None):
+        """Suspend the user reported in this report"""
+        report = self.get_object()
+        
+        if report.content_type.model != 'user':
+            return Response({'detail': 'This action is only available for user reports.'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            reported_user = User.objects.get(pk=report.object_id)
+            suspension_days = request.data.get('suspension_days', 7)
+            reason = request.data.get('reason', report.description or f"Reported for: {report.get_reason_display()}")
+            
+            reported_user.profile.is_suspended = True
+            reported_user.profile.suspension_reason = reason
+            reported_user.profile.suspended_until = timezone.now() + timedelta(days=suspension_days)
+            reported_user.profile.save()
+            
+            report.reviewed = True
+            report.is_valid = True
+            report.save()
+            
+            return Response({
+                'detail': f'User {reported_user.username} has been suspended until {reported_user.profile.suspended_until}.'
+            })
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True, methods=['post'])
+    def ban_user(self, request, pk=None):
+        """Ban the user reported in this report"""
+        report = self.get_object()
+        
+        if report.content_type.model != 'user':
+            return Response({'detail': 'This action is only available for user reports.'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            reported_user = User.objects.get(pk=report.object_id)
+            reason = request.data.get('reason', report.description or f"Reported for: {report.get_reason_display()}")
+            
+            reported_user.profile.is_banned = True
+            reported_user.profile.ban_reason = reason
+            reported_user.profile.save()
+            
+            # Deactivate the user account
+            reported_user.is_active = False
+            reported_user.save()
+            
+            report.reviewed = True
+            report.is_valid = True
+            report.save()
+            
+            return Response({
+                'detail': f'User {reported_user.username} has been banned.'
+            })
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
