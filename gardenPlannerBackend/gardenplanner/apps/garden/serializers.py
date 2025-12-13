@@ -558,14 +558,15 @@ class UserGardenSerializer(serializers.ModelSerializer):
 class ReportSerializer(serializers.ModelSerializer):
     content_type = serializers.CharField()
     object_id = serializers.IntegerField()
+    reporter_username = serializers.CharField(source='reporter.username', read_only=True)
 
     class Meta:
         model = Report
         fields = [
-            'id', 'reporter', 'content_type', 'object_id', 
+            'id', 'reporter', 'reporter_username', 'content_type', 'object_id', 
             'reason', 'description', 'created_at', 'reviewed', 'is_valid'
         ]
-        read_only_fields = ['reporter', 'created_at', 'reviewed', 'is_valid']
+        read_only_fields = ['reporter', 'reporter_username', 'created_at', 'reviewed', 'is_valid']
 
     def create(self, validated_data):
         validated_data['reporter'] = self.context['request'].user
