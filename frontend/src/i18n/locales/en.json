@@ -887,6 +887,24 @@
     "viewParentPost": "View Parent Post",
     "profileInfo": "Profile Information",
     "role": "Role",
-    "viewProfile": "View Full Profile"
+    "viewProfile": "View Full Profile",
+    "hide": "Hide",
+    "unhide": "Unhide",
+    "delete": "Delete",
+    "hidden": "Hidden",
+    "gardenHidden": "Garden has been hidden",
+    "hideGardenError": "Failed to hide garden",
+    "gardenUnhidden": "Garden has been unhidden",
+    "unhideGardenError": "Failed to unhide garden",
+    "gardenDeleted": "Garden has been deleted",
+    "deleteGardenError": "Failed to delete garden",
+    "confirmDeleteGarden": "Are you sure you want to delete this garden? This action cannot be undone.",
+    "location": "Location",
+    "members": "Members",
+    "visibility": "Visibility",
+    "public": "Public",
+    "private": "Private",
+    "notSpecified": "Not specified",
+    "viewGarden": "View Full Garden"
   }
 }

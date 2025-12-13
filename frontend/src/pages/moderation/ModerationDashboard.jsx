@@ -240,6 +240,9 @@ const ModerationDashboard = () => {
       } else if (contentType === 'user') {
         // For users, navigate to their profile
         navigate(`/profile/${objectId}`);
+      } else if (contentType === 'garden') {
+        // For gardens, navigate directly
+        navigate(`/gardens/${objectId}`);
       } else {
         // For other content types, try to fetch and show in preview
         fetchContentForPreview(report);
@@ -265,6 +268,8 @@ const ModerationDashboard = () => {
         url = `${import.meta.env.VITE_API_URL}/forum/comments/${objectId}/`;
       } else if (contentType === 'user') {
         url = `${import.meta.env.VITE_API_URL}/profile/${objectId}/`;
+      } else if (contentType === 'garden') {
+        url = `${import.meta.env.VITE_API_URL}/gardens/${objectId}/`;
       } else {
         toast.error(t('moderation.unsupportedContentType', 'Content type not supported for preview'), {
           position: 'top-right',
@@ -352,6 +357,91 @@ const ModerationDashboard = () => {
     } catch (error) {
       console.error('Error banning user:', error);
       toast.error(t('moderation.banError', 'Failed to ban user'), {
+        position: 'top-right',
+      });
+    }
+  };
+
+  const handleHideGarden = async (report) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/reports/${report.id}/hide_garden/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify({
+          reason: report.description || '',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to hide garden');
+      }
+
+      toast.success(t('moderation.gardenHidden', 'Garden has been hidden'), {
+        position: 'top-right',
+      });
+      fetchReports(); // Refresh list
+    } catch (error) {
+      console.error('Error hiding garden:', error);
+      toast.error(t('moderation.hideGardenError', 'Failed to hide garden'), {
+        position: 'top-right',
+      });
+    }
+  };
+
+  const handleUnhideGarden = async (report) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/reports/${report.id}/unhide_garden/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to unhide garden');
+      }
+
+      toast.success(t('moderation.gardenUnhidden', 'Garden has been unhidden'), {
+        position: 'top-right',
+      });
+      fetchReports(); // Refresh list
+    } catch (error) {
+      console.error('Error unhiding garden:', error);
+      toast.error(t('moderation.unhideGardenError', 'Failed to unhide garden'), {
+        position: 'top-right',
+      });
+    }
+  };
+
+  const handleDeleteGarden = async (report) => {
+    if (!window.confirm(t('moderation.confirmDeleteGarden', 'Are you sure you want to delete this garden? This action cannot be undone.'))) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/reports/${report.id}/delete_garden/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete garden');
+      }
+
+      toast.success(t('moderation.gardenDeleted', 'Garden has been deleted'), {
+        position: 'top-right',
+      });
+      fetchReports(); // Refresh list
+    } catch (error) {
+      console.error('Error deleting garden:', error);
+      toast.error(t('moderation.deleteGardenError', 'Failed to delete garden'), {
         position: 'top-right',
       });
     }
@@ -488,6 +578,34 @@ const ModerationDashboard = () => {
                                   {t('moderation.dismiss', 'Dismiss')}
                                 </Button>
                               </>
+                            ) : report.content_type?.toLowerCase() === 'garden' ? (
+                              <>
+                                <Button
+                                  variant="outlined"
+                                  color="warning"
+                                  size="small"
+                                  onClick={() => handleHideGarden(report)}
+                                >
+                                  {t('moderation.hide', 'Hide')}
+                                </Button>
+                                <Button
+                                  variant="outlined"
+                                  color="error"
+                                  size="small"
+                                  onClick={() => handleDeleteGarden(report)}
+                                >
+                                  {t('moderation.delete', 'Delete')}
+                                </Button>
+                                <Button
+                                  variant="outlined"
+                                  color="success"
+                                  size="small"
+                                  startIcon={<CancelIcon />}
+                                  onClick={() => setReviewDialog({ open: true, report, isValid: false })}
+                                >
+                                  {t('moderation.dismiss', 'Dismiss')}
+                                </Button>
+                              </>
                             ) : (
                               <>
                                 <Button
@@ -511,6 +629,16 @@ const ModerationDashboard = () => {
                               </>
                             )}
                           </>
+                        )}
+                        {report.reviewed && report.content_type?.toLowerCase() === 'garden' && report.is_valid && (
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            size="small"
+                            onClick={() => handleUnhideGarden(report)}
+                          >
+                            {t('moderation.unhide', 'Unhide')}
+                          </Button>
                         )}
                       </Box>
                     </TableCell>
@@ -687,6 +815,52 @@ const ModerationDashboard = () => {
                         }}
                       >
                         {t('moderation.viewProfile', 'View Full Profile')}
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              )}
+              {viewContentDialog.contentType === 'garden' && (
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {viewContentDialog.content.name}
+                    </Typography>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mb: 2 }}>
+                      {viewContentDialog.content.description || t('moderation.noDescription', 'No description')}
+                    </Typography>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        <strong>{t('moderation.location', 'Location')}:</strong> {viewContentDialog.content.location || t('moderation.notSpecified', 'Not specified')}
+                      </Typography>
+                      {viewContentDialog.content.members_count !== undefined && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                          <strong>{t('moderation.members', 'Members')}:</strong> {viewContentDialog.content.members_count}
+                        </Typography>
+                      )}
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        <strong>{t('moderation.visibility', 'Visibility')}:</strong> {viewContentDialog.content.is_public ? t('moderation.public', 'Public') : t('moderation.private', 'Private')}
+                      </Typography>
+                      {viewContentDialog.content.is_hidden && (
+                        <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+                          <strong>{t('moderation.status', 'Status')}:</strong> {t('moderation.hidden', 'Hidden')}
+                          {viewContentDialog.content.hidden_reason && (
+                            <> - {viewContentDialog.content.hidden_reason}</>
+                          )}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{ mt: 2 }}>
+                      <Button
+                        variant="contained"
+                        startIcon={<OpenInNewIcon />}
+                        onClick={() => {
+                          navigate(`/gardens/${viewContentDialog.content.id}`);
+                          setViewContentDialog({ open: false, content: null, contentType: null });
+                        }}
+                      >
+                        {t('moderation.viewGarden', 'View Full Garden')}
                       </Button>
                     </Box>
                   </CardContent>

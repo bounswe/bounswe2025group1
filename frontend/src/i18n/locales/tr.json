@@ -887,6 +887,24 @@
     "viewParentPost": "Ana Gönderiyi Görüntüle",
     "profileInfo": "Profil Bilgileri",
     "role": "Rol",
-    "viewProfile": "Tam Profili Görüntüle"
+    "viewProfile": "Tam Profili Görüntüle",
+    "hide": "Gizle",
+    "unhide": "Gizlemeyi Kaldır",
+    "delete": "Sil",
+    "hidden": "Gizli",
+    "gardenHidden": "Bahçe gizlendi",
+    "hideGardenError": "Bahçe gizlenemedi",
+    "gardenUnhidden": "Bahçe gizlemesi kaldırıldı",
+    "unhideGardenError": "Bahçe gizlemesi kaldırılamadı",
+    "gardenDeleted": "Bahçe silindi",
+    "deleteGardenError": "Bahçe silinemedi",
+    "confirmDeleteGarden": "Bu bahçeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "location": "Konum",
+    "members": "Üyeler",
+    "visibility": "Görünürlük",
+    "public": "Herkese Açık",
+    "private": "Özel",
+    "notSpecified": "Belirtilmemiş",
+    "viewGarden": "Tam Bahçeyi Görüntüle"
   }
 }

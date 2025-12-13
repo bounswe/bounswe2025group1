@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from ..models import Report
+from ..models import Report, Garden, GardenMembership
 from ..serializers import ReportSerializer
 from ..permissions import IsMember, IsSystemAdministrator, IsModerator
 
@@ -48,6 +48,21 @@ class ReportViewSet(viewsets.ModelViewSet):
                     return Response({'detail': 'You cannot report yourself.'}, status=status.HTTP_400_BAD_REQUEST)
             except User.DoesNotExist:
                 return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Prevent garden creators from reporting their own gardens
+        if content_type_str.lower() == 'garden':
+            try:
+                garden = Garden.objects.get(pk=object_id)
+                # Check if user is a manager (creator) of this garden
+                if GardenMembership.objects.filter(
+                    garden=garden,
+                    user=request.user,
+                    role='MANAGER',
+                    status='ACCEPTED'
+                ).exists():
+                    return Response({'detail': 'You cannot report your own garden.'}, status=status.HTTP_400_BAD_REQUEST)
+            except Garden.DoesNotExist:
+                return Response({'detail': 'Garden not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         # Prevent duplicate reports by the same user
         if Report.objects.filter(reporter=request.user, content_type=content_type, object_id=object_id).exists():
@@ -85,8 +100,9 @@ class AdminReportViewSet(viewsets.ModelViewSet):
             obj = report.content_object
             
             # Handle user reports differently - don't auto-ban/suspend, let suspend_user/ban_user actions handle it
+            # Handle garden reports differently - don't auto-delete, let hide_garden/delete_garden actions handle it
             # For other content types (posts, comments), delete them
-            if report.content_type.model != 'user':
+            if report.content_type.model not in ['user', 'garden']:
                 if hasattr(obj, "delete"):
                     obj.delete()
 
@@ -151,3 +167,81 @@ class AdminReportViewSet(viewsets.ModelViewSet):
             })
         except User.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True, methods=['post'])
+    def hide_garden(self, request, pk=None):
+        """Hide the garden reported in this report"""
+        report = self.get_object()
+        
+        if report.content_type.model != 'garden':
+            return Response({'detail': 'This action is only available for garden reports.'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            garden = Garden.objects.get(pk=report.object_id)
+            reason = request.data.get('reason', report.description or f"Reported for: {report.get_reason_display()}")
+            
+            garden.is_hidden = True
+            garden.hidden_reason = reason
+            garden.save()
+            
+            report.reviewed = True
+            report.is_valid = True
+            report.save()
+            
+            return Response({
+                'detail': f'Garden "{garden.name}" has been hidden.'
+            })
+        except Garden.DoesNotExist:
+            return Response({'detail': 'Garden not found.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True, methods=['post'])
+    def unhide_garden(self, request, pk=None):
+        """Unhide a previously hidden garden"""
+        report = self.get_object()
+        
+        if report.content_type.model != 'garden':
+            return Response({'detail': 'This action is only available for garden reports.'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            garden = Garden.objects.get(pk=report.object_id)
+            
+            garden.is_hidden = False
+            garden.hidden_reason = None
+            garden.save()
+            
+            report.reviewed = True
+            report.is_valid = False  # Marking as invalid since we're unhiding
+            report.save()
+            
+            return Response({
+                'detail': f'Garden "{garden.name}" has been unhidden and is now visible again.'
+            })
+        except Garden.DoesNotExist:
+            return Response({'detail': 'Garden not found.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True, methods=['post'])
+    def delete_garden(self, request, pk=None):
+        """Delete the garden reported in this report"""
+        report = self.get_object()
+        
+        if report.content_type.model != 'garden':
+            return Response({'detail': 'This action is only available for garden reports.'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            garden = Garden.objects.get(pk=report.object_id)
+            garden_name = garden.name
+            
+            garden.delete()
+            
+            report.reviewed = True
+            report.is_valid = True
+            report.save()
+            
+            return Response({
+                'detail': f'Garden "{garden_name}" has been deleted.'
+            })
+        except Garden.DoesNotExist:
+            return Response({'detail': 'Garden not found.'}, status=status.HTTP_404_NOT_FOUND)

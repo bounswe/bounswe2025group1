@@ -38,6 +38,9 @@ import EventCard from '../../components/EventCard';
 import EventCreateDialog from '../../components/EventCreateDialog';
 import EventDetailModal from '../../components/EventDetailModal';
 import EventIcon from '@mui/icons-material/Event';
+import FlagIcon from '@mui/icons-material/Flag';
+import IconButton from '@mui/material/IconButton';
+import ReportDialog from '../../components/ReportDialog';
 
 const GardenDetail = () => {
   const { t, i18n } = useTranslation();
@@ -61,6 +64,7 @@ const GardenDetail = () => {
   const [isMember, setIsMember] = useState(false);
   const [isManager, setIsManager] = useState(false);
   const [userMembership, setUserMembership] = useState(null);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [taskForm, setTaskForm] = useState({
     type: 'CUSTOM',
     title: '',
@@ -831,9 +835,19 @@ const GardenDetail = () => {
                 variant="outlined"
                 color="primary"
                 onClick={handleOpenGardenEditModal}
+                sx={{ mr: 1 }}
               >
                 {t('gardens.manageGarden')}
               </Button>
+            )}
+            {user && !isManager && (
+              <IconButton
+                onClick={() => setReportDialogOpen(true)}
+                title={t('report.reportGarden', 'Report Garden')}
+                sx={{ color: 'text.secondary' }}
+              >
+                <FlagIcon />
+              </IconButton>
             )}
           </Grid>
         </Grid>
@@ -1240,6 +1254,12 @@ const GardenDetail = () => {
           selectedEvent &&
           (selectedEvent.created_by?.id === user?.id || isManager)
         }
+      />
+      <ReportDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        contentType="garden"
+        objectId={parseInt(gardenId)}
       />
     </Container>
   );

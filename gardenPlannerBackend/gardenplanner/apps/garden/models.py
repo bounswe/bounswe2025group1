@@ -72,6 +72,8 @@ class Garden(models.Model):
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     is_public = models.BooleanField(default=True)
+    is_hidden = models.BooleanField(default=False)
+    hidden_reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
