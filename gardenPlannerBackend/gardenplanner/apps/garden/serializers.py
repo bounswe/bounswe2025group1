@@ -364,12 +364,13 @@ class ForumPostSerializer(serializers.ModelSerializer):
     comments_count = serializers.SerializerMethodField(read_only=True)
     likes_count = serializers.IntegerField(source='likes.count', read_only=True)
     is_liked = serializers.SerializerMethodField()
+    best_answer_id = serializers.IntegerField(source='best_answer.id', read_only=True)
 
     class Meta:
         model = ForumPost
         fields = ['id', 'title', 'content', 'author', 'author_username', 'author_profile_picture', 'created_at', 
-                  'updated_at', 'images', 'images_base64', 'delete_image_ids', 'comments', 'comments_count', 'likes_count', 'is_liked']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'author', 'images', 'comments', 'comments_count', 'likes_count', 'is_liked']
+                  'updated_at', 'images', 'images_base64', 'delete_image_ids', 'comments', 'comments_count', 'likes_count', 'is_liked', 'best_answer_id']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'author', 'images', 'comments', 'comments_count', 'likes_count', 'is_liked', 'best_answer_id']
 
     def get_is_liked(self, obj):
         user = self.context.get('request').user
@@ -445,11 +446,12 @@ class CommentSerializer(serializers.ModelSerializer):
     delete_image_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     likes_count = serializers.IntegerField(source='likes.count', read_only=True)
     is_liked = serializers.SerializerMethodField()
+    is_best_answer = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = ['id', 'forum_post', 'content', 'author', 'author_username', 'author_profile_picture', 
-                  'created_at', 'images', 'images_base64', 'delete_image_ids', 'likes_count', 'is_liked']
+                  'created_at', 'images', 'images_base64', 'delete_image_ids', 'likes_count', 'is_liked', 'is_best_answer']
         read_only_fields = ['id', 'author', 'author_username', 'created_at', 'images', 'likes_count', 'is_liked']
     
     def get_is_liked(self, obj):
@@ -506,6 +508,9 @@ class CommentSerializer(serializers.ModelSerializer):
         # Update other fields
         return super().update(instance, validated_data)
 
+    def get_is_best_answer(self, obj):
+        # Check if this comment is the one linked in the parent post
+        return obj.forum_post.best_answer_id == obj.id
 
 class LikerSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')

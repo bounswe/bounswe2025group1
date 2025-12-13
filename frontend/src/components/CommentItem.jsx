@@ -15,10 +15,14 @@ import {
   ListItemAvatar,
   ListItemText,
   CircularProgress,
-  useTheme
+  useTheme,
+  Tooltip,
 } from '@mui/material';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+
 import { useAuth } from '../contexts/AuthContextUtils';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -35,7 +39,13 @@ const formatTimeAgo = (dateString, t) => {
   return date.toLocaleDateString();
 };
 
-const CommentItem = ({ comment, onAuthorClick }) => {
+const CommentItem = ({ 
+  comment, 
+  onAuthorClick, 
+  isPostAuthor, 
+  isBestAnswer, 
+  onMarkBest 
+}) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
@@ -116,18 +126,52 @@ const CommentItem = ({ comment, onAuthorClick }) => {
       <Box sx={{ flex: 1, minWidth: 0 }}>
         {/* Comment Bubble */}
         <Box sx={{ 
-          backgroundColor: theme.palette.action.hover, 
+          // Green Background if Best Answer
+          backgroundColor: isBestAnswer ? 'rgba(46, 125, 50, 0.08)' : theme.palette.action.hover, 
+          // Green Border if Best Answer
+          border: isBestAnswer ? '2px solid #2e7d32' : '2px solid transparent', 
           borderRadius: 2, 
           p: 1.5,
-          position: 'relative'
+          position: 'relative',
+          transition: 'all 0.2s ease'
         }}>
-          <Typography 
-            variant="subtitle2" 
-            onClick={() => onAuthorClick(comment.author)}
-            sx={{ fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', mb: 0.5 }}
-          >
-            {comment.author_username}
-          </Typography>
+          
+          {/* Header Row: Username + Best Answer Checkmark */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
+            <Typography 
+              variant="subtitle2" 
+              onClick={() => onAuthorClick(comment.author)}
+              sx={{ fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}
+            >
+              {comment.author_username}
+            </Typography>
+
+            {/* The Selection Button/Icon */}
+            {/* Show if: (1) It is the best answer OR (2) User is the post author */}
+            {(isBestAnswer || isPostAuthor) && (
+              <Tooltip title={isPostAuthor ? (isBestAnswer ? "Unmark Best Answer" : "Mark as Best Answer") : "Best Answer"}>
+                 {/* Only clickable if isPostAuthor is true */}
+                 <IconButton
+                    component="span"
+                    onClick={isPostAuthor ? onMarkBest : undefined} 
+                    size="small"
+                    sx={{ 
+                        p: 0,
+                        ml: 1,
+                        color: isBestAnswer ? '#2e7d32' : 'text.disabled',
+                        opacity: isBestAnswer ? 1 : 0.3,
+                        cursor: isPostAuthor ? 'pointer' : 'default',
+                        '&:hover': {
+                            opacity: isPostAuthor ? 1 : (isBestAnswer ? 1 : 0.3),
+                            backgroundColor: isPostAuthor ? 'rgba(0,0,0,0.05)' : 'transparent'
+                        }
+                    }}
+                 >
+                    {isBestAnswer ? <CheckCircleIcon fontSize="medium" /> : <CheckCircleOutlineIcon fontSize="medium" />}
+                 </IconButton>
+              </Tooltip>
+            )}
+          </Box>
           
           <Typography variant="body2" sx={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>
             {comment.content}

@@ -203,3 +203,33 @@ class CommentLikeListView(generics.ListAPIView):
         likes = CommentLike.objects.filter(comment_id=comment_id).select_related('user__profile')
         
         return [like.user.profile for like in likes]
+
+
+class ToggleBestAnswerView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+
+        comment = get_object_or_404(Comment, pk=pk, is_deleted=False)
+        post = comment.forum_post
+
+        # Permission Check: Only the post author can mark a best answer
+        if post.author != request.user:
+            raise PermissionDenied("Only the author of the post can select the best answer.")
+
+        if post.best_answer == comment:
+            # If this is already the best answer, unmark it
+            post.best_answer = None
+            action = "unmarked"
+        else:
+            # Mark this comment as best whether or not another best answer exists
+            post.best_answer = comment
+            action = "marked"
+        
+        post.save()
+
+        return Response({
+            "detail": f"Comment {action} as best answer.",
+            "best_answer_id": comment.id if action == "marked" else None,
+            "is_best_answer": action == "marked"
+        }, status=status.HTTP_200_OK)

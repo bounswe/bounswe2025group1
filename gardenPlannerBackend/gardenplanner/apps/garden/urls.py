@@ -67,4 +67,6 @@ urlpatterns = [
     path('forum-posts/<int:pk>/likes/list/', views.PostLikeListView.as_view(), name='post-likes-list'),
     path('comments/<int:pk>/likes/list/', views.CommentLikeListView.as_view(), name='comment-likes-list'),
 
+    path('comments/<int:pk>/mark-best/', views.ToggleBestAnswerView.as_view(), name='mark-best-answer'),
+
 ] 
