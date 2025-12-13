@@ -59,19 +59,6 @@ def analyze_weather_data(latitude, longitude):
         logger.error(f"Weather API failed for {latitude}, {longitude}: {e}")
         return False, "Error", 0, 0
 
-def get_lat_long_legacy(location_name):
-    """Legacy helper for string-based locations."""
-    if not location_name: return None, None
-    try:
-        city_name = location_name.split(',')[0].strip()
-        url = f"https://geocoding-api.open-meteo.com/v1/search?name={city_name}&count=1&language=en&format=json"
-        response = requests.get(url, timeout=5)
-        data = response.json()
-        if 'results' in data and len(data['results']) > 0:
-            return data['results'][0]['latitude'], data['results'][0]['longitude']
-    except Exception as e:
-        logger.error(f"Geocoding failed for {city_name}: {e}")
-    return None, None
 
 def notify_garden_members(garden, condition, high, low):
     """
@@ -103,62 +90,39 @@ def notify_garden_members(garden, condition, high, low):
 
     return sent_count
 
+def check_weather_and_notify():
+    total_alerts = 0
+    
+    # Coordinate-based Clustering
+    gardens_with_coords = Garden.objects.filter(
+        latitude__isnull=False,
+        longitude__isnull=False
+    )
+    logger.info(f"Processing {gardens_with_coords.count()} gardens...")
+
+    # Cluster by rounding coordinates (approx 11km)
+    coordinate_clusters = defaultdict(list)
+    for garden in gardens_with_coords:
+        key = (round(garden.latitude, 1), round(garden.longitude, 1))
+        coordinate_clusters[key].append(garden)
+
+    logger.info(f"Processing {len(coordinate_clusters)} coordinate clusters...")
+
+    for (lat_key, long_key), gardens_in_cluster in coordinate_clusters.items():
+        # Use the first garden's exact coords for the API call
+
+        is_bad, condition, high, low = analyze_weather_data(lat_key, long_key)
+
+        if is_bad:
+            for garden in gardens_in_cluster:
+                count = notify_garden_members(garden, condition, high, low)
+                total_alerts += count
+
+    logger.info(f"Weather check complete. Sent {total_alerts} alerts.")
+
+
 class Command(BaseCommand):
     help = 'Checks weather forecast and sends alerts for bad weather.'
 
     def handle(self, *args, **options):
-        total_alerts = 0
-        
-        # Coordinate-based Clustering
-        gardens_with_coords = Garden.objects.filter(
-            latitude__isnull=False,
-            longitude__isnull=False
-        )
-
-        # Cluster by rounding coordinates (approx 11km)
-        coordinate_clusters = defaultdict(list)
-        for garden in gardens_with_coords:
-            key = (round(garden.latitude, 1), round(garden.longitude, 1))
-            coordinate_clusters[key].append(garden)
-
-        logger.info(f"Processing {len(coordinate_clusters)} coordinate clusters...")
-
-        for (lat_key, long_key), gardens_in_cluster in coordinate_clusters.items():
-            # Use the first garden's exact coords for the API call
-            api_lat = gardens_in_cluster[0].latitude
-            api_long = gardens_in_cluster[0].longitude
-
-            is_bad, condition, high, low = analyze_weather_data(api_lat, api_long)
-
-            if is_bad:
-                for garden in gardens_in_cluster:
-                    count = notify_garden_members(garden, condition, high, low)
-                    total_alerts += count
-
-        # String-based Locations
-        gardens_without_coords = Garden.objects.filter(latitude__isnull=True).exclude(location__isnull=True).exclude(location__exact='')
-        
-        # Group gardens by their location string to minimize Geocoding API calls
-        legacy_clusters = defaultdict(list)
-        for garden in gardens_without_coords:
-            legacy_clusters[garden.location].append(garden)
-
-        logger.info(f"Processing {len(legacy_clusters)} legacy text locations...")
-
-        for location_str, gardens_in_legacy_cluster in legacy_clusters.items():
-            # 1. Convert string to lat/long
-            lat, lon = get_lat_long_legacy(location_str)
-            
-            if not lat or not lon:
-                continue
-
-            # 2. Check weather
-            is_bad, condition, high, low = analyze_weather_data(lat, lon)
-
-            # 3. If bad, notify members of ALL gardens in this city string
-            if is_bad:
-                for garden in gardens_in_legacy_cluster:
-                    count = notify_garden_members(garden, condition, high, low)
-                    total_alerts += count
-
-        self.stdout.write(self.style.SUCCESS(f"Weather check complete. Sent {total_alerts} alerts."))
+        check_weather_and_notify()

@@ -460,6 +460,8 @@ def geocode_garden_location(sender, instance, **kwargs):
     """
     Geocode the garden location using Nominatim API when location changes.
     """
+    if instance.pk is None and instance.latitude is not None: # if this is a new object with coords already set
+        return
     if not instance.location:
         instance.latitude = None
         instance.longitude = None

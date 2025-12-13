@@ -49,8 +49,6 @@ const Profile = () => {
     username: '',
     email: '',
     location: '',
-    email: '',
-    location: '',
     receives_notifications: false,
     is_private: false,
   });
@@ -245,7 +243,6 @@ const Profile = () => {
       username: profile.username,
       email: profile.email,
       location: profile.profile?.location || '',
-      location: profile.profile?.location || '',
       receives_notifications: profile.receives_notifications ?? false,
       is_private: profile.profile?.is_private ?? false,
     });
@@ -322,7 +319,6 @@ const Profile = () => {
           ...profile.profile,
           profile_picture: updatedProfile.profile.profile_picture,
           location: updatedProfile.profile.location,
-          location: updatedProfile.profile.location,
           receives_notifications: updatedProfile.profile.receives_notifications,
           is_private: updatedProfile.profile.is_private,
         },
@@ -337,7 +333,6 @@ const Profile = () => {
           profile: {
             ...user.profile,
             profile_picture: updatedProfile.profile.profile_picture,
-            location: updatedProfile.profile.location,
             location: updatedProfile.profile.location,
             receives_notifications: updatedProfile.profile.receives_notifications,
             is_private: updatedProfile.profile.is_private,

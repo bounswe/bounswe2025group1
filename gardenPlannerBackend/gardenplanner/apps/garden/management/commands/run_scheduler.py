@@ -15,15 +15,15 @@ logger = logging.getLogger(__name__)
 
 def deadline_reminders_job():
     """Wraps the logic function for the scheduler."""
-    print("Scheduler: Running deadline reminders...")
+    logger.info("Scheduler: Running deadline reminders...")
     result = deadline_reminder_sender()
-    print(f"Scheduler: {result}")
+    logger.info(f"Scheduler: {result}")
 
 def weather_reminders_job():
     """Sends weather reminders to users."""
-    print("Scheduler: Running weather reminders...")
+    logger.info("Scheduler: Running weather reminders...")
     result = check_weather_and_notify()
-    print(f"Scheduler: {result}")
+    logger.info(f"Scheduler: {result}")
 
 @util.close_old_connections
 def delete_old_job_executions(max_age=604_800):
@@ -47,7 +47,7 @@ class Command(BaseCommand):
             max_instances=1,
             replace_existing=True,
         )
-        print("Added job 'send_deadline_reminders'.")
+        logger.info("Added job 'send_deadline_reminders'.")
 
         # Run every day at 21:15
         scheduler.add_job(
@@ -58,7 +58,7 @@ class Command(BaseCommand):
             max_instances=1,
             replace_existing=True,
         )
-        print("Added job 'weather_reminders'.")
+        logger.info("Added job 'weather_reminders'.")
 
         # Clean up old logs every week
         scheduler.add_job(
@@ -70,8 +70,8 @@ class Command(BaseCommand):
         )
 
         try:
-            print("Starting scheduler...")
+            logger.info("Starting scheduler...")
             scheduler.start()
         except KeyboardInterrupt:
-            print("Stopping scheduler...")
+            logger.info("Stopping scheduler...")
             scheduler.shutdown()

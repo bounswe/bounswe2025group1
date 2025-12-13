@@ -27,6 +27,13 @@ const GardenModal = ({
     lng: form.longitude || null 
   });
 
+  useEffect(() => {
+  setCoordinates({
+      lat: form.latitude || null,
+      lng: form.longitude || null
+  });
+  }, [form.latitude, form.longitude]);
+
   // Create keyboard handler for the form
   const formKeyboardHandler = createFormKeyboardHandler(handleSubmit, onClose);
 

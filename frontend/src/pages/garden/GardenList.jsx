@@ -607,14 +607,16 @@ const GardenList = () => {
           </Box>
         )}
       </Grid>
-      <GardenModal
-        open={openModal}
-        onClose={handleCloseModal}
-        form={form}
-        handleChange={handleChange}
-        handleTogglePublic={() => setForm((prev) => ({ ...prev, isPublic: !prev.isPublic }))}
-        handleSubmit={handleSubmit}
-      />
+      {openModal && (
+        <GardenModal
+          open={openModal}
+          onClose={handleCloseModal}
+          form={form}
+          handleChange={handleChange}
+          handleTogglePublic={() => setForm((prev) => ({ ...prev, isPublic: !prev.isPublic }))}
+          handleSubmit={handleSubmit}
+        />
+      )}
     </Container>
   );
 };
