@@ -9,6 +9,7 @@ from .forumpost import (
     CommentLikeToggleView,
     PostLikeListView,
     CommentLikeListView,
+    ToggleBestAnswerView,
 )
 from .userauth import (
     RegisterView,
@@ -64,6 +65,7 @@ __all__ = [
     "CommentLikeToggleView",
     "PostLikeListView",
     "CommentLikeListView",
+    "ToggleBestAnswerView",
     # User Authentication Views
     "RegisterView",
     "CustomLoginView",

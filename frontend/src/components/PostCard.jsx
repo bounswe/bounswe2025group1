@@ -190,6 +190,36 @@ const PostCard = ({
     return date.toLocaleDateString();
   };
 
+  const [bestAnswerId, setBestAnswerId] = useState(post.best_answer_id);
+
+  const handleMarkBestAnswer = async (commentId) => {
+    if (!token) return;
+
+    // Optimistic Update: Update UI immediately
+    const oldBestAnswer = bestAnswerId;
+    const newBestAnswer = bestAnswerId === commentId ? null : commentId;
+    
+    setBestAnswerId(newBestAnswer);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/comments/${commentId}/mark-best/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      if (!response.ok) throw new Error('Failed to update best answer');
+    } catch (error) {
+      console.error("Best answer error:", error);
+
+      // Revert UI on failure
+      setBestAnswerId(oldBestAnswer);
+      toast.error(t('errors.generic', "Updating best answer failed"));
+    }
+  };
+
   return (
     <Card 
       elevation={0} 
@@ -454,6 +484,9 @@ const PostCard = ({
                     key={comment.id} 
                     comment={comment} 
                     onAuthorClick={handleCommentAuthorClick}
+                    isPostAuthor={currentUser?.id === post.author}
+                    isBestAnswer={bestAnswerId === comment.id}
+                    onMarkBest={() => handleMarkBestAnswer(comment.id)}
                   />
                 ))}
               </Box>

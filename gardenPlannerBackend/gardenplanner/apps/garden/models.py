@@ -169,6 +169,7 @@ class ForumPost(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
+    best_answer = models.ForeignKey('Comment', on_delete=models.SET_NULL, null=True, blank=True, related_name='best_answer_for')
 
     #soft delete (content will be shown as moderated and not actually deleted from the db)
     def delete(self):
