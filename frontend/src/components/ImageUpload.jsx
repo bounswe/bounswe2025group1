@@ -12,6 +12,7 @@ import {
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ImageIcon from '@mui/icons-material/Image';
+import { useTranslation } from 'react-i18next';
 
 const ImageUpload = ({
   label = 'Upload Images',
@@ -25,6 +26,7 @@ const ImageUpload = ({
   onCoverImageChange,
   disabled = false,
 }) => {
+  const { t } = useTranslation();
   const [images, setImages] = useState(initialImages);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
@@ -32,11 +34,14 @@ const ImageUpload = ({
 
   const validateFile = (file) => {
     if (!acceptedTypes.includes(file.type)) {
-      throw new Error(`File type ${file.type} is not supported. Please use: ${acceptedTypes.join(', ')}`);
+      throw new Error(t('imageUpload.fileTypeNotSupported', { 
+        fileType: file.type, 
+        supportedTypes: acceptedTypes.join(', ') 
+      }));
     }
     
     if (file.size > maxSizeMB * 1024 * 1024) {
-      throw new Error(`File size must be less than ${maxSizeMB}MB`);
+      throw new Error(t('imageUpload.fileSizeTooLarge', { maxSize: maxSizeMB }));
     }
     
     return true;
@@ -172,7 +177,7 @@ const ImageUpload = ({
             },
           }}
         >
-          {uploading ? 'Uploading...' : `Upload Images (${images.length}/${maxImages})`}
+          {uploading ? t('imageUpload.uploading') : t('imageUpload.uploadImages', { current: images.length, max: maxImages })}
         </Button>
       </Box>
 
@@ -259,7 +264,7 @@ const ImageUpload = ({
                         },
                       }}
                     >
-                      Set as Cover
+                      {t('imageUpload.setAsCover')}
                     </Button>
                   )}
                 </Box>
@@ -281,9 +286,9 @@ const ImageUpload = ({
 
       {/* Helper Text */}
       <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-        Supported formats: {acceptedTypes.map(type => type.split('/')[1].toUpperCase()).join(', ')} • 
-        Max size: {maxSizeMB}MB • 
-        Max images: {maxImages}
+        {t('imageUpload.supportedFormats')}: {acceptedTypes.map(type => type.split('/')[1].toUpperCase()).join(', ')} • 
+        {t('imageUpload.maxSize')}: {maxSizeMB}MB • 
+        {t('imageUpload.maxImages')}: {maxImages}
       </Typography>
     </Box>
   );
