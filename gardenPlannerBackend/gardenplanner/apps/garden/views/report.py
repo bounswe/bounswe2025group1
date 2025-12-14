@@ -20,11 +20,11 @@ class ReportViewSet(viewsets.ModelViewSet):
         Return permissions based on action.
         """
         if self.action in ['list', 'retrieve']:
-            permission_classes = [IsSystemAdministrator]  # only admins can view reports
+            permission_classes = [IsModerator]  # only admins can view reports
         elif self.action == 'create':
             permission_classes = [IsMember]  # only members can report
         elif self.action in ['update', 'partial_update', 'destroy']:
-            permission_classes = [IsSystemAdministrator]  # only managers/admins
+            permission_classes = [IsModerator]  # only managers/admins
         else:
             permission_classes = [IsMember]
         return [permission() for permission in permission_classes]
