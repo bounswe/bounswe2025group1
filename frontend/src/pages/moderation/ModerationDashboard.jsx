@@ -745,14 +745,9 @@ const ModerationDashboard = () => {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      {(() => {
-                        const reportedUser = getReportedUserDisplay(report);
-                        return (
-                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            {reportedUser.username}
-                          </Typography>
-                        );
-                      })()}
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {report.reported_username || t('moderation.unknownUser', 'Unknown')}
+                      </Typography>
                     </TableCell>
                     <TableCell>
                       <Chip 
