@@ -43,7 +43,7 @@ const StatCard = ({ icon, label, value, subValue }) => (
             {label}
         </Typography>
         {subValue && (
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 'auto', fontStyle: 'italic' }}>
                 {subValue}
             </Typography>
         )}
@@ -142,60 +142,62 @@ const ImpactSummaryTab = ({ userId }) => {
 
     const formatResponseTime = (hours) => {
         if (hours === null || hours === undefined) return '-';
-        if (hours < 1) return `${Math.round(hours * 60)} min`;
-        if (hours < 24) return `${hours.toFixed(1)} ${t('profile.hours')}`;
-        return `${(hours / 24).toFixed(1)} ${t('profile.days')}`;
+        if (hours < 1) {
+            const value = Math.round(hours * 60);
+            return <span style={{ display: 'inline-flex', alignItems: 'center', flexDirection: 'column' }}>{value}<span style={{ fontSize: '0.5em' }}>{t('profile.minutes')}</span></span>;
+        }
+        if (hours < 24) {
+            const value = hours.toFixed(1);
+            return <span style={{ display: 'inline-flex', alignItems: 'center', flexDirection: 'column' }}>{value}<span style={{ fontSize: '0.5em' }}>{t('profile.hours')}</span></span>;
+        }
+        const value = (hours / 24).toFixed(1);
+        return <span style={{ display: 'inline-flex', alignItems: 'center', flexDirection: 'column' }}>{value}<span style={{ fontSize: '0.5em' }}>{t('profile.days')}</span></span>;
     };
 
     return (
         <Box sx={{ py: 2 }}>
-            {/* Profile Stats */}
-            <SectionHeader title={t('profile.title')} icon={<GroupIcon />} />
+            {/* Garden Activity & Events - Combined Row */}
             <Grid container spacing={2}>
-                <Grid item xs={12}>
-                    <Paper elevation={1} sx={{ p: 2, textAlign: 'center' }}>
-                        <Typography variant="body2" color="text.secondary">
-                            {t('profile.memberSince')}
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 500 }}>
-                            {formatDate(impactData.member_since)}
-                        </Typography>
-                    </Paper>
+                {/* Garden Activity */}
+                <Grid item size={{ xs: 12, md: 6 }}>
+                    <SectionHeader title={t('profile.gardens')} icon={<YardIcon />} />
+                    <Grid container spacing={2}>
+                        <Grid item size={{ xs: 6 }}>
+                            <StatCard
+                                icon={<YardIcon fontSize="large" />}
+                                label={t('profile.gardensJoined')}
+                                value={impactData.gardens_joined}
+                            />
+                        </Grid>
+                        <Grid item size={{ xs: 6 }}>
+                            <StatCard
+                                icon={<YardIcon fontSize="large" />}
+                                label={t('profile.gardensManaged')}
+                                value={impactData.gardens_managed}
+                            />
+                        </Grid>
+                    </Grid>
                 </Grid>
-                <Grid item xs={6}>
-                    <StatCard
-                        icon={<GroupIcon fontSize="large" />}
-                        label={t('profile.followers')}
-                        value={impactData.followers_count}
-                    />
-                </Grid>
-                <Grid item xs={6}>
-                    <StatCard
-                        icon={<GroupIcon fontSize="large" />}
-                        label={t('profile.following')}
-                        value={impactData.following_count}
-                    />
-                </Grid>
-            </Grid>
 
-            <Divider sx={{ my: 3 }} />
-
-            {/* Garden Activity */}
-            <SectionHeader title={t('profile.gardens')} icon={<YardIcon />} />
-            <Grid container spacing={2}>
-                <Grid item xs={6}>
-                    <StatCard
-                        icon={<YardIcon fontSize="large" />}
-                        label={t('profile.gardensJoined')}
-                        value={impactData.gardens_joined}
-                    />
-                </Grid>
-                <Grid item xs={6}>
-                    <StatCard
-                        icon={<YardIcon fontSize="large" />}
-                        label={t('profile.gardensManaged')}
-                        value={impactData.gardens_managed}
-                    />
+                {/* Events */}
+                <Grid item size={{ xs: 12, md: 6 }}>
+                    <SectionHeader title={t('gardens.eventsTab')} icon={<EventIcon />} />
+                    <Grid container spacing={2}>
+                        <Grid item size={{ xs: 6 }}>
+                            <StatCard
+                                icon={<EventIcon fontSize="large" />}
+                                label={t('profile.eventsCreated')}
+                                value={impactData.events_created}
+                            />
+                        </Grid>
+                        <Grid item size={{ xs: 6 }}>
+                            <StatCard
+                                icon={<EventIcon fontSize="large" />}
+                                label={t('profile.eventsAttended')}
+                                value={impactData.events_attended}
+                            />
+                        </Grid>
+                    </Grid>
                 </Grid>
             </Grid>
 
@@ -204,28 +206,35 @@ const ImpactSummaryTab = ({ userId }) => {
             {/* Task Stats */}
             <SectionHeader title={t('profile.tasks')} icon={<TaskAltIcon />} />
             <Grid container spacing={2}>
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{ xs: 6, sm: 2.4 }}>
                     <StatCard
                         icon={<TaskAltIcon fontSize="large" />}
                         label={t('profile.tasksCompleted')}
                         value={impactData.tasks_completed}
                     />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{ xs: 6, sm: 2.4 }}>
                     <StatCard
                         icon={<TaskAltIcon fontSize="large" />}
-                        label={t('profile.tasksAssigned')}
-                        value={impactData.tasks_assigned}
+                        label={t('profile.tasksAssignedTo')}
+                        value={impactData.tasks_assigned_to}
                     />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{ xs: 6, sm: 2.4 }}>
+                    <StatCard
+                        icon={<TaskAltIcon fontSize="large" />}
+                        label={t('profile.tasksAssignedBy')}
+                        value={impactData.tasks_assigned_by}
+                    />
+                </Grid>
+                <Grid item size={{ xs: 6, sm: 2.4 }}>
                     <StatCard
                         icon={<StarIcon fontSize="large" />}
                         label={t('profile.taskCompletionRate')}
-                        value={`${impactData.task_completion_rate}%`}
+                        value={`${Math.round(impactData.task_completion_rate)}%`}
                     />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{ xs: 6, sm: 2.4 }}>
                     <StatCard
                         icon={<AccessTimeIcon fontSize="large" />}
                         label={t('profile.avgResponseTime')}
@@ -237,55 +246,34 @@ const ImpactSummaryTab = ({ userId }) => {
             <Divider sx={{ my: 3 }} />
 
             {/* Forum Engagement */}
-            <SectionHeader title={t('forum.title')} icon={<ForumIcon />} />
+            <SectionHeader title={t('profile.forum')} icon={<ForumIcon />} />
             <Grid container spacing={2}>
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{ xs: 6, sm: 3 }}>
                     <StatCard
                         icon={<ForumIcon fontSize="large" />}
                         label={t('profile.postsCreated')}
                         value={impactData.posts_created}
                     />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{ xs: 6, sm: 3 }}>
                     <StatCard
                         icon={<ForumIcon fontSize="large" />}
                         label={t('profile.commentsMade')}
                         value={impactData.comments_made}
                     />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{ xs: 6, sm: 3 }}>
                     <StatCard
                         icon={<ThumbUpIcon fontSize="large" />}
                         label={t('profile.likesReceived')}
                         value={impactData.likes_received}
                     />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{ xs: 6, sm: 3 }}>
                     <StatCard
                         icon={<StarIcon fontSize="large" />}
                         label={t('profile.bestAnswers')}
                         value={impactData.best_answers}
-                    />
-                </Grid>
-            </Grid>
-
-            <Divider sx={{ my: 3 }} />
-
-            {/* Events */}
-            <SectionHeader title={t('gardens.eventsTab')} icon={<EventIcon />} />
-            <Grid container spacing={2}>
-                <Grid item xs={6}>
-                    <StatCard
-                        icon={<EventIcon fontSize="large" />}
-                        label={t('profile.eventsCreated')}
-                        value={impactData.events_created}
-                    />
-                </Grid>
-                <Grid item xs={6}>
-                    <StatCard
-                        icon={<EventIcon fontSize="large" />}
-                        label={t('profile.eventsAttended')}
-                        value={impactData.events_attended}
                     />
                 </Grid>
             </Grid>
