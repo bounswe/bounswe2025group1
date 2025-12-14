@@ -26,11 +26,11 @@ function colorize(text, color) {
 // Function to flatten nested JSON object into dot notation keys
 function flattenKeys(obj, prefix = '') {
   const keys = [];
-  
+
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       const fullKey = prefix ? `${prefix}.${key}` : key;
-      
+
       if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
         // Recursively flatten nested objects
         keys.push(...flattenKeys(obj[key], fullKey));
@@ -40,7 +40,7 @@ function flattenKeys(obj, prefix = '') {
       }
     }
   }
-  
+
   return keys;
 }
 
@@ -114,14 +114,14 @@ function compareTranslationKeys() {
     });
   }
 
-  // Extra in Arabic (keys that don't exist in English)
-  console.log('\n' + colorize('➕ EXTRA KEYS IN ARABIC:', 'bold'));
+  // Extra in Arabic (keys that don't exist in English) - informational only
+  console.log('\n' + colorize('ℹ️  EXTRA KEYS IN ARABIC (informational):', 'bold'));
   if (extraInArabic.length === 0) {
-    console.log(colorize('✅ No extra keys found.', 'green'));
+    console.log(colorize('No extra keys found.', 'blue'));
   } else {
-    console.log(colorize(`⚠️  Found ${extraInArabic.length} extra keys:`, 'yellow'));
+    console.log(colorize(`Found ${extraInArabic.length} extra keys (these are OK, language-specific):`, 'blue'));
     extraInArabic.sort().forEach(key => {
-      console.log(`  ${colorize('•', 'yellow')} ${key}`);
+      console.log(`  ${colorize('•', 'blue')} ${key}`);
     });
   }
 
@@ -138,53 +138,55 @@ function compareTranslationKeys() {
     }
   }
 
-  // Section-wise analysis
+  // Section-wise analysis - count missing keys per section
   console.log('\n' + colorize('📋 SECTION-WISE ANALYSIS:', 'bold'));
   const enSections = {};
-  const arSections = {};
-  
+  const missingSections = {};
+
   [...enKeys].forEach(key => {
     const section = key.split('.')[0];
     enSections[section] = (enSections[section] || 0) + 1;
   });
-  
-  [...arKeys].forEach(key => {
+
+  // Count missing keys per section
+  missingInArabic.forEach(key => {
     const section = key.split('.')[0];
-    arSections[section] = (arSections[section] || 0) + 1;
+    missingSections[section] = (missingSections[section] || 0) + 1;
   });
 
-  const allSections = new Set([...Object.keys(enSections), ...Object.keys(arSections)]);
-  
-  console.log('\nSection comparison:');
-  [...allSections].sort().forEach(section => {
-    const enCount = enSections[section] || 0;
-    const arCount = arSections[section] || 0;
-    const status = enCount === arCount ? '✅' : '❌';
-    const diff = arCount - enCount;
-    const diffText = diff === 0 ? '' : ` (${diff > 0 ? '+' : ''}${diff})`;
-    
-    console.log(`  ${status} ${colorize(section.padEnd(15), 'cyan')}: EN=${enCount.toString().padStart(3)} | AR=${arCount.toString().padStart(3)}${colorize(diffText, diff === 0 ? 'green' : 'yellow')}`);
-  });
+  console.log('\nSection comparison (only shows sections with missing keys):');
+  const sectionsWithMissing = Object.keys(missingSections).sort();
+
+  if (sectionsWithMissing.length === 0) {
+    console.log(colorize('  ✅ All sections are complete!', 'green'));
+  } else {
+    sectionsWithMissing.forEach(section => {
+      const enCount = enSections[section] || 0;
+      const missingCount = missingSections[section];
+      const arCount = enCount - missingCount;
+      console.log(`  ${colorize('❌', 'red')} ${colorize(section.padEnd(15), 'cyan')}: ${missingCount} missing (${arCount}/${enCount} translated)`);
+    });
+  }
 
   // Generate missing keys template
   if (missingInArabic.length > 0) {
     console.log('\n' + colorize('📝 MISSING KEYS TEMPLATE:', 'bold'));
     console.log(colorize('Copy the following structure to add missing Arabic translations:', 'blue'));
     console.log('\n' + colorize('-'.repeat(50), 'yellow'));
-    
+
     // Group missing keys by section
     const missingBySection = {};
     missingInArabic.forEach(key => {
       const parts = key.split('.');
       const section = parts[0];
       const subKey = parts.slice(1).join('.');
-      
+
       if (!missingBySection[section]) {
         missingBySection[section] = [];
       }
       missingBySection[section].push(subKey);
     });
-    
+
     Object.keys(missingBySection).sort().forEach(section => {
       console.log(`"${section}": {`);
       missingBySection[section].sort().forEach(subKey => {
@@ -194,28 +196,43 @@ function compareTranslationKeys() {
       });
       console.log('},\n');
     });
-    
+
     console.log(colorize('-'.repeat(50), 'yellow'));
   }
 
   // Final status
   console.log('\n' + colorize('🎯 FINAL STATUS:', 'bold'));
-  const isComplete = missingInArabic.length === 0;
-  if (isComplete) {
-    console.log(colorize('🎉 CONGRATULATIONS! Arabic translation is 100% complete!', 'green'));
+  const isArComplete = missingInArabic.length === 0;
+  const isTrComplete = missingInTurkish.length === 0;
+
+  // Arabic status
+  if (isArComplete) {
+    console.log(colorize('🎉 Arabic: 100% complete!', 'green'));
   } else {
-    console.log(colorize(`📝 Arabic translation is ${((arKeys.size / enKeys.size) * 100).toFixed(1)}% complete`, 'yellow'));
-    console.log(colorize(`   ${missingInArabic.length} keys remaining to translate`, 'yellow'));
+    const arCoverage = (((enKeys.size - missingInArabic.length) / enKeys.size) * 100).toFixed(1);
+    console.log(colorize(`📝 Arabic: ${arCoverage}% complete (${missingInArabic.length} keys missing)`, 'yellow'));
+  }
+
+  // Turkish status
+  if (trKeys) {
+    if (isTrComplete) {
+      console.log(colorize('🎉 Turkish: 100% complete!', 'green'));
+    } else {
+      const trCoverage = (((enKeys.size - missingInTurkish.length) / enKeys.size) * 100).toFixed(1);
+      console.log(colorize(`📝 Turkish: ${trCoverage}% complete (${missingInTurkish.length} keys missing)`, 'yellow'));
+    }
   }
 
   console.log('\n' + colorize('='.repeat(80), 'cyan'));
-  
+
   return {
     missingInArabic: missingInArabic.length,
+    missingInTurkish: missingInTurkish.length,
     extraInArabic: extraInArabic.length,
     totalEnKeys: enKeys.size,
     totalArKeys: arKeys.size,
-    isComplete
+    isArComplete: isArComplete,
+    isTrComplete: isTrComplete
   };
 }
 
@@ -227,7 +244,8 @@ function getNestedValue(obj, path) {
 }
 
 // Run the comparison
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isMainModule = path.resolve(process.argv[1]) === path.resolve(__filename);
+if (isMainModule) {
   compareTranslationKeys();
 }
 
