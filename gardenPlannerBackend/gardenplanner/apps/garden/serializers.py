@@ -556,7 +556,7 @@ class UserGardenSerializer(serializers.ModelSerializer):
         return GardenImageSerializer(cover).data
     
 class ReportSerializer(serializers.ModelSerializer):
-    content_type = serializers.CharField()
+    content_type = serializers.SerializerMethodField()
     object_id = serializers.IntegerField()
     reporter_username = serializers.CharField(source='reporter.username', read_only=True)
 
@@ -566,7 +566,13 @@ class ReportSerializer(serializers.ModelSerializer):
             'id', 'reporter', 'reporter_username', 'content_type', 'object_id', 
             'reason', 'description', 'created_at', 'reviewed', 'is_valid'
         ]
-        read_only_fields = ['reporter', 'reporter_username', 'created_at', 'reviewed', 'is_valid']
+        read_only_fields = ['reporter', 'reporter_username', 'content_type', 'created_at', 'reviewed', 'is_valid']
+
+    def get_content_type(self, obj):
+        """Return the model name of the content type"""
+        if hasattr(obj, 'content_type') and obj.content_type:
+            return obj.content_type.model
+        return None
 
     def create(self, validated_data):
         validated_data['reporter'] = self.context['request'].user

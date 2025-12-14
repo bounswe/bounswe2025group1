@@ -25,6 +25,9 @@ import {
   CardContent,
   Avatar,
   Divider,
+  IconButton,
+  Tooltip,
+  ButtonGroup,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -34,6 +37,11 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import BlockIcon from '@mui/icons-material/Block';
+import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import PersonOffIcon from '@mui/icons-material/PersonOff';
 
 const ModerationDashboard = () => {
   const { t } = useTranslation();
@@ -44,6 +52,7 @@ const ModerationDashboard = () => {
   const [reviewDialog, setReviewDialog] = useState({ open: false, report: null, isValid: false });
   const [viewContentDialog, setViewContentDialog] = useState({ open: false, content: null, contentType: null });
   const [userProfiles, setUserProfiles] = useState({}); // Store reporter usernames
+  const [reportedContent, setReportedContent] = useState({}); // Store reported content info
   const [filter, setFilter] = useState('pending'); // pending, reviewed
 
   useEffect(() => {
@@ -51,9 +60,10 @@ const ModerationDashboard = () => {
   }, [token]);
 
   useEffect(() => {
-    // Fetch user profiles for reporters
+    // Fetch user profiles for reporters and reported content
     if (reports.length > 0 && token) {
       fetchReporterProfiles();
+      fetchReportedContent();
     }
   }, [reports, token]);
 
@@ -133,6 +143,189 @@ const ModerationDashboard = () => {
       }
     });
     setUserProfiles(newProfiles);
+  };
+
+  const fetchReportedContent = async () => {
+    const contentToFetch = [];
+    const userIdsToFetch = new Set();
+    
+    // Collect unique reported content that needs fetching
+    reports.forEach((report) => {
+      const contentType = report.content_type?.toLowerCase();
+      const objectId = report.object_id;
+      const contentKey = `${contentType}_${objectId}`;
+      
+      if (contentType && objectId && !reportedContent[contentKey]) {
+        contentToFetch.push({ contentType, objectId, contentKey });
+        
+        // For non-user content, we'll need to fetch the author/creator
+        if (contentType !== 'user') {
+          // We'll extract author ID from the fetched content
+        }
+      }
+    });
+
+    if (contentToFetch.length === 0) return;
+
+    // Fetch reported content in parallel
+    const contentPromises = contentToFetch.map(async ({ contentType, objectId, contentKey }) => {
+      try {
+        let url = '';
+        if (contentType === 'user') {
+          url = `${import.meta.env.VITE_API_URL}/profile/${objectId}/`;
+        } else if (contentType === 'forumpost') {
+          url = `${import.meta.env.VITE_API_URL}/forum/${objectId}/`;
+        } else if (contentType === 'comment') {
+          url = `${import.meta.env.VITE_API_URL}/forum/comments/${objectId}/`;
+        } else if (contentType === 'garden') {
+          url = `${import.meta.env.VITE_API_URL}/gardens/${objectId}/`;
+        } else {
+          return null;
+        }
+
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Extract author/creator information
+          let authorId = null;
+          let authorUsername = null;
+          let authorProfilePicture = null;
+          
+          if (contentType === 'user') {
+            authorId = objectId;
+            // For user reports, use username directly from UserSerializer
+            authorUsername = data.username || `User ${objectId}`;
+            authorProfilePicture = data.profile?.profile_picture;
+          } else if (contentType === 'forumpost') {
+            authorId = typeof data.author === 'object' ? data.author.id : data.author;
+            authorUsername = data.author_username;
+            authorProfilePicture = data.author_profile_picture;
+          } else if (contentType === 'comment') {
+            authorId = typeof data.author === 'object' ? data.author.id : data.author;
+            authorUsername = data.author_username;
+            authorProfilePicture = data.author_profile_picture;
+          } else if (contentType === 'garden') {
+            // For gardens, fetch the manager
+            try {
+              const gardenResponse = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${objectId}/members/`, {
+                headers: {
+                  Authorization: `Token ${token}`,
+                },
+              });
+              if (gardenResponse.ok) {
+                const members = await gardenResponse.json();
+                const manager = members.find(m => m.role === 'MANAGER');
+                if (manager) {
+                  authorId = manager.user_id || (typeof manager.user === 'object' ? manager.user.id : manager.user);
+                  authorUsername = manager.username;
+                }
+              }
+            } catch (error) {
+              console.error(`Error fetching garden manager for ${objectId}:`, error);
+            }
+          }
+          
+          if (authorId) {
+            userIdsToFetch.add(authorId);
+          }
+          
+          return { 
+            contentKey, 
+            data, 
+            contentType,
+            authorId,
+            authorUsername,
+            authorProfilePicture
+          };
+        }
+      } catch (error) {
+        console.error(`Error fetching reported content ${contentKey}:`, error);
+      }
+      return null;
+    });
+
+    const contents = await Promise.all(contentPromises);
+    
+    // Fetch author profiles for all unique authors
+    const authorProfilePromises = Array.from(userIdsToFetch).map(async (userId) => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/${userId}/`, {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          return {
+            userId,
+            username: data.username || `User ${userId}`,
+            profile_picture: data.profile?.profile_picture || null,
+          };
+        }
+      } catch (error) {
+        console.error(`Error fetching author profile for user ${userId}:`, error);
+      }
+      return {
+        userId,
+        username: `User ${userId}`,
+        profile_picture: null,
+      };
+    });
+    
+    const authorProfiles = await Promise.all(authorProfilePromises);
+    const authorProfilesMap = {};
+    authorProfiles.forEach((profile) => {
+      if (profile) {
+        authorProfilesMap[profile.userId] = {
+          username: profile.username,
+          profile_picture: profile.profile_picture,
+        };
+      }
+    });
+    
+    // Combine content with author info
+    const newContent = { ...reportedContent };
+    contents.forEach((content) => {
+      if (content) {
+        const authorInfo = content.authorId ? authorProfilesMap[content.authorId] : null;
+        // For user reports, prioritize the username from the initial fetch (content.authorUsername)
+        // For other content types, use the fetched author profile username
+        const finalUsername = content.contentType === 'user' 
+          ? (content.authorUsername || authorInfo?.username || `User ${content.authorId}`)
+          : (authorInfo?.username || content.authorUsername || `User ${content.authorId}`);
+        
+        newContent[content.contentKey] = {
+          data: content.data,
+          contentType: content.contentType,
+          authorId: content.authorId,
+          authorUsername: finalUsername,
+          authorProfilePicture: authorInfo?.profile_picture || content.authorProfilePicture || null,
+        };
+      }
+    });
+    setReportedContent(newContent);
+  };
+
+  const getReportedUserDisplay = (report) => {
+    const contentType = report.content_type?.toLowerCase();
+    const objectId = report.object_id;
+    const contentKey = `${contentType}_${objectId}`;
+    const content = reportedContent[contentKey];
+
+    if (!content) {
+      return t('moderation.loading', 'Loading...');
+    }
+
+    return {
+      username: content.authorUsername || `User ${content.authorId}`,
+      profilePicture: content.authorProfilePicture,
+    };
   };
 
   const handleReview = async () => {
@@ -417,6 +610,33 @@ const ModerationDashboard = () => {
     }
   };
 
+  const handleUnsuspendUser = async (report) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/reports/${report.id}/unsuspend_user/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to unsuspend user');
+      }
+
+      toast.success(t('moderation.userUnsuspended', 'User has been unsuspended'), {
+        position: 'top-right',
+      });
+      fetchReports(); // Refresh list
+    } catch (error) {
+      console.error('Error unsuspending user:', error);
+      toast.error(t('moderation.unsuspendError', 'Failed to unsuspend user'), {
+        position: 'top-right',
+      });
+    }
+  };
+
   const handleDeleteGarden = async (report) => {
     if (!window.confirm(t('moderation.confirmDeleteGarden', 'Are you sure you want to delete this garden? This action cannot be undone.'))) {
       return;
@@ -471,30 +691,42 @@ const ModerationDashboard = () => {
           <CircularProgress />
         </Box>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 300px)', boxShadow: 2 }}>
+          <Table stickyHeader sx={{ minWidth: 1200 }}>
             <TableHead>
               <TableRow>
-                <TableCell>{t('moderation.date', 'Date')}</TableCell>
-                <TableCell>{t('moderation.reporter', 'Reporter')}</TableCell>
-                <TableCell>{t('moderation.type', 'Type')}</TableCell>
-                <TableCell>{t('moderation.reason', 'Reason')}</TableCell>
-                <TableCell>{t('moderation.description', 'Description')}</TableCell>
-                <TableCell>{t('moderation.status', 'Status')}</TableCell>
-                <TableCell align="right">{t('moderation.actions', 'Actions')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.date', 'Date')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.reporter', 'Reporter')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.reported', 'Reported')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.type', 'Type')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.reason', 'Reason')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', minWidth: 200, py: 2 }}>{t('moderation.description', 'Description')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.status', 'Status')}</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, bgcolor: 'background.paper', minWidth: 180, py: 2 }}>{t('moderation.actions', 'Actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredReports.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={8} align="center">
                     {t('moderation.noReports', 'No reports found')}
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredReports.map((report) => (
-                  <TableRow key={report.id}>
-                    <TableCell>{new Date(report.created_at).toLocaleDateString()}</TableCell>
+                  <TableRow 
+                    key={report.id}
+                    sx={{ 
+                      '&:hover': { bgcolor: 'action.hover' },
+                      transition: 'background-color 0.2s',
+                      '& td': { py: 1.5 }
+                    }}
+                  >
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {new Date(report.created_at).toLocaleDateString()}
+                      </Typography>
+                    </TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {(() => {
@@ -503,14 +735,24 @@ const ModerationDashboard = () => {
                           return profile?.profile_picture ? (
                             <Avatar
                               src={profile.profile_picture}
-                              sx={{ width: 24, height: 24 }}
+                              sx={{ width: 28, height: 28 }}
                             />
                           ) : null;
                         })()}
-                        <Typography variant="body2">
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
                           {getReporterUsername(report)}
                         </Typography>
                       </Box>
+                    </TableCell>
+                    <TableCell>
+                      {(() => {
+                        const reportedUser = getReportedUserDisplay(report);
+                        return (
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {reportedUser.username}
+                          </Typography>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <Chip 
@@ -518,13 +760,34 @@ const ModerationDashboard = () => {
                         size="small" 
                         color="primary"
                         variant="outlined"
+                        sx={{ fontWeight: 500 }}
                       />
                     </TableCell>
-                    <TableCell>{getReasonLabel(report.reason)}</TableCell>
                     <TableCell>
-                      <Typography variant="body2" sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {report.description || t('moderation.noDescription', 'No description')}
+                      <Typography variant="body2">
+                        {getReasonLabel(report.reason)}
                       </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip 
+                        title={report.description || t('moderation.noDescription', 'No description')} 
+                        arrow
+                        placement="top"
+                      >
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            maxWidth: 250, 
+                            overflow: 'hidden', 
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            color: report.description ? 'text.primary' : 'text.secondary',
+                            fontStyle: report.description ? 'normal' : 'italic'
+                          }}
+                        >
+                          {report.description || t('moderation.noDescription', 'No description')}
+                        </Typography>
+                      </Tooltip>
                     </TableCell>
                     <TableCell>
                       {report.reviewed ? (
@@ -532,113 +795,208 @@ const ModerationDashboard = () => {
                           label={report.is_valid ? t('moderation.valid', 'Valid (Removed)') : t('moderation.invalid', 'Invalid (Kept)')}
                           color={report.is_valid ? 'error' : 'success'}
                           size="small"
+                          sx={{ fontWeight: 500 }}
                         />
                       ) : (
-                        <Chip label={t('moderation.pending', 'Pending')} color="warning" size="small" />
+                        <Chip 
+                          label={t('moderation.pending', 'Pending')} 
+                          color="warning" 
+                          size="small"
+                          sx={{ fontWeight: 500 }}
+                        />
                       )}
                     </TableCell>
-                    <TableCell align="right">
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, flexWrap: 'wrap' }}>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<VisibilityIcon />}
-                          onClick={() => handleViewContent(report)}
-                          sx={{ minWidth: 'auto' }}
-                        >
-                          {t('moderation.view', 'View')}
-                        </Button>
+                    <TableCell align="right" sx={{ minWidth: 200 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 0.5 }}>
+                        {/* View Button - Always visible */}
+                        <Tooltip title={t('moderation.view', 'View')}>
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleViewContent(report)}
+                            sx={{ 
+                              border: '1px solid',
+                              borderColor: 'primary.main',
+                              '&:hover': {
+                                bgcolor: 'primary.light',
+                                borderColor: 'primary.dark',
+                              }
+                            }}
+                          >
+                            <VisibilityIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+
+                        {/* Action Buttons - Only for pending reports */}
                         {!report.reviewed && (
-                          <>
+                          <Box sx={{ display: 'flex', gap: 0.5, ml: 0.5, borderLeft: '1px solid', borderColor: 'divider', pl: 0.5 }}>
                             {report.content_type?.toLowerCase() === 'user' ? (
                               <>
-                                <Button
-                                  variant="outlined"
-                                  color="warning"
-                                  size="small"
-                                  onClick={() => handleSuspendUser(report)}
-                                >
-                                  {t('moderation.suspend', 'Suspend')}
-                                </Button>
-                                <Button
-                                  variant="outlined"
-                                  color="error"
-                                  size="small"
-                                  onClick={() => handleBanUser(report)}
-                                >
-                                  {t('moderation.ban', 'Ban')}
-                                </Button>
-                                <Button
-                                  variant="outlined"
-                                  color="success"
-                                  size="small"
-                                  startIcon={<CancelIcon />}
-                                  onClick={() => setReviewDialog({ open: true, report, isValid: false })}
-                                >
-                                  {t('moderation.dismiss', 'Dismiss')}
-                                </Button>
+                                <Tooltip title={t('moderation.suspend', 'Suspend')}>
+                                  <IconButton
+                                    size="small"
+                                    color="warning"
+                                    onClick={() => handleSuspendUser(report)}
+                                    sx={{ 
+                                      border: '1px solid',
+                                      borderColor: 'warning.main',
+                                      '&:hover': { bgcolor: 'warning.light' }
+                                    }}
+                                  >
+                                    <BlockIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title={t('moderation.ban', 'Ban')}>
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => handleBanUser(report)}
+                                    sx={{ 
+                                      border: '1px solid',
+                                      borderColor: 'error.main',
+                                      '&:hover': { bgcolor: 'error.light' }
+                                    }}
+                                  >
+                                    <BlockIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title={t('moderation.dismiss', 'Dismiss')}>
+                                  <IconButton
+                                    size="small"
+                                    color="default"
+                                    onClick={() => setReviewDialog({ open: true, report, isValid: false })}
+                                    sx={{ 
+                                      border: '1px solid',
+                                      borderColor: 'divider',
+                                      '&:hover': { bgcolor: 'action.hover' }
+                                    }}
+                                  >
+                                    <CancelIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
                               </>
                             ) : report.content_type?.toLowerCase() === 'garden' ? (
                               <>
-                                <Button
-                                  variant="outlined"
-                                  color="warning"
-                                  size="small"
-                                  onClick={() => handleHideGarden(report)}
-                                >
-                                  {t('moderation.hide', 'Hide')}
-                                </Button>
-                                <Button
-                                  variant="outlined"
-                                  color="error"
-                                  size="small"
-                                  onClick={() => handleDeleteGarden(report)}
-                                >
-                                  {t('moderation.delete', 'Delete')}
-                                </Button>
-                                <Button
-                                  variant="outlined"
-                                  color="success"
-                                  size="small"
-                                  startIcon={<CancelIcon />}
-                                  onClick={() => setReviewDialog({ open: true, report, isValid: false })}
-                                >
-                                  {t('moderation.dismiss', 'Dismiss')}
-                                </Button>
+                                <Tooltip title={t('moderation.hide', 'Hide')}>
+                                  <IconButton
+                                    size="small"
+                                    color="warning"
+                                    onClick={() => handleHideGarden(report)}
+                                    sx={{ 
+                                      border: '1px solid',
+                                      borderColor: 'warning.main',
+                                      '&:hover': { bgcolor: 'warning.light' }
+                                    }}
+                                  >
+                                    <VisibilityOffIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title={t('moderation.delete', 'Delete')}>
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => handleDeleteGarden(report)}
+                                    sx={{ 
+                                      border: '1px solid',
+                                      borderColor: 'error.main',
+                                      '&:hover': { bgcolor: 'error.light' }
+                                    }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title={t('moderation.dismiss', 'Dismiss')}>
+                                  <IconButton
+                                    size="small"
+                                    color="default"
+                                    onClick={() => setReviewDialog({ open: true, report, isValid: false })}
+                                    sx={{ 
+                                      border: '1px solid',
+                                      borderColor: 'divider',
+                                      '&:hover': { bgcolor: 'action.hover' }
+                                    }}
+                                  >
+                                    <CancelIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
                               </>
                             ) : (
                               <>
-                                <Button
-                                  variant="outlined"
-                                  color="error"
-                                  size="small"
-                                  startIcon={<CheckCircleIcon />}
-                                  onClick={() => setReviewDialog({ open: true, report, isValid: true })}
-                                >
-                                  {t('moderation.accept', 'Accept')}
-                                </Button>
-                                <Button
-                                  variant="outlined"
-                                  color="success"
-                                  size="small"
-                                  startIcon={<CancelIcon />}
-                                  onClick={() => setReviewDialog({ open: true, report, isValid: false })}
-                                >
-                                  {t('moderation.dismiss', 'Dismiss')}
-                                </Button>
+                                <Tooltip title={t('moderation.accept', 'Accept')}>
+                                  <IconButton
+                                    size="small"
+                                    color="success"
+                                    onClick={() => setReviewDialog({ open: true, report, isValid: true })}
+                                    sx={{ 
+                                      border: '1px solid',
+                                      borderColor: 'success.main',
+                                      '&:hover': { bgcolor: 'success.light' }
+                                    }}
+                                  >
+                                    <CheckCircleIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title={t('moderation.dismiss', 'Dismiss')}>
+                                  <IconButton
+                                    size="small"
+                                    color="default"
+                                    onClick={() => setReviewDialog({ open: true, report, isValid: false })}
+                                    sx={{ 
+                                      border: '1px solid',
+                                      borderColor: 'divider',
+                                      '&:hover': { bgcolor: 'action.hover' }
+                                    }}
+                                  >
+                                    <CancelIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
                               </>
                             )}
-                          </>
+                          </Box>
                         )}
+
+                        {/* Unhide Button - For reviewed and hidden gardens */}
                         {report.reviewed && report.content_type?.toLowerCase() === 'garden' && report.is_valid && (
-                          <Button
-                            variant="outlined"
-                            color="primary"
-                            size="small"
-                            onClick={() => handleUnhideGarden(report)}
-                          >
-                            {t('moderation.unhide', 'Unhide')}
-                          </Button>
+                          <Tooltip title={t('moderation.unhide', 'Unhide')}>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleUnhideGarden(report)}
+                              sx={{ 
+                                ml: 0.5,
+                                borderLeft: '1px solid',
+                                borderColor: 'divider',
+                                pl: 0.5,
+                                border: '1px solid',
+                                borderColor: 'primary.main',
+                                '&:hover': { bgcolor: 'primary.light' }
+                              }}
+                            >
+                              <LockOpenIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+
+                        {/* Unsuspend Button - For reviewed and suspended users */}
+                        {report.reviewed && report.content_type?.toLowerCase() === 'user' && report.is_valid && (
+                          <Tooltip title={t('moderation.unsuspend', 'Unsuspend')}>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleUnsuspendUser(report)}
+                              sx={{ 
+                                ml: 0.5,
+                                borderLeft: '1px solid',
+                                borderColor: 'divider',
+                                pl: 0.5,
+                                border: '1px solid',
+                                borderColor: 'primary.main',
+                                '&:hover': { bgcolor: 'primary.light' }
+                              }}
+                            >
+                              <PersonOffIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         )}
                       </Box>
                     </TableCell>

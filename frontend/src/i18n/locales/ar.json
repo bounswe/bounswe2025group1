@@ -351,6 +351,7 @@
     "reviewed": "سجل المراجعات",
     "date": "التاريخ",
     "reporter": "المبلغ",
+    "reported": "المبلغ عنه",
     "type": "النوع",
     "reason": "السبب",
     "description": "الوصف",
@@ -390,6 +391,9 @@
     "suspendError": "فشل تعليق المستخدم",
     "userBanned": "تم حظر المستخدم",
     "banError": "فشل حظر المستخدم",
+    "unsuspend": "إلغاء التعليق",
+    "userUnsuspended": "تم إلغاء تعليق المستخدم",
+    "unsuspendError": "فشل إلغاء تعليق المستخدم",
     "contentPreview": "معاينة المحتوى",
     "author": "المؤلف",
     "openInNewTab": "فتح المنشور الكامل",
@@ -414,7 +418,12 @@
     "public": "عام",
     "private": "خاص",
     "notSpecified": "غير محدد",
-    "viewGarden": "عرض الحديقة الكاملة"
+    "viewGarden": "عرض الحديقة الكاملة",
+    "loading": "جاري التحميل...",
+    "untitledPost": "منشور بدون عنوان",
+    "comment": "تعليق",
+    "unnamedGarden": "حديقة بدون اسم",
+    "unknown": "غير معروف"
   },
   "accessibility": {
     "skipToContent": "انتقل إلى المحتوى الرئيسي",

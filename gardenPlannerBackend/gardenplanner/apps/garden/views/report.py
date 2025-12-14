@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from ..models import Report, Garden, GardenMembership
+from ..models import Report, Garden, GardenMembership, ForumPost, Comment
 from ..serializers import ReportSerializer
 from ..permissions import IsMember, IsSystemAdministrator, IsModerator
 
@@ -138,8 +138,37 @@ class AdminReportViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
     
     @action(detail=True, methods=['post'])
+    def unsuspend_user(self, request, pk=None):
+        """Remove suspension penalty from a user (can be called from reviewed history)"""
+        report = self.get_object()
+        
+        if report.content_type.model != 'user':
+            return Response({'detail': 'This action is only available for user reports.'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            reported_user = User.objects.get(pk=report.object_id)
+            
+            # Remove suspension
+            reported_user.profile.is_suspended = False
+            reported_user.profile.suspension_reason = None
+            reported_user.profile.suspended_until = None
+            reported_user.profile.save()
+            
+            # Update report to reflect that suspension was removed
+            # Note: We don't change reviewed/is_valid as this is a follow-up action
+            report.is_valid = False  # Marking as invalid since we're removing the penalty
+            report.save()
+            
+            return Response({
+                'detail': f'User {reported_user.username} has been unsuspended and can now use the platform again.'
+            })
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True, methods=['post'])
     def ban_user(self, request, pk=None):
-        """Ban the user reported in this report"""
+        """Ban the user reported in this report and delete all their content"""
         report = self.get_object()
         
         if report.content_type.model != 'user':
@@ -149,6 +178,16 @@ class AdminReportViewSet(viewsets.ModelViewSet):
         try:
             reported_user = User.objects.get(pk=report.object_id)
             reason = request.data.get('reason', report.description or f"Reported for: {report.get_reason_display()}")
+            
+            # Delete all forum posts by this user
+            posts_count = ForumPost.objects.filter(author=reported_user, is_deleted=False).count()
+            for post in ForumPost.objects.filter(author=reported_user, is_deleted=False):
+                post.delete()  # Soft delete
+            
+            # Delete all comments by this user
+            comments_count = Comment.objects.filter(author=reported_user, is_deleted=False).count()
+            for comment in Comment.objects.filter(author=reported_user, is_deleted=False):
+                comment.delete()  # Soft delete
             
             reported_user.profile.is_banned = True
             reported_user.profile.ban_reason = reason
@@ -163,7 +202,7 @@ class AdminReportViewSet(viewsets.ModelViewSet):
             report.save()
             
             return Response({
-                'detail': f'User {reported_user.username} has been banned.'
+                'detail': f'User {reported_user.username} has been banned. {posts_count} posts and {comments_count} comments were removed.'
             })
         except User.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)

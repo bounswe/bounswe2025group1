@@ -842,6 +842,7 @@
     "reviewed": "İncelenmiş Geçmiş",
     "date": "Tarih",
     "reporter": "Bildiren",
+    "reported": "Bildirilen",
     "type": "Tür",
     "reason": "Neden",
     "description": "Açıklama",
@@ -881,6 +882,9 @@
     "suspendError": "Kullanıcı askıya alınamadı",
     "userBanned": "Kullanıcı yasaklandı",
     "banError": "Kullanıcı yasaklanamadı",
+    "unsuspend": "Askıyı Kaldır",
+    "userUnsuspended": "Kullanıcının askısı kaldırıldı",
+    "unsuspendError": "Kullanıcının askısı kaldırılamadı",
     "contentPreview": "İçerik Önizlemesi",
     "author": "Yazar",
     "openInNewTab": "Tam Gönderiyi Aç",
@@ -905,6 +909,11 @@
     "public": "Herkese Açık",
     "private": "Özel",
     "notSpecified": "Belirtilmemiş",
-    "viewGarden": "Tam Bahçeyi Görüntüle"
+    "viewGarden": "Tam Bahçeyi Görüntüle",
+    "loading": "Yükleniyor...",
+    "untitledPost": "Başlıksız Gönderi",
+    "comment": "Yorum",
+    "unnamedGarden": "İsimsiz Bahçe",
+    "unknown": "Bilinmeyen"
   }
 }

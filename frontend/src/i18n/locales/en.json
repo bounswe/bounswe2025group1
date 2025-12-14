@@ -842,6 +842,7 @@
     "reviewed": "Reviewed History",
     "date": "Date",
     "reporter": "Reporter",
+    "reported": "Reported",
     "type": "Type",
     "reason": "Reason",
     "description": "Description",
@@ -881,6 +882,9 @@
     "suspendError": "Failed to suspend user",
     "userBanned": "User has been banned",
     "banError": "Failed to ban user",
+    "unsuspend": "Unsuspend",
+    "userUnsuspended": "User has been unsuspended",
+    "unsuspendError": "Failed to unsuspend user",
     "contentPreview": "Content Preview",
     "author": "Author",
     "openInNewTab": "Open Full Post",
@@ -905,6 +909,11 @@
     "public": "Public",
     "private": "Private",
     "notSpecified": "Not specified",
-    "viewGarden": "View Full Garden"
+    "viewGarden": "View Full Garden",
+    "loading": "Loading...",
+    "untitledPost": "Untitled Post",
+    "comment": "Comment",
+    "unnamedGarden": "Unnamed Garden",
+    "unknown": "Unknown"
   }
 }
