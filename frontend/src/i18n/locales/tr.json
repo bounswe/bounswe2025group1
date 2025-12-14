@@ -203,7 +203,6 @@
     "decline": "Reddet",
     "demote": "Düşür",
     "promote": "Yükselt",
-    "promote": "Yükselt",
     "failedToDeleteTask": "Görev silinemedi",
     "failedToJoinGarden": "Bahçeye katılınamadı",
     "requestToJoinSent": "Bahçeye katılma isteği gönderildi!",
@@ -299,7 +298,8 @@
     "hideComments": "Yorumları gizle",
     "minutesAgo": "{{count}} dk",
     "hoursAgo": "{{count}} sa",
-    "daysAgo": "{{count}} g"
+    "daysAgo": "{{count}} g",
+    "dialog": "Diyalog"
   },
   "profile": {
     "title": "Profil",
