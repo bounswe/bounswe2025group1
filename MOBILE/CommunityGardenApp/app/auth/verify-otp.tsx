@@ -47,7 +47,12 @@ export default function VerifyOTPScreen() {
         [{ text: t('common.ok'), onPress: () => router.replace('/(tabs)') }]
       );
     } catch (err: any) {
-      setError(err.response?.data?.error || t('auth.otp.errors.verificationFailed'));
+      // Check for too many requests (429)
+      if (err.response?.status === 429) {
+        setError(t('auth.otp.tooManyAttempts'));
+      } else {
+        setError(err.response?.data?.error || t('auth.otp.errors.verificationFailed'));
+      }
     } finally {
       setLoading(false);
     }

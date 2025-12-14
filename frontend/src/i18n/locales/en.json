@@ -61,7 +61,10 @@
       "failedToLogin": "Failed to log in. Please check your credentials.",
       "loginSuccess": "Login successful!",
       "loginError": "Login failed. Please check your credentials.",
-      "otpRequired": "New device detected. Check your email for verification code."
+      "otpRequired": "New device detected. Check your email for verification code.",
+      "errors": {
+        "tooManyAttempts": "Too many login attempts. Please try again later."
+      }
     },
     "otp": {
       "title": "Verify Your Device",
@@ -77,6 +80,7 @@
       "verificationError": "Error verifying code. Please try again.",
       "verificationSuccess": "Device verified successfully!",
       "success": "Success",
+      "tooManyAttempts": "Too many verification attempts. Please try again later.",
       "errors": {
         "invalidCode": "Please enter a 6-digit code",
         "verificationFailed": "Invalid or expired verification code"

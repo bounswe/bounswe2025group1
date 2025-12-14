@@ -26,7 +26,8 @@
       "signUp": "Sign up",
       "errors": {
         "fillAllFields": "Please fill in all fields",
-        "invalidCredentials": "Invalid username or password"
+        "invalidCredentials": "Invalid username or password",
+        "tooManyAttempts": "Too many login attempts. Please try again later."
       }
     },
     "otp": {
@@ -39,6 +40,7 @@
       "backToLogin": "Back to Login",
       "success": "Success",
       "verificationSuccess": "Device verified successfully!",
+      "tooManyAttempts": "Too many verification attempts. Please try again later.",
       "errors": {
         "invalidCode": "Please enter a valid 6-digit code",
         "verificationFailed": "Invalid or expired verification code"

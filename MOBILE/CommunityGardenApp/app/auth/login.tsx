@@ -51,8 +51,13 @@ export default function LoginScreen() {
       } else {
         router.replace('/(tabs)');
       }
-    } catch (err) {
-      setError(t('auth.login.errors.invalidCredentials'));
+    } catch (err: any) {
+      // Check for too many requests (429)
+      if (err.response?.status === 429) {
+        setError(t('auth.login.errors.tooManyAttempts'));
+      } else {
+        setError(t('auth.login.errors.invalidCredentials'));
+      }
     } finally {
       setLoading(false);
     }

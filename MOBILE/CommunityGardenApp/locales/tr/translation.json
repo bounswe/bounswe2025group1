@@ -24,7 +24,8 @@
       "signUp": "Kaydol",
       "errors": {
         "fillAllFields": "Lütfen tüm alanları doldurun",
-        "invalidCredentials": "Geçersiz kullanıcı adı veya şifre"
+        "invalidCredentials": "Geçersiz kullanıcı adı veya şifre",
+        "tooManyAttempts": "Çok fazla giriş denemesi. Lütfen daha sonra tekrar deneyin."
       }
     },
     "otp": {
@@ -37,6 +38,7 @@
       "backToLogin": "Girişe Dön",
       "success": "Başarılı",
       "verificationSuccess": "Cihaz başarıyla doğrulandı!",
+      "tooManyAttempts": "Çok fazla doğrulama denemesi. Lütfen daha sonra tekrar deneyin.",
       "errors": {
         "invalidCode": "Lütfen geçerli bir 6 haneli kod girin",
         "verificationFailed": "Geçersiz veya süresi dolmuş doğrulama kodu"

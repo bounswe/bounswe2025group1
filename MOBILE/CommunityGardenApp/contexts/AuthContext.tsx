@@ -68,6 +68,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
+      // Check if too many requests (429)
+      if (response.status === 429) {
+        const error = new Error('Too many login attempts. Please try again later.');
+        error.response = response;
+        throw error;
+      }
+
       const { token: newToken, user_id, username: responseUsername } = response.data;
       
       const userData = {

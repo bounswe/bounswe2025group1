@@ -61,7 +61,10 @@
       "loginFailed": "Giriş başarısız",
       "welcomeBack": "Bahçeye tekrar hoş geldiniz!",
       "failedToLogin": "Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.",
-      "otpRequired": "Yeni cihaz algılandı. Doğrulama kodu için e-postanızı kontrol edin."
+      "otpRequired": "Yeni cihaz algılandı. Doğrulama kodu için e-postanızı kontrol edin.",
+      "errors": {
+        "tooManyAttempts": "Çok fazla giriş denemesi. Lütfen daha sonra tekrar deneyin."
+      }
     },
     "otp": {
       "title": "Cihazınızı Doğrulayın",
@@ -77,6 +80,7 @@
       "verificationError": "Kod doğrulanırken hata oluştu. Lütfen tekrar deneyin.",
       "verificationSuccess": "Cihaz başarıyla doğrulandı!",
       "success": "Başarılı",
+      "tooManyAttempts": "Çok fazla doğrulama denemesi. Lütfen daha sonra tekrar deneyin.",
       "errors": {
         "invalidCode": "Lütfen 6 haneli bir kod girin",
         "verificationFailed": "Geçersiz veya süresi dolmuş doğrulama kodu"

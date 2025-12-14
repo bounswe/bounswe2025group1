@@ -46,6 +46,14 @@ const Login = () => {
 
       const data = await response.json();
 
+      // Check if too many requests (throttled)
+      if (response.status === 429) {
+        toast.error(t('auth.login.errors.tooManyAttempts'), {
+          position: 'top-right',
+        });
+        return;
+      }
+
       // Check if OTP is required (new device)
       if (response.status === 202 && data.otp_required) {
         toast.info(t('auth.login.otpRequired'), {

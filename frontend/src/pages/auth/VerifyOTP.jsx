@@ -63,6 +63,14 @@ const VerifyOTP = () => {
 
       const data = await response.json();
 
+      // Check if too many requests (throttled)
+      if (response.status === 429) {
+        toast.error(t('auth.otp.tooManyAttempts'), {
+          position: 'top-right',
+        });
+        return;
+      }
+
       if (!response.ok) {
         toast.error(data.error || t('auth.otp.verificationFailed'));
         return;
