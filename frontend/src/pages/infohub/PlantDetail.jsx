@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Box,
@@ -8,6 +8,16 @@ import {
   Chip,
   useTheme,
   Divider,
+  Tabs,
+  Tab,
+  ImageList,
+  ImageListItem,
+  Grid,
+  Tooltip,
+  Alert,
+  LinearProgress,
+  Card,
+  CardMedia,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
@@ -18,6 +28,12 @@ import HeightIcon from '@mui/icons-material/Height';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import WarningIcon from '@mui/icons-material/Warning';
 import LocalFloristIcon from '@mui/icons-material/LocalFlorist';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import DangerousIcon from '@mui/icons-material/Dangerous';
+import ThermostatIcon from '@mui/icons-material/Thermostat';
+import WaterDropIcon from '@mui/icons-material/WaterDrop';
+import ImageIcon from '@mui/icons-material/Image';
+import PublicIcon from '@mui/icons-material/Public';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import plantsData from '../../data/plants.json';
@@ -146,6 +162,7 @@ const PlantDetail = () => {
   const theme = useTheme();
   const { plantId } = useParams();
   const currentLang = i18n.language || 'en';
+  const [imageTab, setImageTab] = useState(0);
 
   const plant = plantsData.plants.find((p) => p.id === plantId);
   
@@ -196,17 +213,40 @@ const PlantDetail = () => {
         <Paper sx={{ mb: 4, overflow: 'hidden' }}>
           <Box
             sx={{
-              height: 300,
+              height: 400,
               backgroundColor: theme.palette.primary.main,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              p: 4,
               position: 'relative',
+              overflow: 'hidden',
             }}
           >
-            <Typography sx={{ fontSize: '10rem', lineHeight: 1 }}>
-              {plant.image}
+            {plant.image && plant.image.startsWith('http') ? (
+              <img 
+                src={plant.image} 
+                alt={plantName} 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextElementSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <Typography 
+              sx={{ 
+                fontSize: '10rem', 
+                lineHeight: 1,
+                display: plant.image && plant.image.startsWith('http') ? 'none' : 'block',
+                position: plant.image && plant.image.startsWith('http') ? 'absolute' : 'static',
+              }}
+            >
+              {plant.image && !plant.image.startsWith('http') ? plant.image : '🌿'}
             </Typography>
             <Box 
               sx={{ 
@@ -239,6 +279,166 @@ const PlantDetail = () => {
             {plantDescription}
           </Typography>
         </Paper>
+
+        {/* Edibility & Safety */}
+        {(plant.edible !== undefined || plant.toxicity || plant.edibleParts || plant.vegetable) && (
+          <Paper 
+            sx={{ 
+              p: 3, 
+              mb: 3,
+              border: plant.toxicity && plant.toxicity !== 'none' ? 2 : 0,
+              borderColor: plant.toxicity === 'high' ? 'error.main' : 
+                          plant.toxicity === 'medium' ? 'warning.main' :
+                          plant.toxicity === 'low' ? 'warning.light' : 'transparent'
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <RestaurantIcon sx={{ mr: 1, color: plant.edible ? 'success.main' : 'text.secondary', fontSize: 28 }} />
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                {t('infohub.plantDetail.edibilityAndSafety', 'Edibility & Safety')}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Edible Badge */}
+              {plant.edible !== undefined && (
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.edible', 'Edible')}:
+                  </Typography>
+                  <Chip 
+                    label={plant.edible ? t('infohub.plantDetail.yes', 'Yes') : t('infohub.plantDetail.no', 'No')}
+                    color={plant.edible ? 'success' : 'default'}
+                    sx={{ fontWeight: 'bold' }}
+                  />
+                </Box>
+              )}
+
+              {/* Edible Parts */}
+              {plant.edibleParts && plant.edibleParts.length > 0 && (
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.edibleParts', 'Edible Parts')}:
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {plant.edibleParts.map((part, i) => (
+                      <Chip 
+                        key={i} 
+                        label={part} 
+                        size="small" 
+                        color="success" 
+                        variant="outlined" 
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
+              {/* Toxicity Warning */}
+              {plant.toxicity && (
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.toxicity', 'Toxicity Level')}:
+                  </Typography>
+                  <Alert 
+                    severity={
+                      plant.toxicity === 'none' ? 'success' :
+                      plant.toxicity === 'low' ? 'info' :
+                      plant.toxicity === 'medium' ? 'warning' : 'error'
+                    }
+                    icon={plant.toxicity !== 'none' ? <DangerousIcon /> : undefined}
+                  >
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
+                      {plant.toxicity} {plant.toxicity !== 'none' && t('infohub.plantDetail.toxicityWarning', '- Handle with care')}
+                    </Typography>
+                  </Alert>
+                </Box>
+              )}
+
+              {/* Vegetable Badge */}
+              {plant.vegetable && (
+                <Box>
+                  <Chip 
+                    label={t('infohub.plantDetail.vegetable', 'Vegetable')}
+                    color="success"
+                    variant="outlined"
+                  />
+                </Box>
+              )}
+            </Box>
+          </Paper>
+        )}
+
+        {/* Image Gallery */}
+        {plant.imagesDetailed && (
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <ImageIcon sx={{ mr: 1, color: 'primary.main', fontSize: 28 }} />
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                {t('infohub.plantDetail.imageGallery', 'Image Gallery')}
+              </Typography>
+            </Box>
+
+            <Tabs 
+              value={imageTab} 
+              onChange={(e, newValue) => setImageTab(newValue)}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{ mb: 2 }}
+            >
+              {plant.imagesDetailed.flower?.length > 0 && (
+                <Tab label={`${t('infohub.plantDetail.flowers', 'Flowers')} (${plant.imagesDetailed.flower.length})`} />
+              )}
+              {plant.imagesDetailed.leaf?.length > 0 && (
+                <Tab label={`${t('infohub.plantDetail.leaves', 'Leaves')} (${plant.imagesDetailed.leaf.length})`} />
+              )}
+              {plant.imagesDetailed.fruit?.length > 0 && (
+                <Tab label={`${t('infohub.plantDetail.fruits', 'Fruits')} (${plant.imagesDetailed.fruit.length})`} />
+              )}
+              {plant.imagesDetailed.habit?.length > 0 && (
+                <Tab label={`${t('infohub.plantDetail.habit', 'Habit')} (${plant.imagesDetailed.habit.length})`} />
+              )}
+              {plant.imagesDetailed.bark?.length > 0 && (
+                <Tab label={`${t('infohub.plantDetail.bark', 'Bark')} (${plant.imagesDetailed.bark.length})`} />
+              )}
+              {plant.imagesDetailed.other?.length > 0 && (
+                <Tab label={`${t('infohub.plantDetail.other', 'Other')} (${plant.imagesDetailed.other.length})`} />
+              )}
+            </Tabs>
+
+            {(() => {
+              const categories = ['flower', 'leaf', 'fruit', 'habit', 'bark', 'other'];
+              const availableCategories = categories.filter(cat => plant.imagesDetailed[cat]?.length > 0);
+              const currentCategory = availableCategories[imageTab];
+              const images = plant.imagesDetailed[currentCategory] || [];
+
+              if (images.length === 0) {
+                return (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
+                    {t('infohub.plantDetail.noImages', 'No images available')}
+                  </Typography>
+                );
+              }
+
+              return (
+                <ImageList cols={3} gap={8} sx={{ maxHeight: 400, overflow: 'auto' }}>
+                  {images.map((img) => (
+                    <ImageListItem key={img.id}>
+                      <Tooltip title={img.copyright || ''} arrow>
+                        <img
+                          src={img.url}
+                          alt={`${plantName} - ${currentCategory}`}
+                          loading="lazy"
+                          style={{ cursor: 'pointer', borderRadius: 4 }}
+                        />
+                      </Tooltip>
+                    </ImageListItem>
+                  ))}
+                </ImageList>
+              );
+            })()}
+          </Paper>
+        )}
 
         {/* Care Info Grid */}
         <Box
@@ -530,6 +730,360 @@ const PlantDetail = () => {
           )}
         </Box>
 
+        {/* Growth Requirements */}
+        {plant.growthRequirements && (
+          <Paper sx={{ p: 3, mt: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <ThermostatIcon sx={{ mr: 1, color: 'info.main', fontSize: 28 }} />
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                {t('infohub.plantDetail.growthRequirements', 'Growth Requirements')}
+              </Typography>
+            </Box>
+
+            <Grid container spacing={3}>
+              {/* Light Requirements */}
+              {plant.growthRequirements.light !== undefined && (
+                <Grid item xs={12} sm={6} md={4}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.lightRequirement', 'Light Requirement')}:
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <WbSunnyIcon sx={{ color: 'warning.main' }} />
+                    <Typography variant="h6">{plant.growthRequirements.light}/10</Typography>
+                  </Box>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={plant.growthRequirements.light * 10} 
+                    sx={{ height: 8, borderRadius: 4 }}
+                  />
+                </Grid>
+              )}
+
+              {/* pH Range */}
+              {plant.growthRequirements.ph && (
+                <Grid item xs={12} sm={6} md={4}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.phRange', 'pH Range')}:
+                  </Typography>
+                  <Typography variant="body1">
+                    {plant.growthRequirements.ph.min || 'N/A'} - {plant.growthRequirements.ph.max || 'N/A'}
+                  </Typography>
+                </Grid>
+              )}
+
+              {/* Temperature */}
+              {plant.growthRequirements.temperature && (
+                <Grid item xs={12} sm={6} md={4}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.temperature', 'Temperature Range')}:
+                  </Typography>
+                  {plant.growthRequirements.temperature.min && (
+                    <Typography variant="body2">
+                      Min: {plant.growthRequirements.temperature.min.c}°C / {plant.growthRequirements.temperature.min.f}°F
+                    </Typography>
+                  )}
+                  {plant.growthRequirements.temperature.max && (
+                    <Typography variant="body2">
+                      Max: {plant.growthRequirements.temperature.max.c}°C / {plant.growthRequirements.temperature.max.f}°F
+                    </Typography>
+                  )}
+                </Grid>
+              )}
+
+              {/* Atmospheric Humidity */}
+              {plant.growthRequirements.atmosphericHumidity !== undefined && (
+                <Grid item xs={12} sm={6} md={4}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.humidity', 'Humidity')}:
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <WaterDropIcon sx={{ color: 'info.main' }} />
+                    <Typography variant="h6">{plant.growthRequirements.atmosphericHumidity}/10</Typography>
+                  </Box>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={plant.growthRequirements.atmosphericHumidity * 10} 
+                    sx={{ height: 8, borderRadius: 4 }}
+                    color="info"
+                  />
+                </Grid>
+              )}
+
+              {/* Soil Characteristics */}
+              {plant.growthRequirements.soil && (
+                <>
+                  {plant.growthRequirements.soil.nutriments !== undefined && (
+                    <Grid item xs={12} sm={6} md={4}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                        {t('infohub.plantDetail.soilNutriments', 'Soil Nutriments')}:
+                      </Typography>
+                      <Typography variant="h6">{plant.growthRequirements.soil.nutriments}/10</Typography>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={plant.growthRequirements.soil.nutriments * 10} 
+                        sx={{ height: 8, borderRadius: 4 }}
+                        color="success"
+                      />
+                    </Grid>
+                  )}
+                  {plant.growthRequirements.soil.texture !== undefined && (
+                    <Grid item xs={12} sm={6} md={4}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                        {t('infohub.plantDetail.soilTexture', 'Soil Texture')}:
+                      </Typography>
+                      <Typography variant="body1">{plant.growthRequirements.soil.texture}/10</Typography>
+                    </Grid>
+                  )}
+                </>
+              )}
+            </Grid>
+          </Paper>
+        )}
+
+        {/* Growth Characteristics */}
+        {plant.growthCharacteristics && (
+          <Paper sx={{ p: 3, mt: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <ScheduleIcon sx={{ mr: 1, color: 'success.main', fontSize: 28 }} />
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                {t('infohub.plantDetail.growthCharacteristics', 'Growth Characteristics')}
+              </Typography>
+            </Box>
+
+            <Grid container spacing={2}>
+              {/* Duration */}
+              {plant.growthCharacteristics.duration && plant.growthCharacteristics.duration.length > 0 && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.duration', 'Duration')}:
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {plant.growthCharacteristics.duration.map((dur, i) => (
+                      <Chip key={i} label={dur} color="primary" variant="outlined" sx={{ textTransform: 'capitalize' }} />
+                    ))}
+                  </Box>
+                </Grid>
+              )}
+
+              {/* Days to Harvest */}
+              {plant.growthCharacteristics.daysToHarvest && (
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.daysToHarvest', 'Days to Harvest')}:
+                  </Typography>
+                  <Typography variant="h6">{plant.growthCharacteristics.daysToHarvest} days</Typography>
+                </Grid>
+              )}
+
+              {/* Growth Rate */}
+              {plant.growthCharacteristics.rate && (
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.growthRate', 'Growth Rate')}:
+                  </Typography>
+                  <Chip label={plant.growthCharacteristics.rate} color="secondary" sx={{ textTransform: 'capitalize' }} />
+                </Grid>
+              )}
+
+              {/* Height */}
+              {plant.growthCharacteristics.height && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.height', 'Height')}:
+                  </Typography>
+                  {plant.growthCharacteristics.height.average && (
+                    <Typography variant="body2">
+                      {t('infohub.plantDetail.average', 'Average')}: {plant.growthCharacteristics.height.average} cm
+                    </Typography>
+                  )}
+                  {plant.growthCharacteristics.height.maximum && (
+                    <Typography variant="body2">
+                      {t('infohub.plantDetail.maximum', 'Maximum')}: {plant.growthCharacteristics.height.maximum} cm
+                    </Typography>
+                  )}
+                </Grid>
+              )}
+
+              {/* Monthly Calendar */}
+              {(plant.growthCharacteristics.growthMonths || plant.growthCharacteristics.bloomMonths || plant.growthCharacteristics.fruitMonths) && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('infohub.plantDetail.seasonalCalendar', 'Seasonal Calendar')}:
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {plant.growthCharacteristics.growthMonths && plant.growthCharacteristics.growthMonths.length > 0 && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          {t('infohub.plantDetail.growthMonths', 'Growth')}:
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                          {plant.growthCharacteristics.growthMonths.map((month, i) => (
+                            <Chip key={i} label={month.toUpperCase()} size="small" color="success" />
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                    {plant.growthCharacteristics.bloomMonths && plant.growthCharacteristics.bloomMonths.length > 0 && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          {t('infohub.plantDetail.bloomMonths', 'Bloom')}:
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                          {plant.growthCharacteristics.bloomMonths.map((month, i) => (
+                            <Chip key={i} label={month.toUpperCase()} size="small" color="secondary" />
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                    {plant.growthCharacteristics.fruitMonths && plant.growthCharacteristics.fruitMonths.length > 0 && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          {t('infohub.plantDetail.fruitMonths', 'Fruit')}:
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                          {plant.growthCharacteristics.fruitMonths.map((month, i) => (
+                            <Chip key={i} label={month.toUpperCase()} size="small" color="warning" />
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                </Grid>
+              )}
+            </Grid>
+          </Paper>
+        )}
+
+        {/* Visual Characteristics */}
+        {plant.visualCharacteristics && (
+          <Paper sx={{ p: 3, mt: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <LocalFloristIcon sx={{ mr: 1, color: 'secondary.main', fontSize: 28 }} />
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                {t('infohub.plantDetail.visualCharacteristics', 'Visual Characteristics')}
+              </Typography>
+            </Box>
+
+            <Grid container spacing={3}>
+              {/* Flower */}
+              {plant.visualCharacteristics.flower && (
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    {t('infohub.plantDetail.flower', 'Flower')}
+                  </Typography>
+                  {plant.visualCharacteristics.flower.colors && plant.visualCharacteristics.flower.colors.length > 0 && (
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {t('infohub.plantDetail.colors', 'Colors')}:
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                        {plant.visualCharacteristics.flower.colors.map((color, i) => (
+                          <Chip key={i} label={color} size="small" sx={{ textTransform: 'capitalize' }} />
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+                  {plant.visualCharacteristics.flower.conspicuous !== undefined && (
+                    <Typography variant="body2">
+                      {t('infohub.plantDetail.conspicuous', 'Conspicuous')}: {plant.visualCharacteristics.flower.conspicuous ? t('infohub.plantDetail.yes', 'Yes') : t('infohub.plantDetail.no', 'No')}
+                    </Typography>
+                  )}
+                </Grid>
+              )}
+
+              {/* Foliage */}
+              {plant.visualCharacteristics.foliage && (
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    {t('infohub.plantDetail.foliage', 'Foliage')}
+                  </Typography>
+                  {plant.visualCharacteristics.foliage.texture && (
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      {t('infohub.plantDetail.texture', 'Texture')}: <strong>{plant.visualCharacteristics.foliage.texture}</strong>
+                    </Typography>
+                  )}
+                  {plant.visualCharacteristics.foliage.colors && plant.visualCharacteristics.foliage.colors.length > 0 && (
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {t('infohub.plantDetail.colors', 'Colors')}:
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                        {plant.visualCharacteristics.foliage.colors.map((color, i) => (
+                          <Chip key={i} label={color} size="small" sx={{ textTransform: 'capitalize' }} />
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+                </Grid>
+              )}
+
+              {/* Fruit */}
+              {plant.visualCharacteristics.fruit && (
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    {t('infohub.plantDetail.fruit', 'Fruit')}
+                  </Typography>
+                  {plant.visualCharacteristics.fruit.colors && plant.visualCharacteristics.fruit.colors.length > 0 && (
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {t('infohub.plantDetail.colors', 'Colors')}:
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                        {plant.visualCharacteristics.fruit.colors.map((color, i) => (
+                          <Chip key={i} label={color} size="small" sx={{ textTransform: 'capitalize' }} />
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+                  {plant.visualCharacteristics.fruit.shape && (
+                    <Typography variant="body2">
+                      {t('infohub.plantDetail.shape', 'Shape')}: <strong>{plant.visualCharacteristics.fruit.shape}</strong>
+                    </Typography>
+                  )}
+                </Grid>
+              )}
+            </Grid>
+          </Paper>
+        )}
+
+        {/* Distribution */}
+        {plant.distribution && (plant.distribution.native?.length > 0 || plant.distribution.introduced?.length > 0) && (
+          <Paper sx={{ p: 3, mt: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <PublicIcon sx={{ mr: 1, color: 'info.main', fontSize: 28 }} />
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                {t('infohub.plantDetail.distribution', 'Distribution')}
+              </Typography>
+            </Box>
+
+            {plant.distribution.native && plant.distribution.native.length > 0 && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                  {t('infohub.plantDetail.nativeTo', 'Native to')}:
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {plant.distribution.native.map((zone, i) => (
+                    <Chip key={i} label={zone.name} size="small" color="success" />
+                  ))}
+                </Box>
+              </Box>
+            )}
+
+            {plant.distribution.introduced && plant.distribution.introduced.length > 0 && (
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                  {t('infohub.plantDetail.introducedTo', 'Introduced to')}:
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {plant.distribution.introduced.map((zone, i) => (
+                    <Chip key={i} label={zone.name} size="small" />
+                  ))}
+                </Box>
+              </Box>
+            )}
+          </Paper>
+        )}
+
         {/* Notes - Moved to Bottom */}
         <Paper sx={{ p: 3, mt: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -539,7 +1093,7 @@ const PlantDetail = () => {
             </Typography>
           </Box>
           <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
-            {plant.notes}
+            {plantNotes}
           </Typography>
         </Paper>
 

@@ -9,12 +9,16 @@ import {
   Chip,
   Card,
   CardContent,
+  CardMedia,
   Button,
   Pagination,
   useTheme,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import DangerousIcon from '@mui/icons-material/Dangerous';
+import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import plantsData from '../../data/plants.json';
@@ -152,6 +156,8 @@ const PlantList = () => {
                     height: '100%',
                     cursor: 'pointer',
                     transition: 'transform 0.2s, box-shadow 0.2s',
+                    display: 'flex',
+                    flexDirection: 'column',
                     '&:hover': {
                       transform: 'translateY(-4px)',
                       boxShadow: 6,
@@ -159,29 +165,73 @@ const PlantList = () => {
                   }}
                   onClick={() => navigate(`/infohub/plants/${plant.id}`)}
                 >
+                  {plant.image && plant.image.startsWith('http') ? (
+                    <CardMedia
+                      component="img"
+                      height="200"
+                      image={plant.image}
+                      alt={getTranslatedField(plant, 'name', currentLang)}
+                      sx={{ objectFit: 'cover' }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextElementSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
                   <Box
                     sx={{
-                      height: 160,
-                      display: 'flex',
+                      height: plant.image && plant.image.startsWith('http') ? 0 : 160,
+                      display: plant.image && plant.image.startsWith('http') ? 'none' : 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       backgroundColor: theme.palette.action.hover,
                       fontSize: '5rem',
                     }}
                   >
-                    {plant.image}
+                    {plant.image && !plant.image.startsWith('http') ? plant.image : '🌿'}
                   </Box>
-                  <CardContent>
+                  <CardContent sx={{ flexGrow: 1 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                       {getTranslatedField(plant, 'name', currentLang)}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mb: 1 }}>
                       {plant.scientificName}
                     </Typography>
-                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
                       <Chip size="small" label={plant.type} color="success" variant="outlined" />
                       <Chip size="small" label={plant.difficulty} variant="outlined" />
                       <Chip size="small" label={plant.season} variant="outlined" />
+                    </Box>
+                    
+                    {/* Additional info badges */}
+                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
+                      {plant.edible && (
+                        <Chip 
+                          icon={<RestaurantIcon />} 
+                          label={t('infohub.plantList.edible', 'Edible')} 
+                          size="small" 
+                          color="success" 
+                          variant="filled"
+                        />
+                      )}
+                      {plant.toxicity && plant.toxicity !== 'none' && (
+                        <Chip 
+                          icon={<DangerousIcon />} 
+                          label={`${plant.toxicity}`}
+                          size="small" 
+                          color="warning" 
+                          variant="filled"
+                          sx={{ textTransform: 'capitalize' }}
+                        />
+                      )}
+                      {plant.growthRequirements?.light !== undefined && (
+                        <Chip 
+                          icon={<WbSunnyIcon />} 
+                          label={`${plant.growthRequirements.light}/10`}
+                          size="small" 
+                          variant="outlined"
+                        />
+                      )}
                     </Box>
                   </CardContent>
                 </Card>
