@@ -33,6 +33,7 @@ import { Switch, FormControlLabel, IconButton, Tooltip } from '@mui/material';
 import { ALL_BADGES } from '../../components/GardenBadges';
 import ReportDialog from '../../components/ReportDialog';
 import FlagIcon from '@mui/icons-material/Flag';
+import ImpactSummaryTab from '../../components/ImpactSummaryTab';
 
 const Profile = () => {
   const { t, i18n } = useTranslation();
@@ -672,7 +673,7 @@ const Profile = () => {
                           setTabValue(1);
                         } else if (e.key === 'ArrowLeft') {
                           e.preventDefault();
-                          setTabValue(3);
+                          setTabValue(4);
                         }
                       }}
                       sx={{
@@ -747,10 +748,36 @@ const Profile = () => {
                           setTabValue(3);
                         } else if (e.key === 'ArrowRight') {
                           e.preventDefault();
-                          setTabValue(0);
+                          setTabValue(4);
                         } else if (e.key === 'ArrowLeft') {
                           e.preventDefault();
                           setTabValue(2);
+                        }
+                      }}
+                      sx={{
+                        '&:focus': {
+                          outline: '2px solid #558b2f',
+                          outlineOffset: '2px',
+                        },
+                      }}
+                    />
+                    <Tab
+                      ref={(el) => (tabRefs.current[4] = el)}
+                      label={t('profile.impactSummary')}
+                      id="tab-4"
+                      role="tab"
+                      aria-selected={tabValue === 4}
+                      aria-controls="tabpanel-4"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setTabValue(4);
+                        } else if (e.key === 'ArrowRight') {
+                          e.preventDefault();
+                          setTabValue(0);
+                        } else if (e.key === 'ArrowLeft') {
+                          e.preventDefault();
+                          setTabValue(3);
                         }
                       }}
                       sx={{
@@ -1038,6 +1065,13 @@ const Profile = () => {
                       </Grid>
                     );
                   })()}
+                </Box>
+
+                {/* Impact Summary Tab */}
+                <Box role="tabpanel" hidden={tabValue !== 4} id="tabpanel-4" sx={{ py: 2 }}>
+                  {tabValue === 4 && (
+                    <ImpactSummaryTab userId={userId} />
+                  )}
                 </Box>
               </Box>
             )}
