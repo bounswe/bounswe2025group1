@@ -5,7 +5,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('garden', '0015_notification_link'),
+        ('garden', '0020_forumpost_best_answer'),
     ]
 
     operations = [

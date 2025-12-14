@@ -27,3 +27,4 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+/frontend/e2e-tests/screenshots

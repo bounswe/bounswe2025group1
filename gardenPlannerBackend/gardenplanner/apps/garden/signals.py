@@ -1,10 +1,26 @@
-from django.db.models.signals import post_save, m2m_changed
+from django.db.models.signals import post_save, m2m_changed, pre_save, post_delete
 from django.dispatch import receiver
+from django.contrib.auth.models import User
 from push_notifications.models import GCMDevice
-from .models import Notification, NotificationCategory, Task, Profile, Comment, Badge, UserBadge, ForumPost, GardenMembership, EventAttendance
+from .models import (
+    Notification, 
+    NotificationCategory, 
+    Task, 
+    Profile, 
+    Comment, 
+    Badge, 
+    UserBadge, 
+    ForumPost, 
+    GardenMembership, 
+    EventAttendance, 
+    Garden,
+    ForumPostLike, 
+    CommentLike,
+    Garden,
+)
+import requests
 
-
-def _send_notification(notification_receiver, notification_title, notification_message, notification_category, link=None):
+def _send_notification(notification_receiver, notification_title, notification_message, notification_category, link=None, send_push_notification=True):
 
     if notification_receiver == None:
         return
@@ -19,6 +35,11 @@ def _send_notification(notification_receiver, notification_title, notification_m
         category=notification_category,
         link=link
     )
+
+    # We may choose to skip push notifications in certain cases
+    # to avoid spamming users, and relieve server load.
+    if not send_push_notification:
+        return
 
     devices = GCMDevice.objects.filter(user=notification_receiver, active=True)
     
@@ -38,24 +59,60 @@ def _send_notification(notification_receiver, notification_title, notification_m
 
 
 @receiver(post_save, sender=Task)
-def task_update_notification(sender, instance, created, **kwargs):
-    assignee = instance.assigned_to
-    assigner = instance.assigned_by
-
+def task_update_notification(sender, instance, created, update_fields, **kwargs):
+    """
+    Send notifications for task status changes.
+    Note: M2M notifications for new assignees are handled by task_assignee_changed signal.
+    """
+    # Don't send status notifications for newly created tasks
     if created:
-        # Skip if there's no one assigned
-        if not assignee:
-            return
-
-        message = f"You have been assigned a new task: '{instance.title}'."
-        
+        return
+    
+    # If update_fields is specified and doesn't include 'status', skip
+    if update_fields is not None and 'status' not in update_fields:
+        return
+    
+    # Send notification for status changes to ACCEPTED, DECLINED, or COMPLETED
+    # In a production system, we'd track the old value to avoid duplicate notifications
+    # For now, we'll send on these status values
+    if instance.status in ['ACCEPTED', 'DECLINED', 'COMPLETED'] and instance.assigned_by:
+        status_name = instance.status.title()
+        message = f"Task Your task has been {status_name}."
         _send_notification(
-            notification_receiver=assignee,
-            notification_title="New Task Assigned",
+            notification_receiver=instance.assigned_by,
+            notification_title=f"Task {status_name}",
             notification_message=message,
             notification_category=NotificationCategory.TASK,
             link="/tasks"
         )
+
+
+@receiver(m2m_changed, sender=Task.assigned_to.through)
+def task_assignee_changed(sender, instance, action, pk_set, **kwargs):
+    """Send notifications when assignees are added to a task"""
+    # Only process when assignees are added (post_add action)
+    if action != 'post_add':
+        return
+    
+    # Skip if no assignees were added
+    if not pk_set:
+        return
+    
+    message = f"You have been assigned a new task: '{instance.title}'."
+    
+    # Send notification to newly added assignees
+    for user_id in pk_set:
+        try:
+            assignee = User.objects.get(id=user_id)
+            _send_notification(
+                notification_receiver=assignee,
+                notification_title="New Task Assigned",
+                notification_message=message,
+                notification_category=NotificationCategory.TASK,
+                link="/tasks"
+            )
+        except User.DoesNotExist:
+            pass
 
     
 @receiver(m2m_changed, sender=Profile.following.through)
@@ -113,6 +170,64 @@ def new_comment_notification(sender, instance, created, **kwargs):
         notification_message=message,
         notification_category=NotificationCategory.FORUM,
         link=f"/forum/{instance.forum_post.id}"
+    )
+
+
+@receiver(post_save, sender=ForumPostLike)
+def new_post_like_notification(sender, instance, created, **kwargs):
+    """
+    Sends a notification to the post author when someone likes their post.
+    'instance' is the ForumPostLike object.
+    """
+    if not created:
+        return
+
+    liker = instance.user
+    post = instance.post
+    post_author = post.author
+
+    # Do not notify if the user liked their own post
+    if liker == post_author:
+        return
+
+    message = f"{liker.username} liked your post: '{post.title}'."
+
+    _send_notification(
+        notification_receiver=post_author,
+        notification_title="New Like",
+        notification_message=message,
+        notification_category=NotificationCategory.SOCIAL,
+        link=f"/forum/{post.id}",
+        send_push_notification=False
+    )
+
+
+@receiver(post_save, sender=CommentLike)
+def new_comment_like_notification(sender, instance, created, **kwargs):
+    """
+    Sends a notification to the comment author when someone likes their comment.
+    'instance' is the CommentLike object.
+    """
+    if not created:
+        return
+
+    liker = instance.user
+    comment = instance.comment
+    comment_author = comment.author
+
+    # Do not notify if the user liked their own comment
+    if liker == comment_author:
+        return
+
+    message = f"{liker.username} liked your comment on '{comment.forum_post.title}'."
+
+    _send_notification(
+        notification_receiver=comment_author,
+        notification_title="New Like",
+        notification_message=message,
+        notification_category=NotificationCategory.SOCIAL,
+        link=f"/forum/{comment.forum_post.id}" ,
+        send_push_notification=False
     )
 
 
@@ -177,7 +292,6 @@ def award_badge(user, badge_key):
 
 @receiver(post_save, sender=Task)
 def check_task_badges(sender, instance, created, **kwargs):
-    assigned_user = instance.assigned_to
     created_by_user = instance.assigned_by
 
     if created:
@@ -187,33 +301,43 @@ def check_task_badges(sender, instance, created, **kwargs):
             if total_tasks >= req.get("tasks_created", 0):
                 award_badge(created_by_user, badge.key)
 
-    if instance.status == "COMPLETED" and assigned_user:
-        completed_tasks = Task.objects.filter(
-            assigned_to=assigned_user, status="COMPLETED"
-        ).count()
-        for badge in Badge.objects.filter(category="Task Completion"):
-            req = badge.requirement
-            if completed_tasks >= req.get("tasks_completed", 0):
-                award_badge(assigned_user, badge.key)
+    # For task completion badges, check all assignees
+    if instance.status == "COMPLETED":
+        for assigned_user in instance.assigned_to.all():
+            completed_tasks = Task.objects.filter(
+                assigned_to=assigned_user, status="COMPLETED"
+            ).count()
+            for badge in Badge.objects.filter(category="Task Completion"):
+                req = badge.requirement
+                if completed_tasks >= req.get("tasks_completed", 0):
+                    award_badge(assigned_user, badge.key)
 
 @receiver(m2m_changed, sender=Profile.following.through)
 def check_follow_badges(sender, instance, action, pk_set, **kwargs):
     if action != "post_add":
         return
 
-    user = instance.user
+    # instance is the profile that initiated the follow (follower)
+    follower_profile = instance
+    follower_user = follower_profile.user
 
-    following_count = instance.following.count()
+    # Check "People Followed" badges for the follower
+    following_count = follower_profile.following.count()
     for badge in Badge.objects.filter(category="People Followed"):
         req = badge.requirement
         if following_count >= req.get("following_count", 0):
-            award_badge(user, badge.key)
+            award_badge(follower_user, badge.key)
 
-    followers_count = instance.followers.count()
-    for badge in Badge.objects.filter(category="Followers Gained"):
-        req = badge.requirement
-        if followers_count >= req.get("followers_count", 0):
-            award_badge(user, badge.key)
+    # pk_set contains the IDs of profiles being followed
+    # Check "Followers Gained" badges for each profile being followed
+    for followed_profile_id in pk_set:
+        followed_profile = Profile.objects.get(id=followed_profile_id)
+        followed_user = followed_profile.user
+        followers_count = followed_profile.followers.count()
+        for badge in Badge.objects.filter(category="Followers Gained"):
+            req = badge.requirement
+            if followers_count >= req.get("followers_count", 0):
+                award_badge(followed_user, badge.key)
 
 @receiver(post_save, sender=ForumPost)
 def forum_post_badges(sender, instance, created, **kwargs):
@@ -236,7 +360,7 @@ def forum_comment_badges(sender, instance, created, **kwargs):
     author = instance.author
     comments_count = Comment.objects.filter(author=author, is_deleted=False).count()
 
-    for badge in Badge.objects.filter(category="Forum Answers"):
+    for badge in Badge.objects.filter(category="Forum Answers / Replies"):
         req = badge.requirement
         if comments_count >= req.get("comments_count", 0):
             award_badge(author, badge.key)
@@ -286,6 +410,7 @@ def get_season(dt):
         return "autumn"
     return "winter"
 
+
 @receiver(post_save, sender=EventAttendance)
 def event_attendance_badges(sender, instance, created, **kwargs):
     user = instance.user
@@ -314,6 +439,66 @@ def event_attendance_badges(sender, instance, created, **kwargs):
         req = badge.requirement or {}
         if req.get("season") == season:
             award_badge(user, badge.key)
+
+
+@receiver(post_delete, sender=Garden)
+def delete_garden_chat(sender, instance, **kwargs):
+    """
+    Delete the garden chat from Firebase when the garden is deleted.
+    """
+    try:
+        from gardenplanner.apps.chat.firebase_config import get_firestore_client
+        db = get_firestore_client()
+        if db:
+            chat_ref = db.collection('chats').document(f'garden_{instance.id}')
+            chat_ref.delete()
+            print(f"Garden chat deleted for garden: {instance.name} (ID: {instance.id})")
+    except Exception as e:
+        print(f"Warning: Could not delete garden chat: {e}")
+@receiver(pre_save, sender=Garden)
+def geocode_garden_location(sender, instance, **kwargs):
+    """
+    Geocode the garden location using Nominatim API when location changes.
+    """
+    if instance.pk is None and instance.latitude is not None: # if this is a new object with coords already set
+        return
+    if not instance.location:
+        instance.latitude = None
+        instance.longitude = None
+        return
+
+    # Check if location has changed
+    try:
+        old_instance = Garden.objects.get(pk=instance.pk)
+        if old_instance.location == instance.location and instance.latitude is not None:
+            return  # No change in location and we already have coords
+    except Garden.DoesNotExist:
+        pass  # New object
+
+    try:
+        # Use OpenStreetMap Nominatim API
+        headers = {
+            'User-Agent': 'CommunityGardenApp/1.0',
+        }
+        response = requests.get(
+            f"https://nominatim.openstreetmap.org/search?format=json&q={instance.location}&limit=1",
+            headers=headers,
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data and len(data) > 0:
+                instance.latitude = float(data[0]['lat'])
+                instance.longitude = float(data[0]['lon'])
+            else:
+                # Could not geocode
+                instance.latitude = None
+                instance.longitude = None
+    except Exception as e:
+        print(f"Error geocoding garden location: {e}")
+        # Don't fail the save if geocoding fails
+
 
 
 

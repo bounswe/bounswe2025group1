@@ -58,6 +58,8 @@ const GardenList = () => {
     name: '',
     description: '',
     location: '',
+    latitude: null,
+    longitude: null,
     size: '',
     isPublic: true,
   });
@@ -169,6 +171,7 @@ const GardenList = () => {
   };
 
   // Calculate distances automatically when gardens and user location are available
+  // Calculate distances automatically when gardens and user location are available
   useEffect(() => {
     const calculateDistances = async () => {
       if (!userLocation || gardens.length === 0) {
@@ -176,35 +179,64 @@ const GardenList = () => {
         return;
       }
 
-      setLoadingLocation(true);
+      // We only show loading if we actually need to fetch something
+      let needsGeocoding = false;
+      for (const garden of gardens) {
+        if (garden.location && (garden.latitude === null || garden.latitude === undefined)) {
+          needsGeocoding = true;
+          break;
+        }
+      }
 
-      // Geocode addresses with delay to respect rate limits (1 request per second)
+      if (needsGeocoding) {
+        setLoadingLocation(true);
+      }
+
       const gardensWithDist = [];
+
+      // Process gardens
       for (let i = 0; i < gardens.length; i++) {
         const garden = gardens[i];
+        let distance = null;
 
+        // 1. Try using backend coordinates (FAST)
+        if (garden.latitude && garden.longitude) {
+          const dist = calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            garden.latitude,
+            garden.longitude
+          );
+          distance = Math.round(dist * 10) / 10;
+          gardensWithDist.push({ ...garden, distance });
+          continue;
+        }
+
+        // 2. Fallback to client-side geocoding (SLOW)
         if (!garden.location) {
           gardensWithDist.push({ ...garden, distance: null });
           continue;
         }
 
-        // Add delay between requests (except for the first one)
-        if (i > 0) {
+        // Add delay between requests (except for the first one) to respect rate limits
+        if (i > 0 && needsGeocoding) {
           await new Promise(resolve => setTimeout(resolve, 1100)); // 1.1 seconds delay
         }
 
+        console.log("Geocoding garden:", garden);
+
         const gardenCoords = await geocodeAddress(garden.location);
         if (gardenCoords) {
-          const distance = calculateDistance(
+          const dist = calculateDistance(
             userLocation.lat,
             userLocation.lng,
             gardenCoords.lat,
             gardenCoords.lng
           );
-          gardensWithDist.push({ ...garden, distance: Math.round(distance * 10) / 10 }); // Round to 1 decimal
-        } else {
-          gardensWithDist.push({ ...garden, distance: null });
+          distance = Math.round(dist * 10) / 10;
         }
+
+        gardensWithDist.push({ ...garden, distance });
       }
 
       // Sort by distance (null distances last)
@@ -292,6 +324,8 @@ const GardenList = () => {
       const requestBody = {
         name: basicFormData.name || form.name,
         location: basicFormData.location || form.location,
+        latitude: basicFormData.latitude !== undefined ? basicFormData.latitude : form.latitude,
+        longitude: basicFormData.longitude !== undefined ? basicFormData.longitude : form.longitude,
         description: basicFormData.description || form.description,
         is_public: basicFormData.isPublic !== undefined ? basicFormData.isPublic : form.isPublic,
       };
@@ -333,6 +367,8 @@ const GardenList = () => {
         name: '',
         description: '',
         location: '',
+        latitude: null,
+        longitude: null,
         size: '',
         isPublic: true,
       });
@@ -571,14 +607,16 @@ const GardenList = () => {
           </Box>
         )}
       </Grid>
-      <GardenModal
-        open={openModal}
-        onClose={handleCloseModal}
-        form={form}
-        handleChange={handleChange}
-        handleTogglePublic={() => setForm((prev) => ({ ...prev, isPublic: !prev.isPublic }))}
-        handleSubmit={handleSubmit}
-      />
+      {openModal && (
+        <GardenModal
+          open={openModal}
+          onClose={handleCloseModal}
+          form={form}
+          handleChange={handleChange}
+          handleTogglePublic={() => setForm((prev) => ({ ...prev, isPublic: !prev.isPublic }))}
+          handleSubmit={handleSubmit}
+        />
+      )}
     </Container>
   );
 };

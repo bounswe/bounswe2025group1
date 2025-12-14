@@ -18,7 +18,8 @@
     "reset": "Reset",
     "confirm": "Confirm",
     "submitting": "Submitting...",
-    "errorOccurred": "An error occurred"
+    "errorOccurred": "An error occurred",
+    "goHome": "Go Home"
   },
   "navigation": {
     "home": "Home",
@@ -202,7 +203,6 @@
     "decline": "Decline",
     "demote": "Demote",
     "promote": "Promote",
-    "joinGarden": "Join Garden",
     "failedToDeleteTask": "Failed to delete task",
     "failedToJoinGarden": "Failed to join garden",
     "requestToJoinSent": "Request to join garden sent!",
@@ -330,10 +330,18 @@
     "editProfileLabel": "Edit profile",
     "saveProfileChanges": "Save profile changes",
     "cancelProfileEditing": "Cancel profile editing",
-    "noGardensYet": "No gardens yet.",
-    "noFollowersYet": "No followers yet.",
     "notFollowingAnyoneYet": "Not following anyone yet.",
-    "badges": "Badges"
+    "badges": "Badges",
+    "invalidProfileId": "Invalid profile ID",
+    "failedToLoadProfile": "Failed to load profile",
+    "errorLoadingProfile": "Error loading profile",
+    "privateProfile": "Private Profile",
+    "privateProfileMessage": "This profile is private. Only the owner can view it.",
+    "makeProfilePrivate": "Make Profile Private",
+    "userNotFound": "User not found",
+    "failedToUpdateFollowStatus": "Failed to update follow status",
+    "failedToUpdateProfile": "Failed to update profile",
+    "receiveNotifications": "I'd like to receive notifications"
   },
   "badges": {
     "names": {
@@ -699,7 +707,17 @@
     "filterBy": "Filter by",
     "closeDialog": "Close dialog",
     "uploadImages": "Upload images",
-    "removeImage": "Remove image"
+    "removeImage": "Remove image",
+    "fontSize": {
+      "title": "Font Size",
+      "selector": "Font size selector",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "current": "Current size",
+      "increase": "Increase font size",
+      "decrease": "Decrease font size"
+    }
   },
   "events": {
     "createEvent": "Create Event",
@@ -821,7 +839,8 @@
     "alreadyReported": "You have already reported this content.",
     "reportPost": "Report Post",
     "reportComment": "Report Comment",
-    "reportGarden": "Report Garden"
+    "reportGarden": "Report Garden",
+    "reportUser": "Report User"
   },
   "moderation": {
     "title": "Moderation Dashboard",

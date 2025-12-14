@@ -79,12 +79,13 @@ class Command(BaseCommand):
                                 task_type=parent_task.task_type,
                                 custom_type=parent_task.custom_type,
                                 assigned_by=parent_task.assigned_by,
-                                assigned_to=parent_task.assigned_to,
                                 status='PENDING',
                                 due_date=next_due_date,
                                 is_recurring=False,  # Instances are not recurring themselves
                                 parent_task=parent_task,
                             )
+                            # Copy assignees from parent (ManyToMany must be set after create)
+                            new_task.assigned_to.set(parent_task.assigned_to.all())
                             created_count += 1
                             self.stdout.write(
                                 self.style.SUCCESS(

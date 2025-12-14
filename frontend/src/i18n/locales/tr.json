@@ -18,7 +18,8 @@
     "reset": "Sıfırla",
     "confirm": "Onayla",
     "submitting": "Gönderiliyor...",
-    "errorOccurred": "Bir hata oluştu"
+    "errorOccurred": "Bir hata oluştu",
+    "goHome": "Ana Sayfaya Dön"
   },
   "navigation": {
     "home": "Ana Sayfa",
@@ -202,7 +203,7 @@
     "decline": "Reddet",
     "demote": "Düşür",
     "promote": "Yükselt",
-    "joinGarden": "Bahçeye Katıl",
+    "promote": "Yükselt",
     "failedToDeleteTask": "Görev silinemedi",
     "failedToJoinGarden": "Bahçeye katılınamadı",
     "requestToJoinSent": "Bahçeye katılma isteği gönderildi!",
@@ -329,10 +330,18 @@
     "editProfileLabel": "Profili düzenle",
     "saveProfileChanges": "Profil değişikliklerini kaydet",
     "cancelProfileEditing": "Profil düzenlemeyi iptal et",
-    "noGardensYet": "Henüz bahçe yok.",
-    "noFollowersYet": "Henüz takipçi yok.",
     "notFollowingAnyoneYet": "Henüz kimseyi takip etmiyor.",
-    "badges": "Rozetler"
+    "badges": "Rozetler",
+    "invalidProfileId": "Geçersiz profil ID",
+    "failedToLoadProfile": "Profil yüklenemedi",
+    "errorLoadingProfile": "Profil yüklenirken hata oluştu",
+    "privateProfile": "Gizli Profil",
+    "privateProfileMessage": "Bu profil gizlidir. Sadece sahibi görüntüleyebilir.",
+    "makeProfilePrivate": "Profili Gizli Yap",
+    "userNotFound": "Kullanıcı bulunamadı",
+    "failedToUpdateFollowStatus": "Takip durumu güncellenemedi",
+    "failedToUpdateProfile": "Profil güncellenemedi",
+    "receiveNotifications": "Bildirimleri almak istiyorum"
   },
   "badges": {
     "names": {
@@ -698,7 +707,17 @@
     "toggleLanguage": "Dil değiştir",
     "searchButton": "Ara",
     "sortBy": "Sırala",
-    "filterBy": "Filtrele"
+    "filterBy": "Filtrele",
+    "fontSize": {
+      "title": "Yazı Boyutu",
+      "selector": "Yazı boyutu seçici",
+      "small": "Küçük",
+      "medium": "Orta",
+      "large": "Büyük",
+      "current": "Mevcut boyut",
+      "increase": "Yazı boyutunu büyüt",
+      "decrease": "Yazı boyutunu küçült"
+    }
   },
   "events": {
     "createEvent": "Etkinlik Oluştur",
@@ -820,7 +839,8 @@
     "alreadyReported": "Bu içeriği zaten bildirdiniz.",
     "reportPost": "Gönderiyi Bildir",
     "reportComment": "Yorumu Bildir",
-    "reportGarden": "Bahçeyi Bildir"
+    "reportGarden": "Bahçeyi Bildir",
+    "reportUser": "Kullanıcıyı Bildir"
   },
   "moderation": {
     "title": "Moderasyon Paneli",

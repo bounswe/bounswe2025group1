@@ -15,6 +15,7 @@ import {
   CircularProgress,
   FormControlLabel,
   Checkbox,
+  Chip,
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -46,7 +47,7 @@ const TaskModal = ({
     title: '',
     description: '',
     status: 'PENDING',
-    assigned_to: "",
+    assigned_to: [],
     custom_type: "",
     garden: parseInt(gardenId),
     is_recurring: false,
@@ -162,10 +163,13 @@ const TaskModal = ({
 
   // Update the form state whenever task changes
   useEffect(() => {
-    setTaskForm((prev) => ({
-      ...prev,
-      ...(task || {}),
-    }));
+    if (task) {
+      setTaskForm((prev) => ({
+        ...prev,
+        ...task,
+        assigned_to: task.assigned_to || [],
+      }));
+    }
     setDeadline(task?.due_date ? dayjs(task.due_date) : dayjs());
     setRecurrenceEndDate(task?.recurrence_end_date ? dayjs(task.recurrence_end_date) : null);
   }, [task]);
@@ -182,7 +186,7 @@ const TaskModal = ({
         title: '',
         description: '',
         status: 'PENDING',
-        assigned_to: '',
+        assigned_to: [],
         custom_type: '',
         garden: parseInt(gardenId),
         is_recurring: false,
@@ -206,7 +210,8 @@ const TaskModal = ({
 
   const handleAssigneeChange = (event) => {
     const { value } = event.target;
-    setTaskForm((prev) => ({ ...prev, assigned_to: value }));
+    // value is an array when using multi-select
+    setTaskForm((prev) => ({ ...prev, assigned_to: typeof value === 'string' ? value.split(',') : value }));
   };
 
   const handleRecurringChange = (event) => {
@@ -310,8 +315,7 @@ const TaskModal = ({
       title: updatedForm.title,
       description: updatedForm.description,
       status: updatedForm.status || 'PENDING',
-      assigned_to:
-        updatedForm.assigned_to === 'Not Assigned' ? null : updatedForm.assigned_to || null,
+      assigned_to: Array.isArray(updatedForm.assigned_to) ? updatedForm.assigned_to : [],
       due_date: updatedForm.due_date,
       custom_type:
         updatedForm.custom_type === 'new'
@@ -453,13 +457,25 @@ const TaskModal = ({
               </Box>
             ) : (
               <Select
-                value={taskForm.assigned_to || ''}
+                multiple
+                value={taskForm.assigned_to || []}
                 onChange={handleAssigneeChange}
                 input={<OutlinedInput label="Assignee" />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map((userId) => {
+                      const member = gardenMembers.find((m) => m.id === userId);
+                      return (
+                        <Chip
+                          key={userId}
+                          label={member ? member.name : userId}
+                          size="small"
+                        />
+                      );
+                    })}
+                  </Box>
+                )}
               >
-                <MenuItem value="Not Assigned">
-                  <em>{t('tasks.notAssigned')}</em>
-                </MenuItem>
                 {gardenMembers.map((user) => (
                   <MenuItem key={user.id} value={user.id}>
                     {user.name}
