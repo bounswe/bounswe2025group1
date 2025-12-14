@@ -502,7 +502,14 @@
     "taskDescriptionPlaceholder": "Describe the task details...",
     "saveChanges": "Save Changes",
     "taskTypeRequired": "Please select a task type.",
-    "failedToUpdateTask": "Failed to update task."
+    "failedToUpdateTask": "Failed to update task.",
+    "makeRecurring": "Make this task recurring",
+    "recurrencePeriod": "Recurrence Period",
+    "recurrenceEndDate": "Recurrence End Date (Optional)",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly"
   },
   "weather": {
     "title": "Weather Forecast",

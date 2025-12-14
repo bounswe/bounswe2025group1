@@ -502,7 +502,14 @@
     "taskDescriptionPlaceholder": "Görev detaylarını açıklayın...",
     "saveChanges": "Değişiklikleri Kaydet",
     "taskTypeRequired": "Görev türü seçiniz.",
-    "failedToUpdateTask": "Görev güncellenemedi."
+    "failedToUpdateTask": "Görev güncellenemedi.",
+    "makeRecurring": "Bu görevi tekrarlayan yap",
+    "recurrencePeriod": "Tekrarlama Periyodu",
+    "recurrenceEndDate": "Tekrarlama Bitiş Tarihi (İsteğe Bağlı)",
+    "daily": "Günlük",
+    "weekly": "Haftalık",
+    "monthly": "Aylık",
+    "yearly": "Yıllık"
   },
   "weather": {
     "title": "Hava Durumu Tahmini",
