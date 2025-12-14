@@ -58,6 +58,34 @@ def _send_notification(notification_receiver, notification_title, notification_m
     )
 
 
+from django.utils import timezone
+
+@receiver(pre_save, sender=Task)
+def auto_populate_task_timestamps(sender, instance, **kwargs):
+    """
+    Automatically populate accepted_at and completed_at timestamps
+    when task status changes to ACCEPTED or COMPLETED.
+    """
+    if instance.pk is None:
+        # New task, no previous status to compare
+        return
+    
+    try:
+        old_instance = Task.objects.get(pk=instance.pk)
+    except Task.DoesNotExist:
+        return
+    
+    # Set accepted_at when status changes to ACCEPTED (and wasn't already set)
+    if old_instance.status != 'ACCEPTED' and instance.status == 'ACCEPTED':
+        if instance.accepted_at is None:
+            instance.accepted_at = timezone.now()
+    
+    # Set completed_at when status changes to COMPLETED
+    if old_instance.status != 'COMPLETED' and instance.status == 'COMPLETED':
+        if instance.completed_at is None:
+            instance.completed_at = timezone.now()
+
+
 @receiver(post_save, sender=Task)
 def task_update_notification(sender, instance, created, update_fields, **kwargs):
     """
