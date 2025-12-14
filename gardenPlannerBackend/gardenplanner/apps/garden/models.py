@@ -155,6 +155,8 @@ class Task(models.Model):
     assigned_to = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     due_date = models.DateTimeField(null=True, blank=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

@@ -649,3 +649,32 @@ class UserBadgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserBadge
         fields = ['badge', 'earned_at']
+
+
+class ImpactSummarySerializer(serializers.Serializer):
+    """Serializer for user impact summary statistics."""
+    
+    # Profile Stats
+    member_since = serializers.DateTimeField()
+    followers_count = serializers.IntegerField()
+    following_count = serializers.IntegerField()
+    
+    # Garden Activity
+    gardens_joined = serializers.IntegerField()
+    gardens_managed = serializers.IntegerField()
+    
+    # Task Stats
+    tasks_completed = serializers.IntegerField()
+    tasks_assigned = serializers.IntegerField()
+    task_completion_rate = serializers.FloatField()  # percentage (0-100)
+    average_task_response_time_hours = serializers.FloatField(allow_null=True)
+    
+    # Forum Engagement
+    posts_created = serializers.IntegerField()
+    comments_made = serializers.IntegerField()
+    likes_received = serializers.IntegerField()
+    best_answers = serializers.IntegerField()
+    
+    # Events
+    events_created = serializers.IntegerField()
+    events_attended = serializers.IntegerField()

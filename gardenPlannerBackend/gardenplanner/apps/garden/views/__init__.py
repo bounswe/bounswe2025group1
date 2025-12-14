@@ -54,6 +54,8 @@ from .badge import (
     UserBadgeListView
 )
 
+from .impact_summary import UserImpactSummaryView
+
 
 __all__ = [
     # Forum and Comment Views
@@ -98,7 +100,9 @@ __all__ = [
     "GardenEventViewSet",
     # Report Vİews
     "ReportViewSet",
-    "AdminReportViewSet"
+    "AdminReportViewSet",
+    # Impact Summary Views
+    "UserImpactSummaryView",
     # Other Views
     "WeatherDataView",
 ]
