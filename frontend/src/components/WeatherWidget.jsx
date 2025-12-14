@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 const WeatherWidget = () => {
   const { t, i18n } = useTranslation();
   const [weatherData, setWeatherData] = useState(null);
+  const [rawWeatherData, setRawWeatherData] = useState(null); // Store raw API data for re-processing
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [locationPermission, setLocationPermission] = useState('prompt'); // 'prompt', 'granted', 'denied'
@@ -29,6 +30,7 @@ const WeatherWidget = () => {
       }
 
       const data = await response.json();
+      setRawWeatherData(data); // Store raw data for re-processing on language change
       const processedData = processWeatherData(data);
       setWeatherData(processedData);
     } catch (err) {
@@ -89,7 +91,7 @@ const WeatherWidget = () => {
     };
 
     // Process forecast for next 3 days
-    const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+    const locale = i18n.language === 'tr' ? 'tr-TR' : i18n.language === 'ar' ? 'ar-SA' : 'en-US';
     const forecast = data.daily.time.slice(0, 3).map((date, index) => ({
       date: new Date(date).toLocaleDateString(locale, { month: 'short', day: 'numeric' }),
       high: Math.round(data.daily.temperature_2m_max[index]),
@@ -155,6 +157,14 @@ const WeatherWidget = () => {
     checkLocationPermission();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-process weather data when language changes
+  useEffect(() => {
+    if (rawWeatherData) {
+      const processedData = processWeatherData(rawWeatherData);
+      setWeatherData(processedData);
+    }
+  }, [i18n.language, rawWeatherData]);
 
   if (loading) {
     return (

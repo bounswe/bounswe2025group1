@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('garden', '0020_forumpost_best_answer'),
+        ('garden', '0021_add_recurring_tasks'),
     ]
 
     operations = [

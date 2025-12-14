@@ -227,7 +227,6 @@
     "decline": "Reddet",
     "demote": "Düşür",
     "promote": "Yükselt",
-    "promote": "Yükselt",
     "failedToDeleteTask": "Görev silinemedi",
     "failedToJoinGarden": "Bahçeye katılınamadı",
     "requestToJoinSent": "Bahçeye katılma isteği gönderildi!",
@@ -323,7 +322,8 @@
     "hideComments": "Yorumları gizle",
     "minutesAgo": "{{count}} dk",
     "hoursAgo": "{{count}} sa",
-    "daysAgo": "{{count}} g"
+    "daysAgo": "{{count}} g",
+    "dialog": "Diyalog"
   },
   "profile": {
     "title": "Profil",
@@ -526,7 +526,14 @@
     "taskDescriptionPlaceholder": "Görev detaylarını açıklayın...",
     "saveChanges": "Değişiklikleri Kaydet",
     "taskTypeRequired": "Görev türü seçiniz.",
-    "failedToUpdateTask": "Görev güncellenemedi."
+    "failedToUpdateTask": "Görev güncellenemedi.",
+    "makeRecurring": "Bu görevi tekrarlayan yap",
+    "recurrencePeriod": "Tekrarlama Periyodu",
+    "recurrenceEndDate": "Tekrarlama Bitiş Tarihi (İsteğe Bağlı)",
+    "daily": "Günlük",
+    "weekly": "Haftalık",
+    "monthly": "Aylık",
+    "yearly": "Yıllık"
   },
   "weather": {
     "title": "Hava Durumu Tahmini",

@@ -95,6 +95,10 @@ CORS_ALLOWED_ORIGINS = [
     "https://localhost:5173",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://communitygarden.app",
+]
+
 ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
