@@ -254,7 +254,9 @@ class Report(models.Model):
         ('other', 'Other'),
     ]
 
-    reporter = models.ForeignKey(User, on_delete=models.CASCADE)
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports_made')
+    reported_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports_received', null=True, blank=True)
+
     
     # Generic relation (can point to ForumPost or Comment)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)

@@ -40,45 +40,83 @@ class ReportViewSet(viewsets.ModelViewSet):
         except ContentType.DoesNotExist:
             return Response({'detail': 'Invalid content type.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Prevent self-reporting for users
-        if content_type_str.lower() == 'user':
-            try:
-                reported_user = User.objects.get(pk=object_id)
-                if reported_user == request.user:
-                    return Response({'detail': 'You cannot report yourself.'}, status=status.HTTP_400_BAD_REQUEST)
-            except User.DoesNotExist:
-                return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
-        
-        # Prevent garden creators from reporting their own gardens
-        if content_type_str.lower() == 'garden':
-            try:
-                garden = Garden.objects.get(pk=object_id)
-                # Check if user is a manager (creator) of this garden
-                if GardenMembership.objects.filter(
-                    garden=garden,
-                    user=request.user,
-                    role='MANAGER',
-                    status='ACCEPTED'
-                ).exists():
-                    return Response({'detail': 'You cannot report your own garden.'}, status=status.HTTP_400_BAD_REQUEST)
-            except Garden.DoesNotExist:
-                return Response({'detail': 'Garden not found.'}, status=status.HTTP_404_NOT_FOUND)
+        # Fetch reported object
+        try:
+            obj = content_type.get_object_for_this_type(pk=object_id)
+        except Exception:
+            return Response({'detail': 'Reported object not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Prevent duplicate reports by the same user
-        if Report.objects.filter(reporter=request.user, content_type=content_type, object_id=object_id).exists():
-            return Response({'detail': 'You already reported this content.'}, status=status.HTTP_400_BAD_REQUEST)
+        reported_user = None
 
-        report = Report.objects.create(
+        if content_type.model == 'user':
+            reported_user = obj
+
+
+        elif hasattr(obj, 'author') and obj.author:
+            reported_user = obj.author
+
+        elif content_type.model == 'garden':
+            manager_membership = GardenMembership.objects.filter(
+                garden=obj,
+                role='MANAGER',
+                status='ACCEPTED'
+            ).select_related('user').first()
+
+            if not manager_membership:
+                return Response(
+                    {'detail': 'Garden has no active manager.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            reported_user = manager_membership.user
+
+            if reported_user == request.user:
+                return Response(
+                    {'detail': 'You cannot report your own garden.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # Safety check
+        if reported_user is None:
+            return Response(
+                {'detail': 'Could not determine reported user.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Prevent self-reporting 
+        if reported_user == request.user:
+            return Response(
+                {'detail': 'You cannot report yourself.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Prevent duplicate reports
+        if Report.objects.filter(
             reporter=request.user,
+            content_type=content_type,
+            object_id=object_id
+        ).exists():
+            return Response(
+                {'detail': 'You already reported this content.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+
+        Report.objects.create(
+            reporter=request.user,
+            reported_user=reported_user,
             content_type=content_type,
             object_id=object_id,
             reason=reason,
             description=description
         )
 
-        
+        return Response(
+            {'detail': 'Report submitted successfully.'},
+            status=status.HTTP_201_CREATED
+        )
 
-        return Response({'detail': 'Report submitted successfully.'}, status=status.HTTP_201_CREATED)
 
 
 class AdminReportViewSet(viewsets.ModelViewSet):

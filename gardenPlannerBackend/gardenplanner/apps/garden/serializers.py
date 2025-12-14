@@ -559,14 +559,22 @@ class ReportSerializer(serializers.ModelSerializer):
     content_type = serializers.SerializerMethodField()
     object_id = serializers.IntegerField()
     reporter_username = serializers.CharField(source='reporter.username', read_only=True)
+    reported_user = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+
+    reported_username = serializers.CharField(
+        source='reported_user.username',
+        read_only=True
+    )
 
     class Meta:
         model = Report
         fields = [
-            'id', 'reporter', 'reporter_username', 'content_type', 'object_id', 
+            'id', 'reporter', 'reporter_username', 'reported_user', 'reported_username', 'content_type', 'object_id', 
             'reason', 'description', 'created_at', 'reviewed', 'is_valid'
         ]
-        read_only_fields = ['reporter', 'reporter_username', 'content_type', 'created_at', 'reviewed', 'is_valid']
+        read_only_fields = ['reporter', 'reporter_username', 'reported_user', 'reported_username', 'content_type', 'created_at', 'reviewed', 'is_valid']
 
     def get_content_type(self, obj):
         """Return the model name of the content type"""
