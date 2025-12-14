@@ -318,7 +318,9 @@ class TaskSerializer(serializers.ModelSerializer):
                  'task_type', 'custom_type', 'custom_type_name', 
                  'assigned_by', 'assigned_by_username', 
                  'assigned_to', 'assigned_to_usernames', 
-                 'status', 'due_date', 'created_at', 'updated_at']
+                 'status', 'due_date', 
+                 'is_recurring', 'recurrence_period', 'recurrence_end_date', 'parent_task',
+                 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
     
     def get_assigned_to_usernames(self, obj):
@@ -327,6 +329,9 @@ class TaskSerializer(serializers.ModelSerializer):
     def validate(self, data):
         task_type = data.get('task_type')
         custom_type = data.get('custom_type')
+        is_recurring = data.get('is_recurring', False)
+        recurrence_period = data.get('recurrence_period')
+        recurrence_end_date = data.get('recurrence_end_date')
         
         # If task_type is CUSTOM, custom_type should be provided
         if task_type == 'CUSTOM' and not custom_type:
@@ -335,6 +340,17 @@ class TaskSerializer(serializers.ModelSerializer):
         # If task_type is not CUSTOM, custom_type should be None
         if task_type in ['HARVEST', 'MAINTENANCE'] and custom_type:
             data['custom_type'] = None
+        
+        # Validate recurring task fields
+        if is_recurring:
+            if not recurrence_period:
+                raise serializers.ValidationError({"recurrence_period": "Recurrence period is required for recurring tasks"})
+            if not data.get('due_date'):
+                raise serializers.ValidationError({"due_date": "Due date is required for recurring tasks"})
+        else:
+            # Clear recurring fields if not recurring
+            data['recurrence_period'] = None
+            data['recurrence_end_date'] = None
         
         return data
     
