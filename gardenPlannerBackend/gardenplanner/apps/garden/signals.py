@@ -76,7 +76,7 @@ def auto_populate_task_timestamps(sender, instance, **kwargs):
         return
     
     # Set accepted_at when status changes to ACCEPTED (and wasn't already set)
-    if old_instance.status != 'ACCEPTED' and instance.status == 'ACCEPTED':
+    if old_instance.status != 'ACCEPTED' and (instance.status != 'PENDING' or instance.status != 'DECLINED'):
         if instance.accepted_at is None:
             instance.accepted_at = timezone.now()
     

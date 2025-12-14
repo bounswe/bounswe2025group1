@@ -75,15 +75,20 @@ class UserImpactSummaryView(APIView):
         ).count()
         
         # Tasks assigned by user
-        tasks_assigned = Task.objects.filter(
+        tasks_assigned_by = Task.objects.filter(
             assigned_by=target_user
+        ).count()
+
+        # Tasks assigned to user
+        tasks_assigned_to = Task.objects.filter(
+            assigned_to=target_user
         ).count()
         
         # Task completion rate
         # Count tasks where user was assigned and either completed or accepted (not pending/declined/cancelled)
         total_accepted_tasks = Task.objects.filter(
             assigned_to=target_user,
-            status__in=['ACCEPTED', 'IN_PROGRESS', 'COMPLETED']
+            status__in=['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED']
         ).count()
         
         if total_accepted_tasks > 0:
@@ -160,7 +165,8 @@ class UserImpactSummaryView(APIView):
             'gardens_joined': gardens_joined,
             'gardens_managed': gardens_managed,
             'tasks_completed': tasks_completed,
-            'tasks_assigned': tasks_assigned,
+            'tasks_assigned_by': tasks_assigned_by,
+            'tasks_assigned_to': tasks_assigned_to,
             'task_completion_rate': round(task_completion_rate, 2),
             'average_task_response_time_hours': round(average_task_response_time_hours, 2) if average_task_response_time_hours else None,
             'posts_created': posts_created,

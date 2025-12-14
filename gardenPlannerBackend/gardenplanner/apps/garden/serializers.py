@@ -681,7 +681,8 @@ class ImpactSummarySerializer(serializers.Serializer):
     
     # Task Stats
     tasks_completed = serializers.IntegerField()
-    tasks_assigned = serializers.IntegerField()
+    tasks_assigned_by = serializers.IntegerField()
+    tasks_assigned_to = serializers.IntegerField()
     task_completion_rate = serializers.FloatField()  # percentage (0-100)
     average_task_response_time_hours = serializers.FloatField(allow_null=True)
     
