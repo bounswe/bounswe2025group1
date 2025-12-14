@@ -160,8 +160,10 @@
   "tasks": {
     "title": "المهام",
     "noTasksYet": "لا توجد مهام حتى الآن",
+    "noTasksAvailable": "لا توجد مهام متاحة.",
     "pleaseLogIn": "يرجى تسجيل الدخول لعرض المهام",
     "logIn": "تسجيل الدخول",
+    "loading": "جاري تحميل المهام...",
     "pending": "قيد الانتظار",
     "in_progress": "قيد التنفيذ",
     "completed": "مكتمل",
@@ -171,7 +173,8 @@
     "details": "التفاصيل",
     "taskCalendar": "تقويم المهام",
     "taskTypeRequired": "يرجى اختيار نوع المهمة.",
-    "saveChanges": "حفظ التغييرات"
+    "saveChanges": "حفظ التغييرات",
+    "failedToFetchTasks": "فشل في جلب المهام."
   },
   "profile": {
     "edit": "تعديل",

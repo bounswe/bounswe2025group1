@@ -147,7 +147,7 @@ const TaskList = ({
               </ListItemIcon>
               <ListItemText
                 primary={task.title}
-                secondary={`${t('tasks.due')}: ${new Date(task.due_date).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+                secondary={`${t('tasks.due')}: ${new Date(task.due_date).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
