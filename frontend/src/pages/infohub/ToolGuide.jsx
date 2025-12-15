@@ -16,40 +16,63 @@ import {
   Pagination,
   Chip,
   useTheme,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SearchIcon from '@mui/icons-material/Search';
 import CheckIcon from '@mui/icons-material/Check';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import plantsData from '../../data/plants.json';
-import { getTranslatedField, getTranslatedArray } from '../../utils/plantTranslations';
+import { fetchTools } from '../../services/plantService';
 
 const ToolGuide = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const theme = useTheme();
-  const allTools = plantsData.tools;
+  const [allTools, setAllTools] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const toolsPerPage = 6;
   const currentLang = i18n.language || 'en';
+
+  // Fetch tools from Supabase
+  useEffect(() => {
+    const loadTools = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchTools(currentLang);
+        setAllTools(data);
+      } catch (err) {
+        console.error('Error loading tools:', err);
+        setError(err.message || 'Failed to load tools');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTools();
+  }, [currentLang]);
   
   // Filter tools based on search query
   const filteredTools = allTools.filter((tool) => {
+    if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
-    const name = getTranslatedField(tool, 'name', currentLang).toLowerCase();
-    const description = getTranslatedField(tool, 'description', currentLang).toLowerCase(); // Description likely not translated yet but handling
-    const type = getTranslatedField(tool, 'type', currentLang).toLowerCase();
-    const skillLevel = getTranslatedField(tool, 'skillLevel', currentLang).toLowerCase();
-    const uses = getTranslatedArray(tool, 'uses', currentLang);
+    const name = tool.name.toLowerCase();
+    const description = (tool.description || '').toLowerCase();
+    const type = (tool.type || '').toLowerCase();
+    const skillLevel = (tool.skillLevel || '').toLowerCase();
+    const uses = (tool.uses || []).map(u => u.toLowerCase());
     
     return (
       name.includes(query) ||
       description.includes(query) ||
       type.includes(query) ||
       skillLevel.includes(query) ||
-      uses.some(use => use.toLowerCase().includes(query))
+      uses.some(use => use.includes(query))
     );
   });
   
@@ -143,7 +166,15 @@ const ToolGuide = () => {
           </Typography>
         </Paper>
 
-        {filteredTools.length === 0 ? (
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Alert severity="error" sx={{ mb: 4 }}>
+            {error}
+          </Alert>
+        ) : filteredTools.length === 0 ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
               No tools found matching "{searchQuery}"
@@ -165,13 +196,13 @@ const ToolGuide = () => {
               }}
             >
             {currentTools.map((tool) => {
-              const toolName = getTranslatedField(tool, 'name', currentLang);
-              const toolDescription = getTranslatedField(tool, 'description', currentLang);
-              const toolCategory = getTranslatedField(tool, 'category', currentLang);
-              const toolType = getTranslatedField(tool, 'type', currentLang);
-              const toolSkillLevel = getTranslatedField(tool, 'skillLevel', currentLang);
-              const toolUses = getTranslatedArray(tool, 'uses', currentLang);
-              const toolTips = getTranslatedField(tool, 'tips', currentLang);
+              const toolName = tool.name;
+              const toolDescription = tool.description || '';
+              const toolCategory = tool.category || '';
+              const toolType = tool.type || '';
+              const toolSkillLevel = tool.skillLevel || '';
+              const toolUses = tool.uses || [];
+              const toolTips = tool.tips || '';
 
               return (
                 <Card key={tool.id} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
