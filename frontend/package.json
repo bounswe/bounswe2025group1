@@ -22,6 +22,8 @@
     "@mui/material": "^7.3.4",
     "@mui/x-date-pickers": "^8.14.0",
     "@reduxjs/toolkit": "^2.9.0",
+    "@supabase/supabase-js": "^2.87.1",
+    "axios": "^1.13.2",
     "dayjs": "^1.11.18",
     "eslint-plugin-react-refresh": "^0.4.23",
     "firebase": "^10.7.1",
