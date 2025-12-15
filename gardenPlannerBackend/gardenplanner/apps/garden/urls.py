@@ -38,6 +38,7 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('password-reset/', views.PasswordResetAPIView.as_view(), name='password_reset'),
     path('reset/<uidb64>/<token>/', views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('suspension-status/', views.SuspensionStatusView.as_view(), name='suspension_status'),
     
     # Profile management
     path('profile/', views.ProfileView.as_view(), name='profile'),

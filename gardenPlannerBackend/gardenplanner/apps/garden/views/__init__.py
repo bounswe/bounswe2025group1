@@ -17,7 +17,8 @@ from .userauth import (
     LogoutView,
     VerifyLoginOTPView,
     PasswordResetAPIView,
-    PasswordResetConfirmView
+    PasswordResetConfirmView,
+    SuspensionStatusView
 )
 from .profile import (
     ProfileView,
@@ -75,6 +76,7 @@ __all__ = [
     "LogoutView",
     "PasswordResetAPIView",
     "PasswordResetConfirmView",
+    "SuspensionStatusView",
     # Profile Views
     "ProfileView",
     "UserProfileView",
