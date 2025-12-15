@@ -145,7 +145,12 @@
       "statuses": {
         "ACCEPTED": "Accepted",
         "PENDING": "Pending"
-      }
+      },
+      "showDirections": "Show Directions",
+      "noLocation": "Garden location is not available.",
+      "mapsError": "Could not open maps application. Please check if you have a maps app installed.",
+      "joinRequestSent": "Join request sent! Waiting for manager approval.",
+      "joinRequestError": "Could not send join request"
     },
     "create": {
       "title": "Create New Garden",
