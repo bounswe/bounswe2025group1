@@ -974,6 +974,29 @@
     "untitledPost": "Untitled Post",
     "comment": "Comment",
     "unnamedGarden": "Unnamed Garden",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "suspendUserTitle": "Suspend User",
+    "suspendUserDescription": "Enter a reason for the suspension that will be shown to the user, and select the suspension duration.",
+    "suspensionReason": "Suspension Reason",
+    "suspensionReasonPlaceholder": "Explain why this user is being suspended...",
+    "suspensionDuration": "Suspension Duration",
+    "days1": "1 Day",
+    "days3": "3 Days",
+    "days7": "7 Days",
+    "days14": "14 Days",
+    "days30": "30 Days",
+    "days90": "90 Days",
+    "confirmSuspend": "Suspend User",
+    "reasonRequired": "Please enter a suspension reason"
+  },
+  "suspended": {
+    "title": "Account Suspended",
+    "description": "Your account has been suspended due to a violation of our community guidelines.",
+    "reason": "Reason",
+    "noReason": "No reason provided",
+    "until": "Suspended Until",
+    "indefinite": "Indefinitely",
+    "contact": "If you believe this is a mistake, please contact our support team.",
+    "logout": "Logout"
   }
 }

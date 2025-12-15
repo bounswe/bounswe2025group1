@@ -974,6 +974,29 @@
     "untitledPost": "Başlıksız Gönderi",
     "comment": "Yorum",
     "unnamedGarden": "İsimsiz Bahçe",
-    "unknown": "Bilinmeyen"
+    "unknown": "Bilinmeyen",
+    "suspendUserTitle": "Kullanıcıyı Askıya Al",
+    "suspendUserDescription": "Kullanıcıya gösterilecek askıya alma nedenini girin ve askıya alma süresini seçin.",
+    "suspensionReason": "Askıya Alma Nedeni",
+    "suspensionReasonPlaceholder": "Bu kullanıcının neden askıya alındığını açıklayın...",
+    "suspensionDuration": "Askıya Alma Süresi",
+    "days1": "1 Gün",
+    "days3": "3 Gün",
+    "days7": "7 Gün",
+    "days14": "14 Gün",
+    "days30": "30 Gün",
+    "days90": "90 Gün",
+    "confirmSuspend": "Kullanıcıyı Askıya Al",
+    "reasonRequired": "Lütfen bir askıya alma nedeni girin"
+  },
+  "suspended": {
+    "title": "Hesap Askıya Alındı",
+    "description": "Hesabınız topluluk kurallarının ihlali nedeniyle askıya alındı.",
+    "reason": "Neden",
+    "noReason": "Neden belirtilmedi",
+    "until": "Askıya Alma Bitiş Tarihi",
+    "indefinite": "Süresiz",
+    "contact": "Bunun bir hata olduğunu düşünüyorsanız, lütfen destek ekibimizle iletişime geçin.",
+    "logout": "Çıkış Yap"
   }
 }

@@ -1,8 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import './App.css';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from './contexts/AuthContextUtils';
 
 // Initialize i18n
 import './i18n/config';
@@ -31,6 +32,7 @@ import Profile from './pages/profile/Profile';
 import ModerationDashboard from './pages/moderation/ModerationDashboard';
 import InfohubHome from './pages/infohub/InfohubHome';
 import InfohubDetail from './pages/infohub/InfohubDetail';
+import Suspended from './pages/auth/Suspended';
 import { ToastContainer } from 'react-toastify';
 import Tasks from './pages/task/Tasks';
 import 'react-toastify/dist/ReactToastify.css';
@@ -38,6 +40,19 @@ import 'react-toastify/dist/ReactToastify.css';
 // Context providers
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+
+// Component to guard against suspended users
+function SuspensionGuard({ children }) {
+  const { isSuspended, user } = useAuth();
+  const location = useLocation();
+
+  // If user is suspended and not on suspended/logout page, redirect to suspended page
+  if (user && isSuspended && location.pathname !== '/suspended' && location.pathname !== '/auth/login') {
+    return <Navigate to="/suspended" replace />;
+  }
+
+  return children;
+}
 
 function AppContent() {
   const { currentTheme } = useTheme();
@@ -81,27 +96,30 @@ function AppContent() {
                 alignItems: 'stretch',
               }}
             >
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/auth/login" element={<Login />} />
-                <Route path="/auth/register" element={<Register />} />
-                <Route path="/auth/verify-otp" element={<VerifyOTP />} />
-                <Route path="/gardens" element={<GardenList />} />
-                <Route path="/gardens/:gardenId" element={<GardenDetail />} />
-                <Route path="/tasks" element={<Tasks />} />
-                <Route path="/forum" element={<ForumList />} />
-                <Route path="/forum/:postId" element={<ForumPost />} />
-                <Route path="/infohub" element={<InfohubHome />} />
-                <Route path="/infohub/:categoryId" element={<InfohubDetail />} />
-                <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-                <Route path="/auth/reset-password" element={<ResetPassword />} />
-                <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/profile/:userId" element={<Profile />} />
-                <Route path="/moderation" element={<ModerationDashboard />} />
-                {/* Additional routes will be implemented later */}
-                <Route path="*" element={<Home />} />
-              </Routes>
+              <SuspensionGuard>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/auth/login" element={<Login />} />
+                  <Route path="/auth/register" element={<Register />} />
+                  <Route path="/auth/verify-otp" element={<VerifyOTP />} />
+                  <Route path="/gardens" element={<GardenList />} />
+                  <Route path="/gardens/:gardenId" element={<GardenDetail />} />
+                  <Route path="/tasks" element={<Tasks />} />
+                  <Route path="/forum" element={<ForumList />} />
+                  <Route path="/forum/:postId" element={<ForumPost />} />
+                  <Route path="/infohub" element={<InfohubHome />} />
+                  <Route path="/infohub/:categoryId" element={<InfohubDetail />} />
+                  <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/auth/reset-password" element={<ResetPassword />} />
+                  <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/profile/:userId" element={<Profile />} />
+                  <Route path="/moderation" element={<ModerationDashboard />} />
+                  <Route path="/suspended" element={<Suspended />} />
+                  {/* Additional routes will be implemented later */}
+                  <Route path="*" element={<Home />} />
+                </Routes>
+              </SuspensionGuard>
             </Box>
 
             {/* Chat Widget - appears on all pages when user is logged in */}

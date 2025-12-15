@@ -51,33 +51,43 @@ class CustomLoginView(ObtainAuthToken):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
-        
+
         # Get device info
         device_id = get_device_identifier(request)
         device_name = get_device_name(request)
         client_ip = get_client_ip(request)
-        
+
         # Check if device is trusted
         device = DeviceFingerprint.objects.filter(user=user, device_identifier=device_id).first()
-        
+
         if device and device.is_trusted:
             # Trusted device — issue token directly
             device.last_used = timezone.now()
             device.save()
             token, _ = Token.objects.get_or_create(user=user)
-            return Response({
+
+            response_data = {
                 'token': token.key,
                 'user_id': user.pk,
                 'username': user.username,
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-            })
-        
+            }
+
+            if hasattr(user, 'profile') and user.profile.is_suspended:
+                response_data['is_suspended'] = True
+                response_data['suspension_reason'] = user.profile.suspension_reason
+                response_data['suspended_until'] = user.profile.suspended_until.isoformat() if user.profile.suspended_until else None
+            else:
+                response_data['is_suspended'] = False
+
+            return Response(response_data)
+
         # New/untrusted device — send OTP
         otp_code = generate_otp()
         expires_at = timezone.now() + timedelta(minutes=10)
-        
+
         # Save OTP
         LoginOTP.objects.create(
             user=user,
@@ -86,7 +96,7 @@ class CustomLoginView(ObtainAuthToken):
             ip_address=client_ip,
             expires_at=expires_at
         )
-        
+
         # Send email
         try:
             send_mail(
@@ -98,7 +108,7 @@ class CustomLoginView(ObtainAuthToken):
             )
         except Exception as e:
             return Response({'error': 'Failed to send OTP email.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
         # Return response indicating OTP required
         return Response({
             'otp_required': True,
@@ -125,35 +135,35 @@ class VerifyLoginOTPView(APIView):
     """Verify OTP code for new device login"""
     permission_classes = [permissions.AllowAny]
     throttle_classes = [AnonRateThrottle]
-    
+
     def post(self, request):
         username = request.data.get('username')
         otp_code = request.data.get('otp_code')
         device_identifier = request.data.get('device_identifier')
         trust_device = request.data.get('trust_device', False)
-        
+
         if not all([username, otp_code, device_identifier]):
             return Response({'error': 'Username, OTP code, and device identifier are required.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Verify OTP
         otp = LoginOTP.objects.filter(
             user=user,
             otp_code=otp_code,
             device_identifier=device_identifier,
         ).order_by('-created_at').first()
-        
+
         if not otp or not otp.is_valid():
             return Response({'error': 'Invalid or expired OTP code.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Mark OTP as used
         otp.is_used = True
         otp.save()
-        
+
         # Create/update device as trusted if requested
         if trust_device:
             device_name = get_device_name(request)
@@ -166,10 +176,11 @@ class VerifyLoginOTPView(APIView):
                     'is_trusted': True,
                 }
             )
-        
+
         # Issue token
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({
+
+        response_data = {
             'token': token.key,
             'user_id': user.pk,
             'username': user.username,
@@ -177,7 +188,38 @@ class VerifyLoginOTPView(APIView):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'message': 'Login successful.'
-        }, status=status.HTTP_200_OK)
+        }
+
+        # Add suspension info
+        if hasattr(user, 'profile') and user.profile.is_suspended:
+            response_data['is_suspended'] = True
+            response_data['suspension_reason'] = user.profile.suspension_reason
+            response_data['suspended_until'] = user.profile.suspended_until.isoformat() if user.profile.suspended_until else None
+        else:
+            response_data['is_suspended'] = False
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+class SuspensionStatusView(APIView):
+    """Returns the suspension status of the current user."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        if hasattr(user, 'profile') and user.profile.is_suspended:
+            return Response({
+                'is_suspended': True,
+                'suspension_reason': user.profile.suspension_reason,
+                'suspended_until': user.profile.suspended_until.isoformat() if user.profile.suspended_until else None,
+            })
+
+        return Response({
+            'is_suspended': False,
+            'suspension_reason': None,
+            'suspended_until': None,
+        })
 
 
 class PasswordResetAPIView(APIView):

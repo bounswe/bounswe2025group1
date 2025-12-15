@@ -28,6 +28,11 @@ import {
   IconButton,
   Tooltip,
   ButtonGroup,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -51,6 +56,12 @@ const ModerationDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [reviewDialog, setReviewDialog] = useState({ open: false, report: null, isValid: false });
   const [viewContentDialog, setViewContentDialog] = useState({ open: false, content: null, contentType: null });
+  const [suspendDialog, setSuspendDialog] = useState({
+    open: false,
+    report: null,
+    reason: '',
+    days: 7
+  });
   const [userProfiles, setUserProfiles] = useState({}); // Store reporter usernames
   const [reportedContent, setReportedContent] = useState({}); // Store reported content info
   const [filter, setFilter] = useState('pending'); // pending, reviewed
@@ -496,7 +507,35 @@ const ModerationDashboard = () => {
     }
   };
 
-  const handleSuspendUser = async (report) => {
+  const handleOpenSuspendDialog = (report) => {
+    setSuspendDialog({
+      open: true,
+      report,
+      reason: '',
+      days: 7
+    });
+  };
+
+  const handleCloseSuspendDialog = () => {
+    setSuspendDialog({
+      open: false,
+      report: null,
+      reason: '',
+      days: 7
+    });
+  };
+
+  const handleSuspendUser = async () => {
+    const { report, reason, days } = suspendDialog;
+    if (!report) return;
+
+    if (!reason.trim()) {
+      toast.error(t('moderation.reasonRequired', 'Please enter a suspension reason'), {
+        position: 'top-right',
+      });
+      return;
+    }
+
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/reports/${report.id}/suspend_user/`, {
         method: 'POST',
@@ -505,8 +544,8 @@ const ModerationDashboard = () => {
           Authorization: `Token ${token}`,
         },
         body: JSON.stringify({
-          suspension_days: 7,
-          reason: report.description || '',
+          suspension_days: days,
+          reason: reason,
         }),
       });
 
@@ -517,6 +556,7 @@ const ModerationDashboard = () => {
       toast.success(t('moderation.userSuspended', 'User has been suspended'), {
         position: 'top-right',
       });
+      handleCloseSuspendDialog();
       fetchReports(); // Refresh list
     } catch (error) {
       console.error('Error suspending user:', error);
@@ -860,8 +900,8 @@ const ModerationDashboard = () => {
                                   <IconButton
                                     size="small"
                                     color="warning"
-                                    onClick={() => handleSuspendUser(report)}
-                                    sx={{ 
+                                    onClick={() => handleOpenSuspendDialog(report)}
+                                    sx={{
                                       border: '1px solid',
                                       borderColor: 'warning.main',
                                       '&:hover': { bgcolor: 'warning.light' }
@@ -1255,6 +1295,62 @@ const ModerationDashboard = () => {
         <DialogActions>
           <Button onClick={() => setViewContentDialog({ open: false, content: null, contentType: null })}>
             {t('common.close', 'Close')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Suspend User Dialog */}
+      <Dialog
+        open={suspendDialog.open}
+        onClose={handleCloseSuspendDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {t('moderation.suspendUserTitle', 'Suspend User')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            {t('moderation.suspendUserDescription', 'Enter a reason for the suspension that will be shown to the user, and select the suspension duration.')}
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label={t('moderation.suspensionReason', 'Suspension Reason')}
+            placeholder={t('moderation.suspensionReasonPlaceholder', 'Explain why this user is being suspended...')}
+            fullWidth
+            multiline
+            rows={3}
+            value={suspendDialog.reason}
+            onChange={(e) => setSuspendDialog(prev => ({ ...prev, reason: e.target.value }))}
+            sx={{ mb: 2 }}
+          />
+          <FormControl fullWidth>
+            <InputLabel>{t('moderation.suspensionDuration', 'Suspension Duration')}</InputLabel>
+            <Select
+              value={suspendDialog.days}
+              label={t('moderation.suspensionDuration', 'Suspension Duration')}
+              onChange={(e) => setSuspendDialog(prev => ({ ...prev, days: e.target.value }))}
+            >
+              <MenuItem value={1}>{t('moderation.days1', '1 Day')}</MenuItem>
+              <MenuItem value={3}>{t('moderation.days3', '3 Days')}</MenuItem>
+              <MenuItem value={7}>{t('moderation.days7', '7 Days')}</MenuItem>
+              <MenuItem value={14}>{t('moderation.days14', '14 Days')}</MenuItem>
+              <MenuItem value={30}>{t('moderation.days30', '30 Days')}</MenuItem>
+              <MenuItem value={90}>{t('moderation.days90', '90 Days')}</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSuspendDialog}>
+            {t('common.cancel', 'Cancel')}
+          </Button>
+          <Button
+            onClick={handleSuspendUser}
+            color="warning"
+            variant="contained"
+          >
+            {t('moderation.confirmSuspend', 'Suspend User')}
           </Button>
         </DialogActions>
       </Dialog>

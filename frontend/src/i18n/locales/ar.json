@@ -998,6 +998,52 @@
     "untitledPost": "منشور بدون عنوان",
     "comment": "تعليق",
     "unnamedGarden": "حديقة بدون اسم",
-    "unknown": "غير معروف"
+    "unknown": "غير معروف",
+    "suspendUserTitle": "تعليق المستخدم",
+    "suspendUserDescription": "أدخل سبب التعليق الذي سيظهر للمستخدم، واختر مدة التعليق.",
+    "suspensionReason": "سبب التعليق",
+    "suspensionReasonPlaceholder": "اشرح سبب تعليق هذا المستخدم...",
+    "suspensionDuration": "مدة التعليق",
+    "days1": "يوم واحد",
+    "days3": "3 أيام",
+    "days7": "7 أيام",
+    "days14": "14 يوم",
+    "days30": "30 يوم",
+    "days90": "90 يوم",
+    "confirmSuspend": "تعليق المستخدم",
+    "reasonRequired": "يرجى إدخال سبب التعليق"
+  },
+  "suspended": {
+    "title": "الحساب معلق",
+    "description": "تم تعليق حسابك بسبب انتهاك إرشادات المجتمع.",
+    "reason": "السبب",
+    "noReason": "لم يتم تقديم سبب",
+    "until": "معلق حتى",
+    "indefinite": "إلى أجل غير مسمى",
+    "contact": "إذا كنت تعتقد أن هذا خطأ، يرجى الاتصال بفريق الدعم.",
+    "logout": "تسجيل الخروج"
+  },
+  "accessibility": {
+    "skipToContent": "انتقل إلى المحتوى الرئيسي",
+    "openMenu": "فتح القائمة",
+    "closeMenu": "إغلاق القائمة",
+    "toggleTheme": "تبديل المظهر",
+    "toggleLanguage": "تبديل اللغة",
+    "searchButton": "بحث",
+    "sortBy": "ترتيب حسب",
+    "filterBy": "تصفية حسب",
+    "closeDialog": "إغلاق الحوار",
+    "uploadImages": "رفع الصور",
+    "removeImage": "إزالة الصورة",
+    "fontSize": {
+      "title": "حجم الخط",
+      "selector": "محدد حجم الخط",
+      "small": "صغير",
+      "medium": "متوسط",
+      "large": "كبير",
+      "current": "الحجم الحالي",
+      "increase": "زيادة حجم الخط",
+      "decrease": "تقليل حجم الخط"
+    }
   }
 }
