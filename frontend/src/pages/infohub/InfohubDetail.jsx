@@ -54,12 +54,12 @@ const InfohubDetail = () => {
             mb: 4,
             background: theme.palette.custom?.buttonGradient || `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
             color: theme.palette.primary.contrastText,
-            border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
-              ? '2px solid #000000' 
+            border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+              ? '2px solid #000000'
               : 'none',
           }}
         >
-          <Typography variant="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
+          <Typography variant="h3" gutterBottom data-testid="infohub-detail-title" sx={{ fontWeight: 'bold' }}>
             {t(`infohub.categories.${translationKey}.title`)}
           </Typography>
           <Typography variant="h6">
@@ -73,26 +73,27 @@ const InfohubDetail = () => {
           sx={{
             p: { xs: 3, sm: 4 },
             backgroundColor: theme.palette.background.paper,
-            border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
-              ? '2px solid #000000' 
+            border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+              ? '2px solid #000000'
               : 'none',
           }}
         >
-          <Typography 
+          <Typography
             variant="body1"
-            sx={{ color: theme.palette.text.secondary, textAlign: 'left' }} 
+            sx={{ color: theme.palette.text.secondary, textAlign: 'left' }}
             dangerouslySetInnerHTML={{ __html: t(`infohub.categories.${translationKey}.details`) }}
           />
-          
+
           <Box sx={{ mt: 4, textAlign: 'center' }}>
             <Button
               variant="contained"
               onClick={() => navigate('/infohub')}
+              data-testid="back-to-infohub-button"
               sx={{
                 background: theme.palette.custom?.buttonGradient || theme.palette.primary.main,
                 color: theme.palette.primary.contrastText,
-                border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff' 
-                  ? '2px solid #000000' 
+                border: theme.palette.mode === 'light' && theme.palette.custom?.loginPaper === '#ffffff'
+                  ? '2px solid #000000'
                   : 'none',
                 '&:hover': {
                   background: theme.palette.custom?.buttonGradientHover || theme.palette.primary.dark,
