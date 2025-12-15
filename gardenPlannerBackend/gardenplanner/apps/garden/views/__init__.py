@@ -54,14 +54,6 @@ from .badge import (
     UserBadgeListView
 )
 
-from .infohub import (
-    PlantSearchView,
-    PlantDetailView,
-    PlantBookmarkListCreateView,
-    PlantBookmarkDetailView,
-    PlantBookmarkCheckView
-)
-
 
 __all__ = [
     # Forum and Comment Views
@@ -110,12 +102,6 @@ __all__ = [
     # Badge Views
     "BadgeListView",
     "UserBadgeListView",
-    # Infohub Views
-    "PlantSearchView",
-    "PlantDetailView",
-    "PlantBookmarkListCreateView",
-    "PlantBookmarkDetailView",
-    "PlantBookmarkCheckView",
     # Other Views
     "WeatherDataView",
 ]
