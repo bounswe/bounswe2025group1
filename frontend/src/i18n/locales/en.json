@@ -60,7 +60,31 @@
       "welcomeBack": "Welcome back to the garden!",
       "failedToLogin": "Failed to log in. Please check your credentials.",
       "loginSuccess": "Login successful!",
-      "loginError": "Login failed. Please check your credentials."
+      "loginError": "Login failed. Please check your credentials.",
+      "otpRequired": "New device detected. Check your email for verification code.",
+      "errors": {
+        "tooManyAttempts": "Too many login attempts. Please try again later."
+      }
+    },
+    "otp": {
+      "title": "Verify Your Device",
+      "instructions": "We've sent a 6-digit code to your email. Please enter it below to verify this device.",
+      "device": "Device",
+      "codeLabel": "Verification Code",
+      "trustDevice": "Trust this device (skip verification next time)",
+      "verify": "Verify",
+      "verifying": "Verifying...",
+      "backToLogin": "Back to Login",
+      "invalidCode": "Please enter a valid 6-digit code",
+      "verificationFailed": "Verification failed. Please check your code.",
+      "verificationError": "Error verifying code. Please try again.",
+      "verificationSuccess": "Device verified successfully!",
+      "success": "Success",
+      "tooManyAttempts": "Too many verification attempts. Please try again later.",
+      "errors": {
+        "invalidCode": "Please enter a 6-digit code",
+        "verificationFailed": "Invalid or expired verification code"
+      }
     },
     "forgotPassword": {
       "title": "Forgot your password?",
