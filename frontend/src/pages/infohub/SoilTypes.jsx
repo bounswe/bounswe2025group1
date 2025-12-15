@@ -5,89 +5,49 @@ import {
   Typography,
   Paper,
   Button,
-  Chip,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Pagination,
   TextField,
   InputAdornment,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
   useTheme,
-  Divider,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SearchIcon from '@mui/icons-material/Search';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import plantsData from '../../data/plants.json';
-import { getTranslatedField, getTranslatedObject, getTranslatedArray } from '../../utils/plantTranslations';
-
-// Helper function to find plant ID by name
-const findPlantIdByName = (plantName) => {
-  if (!plantName) return null;
-  
-  const normalizedName = plantName.toLowerCase().trim();
-  
-  // Try exact match first
-  let found = plantsData.plants.find(
-    (p) => p.name.toLowerCase() === normalizedName
-  );
-  
-  if (found) return found.id;
-  
-  // Try matching singular/plural forms
-  const singularName = normalizedName.replace(/s$/, '');
-  const pluralName = normalizedName + 's';
-  
-  found = plantsData.plants.find((p) => {
-    const pName = p.name.toLowerCase();
-    return pName === singularName || pName === pluralName || 
-           singularName === pName.replace(/s$/, '') ||
-           pluralName === pName;
-  });
-  
-  if (found) return found.id;
-  
-  // Try partial match (plant name contains search term or vice versa)
-  found = plantsData.plants.find((p) => {
-    const pName = p.name.toLowerCase();
-    return pName.includes(normalizedName) || normalizedName.includes(pName);
-  });
-  
-  if (found) return found.id;
-  
-  // Try matching without common suffixes/prefixes
-  const nameWithoutSuffixes = normalizedName
-    .replace(/\s*\(.*?\)/g, '') // Remove parentheses content
-    .replace(/\s+tree$/i, '') // Remove " tree"
-    .replace(/\s+plant$/i, '') // Remove " plant"
-    .trim();
-  
-  if (nameWithoutSuffixes !== normalizedName) {
-    found = plantsData.plants.find(
-      (p) => p.name.toLowerCase() === nameWithoutSuffixes
-    );
-    if (found) return found.id;
-  }
-  
-  return null;
-};
+import { fetchSoilTypes } from '../../services/plantService';
 
 const SoilTypes = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const theme = useTheme();
-  const allSoilTypes = plantsData.soilTypes;
+  const [allSoilTypes, setAllSoilTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const soilsPerPage = 4;
   const currentLang = i18n.language || 'en';
+  
+  // Fetch soil types from Supabase
+  useEffect(() => {
+    const loadSoilTypes = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchSoilTypes(currentLang);
+        setAllSoilTypes(data);
+      } catch (err) {
+        console.error('Error loading soil types:', err);
+        setError(err.message || 'Failed to load soil types');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSoilTypes();
+  }, [currentLang]);
   
   // Reset to page 1 when search changes
   useEffect(() => {
@@ -96,18 +56,12 @@ const SoilTypes = () => {
   
   // Filter soils based on search query
   const filteredSoils = allSoilTypes.filter((soil) => {
+    if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
-    const name = getTranslatedField(soil, 'name', currentLang).toLowerCase();
-    const description = getTranslatedField(soil, 'description', currentLang).toLowerCase(); // Soil descriptions usually not translated in json yet but handling it
-    const origin = getTranslatedField(soil, 'origin', currentLang).toLowerCase();
-    const bestFor = getTranslatedArray(soil, 'bestFor', currentLang);
+    const name = soil.name.toLowerCase();
+    const description = (soil.description || '').toLowerCase();
     
-    return (
-      name.includes(query) ||
-      description.includes(query) ||
-      origin.includes(query) ||
-      bestFor.some(plant => plant.toLowerCase().includes(query))
-    );
+    return name.includes(query) || description.includes(query);
   });
   
   const totalPages = Math.ceil(filteredSoils.length / soilsPerPage);
@@ -208,11 +162,8 @@ const SoilTypes = () => {
               }}
             >
               {currentSoils.map((soil) => {
-                const soilName = getTranslatedField(soil, 'name', currentLang);
-                const soilDescription = getTranslatedField(soil, 'description', currentLang); // Handling potentially untranslated descriptions gracefully
-                const soilCharacteristics = getTranslatedObject(soil, 'characteristics', currentLang);
-                const soilBestFor = getTranslatedArray(soil, 'bestFor', currentLang);
-                const soilOrigin = getTranslatedField(soil, 'origin', currentLang);
+                const soilName = soil.name;
+                const soilDescription = soil.description || '';
 
                 return (
                 <Paper key={soil.id} sx={{ p: 3, height: '100%' }}>
@@ -236,85 +187,6 @@ const SoilTypes = () => {
                   <Typography variant="body2" paragraph sx={{ mb: 2 }}>
                     {soilDescription}
                   </Typography>
-
-                  <Divider sx={{ my: 2 }} />
-
-                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    🌱 {t('infohub.soilTypes.characteristics', 'Key Characteristics')}
-                  </Typography>
-                  
-                  {soilCharacteristics && typeof soilCharacteristics === 'object' ? (
-                    <Table size="small" sx={{ mb: 2 }}>
-                      <TableBody>
-                        {Object.entries(soilCharacteristics).map(([key, value]) => (
-                          <TableRow key={key}>
-                            <TableCell sx={{ py: 0.5, border: 'none', fontWeight: 'medium', width: '40%' }}>
-                              {/* Try to translate key if possible, though keys in object are dynamic */}
-                              {key.charAt(0).toUpperCase() + key.slice(1)}
-                            </TableCell>
-                            <TableCell sx={{ py: 0.5, border: 'none' }}>{value}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
-                      {Array.isArray(soilCharacteristics) && soilCharacteristics.map((char, i) => (
-                        <Chip key={i} label={char} size="small" variant="outlined" />
-                      ))}
-                    </Box>
-                  )}
-
-                  <Divider sx={{ my: 2 }} />
-
-                  {/* Improvements usually not translated yet in data, keeping as is or using original */}
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 'bold' }}>
-                    How to Improve:
-                  </Typography>
-                  <List dense>
-                    {soil.improvements.map((imp, i) => (
-                      <ListItem key={i} sx={{ py: 0 }}>
-                        <ListItemIcon sx={{ minWidth: 30 }}>
-                          <CheckCircleIcon fontSize="small" color="success" />
-                        </ListItemIcon>
-                        <ListItemText primary={imp} primaryTypographyProps={{ variant: 'body2' }} />
-                      </ListItem>
-                    ))}
-                  </List>
-
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
-                    {t('infohub.soilTypes.bestFor', 'Best For')}:
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
-                    {soilBestFor.map((plantName, i) => {
-                      const plantId = findPlantIdByName(plantName);
-                      return (
-                        <Chip
-                          key={i}
-                          label={plantName}
-                          size="small"
-                          color="success"
-                          variant="outlined"
-                          onClick={plantId ? () => navigate(`/infohub/plants/${plantId}`) : undefined}
-                          sx={{
-                            cursor: plantId ? 'pointer' : 'default',
-                            '&:hover': plantId ? {
-                              backgroundColor: theme.palette.success.light,
-                              color: theme.palette.success.contrastText,
-                            } : {},
-                          }}
-                        />
-                      );
-                    })}
-                  </Box>
-
-                  {soilOrigin && (
-                    <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                        🌍 <strong>{t('infohub.soilTypes.origin', 'Origin')}:</strong> {soilOrigin}
-                      </Typography>
-                    </Box>
-                  )}
                 </Paper>
               );
               })}
