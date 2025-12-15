@@ -27,6 +27,11 @@ class Profile(models.Model):
     blocked_users = models.ManyToManyField('self', symmetrical=False, related_name='blocked_by', blank=True)
     receives_notifications = models.BooleanField(default=True)
     is_private = models.BooleanField(default=False)
+    is_suspended = models.BooleanField(default=False)
+    is_banned = models.BooleanField(default=False)
+    suspension_reason = models.TextField(blank=True, null=True)
+    ban_reason = models.TextField(blank=True, null=True)
+    suspended_until = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -67,6 +72,8 @@ class Garden(models.Model):
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     is_public = models.BooleanField(default=True)
+    is_hidden = models.BooleanField(default=False)
+    hidden_reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -295,7 +302,9 @@ class Report(models.Model):
         ('other', 'Other'),
     ]
 
-    reporter = models.ForeignKey(User, on_delete=models.CASCADE)
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports_made')
+    reported_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports_received', null=True, blank=True)
+
     
     # Generic relation (can point to ForumPost or Comment)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)

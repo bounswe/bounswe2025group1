@@ -522,9 +522,9 @@ const Profile = () => {
                   targetUserId={parseInt(userId)}
                   iconOnly
                 />
-                {user && (
-                  <Tooltip title={t('report.reportUser')}>
-                    <IconButton onClick={() => setReportOpen(true)} color="primary">
+                {user && !isOwnProfile && (
+                  <Tooltip title={t('report.reportUser', 'Report User')}>
+                    <IconButton onClick={() => setReportOpen(true)} color="default">
                       <FlagIcon />
                     </IconButton>
                   </Tooltip>
