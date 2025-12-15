@@ -206,18 +206,6 @@ const ToolGuide = () => {
 
               return (
                 <Card key={tool.id} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <Box
-                    sx={{
-                      height: 100,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: theme.palette.action.hover,
-                      fontSize: '3.5rem',
-                    }}
-                  >
-                    {tool.image}
-                  </Box>
                   <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                       {toolName}
