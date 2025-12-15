@@ -668,41 +668,69 @@ const ModerationDashboard = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        {t('moderation.title', 'Moderation Dashboard')}
-      </Typography>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%',
+        overflow: 'hidden',
+      }}
+    >
+      <Container
+        maxWidth="lg"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          py: 2,
+          px: { xs: 2, sm: 3 },
+          overflow: 'hidden',
+        }}
+      >
+        <Typography variant="h4" sx={{ mb: 2, flexShrink: 0 }}>
+          {t('moderation.title', 'Moderation Dashboard')}
+        </Typography>
 
-      <Paper sx={{ mb: 3 }}>
-        <Tabs
-          value={filter}
-          onChange={(e, newValue) => setFilter(newValue)}
-          indicatorColor="primary"
-          textColor="primary"
-          centered
-        >
-          <Tab label={t('moderation.pending', 'Pending Reviews')} value="pending" />
-          <Tab label={t('moderation.reviewed', 'Reviewed History')} value="reviewed" />
-        </Tabs>
-      </Paper>
+        <Paper sx={{ mb: 2, flexShrink: 0 }}>
+          <Tabs
+            value={filter}
+            onChange={(e, newValue) => setFilter(newValue)}
+            indicatorColor="primary"
+            textColor="primary"
+            centered
+          >
+            <Tab label={t('moderation.pending', 'Pending Reviews')} value="pending" />
+            <Tab label={t('moderation.reviewed', 'Reviewed History')} value="reviewed" />
+          </Tabs>
+        </Paper>
 
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 300px)', boxShadow: 2 }}>
-          <Table stickyHeader sx={{ minWidth: 1200 }}>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <TableContainer
+            component={Paper}
+            sx={{
+              flex: 1,
+              overflow: 'auto',
+              boxShadow: 2,
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <Table stickyHeader sx={{ width: '100%' }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.date', 'Date')}</TableCell>
-                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.reporter', 'Reporter')}</TableCell>
-                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.reported', 'Reported')}</TableCell>
-                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.type', 'Type')}</TableCell>
-                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.reason', 'Reason')}</TableCell>
-                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', minWidth: 200, py: 2 }}>{t('moderation.description', 'Description')}</TableCell>
-                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 2 }}>{t('moderation.status', 'Status')}</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600, bgcolor: 'background.paper', minWidth: 180, py: 2 }}>{t('moderation.actions', 'Actions')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 1.5, fontSize: '0.875rem' }}>{t('moderation.date', 'Date')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 1.5, fontSize: '0.875rem' }}>{t('moderation.reporter', 'Reporter')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 1.5, fontSize: '0.875rem' }}>{t('moderation.reported', 'Reported')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 1.5, fontSize: '0.875rem' }}>{t('moderation.type', 'Type')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 1.5, fontSize: '0.875rem' }}>{t('moderation.reason', 'Reason')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', minWidth: 150, maxWidth: 200, py: 1.5, fontSize: '0.875rem' }}>{t('moderation.description', 'Description')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', py: 1.5, fontSize: '0.875rem' }}>{t('moderation.status', 'Status')}</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, bgcolor: 'background.paper', minWidth: 160, py: 1.5, fontSize: '0.875rem' }}>{t('moderation.actions', 'Actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -719,7 +747,7 @@ const ModerationDashboard = () => {
                     sx={{ 
                       '&:hover': { bgcolor: 'action.hover' },
                       transition: 'background-color 0.2s',
-                      '& td': { py: 1.5 }
+                      '& td': { py: 1, fontSize: '0.875rem' }
                     }}
                   >
                     <TableCell>
@@ -772,12 +800,13 @@ const ModerationDashboard = () => {
                         <Typography 
                           variant="body2" 
                           sx={{ 
-                            maxWidth: 250, 
+                            maxWidth: 180, 
                             overflow: 'hidden', 
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap',
                             color: report.description ? 'text.primary' : 'text.secondary',
-                            fontStyle: report.description ? 'normal' : 'italic'
+                            fontStyle: report.description ? 'normal' : 'italic',
+                            fontSize: '0.875rem'
                           }}
                         >
                           {report.description || t('moderation.noDescription', 'No description')}
@@ -801,8 +830,8 @@ const ModerationDashboard = () => {
                         />
                       )}
                     </TableCell>
-                    <TableCell align="right" sx={{ minWidth: 200 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 0.5 }}>
+                    <TableCell align="right" sx={{ minWidth: 160 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
                         {/* View Button - Always visible */}
                         <Tooltip title={t('moderation.view', 'View')}>
                           <IconButton
@@ -855,15 +884,15 @@ const ModerationDashboard = () => {
                                     <BlockIcon fontSize="small" />
                                   </IconButton>
                                 </Tooltip>
-                                <Tooltip title={t('moderation.dismiss', 'Dismiss')}>
+                                <Tooltip title={t('moderation.reject', 'Reject')}>
                                   <IconButton
                                     size="small"
-                                    color="default"
+                                    color="error"
                                     onClick={() => setReviewDialog({ open: true, report, isValid: false })}
                                     sx={{ 
                                       border: '1px solid',
-                                      borderColor: 'divider',
-                                      '&:hover': { bgcolor: 'action.hover' }
+                                      borderColor: 'error.main',
+                                      '&:hover': { bgcolor: 'error.light' }
                                     }}
                                   >
                                     <CancelIcon fontSize="small" />
@@ -900,15 +929,15 @@ const ModerationDashboard = () => {
                                     <DeleteIcon fontSize="small" />
                                   </IconButton>
                                 </Tooltip>
-                                <Tooltip title={t('moderation.dismiss', 'Dismiss')}>
+                                <Tooltip title={t('moderation.reject', 'Reject')}>
                                   <IconButton
                                     size="small"
-                                    color="default"
+                                    color="error"
                                     onClick={() => setReviewDialog({ open: true, report, isValid: false })}
                                     sx={{ 
                                       border: '1px solid',
-                                      borderColor: 'divider',
-                                      '&:hover': { bgcolor: 'action.hover' }
+                                      borderColor: 'error.main',
+                                      '&:hover': { bgcolor: 'error.light' }
                                     }}
                                   >
                                     <CancelIcon fontSize="small" />
@@ -931,15 +960,15 @@ const ModerationDashboard = () => {
                                     <CheckCircleIcon fontSize="small" />
                                   </IconButton>
                                 </Tooltip>
-                                <Tooltip title={t('moderation.dismiss', 'Dismiss')}>
+                                <Tooltip title={t('moderation.reject', 'Reject')}>
                                   <IconButton
                                     size="small"
-                                    color="default"
+                                    color="error"
                                     onClick={() => setReviewDialog({ open: true, report, isValid: false })}
                                     sx={{ 
                                       border: '1px solid',
-                                      borderColor: 'divider',
-                                      '&:hover': { bgcolor: 'action.hover' }
+                                      borderColor: 'error.main',
+                                      '&:hover': { bgcolor: 'error.light' }
                                     }}
                                   >
                                     <CancelIcon fontSize="small" />
@@ -1001,7 +1030,8 @@ const ModerationDashboard = () => {
             </TableBody>
           </Table>
         </TableContainer>
-      )}
+        )}
+      </Container>
 
       <Dialog
         open={reviewDialog.open}
@@ -1228,7 +1258,7 @@ const ModerationDashboard = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 };
 

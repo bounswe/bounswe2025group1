@@ -22,12 +22,14 @@ import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import FlagIcon from '@mui/icons-material/Flag';
 
 import { useAuth } from '../contexts/AuthContextUtils';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ImageGallery from './ImageGallery';
 import { toast } from 'react-toastify';
+import ReportDialog from './ReportDialog';
 
 const formatTimeAgo = (dateString, t) => {
   const date = new Date(dateString);
@@ -49,7 +51,7 @@ const CommentItem = ({
   const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   // --- LOCAL STATE FOR THIS COMMENT ---
   const [isLiked, setIsLiked] = useState(comment.is_liked || false);
@@ -60,6 +62,9 @@ const CommentItem = ({
   const [likesDialogOpen, setLikesDialogOpen] = useState(false);
   const [likedUsers, setLikedUsers] = useState([]);
   const [loadingLikes, setLoadingLikes] = useState(false);
+  
+  // --- REPORT STATE ---
+  const [reportConfig, setReportConfig] = useState({ open: false, type: null, id: null });
 
   // --- LIKE TOGGLE LOGIC ---
   const handleToggleLike = async () => {
@@ -236,6 +241,24 @@ const CommentItem = ({
               {likesCount} {likesCount === 1 ? t('forum.like', 'Like') : t('forum.likes', 'Likes')}
             </Typography>
           )}
+
+          {/* 4. Report Button - Only show if user is logged in and not the comment author */}
+          {user && comment.author !== user.id && (
+            <Tooltip title={t('report.reportComment', 'Report Comment')}>
+              <IconButton
+                size="small"
+                onClick={() => setReportConfig({ open: true, type: 'comment', id: comment.id })}
+                sx={{ 
+                  ml: 0.5,
+                  opacity: 0.6,
+                  '&:hover': { opacity: 1 },
+                  color: 'text.secondary'
+                }}
+              >
+                <FlagIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
       </Box>
 
@@ -261,6 +284,14 @@ const CommentItem = ({
         </DialogContent>
         <DialogActions><Button onClick={() => setLikesDialogOpen(false)} size="small">{t('common.close')}</Button></DialogActions>
       </Dialog>
+
+      {/* --- REPORT DIALOG --- */}
+      <ReportDialog
+        open={reportConfig.open}
+        onClose={() => setReportConfig({ ...reportConfig, open: false })}
+        contentType={reportConfig.type}
+        objectId={reportConfig.id}
+      />
     </Box>
   );
 };

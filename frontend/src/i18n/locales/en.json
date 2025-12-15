@@ -854,6 +854,7 @@
     "invalid": "Invalid (Kept)",
     "accept": "Accept",
     "dismiss": "Dismiss",
+    "reject": "Reject",
     "view": "View",
     "suspend": "Suspend",
     "ban": "Ban",
