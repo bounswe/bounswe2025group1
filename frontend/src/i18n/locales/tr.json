@@ -60,7 +60,31 @@
       "loginError": "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.",
       "loginFailed": "Giriş başarısız",
       "welcomeBack": "Bahçeye tekrar hoş geldiniz!",
-      "failedToLogin": "Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin."
+      "failedToLogin": "Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.",
+      "otpRequired": "Yeni cihaz algılandı. Doğrulama kodu için e-postanızı kontrol edin.",
+      "errors": {
+        "tooManyAttempts": "Çok fazla giriş denemesi. Lütfen daha sonra tekrar deneyin."
+      }
+    },
+    "otp": {
+      "title": "Cihazınızı Doğrulayın",
+      "instructions": "E-postanıza 6 haneli bir kod gönderdik. Bu cihazı doğrulamak için lütfen aşağıya girin.",
+      "device": "Cihaz",
+      "codeLabel": "Doğrulama Kodu",
+      "trustDevice": "Bu cihaza güven (bir dahaki sefere doğrulamayı atla)",
+      "verify": "Doğrula",
+      "verifying": "Doğrulanıyor...",
+      "backToLogin": "Girişe Dön",
+      "invalidCode": "Lütfen geçerli bir 6 haneli kod girin",
+      "verificationFailed": "Doğrulama başarısız. Lütfen kodunuzu kontrol edin.",
+      "verificationError": "Kod doğrulanırken hata oluştu. Lütfen tekrar deneyin.",
+      "verificationSuccess": "Cihaz başarıyla doğrulandı!",
+      "success": "Başarılı",
+      "tooManyAttempts": "Çok fazla doğrulama denemesi. Lütfen daha sonra tekrar deneyin.",
+      "errors": {
+        "invalidCode": "Lütfen 6 haneli bir kod girin",
+        "verificationFailed": "Geçersiz veya süresi dolmuş doğrulama kodu"
+      }
     },
     "forgotPassword": {
       "title": "Şifrenizi mi unuttunuz?",

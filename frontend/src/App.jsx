@@ -20,6 +20,7 @@ import ChatWidget from './components/ChatWidget';
 import Home from './pages/home/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import VerifyOTP from './pages/auth/VerifyOTP';
 import GardenList from './pages/garden/GardenList';
 import GardenDetail from './pages/garden/GardenDetail';
 import ForumList from './pages/forum/ForumList';
@@ -84,6 +85,7 @@ function AppContent() {
                 <Route path="/" element={<Home />} />
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/register" element={<Register />} />
+                <Route path="/auth/verify-otp" element={<VerifyOTP />} />
                 <Route path="/gardens" element={<GardenList />} />
                 <Route path="/gardens/:gardenId" element={<GardenDetail />} />
                 <Route path="/tasks" element={<Tasks />} />

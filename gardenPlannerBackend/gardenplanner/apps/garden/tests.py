@@ -224,17 +224,225 @@ class APITests(APITestCase):
         self.assertEqual(user.profile.location, 'New Location')
 
     def test_login(self):
-        """Test user login"""
-        url = reverse('garden:login')
-        data = {
-            'username': 'testuser',
-            'password': 'testpassword'
-        }
+        """Test user login with trusted device"""
+        # Create a trusted device fingerprint to bypass OTP
+        from .models import DeviceFingerprint
         
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue('token' in response.data)
-        self.assertEqual(response.data['username'], 'testuser')
+        # Create a device fingerprint with a test device identifier
+        # In real scenario, this would be generated from the request's User-Agent
+        test_device_id = 'test_device_12345'
+        DeviceFingerprint.objects.create(
+            user=self.user,
+            device_identifier=test_device_id,
+            device_name='Test Device',
+            ip_address='127.0.0.1',
+            is_trusted=True
+        )
+        
+        # Mock the request to have the same device identifier
+        from unittest.mock import patch
+        with patch('gardenplanner.apps.garden.views.userauth.get_device_identifier', return_value=test_device_id):
+            url = reverse('garden:login')
+            data = {
+                'username': 'testuser',
+                'password': 'testpassword'
+            }
+            
+            response = self.client.post(url, data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertTrue('token' in response.data)
+            self.assertEqual(response.data['username'], 'testuser')
+        def test_login_new_device_requires_otp(self):
+            """Test login from new device requires OTP"""
+            from unittest.mock import patch, MagicMock
+        
+            test_device_id = 'new_device_67890'
+        
+            # Mock the device identifier and email sending
+            with patch('gardenplanner.apps.garden.views.userauth.get_device_identifier', return_value=test_device_id), \
+                 patch('gardenplanner.apps.garden.views.userauth.send_mail') as mock_send_mail:
+            
+                url = reverse('garden:login')
+                data = {
+                    'username': 'testuser',
+                    'password': 'testpassword'
+                }
+            
+                response = self.client.post(url, data, format='json')
+            
+                # Should return 202 and indicate OTP is required
+                self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+                self.assertTrue(response.data['otp_required'])
+                self.assertEqual(response.data['device_identifier'], test_device_id)
+                self.assertIn('device_name', response.data)
+            
+                # Verify OTP email was sent
+                mock_send_mail.assert_called_once()
+            
+                # Verify LoginOTP was created
+                from .models import LoginOTP
+                otp = LoginOTP.objects.filter(user=self.user, device_identifier=test_device_id).first()
+                self.assertIsNotNone(otp)
+                self.assertFalse(otp.is_used)
+    
+        def test_verify_otp_success(self):
+            """Test successful OTP verification"""
+            from .models import LoginOTP, DeviceFingerprint
+            from django.utils import timezone
+            from datetime import timedelta
+        
+            test_device_id = 'test_device_otp_123'
+            otp_code = '123456'
+        
+            # Create an OTP for the user
+            LoginOTP.objects.create(
+                user=self.user,
+                otp_code=otp_code,
+                device_identifier=test_device_id,
+                ip_address='127.0.0.1',
+                expires_at=timezone.now() + timedelta(minutes=10)
+            )
+        
+            url = reverse('garden:verify-otp')
+            data = {
+                'username': 'testuser',
+                'otp_code': otp_code,
+                'device_identifier': test_device_id,
+                'trust_device': False
+            }
+        
+            response = self.client.post(url, data, format='json')
+        
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertTrue('token' in response.data)
+            self.assertEqual(response.data['username'], 'testuser')
+        
+            # Verify OTP is marked as used
+            otp = LoginOTP.objects.get(user=self.user, device_identifier=test_device_id)
+            self.assertTrue(otp.is_used)
+        
+            # Verify device was NOT trusted
+            device = DeviceFingerprint.objects.filter(user=self.user, device_identifier=test_device_id).first()
+            self.assertIsNone(device)
+    
+        def test_verify_otp_with_trust_device(self):
+            """Test OTP verification with trust device option"""
+            from .models import LoginOTP, DeviceFingerprint
+            from django.utils import timezone
+            from datetime import timedelta
+        
+            test_device_id = 'test_device_trust_456'
+            otp_code = '654321'
+        
+            # Create an OTP for the user
+            LoginOTP.objects.create(
+                user=self.user,
+                otp_code=otp_code,
+                device_identifier=test_device_id,
+                ip_address='127.0.0.1',
+                expires_at=timezone.now() + timedelta(minutes=10)
+            )
+        
+            url = reverse('garden:verify-otp')
+            data = {
+                'username': 'testuser',
+                'otp_code': otp_code,
+                'device_identifier': test_device_id,
+                'trust_device': True
+            }
+        
+            response = self.client.post(url, data, format='json')
+        
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertTrue('token' in response.data)
+        
+            # Verify device was trusted
+            device = DeviceFingerprint.objects.filter(user=self.user, device_identifier=test_device_id).first()
+            self.assertIsNotNone(device)
+            self.assertTrue(device.is_trusted)
+    
+        def test_verify_otp_invalid_code(self):
+            """Test OTP verification with invalid code"""
+            from .models import LoginOTP
+            from django.utils import timezone
+            from datetime import timedelta
+        
+            test_device_id = 'test_device_invalid_789'
+            otp_code = '111111'
+        
+            # Create an OTP for the user
+            LoginOTP.objects.create(
+                user=self.user,
+                otp_code=otp_code,
+                device_identifier=test_device_id,
+                ip_address='127.0.0.1',
+                expires_at=timezone.now() + timedelta(minutes=10)
+            )
+        
+            url = reverse('garden:verify-otp')
+            data = {
+                'username': 'testuser',
+                'otp_code': '999999',  # Wrong code
+                'device_identifier': test_device_id,
+                'trust_device': False
+            }
+        
+            response = self.client.post(url, data, format='json')
+        
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn('error', response.data)
+    
+        def test_verify_otp_expired_code(self):
+            """Test OTP verification with expired code"""
+            from .models import LoginOTP
+            from django.utils import timezone
+            from datetime import timedelta
+        
+            test_device_id = 'test_device_expired_999'
+            otp_code = '222222'
+        
+            # Create an expired OTP
+            LoginOTP.objects.create(
+                user=self.user,
+                otp_code=otp_code,
+                device_identifier=test_device_id,
+                ip_address='127.0.0.1',
+                expires_at=timezone.now() - timedelta(minutes=1)  # Expired
+            )
+        
+            url = reverse('garden:verify-otp')
+            data = {
+                'username': 'testuser',
+                'otp_code': otp_code,
+                'device_identifier': test_device_id,
+                'trust_device': False
+            }
+        
+            response = self.client.post(url, data, format='json')
+        
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn('error', response.data)
+    
+        def test_verify_otp_missing_fields(self):
+            """Test OTP verification with missing required fields"""
+            url = reverse('garden:verify-otp')
+        
+            # Missing otp_code
+            data = {
+                'username': 'testuser',
+                'device_identifier': 'some_device'
+            }
+            response = self.client.post(url, data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+            # Missing device_identifier
+            data = {
+                'username': 'testuser',
+                'otp_code': '123456'
+            }
+            response = self.client.post(url, data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
     
     def test_logout(self):
         """Test user logout"""
