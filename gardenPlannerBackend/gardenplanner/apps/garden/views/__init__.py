@@ -99,9 +99,12 @@ __all__ = [
     "TaskUpdateView",
     # Event Views
     "GardenEventViewSet",
-    # Report Vİews
+    # Report Views
     "ReportViewSet",
     "AdminReportViewSet",
+    # Badge Views
+    "BadgeListView",
+    "UserBadgeListView",
     # Impact Summary Views
     "UserImpactSummaryView",
     # Other Views
