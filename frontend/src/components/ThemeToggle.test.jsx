@@ -27,6 +27,22 @@ vi.mock('../contexts/ThemeContext', () => ({
   ThemeProvider: ({ children }) => <div>{children}</div>,
 }));
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key) => {
+      const translations = {
+        'theme.changeTheme': 'Change theme',
+        'theme.chooseTheme': 'Choose Theme',
+        'theme.light': 'Light Mode',
+        'theme.dark': 'Dark Mode',
+        'theme.highContrast': 'High Contrast',
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
+
 describe('ThemeToggle', () => {
   beforeEach(() => {
     vi.clearAllMocks();
