@@ -42,23 +42,23 @@ describe('InfohubDetail Component', () => {
   });
 
   describe('Rendering', () => {
-    test('renders heading and navigation buttons for plant-care', () => {
-      useParams.mockReturnValue({ categoryId: 'plant-care' });
+    test('renders heading and navigation buttons for gardening-basics', () => {
+      useParams.mockReturnValue({ categoryId: 'gardening-basics' });
       render(<InfohubDetail />);
 
       // heading exists (title is translation-driven; do not assert exact text)
-      expect(screen.getAllByRole('heading').length).toBeGreaterThan(0);
+      expect(screen.getByTestId('infohub-detail-title')).toBeInTheDocument();
 
       // back button should be present
       expect(screen.getByRole('button', { name: /back to all categories/i })).toBeInTheDocument();
     });
 
     test('renders heading for other categories without asserting exact title', () => {
-      const categoryIds = ['pest-disease', 'soil-composting', 'gardening-calendar', 'tools-techniques', 'sustainable-gardening'];
+      const categoryIds = ['gardening-basics', 'soil-types', 'tool-guide', 'community-rules-safety', 'faq', 'support'];
       for (const id of categoryIds) {
         useParams.mockReturnValue({ categoryId: id });
         const { unmount } = render(<InfohubDetail />);
-        expect(screen.getAllByRole('heading').length).toBeGreaterThan(0);
+        expect(screen.getByTestId('infohub-detail-title')).toBeInTheDocument();
         unmount();
       }
     });
@@ -66,7 +66,7 @@ describe('InfohubDetail Component', () => {
 
   describe('Navigation', () => {
     test('navigates back to infohub home when back button is clicked', () => {
-      useParams.mockReturnValue({ categoryId: 'plant-care' });
+      useParams.mockReturnValue({ categoryId: 'gardening-basics' });
       render(<InfohubDetail />);
 
       const backButton = screen.getByText('Back');
@@ -76,10 +76,10 @@ describe('InfohubDetail Component', () => {
     });
 
     test('navigates back to infohub home when back to categories button is clicked', () => {
-      useParams.mockReturnValue({ categoryId: 'pest-disease' });
+      useParams.mockReturnValue({ categoryId: 'gardening-basics' });
       render(<InfohubDetail />);
 
-      const backToCategoriesButton = screen.getByText('Back to All Categories');
+      const backToCategoriesButton = screen.getByTestId('back-to-infohub-button');
       fireEvent.click(backToCategoriesButton);
 
       expect(mockNavigate).toHaveBeenCalledWith('/infohub');
