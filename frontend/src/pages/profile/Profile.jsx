@@ -803,7 +803,7 @@ const Profile = () => {
                           color="text.secondary"
                           sx={{ py: 3, textAlign: 'center' }}
                         >
-                          {t('Create your first garden to see it here!')}
+                          {t('profile.noGardensYet')}
                         </Typography>
                       )}
                     </>
@@ -859,7 +859,7 @@ const Profile = () => {
                           color="text.secondary"
                           sx={{ py: 3, textAlign: 'center' }}
                         >
-                          {t('Your followers will appear here. Start engaging with the community to gain followers!')}
+                          {t('profile.noFollowersYet')}
                         </Typography>
                       )}
                     </>
@@ -906,7 +906,7 @@ const Profile = () => {
                           color="text.secondary"
                           sx={{ py: 3, textAlign: 'center' }}
                         >
-                          {t('Follow other users to see them here!')}
+                          {t('profile.notFollowingAnyoneYet')}
                         </Typography>
                       )}
                     </>

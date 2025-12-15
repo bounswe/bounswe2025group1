@@ -365,7 +365,10 @@
     "userNotFound": "Kullanıcı bulunamadı",
     "failedToUpdateFollowStatus": "Takip durumu güncellenemedi",
     "failedToUpdateProfile": "Profil güncellenemedi",
-    "receiveNotifications": "Bildirimleri almak istiyorum"
+    "receiveNotifications": "Bildirimleri almak istiyorum",
+    "noGardensYet": "İlk bahçenizi oluşturun ve burada görün!",
+    "noFollowersYet": "Takipçileriniz burada görünecek. Takipçi kazanmak için toplulukla etkileşime geçmeye başlayın!"
+
   },
   "badges": {
     "names": {
