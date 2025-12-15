@@ -58,6 +58,34 @@ def _send_notification(notification_receiver, notification_title, notification_m
     )
 
 
+from django.utils import timezone
+
+@receiver(pre_save, sender=Task)
+def auto_populate_task_timestamps(sender, instance, **kwargs):
+    """
+    Automatically populate accepted_at and completed_at timestamps
+    when task status changes to ACCEPTED or COMPLETED.
+    """
+    if instance.pk is None:
+        # New task, no previous status to compare
+        return
+    
+    try:
+        old_instance = Task.objects.get(pk=instance.pk)
+    except Task.DoesNotExist:
+        return
+    
+    # Set accepted_at when status changes to ACCEPTED (and wasn't already set)
+    if old_instance.status != 'ACCEPTED' and (instance.status != 'PENDING' or instance.status != 'DECLINED'):
+        if instance.accepted_at is None:
+            instance.accepted_at = timezone.now()
+    
+    # Set completed_at when status changes to COMPLETED
+    if old_instance.status != 'COMPLETED' and instance.status == 'COMPLETED':
+        if instance.completed_at is None:
+            instance.completed_at = timezone.now()
+
+
 @receiver(post_save, sender=Task)
 def task_update_notification(sender, instance, created, update_fields, **kwargs):
     """
@@ -288,6 +316,27 @@ def award_badge(user, badge_key):
         return
     if not UserBadge.objects.filter(user=user, badge=badge).exists():
         UserBadge.objects.create(user=user, badge=badge)
+
+
+@receiver(post_save, sender=UserBadge)
+def badge_awarded_notification(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    user = instance.user
+    badge = instance.badge
+
+    message = f"🎉 You earned a new badge: {badge.name}!"
+
+    _send_notification(
+        notification_receiver=user,
+        notification_title="New Badge Earned!",
+        notification_message=message,
+        notification_category=NotificationCategory.BADGE,
+        link="/profile",  # adjust if needed
+        send_push_notification=True
+    )
+
 
 
 @receiver(post_save, sender=Task)

@@ -152,6 +152,13 @@ class Task(models.Model):
         ('MAINTENANCE', 'Maintenance'),
         ('CUSTOM', 'Custom'),
     ]
+
+    RECURRENCE_PERIOD_CHOICES = [
+        ('DAILY', 'Daily'),
+        ('WEEKLY', 'Weekly'),
+        ('MONTHLY', 'Monthly'),
+        ('YEARLY', 'Yearly'),
+    ]
     
     garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='tasks')
     title = models.CharField(max_length=100)
@@ -162,11 +169,52 @@ class Task(models.Model):
     assigned_to = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     due_date = models.DateTimeField(null=True, blank=True)
+    
+    # Recurring task fields
+    is_recurring = models.BooleanField(default=False)
+    recurrence_period = models.CharField(max_length=20, choices=RECURRENCE_PERIOD_CHOICES, null=True, blank=True)
+    recurrence_end_date = models.DateTimeField(null=True, blank=True, help_text="When to stop generating recurring instances")
+    parent_task = models.ForeignKey('self', on_delete=models.CASCADE, related_name='recurring_instances', null=True, blank=True, help_text="Parent task template for recurring tasks")
+    
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.title
+    
+    def is_parent_task(self):
+        """Check if this task is a parent recurring task template"""
+        return self.is_recurring and self.parent_task is None
+    
+    def get_next_due_date(self):
+        """Calculate the next due date based on recurrence period"""
+        if not self.is_recurring or not self.recurrence_period or not self.due_date:
+            return None
+        
+        from datetime import timedelta
+        from django.utils import timezone
+        
+        current_due = self.due_date
+        if isinstance(current_due, str):
+            from django.utils.dateparse import parse_datetime
+            current_due = parse_datetime(current_due)
+        
+        if not current_due:
+            return None
+        
+        period_map = {
+            'DAILY': timedelta(days=1),
+            'WEEKLY': timedelta(weeks=1),
+            'MONTHLY': timedelta(days=30),  # Approximate month
+            'YEARLY': timedelta(days=365),
+        }
+        
+        delta = period_map.get(self.recurrence_period)
+        if delta:
+            return current_due + delta
+        return None
 
 
 class ForumPost(models.Model):
@@ -278,6 +326,7 @@ class NotificationCategory(models.TextChoices):
     SOCIAL = 'SOCIAL', 'Social Activity'
     FORUM = 'FORUM', 'Forum Activity'
     WEATHER = 'WEATHER', 'Weather Alert'
+    BADGE = "BADGE", "Badge"
     # Add other categories as needed
 
 class Notification(models.Model):
@@ -386,4 +435,47 @@ class UserBadge(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.badge.name}"
+
+
+class DeviceFingerprint(models.Model):
+    """Track trusted devices for device-based 2FA"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='devices')
+    device_name = models.CharField(max_length=255)  # e.g., "Chrome on Windows"
+    device_identifier = models.CharField(max_length=255)  # Hash of browser fingerprint
+    ip_address = models.GenericIPAddressField()
+    is_trusted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'device_identifier')
+        indexes = [
+            models.Index(fields=['user', 'device_identifier']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.device_name}"
+
+
+class LoginOTP(models.Model):
+    """Store OTP codes for new device verification"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    otp_code = models.CharField(max_length=6)
+    device_identifier = models.CharField(max_length=255)
+    ip_address = models.GenericIPAddressField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'device_identifier', 'is_used']),
+        ]
+    
+    def is_valid(self):
+        from django.utils import timezone
+        return not self.is_used and timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"OTP for {self.user.username}"
 

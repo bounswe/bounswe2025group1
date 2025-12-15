@@ -95,6 +95,10 @@ CORS_ALLOWED_ORIGINS = [
     "https://localhost:5173",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://communitygarden.app",
+]
+
 ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
@@ -187,6 +191,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '5/minute',
+    }
 }
 
 

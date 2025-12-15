@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('garden', '0020_forumpost_best_answer'),
+        ('garden', '0023_add_task_timestamps'),
     ]
 
     operations = [

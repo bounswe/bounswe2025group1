@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("garden", "0022_garden_hide_fields"),
+        ("garden", "0025_garden_hide_fields"),
     ]
 
     operations = [

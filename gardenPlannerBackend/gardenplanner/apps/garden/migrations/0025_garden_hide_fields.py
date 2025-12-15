@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('garden', '0021_profile_suspension_ban_fields'),
+        ('garden', '0024_profile_suspension_ban_fields'),
     ]
 
     operations = [

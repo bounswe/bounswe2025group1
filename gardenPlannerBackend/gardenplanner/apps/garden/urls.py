@@ -34,6 +34,7 @@ urlpatterns = [
     # Authentication endpoints
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
+    path('verify-otp/', views.VerifyLoginOTPView.as_view(), name='verify-otp'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('password-reset/', views.PasswordResetAPIView.as_view(), name='password_reset'),
     path('reset/<uidb64>/<token>/', views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
@@ -59,6 +60,9 @@ urlpatterns = [
     # Badge endpoints
     path('badges/', views.BadgeListView.as_view(), name='badge-list'),
     path('user/<int:user_id>/badges/', views.UserBadgeListView.as_view(), name='user-badges'),
+
+    # Impact Summary endpoint
+    path('user/<int:user_id>/impact-summary/', views.UserImpactSummaryView.as_view(), name='user-impact-summary'),
 
     # Like toggle endpoints
     path('forum-posts/<int:pk>/like/', views.ForumPostLikeToggleView.as_view(), name='forum-post-like'),
