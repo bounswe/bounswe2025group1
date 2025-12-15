@@ -33,6 +33,7 @@ import { Switch, FormControlLabel, IconButton, Tooltip } from '@mui/material';
 import { ALL_BADGES } from '../../components/GardenBadges';
 import ReportDialog from '../../components/ReportDialog';
 import FlagIcon from '@mui/icons-material/Flag';
+import ImpactSummaryTab from '../../components/ImpactSummaryTab';
 
 const Profile = () => {
   const { t, i18n } = useTranslation();
@@ -485,36 +486,45 @@ const Profile = () => {
               {profile.username}
             </Typography>
 
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
               {profile.profile?.location ? translateLocationString(profile.profile.location, i18n.language) : t('profile.noLocationSet')}
             </Typography>
 
+            {profile.profile?.created_at && (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {t('profile.memberSince')}: {new Date(profile.profile.created_at).toLocaleDateString(i18n.language, {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </Typography>
+            )}
+
             {!isOwnProfile && (
               <Box sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center' }}>
-                <Button
-                  variant={isFollowing ? 'outlined' : 'contained'}
-                  color={isFollowing ? 'error' : 'primary'}
-                  startIcon={isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
-                  onClick={handleFollowToggle}
-                  onKeyDown={createButtonKeyboardHandler(handleFollowToggle)}
-                  sx={{
-                    '&:focus': {
-                      outline: '2px solid #558b2f',
-                      outlineOffset: '2px',
-                    },
-                  }}
-                  aria-label={isFollowing ? t('profile.unfollowUser') : t('profile.followUser')}
-                >
-                  {isFollowing ? t('profile.unfollow') : t('profile.follow')}
-                </Button>
+                <Tooltip title={isFollowing ? t('profile.unfollowUser') : t('profile.followUser')}>
+                  <IconButton
+                    onClick={handleFollowToggle}
+                    onKeyDown={createButtonKeyboardHandler(handleFollowToggle)}
+                    color="primary"
+                    sx={{
+                      '&:focus': {
+                        outline: '2px solid #558b2f',
+                        outlineOffset: '2px',
+                      },
+                    }}
+                    aria-label={isFollowing ? t('profile.unfollowUser') : t('profile.followUser')}
+                  >
+                    {isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
+                  </IconButton>
+                </Tooltip>
                 <DirectMessageButton
                   targetUserId={parseInt(userId)}
-                  variant="contained"
-                  size="medium"
+                  iconOnly
                 />
                 {user && (
                   <Tooltip title={t('report.reportUser')}>
-                    <IconButton onClick={() => setReportOpen(true)} color="default">
+                    <IconButton onClick={() => setReportOpen(true)} color="primary">
                       <FlagIcon />
                     </IconButton>
                   </Tooltip>
@@ -672,7 +682,7 @@ const Profile = () => {
                           setTabValue(1);
                         } else if (e.key === 'ArrowLeft') {
                           e.preventDefault();
-                          setTabValue(3);
+                          setTabValue(4);
                         }
                       }}
                       sx={{
@@ -747,10 +757,36 @@ const Profile = () => {
                           setTabValue(3);
                         } else if (e.key === 'ArrowRight') {
                           e.preventDefault();
-                          setTabValue(0);
+                          setTabValue(4);
                         } else if (e.key === 'ArrowLeft') {
                           e.preventDefault();
                           setTabValue(2);
+                        }
+                      }}
+                      sx={{
+                        '&:focus': {
+                          outline: '2px solid #558b2f',
+                          outlineOffset: '2px',
+                        },
+                      }}
+                    />
+                    <Tab
+                      ref={(el) => (tabRefs.current[4] = el)}
+                      label={t('profile.impactSummary')}
+                      id="tab-4"
+                      role="tab"
+                      aria-selected={tabValue === 4}
+                      aria-controls="tabpanel-4"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setTabValue(4);
+                        } else if (e.key === 'ArrowRight') {
+                          e.preventDefault();
+                          setTabValue(0);
+                        } else if (e.key === 'ArrowLeft') {
+                          e.preventDefault();
+                          setTabValue(3);
                         }
                       }}
                       sx={{
@@ -1038,6 +1074,13 @@ const Profile = () => {
                       </Grid>
                     );
                   })()}
+                </Box>
+
+                {/* Impact Summary Tab */}
+                <Box role="tabpanel" hidden={tabValue !== 4} id="tabpanel-4" sx={{ py: 2 }}>
+                  {tabValue === 4 && (
+                    <ImpactSummaryTab userId={userId} />
+                  )}
                 </Box>
               </Box>
             )}

@@ -15,6 +15,7 @@ from .userauth import (
     RegisterView,
     CustomLoginView,
     LogoutView,
+    VerifyLoginOTPView,
     PasswordResetAPIView,
     PasswordResetConfirmView
 )
@@ -53,6 +54,8 @@ from .badge import (
     BadgeListView,
     UserBadgeListView
 )
+
+from .impact_summary import UserImpactSummaryView
 
 
 __all__ = [
@@ -102,6 +105,8 @@ __all__ = [
     # Badge Views
     "BadgeListView",
     "UserBadgeListView",
+    # Impact Summary Views
+    "UserImpactSummaryView",
     # Other Views
     "WeatherDataView",
 ]

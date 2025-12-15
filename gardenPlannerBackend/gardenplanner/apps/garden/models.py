@@ -169,6 +169,8 @@ class Task(models.Model):
     recurrence_end_date = models.DateTimeField(null=True, blank=True, help_text="When to stop generating recurring instances")
     parent_task = models.ForeignKey('self', on_delete=models.CASCADE, related_name='recurring_instances', null=True, blank=True, help_text="Parent task template for recurring tasks")
     
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -315,6 +317,7 @@ class NotificationCategory(models.TextChoices):
     SOCIAL = 'SOCIAL', 'Social Activity'
     FORUM = 'FORUM', 'Forum Activity'
     WEATHER = 'WEATHER', 'Weather Alert'
+    BADGE = "BADGE", "Badge"
     # Add other categories as needed
 
 class Notification(models.Model):
@@ -423,4 +426,47 @@ class UserBadge(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.badge.name}"
+
+
+class DeviceFingerprint(models.Model):
+    """Track trusted devices for device-based 2FA"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='devices')
+    device_name = models.CharField(max_length=255)  # e.g., "Chrome on Windows"
+    device_identifier = models.CharField(max_length=255)  # Hash of browser fingerprint
+    ip_address = models.GenericIPAddressField()
+    is_trusted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'device_identifier')
+        indexes = [
+            models.Index(fields=['user', 'device_identifier']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.device_name}"
+
+
+class LoginOTP(models.Model):
+    """Store OTP codes for new device verification"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    otp_code = models.CharField(max_length=6)
+    device_identifier = models.CharField(max_length=255)
+    ip_address = models.GenericIPAddressField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'device_identifier', 'is_used']),
+        ]
+    
+    def is_valid(self):
+        from django.utils import timezone
+        return not self.is_used and timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"OTP for {self.user.username}"
 

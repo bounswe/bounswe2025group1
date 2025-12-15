@@ -60,7 +60,31 @@
       "welcomeBack": "Welcome back to the garden!",
       "failedToLogin": "Failed to log in. Please check your credentials.",
       "loginSuccess": "Login successful!",
-      "loginError": "Login failed. Please check your credentials."
+      "loginError": "Login failed. Please check your credentials.",
+      "otpRequired": "New device detected. Check your email for verification code.",
+      "errors": {
+        "tooManyAttempts": "Too many login attempts. Please try again later."
+      }
+    },
+    "otp": {
+      "title": "Verify Your Device",
+      "instructions": "We've sent a 6-digit code to your email. Please enter it below to verify this device.",
+      "device": "Device",
+      "codeLabel": "Verification Code",
+      "trustDevice": "Trust this device (skip verification next time)",
+      "verify": "Verify",
+      "verifying": "Verifying...",
+      "backToLogin": "Back to Login",
+      "invalidCode": "Please enter a valid 6-digit code",
+      "verificationFailed": "Verification failed. Please check your code.",
+      "verificationError": "Error verifying code. Please try again.",
+      "verificationSuccess": "Device verified successfully!",
+      "success": "Success",
+      "tooManyAttempts": "Too many verification attempts. Please try again later.",
+      "errors": {
+        "invalidCode": "Please enter a 6-digit code",
+        "verificationFailed": "Invalid or expired verification code"
+      }
     },
     "forgotPassword": {
       "title": "Forgot your password?",
@@ -341,7 +365,31 @@
     "userNotFound": "User not found",
     "failedToUpdateFollowStatus": "Failed to update follow status",
     "failedToUpdateProfile": "Failed to update profile",
-    "receiveNotifications": "I'd like to receive notifications"
+    "receiveNotifications": "I'd like to receive notifications",
+    "noGardensYet": "No gardens yet",
+    "noFollowersYet": "No followers yet",
+    "impactSummary": "Impact",
+    "memberSince": "Member Since",
+    "gardensJoined": "Gardens Joined",
+    "gardensManaged": "Gardens Managed",
+    "tasks": "Tasks",
+    "tasksCompleted": "Tasks Completed",
+    "tasksAssignedBy": "Tasks Assigned By User",
+    "tasksAssignedTo": "Tasks Assigned To User",
+    "taskCompletionRate": "Completion Rate",
+    "avgResponseTime": "Average Response Time",
+    "forum": "Forum",
+    "postsCreated": "Posts Created",
+    "commentsMade": "Comments Made",
+    "likesReceived": "Likes Received",
+    "bestAnswers": "Best Answers",
+    "eventsCreated": "Events Created",
+    "eventsAttended": "Events Attended",
+    "minutes": "minutes",
+    "hours": "hours",
+    "days": "days",
+    "noDataAvailable": "No impact data available",
+    "impactSummaryBlocked": "Cannot view impact summary for this user"
   },
   "badges": {
     "names": {
@@ -623,7 +671,11 @@
     "images": "images",
     "maxImagesReached": "Maximum {{max}} images allowed",
     "fileSizeError": "File size must be less than {{size}}MB",
-    "fileTypeError": "File type not supported. Please use: {{types}}"
+    "fileTypeError": "File type not supported. Please use: {{types}}",
+    "uploadImages": "Upload images",
+    "supportedFormats": "Supported formats",
+    "maxSize": "Max size",
+    "maxImages": "Max images"
   },
   "validation": {
     "required": "This field is required",

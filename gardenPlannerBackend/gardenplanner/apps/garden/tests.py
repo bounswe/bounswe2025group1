@@ -224,17 +224,225 @@ class APITests(APITestCase):
         self.assertEqual(user.profile.location, 'New Location')
 
     def test_login(self):
-        """Test user login"""
-        url = reverse('garden:login')
-        data = {
-            'username': 'testuser',
-            'password': 'testpassword'
-        }
+        """Test user login with trusted device"""
+        # Create a trusted device fingerprint to bypass OTP
+        from .models import DeviceFingerprint
         
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue('token' in response.data)
-        self.assertEqual(response.data['username'], 'testuser')
+        # Create a device fingerprint with a test device identifier
+        # In real scenario, this would be generated from the request's User-Agent
+        test_device_id = 'test_device_12345'
+        DeviceFingerprint.objects.create(
+            user=self.user,
+            device_identifier=test_device_id,
+            device_name='Test Device',
+            ip_address='127.0.0.1',
+            is_trusted=True
+        )
+        
+        # Mock the request to have the same device identifier
+        from unittest.mock import patch
+        with patch('gardenplanner.apps.garden.views.userauth.get_device_identifier', return_value=test_device_id):
+            url = reverse('garden:login')
+            data = {
+                'username': 'testuser',
+                'password': 'testpassword'
+            }
+            
+            response = self.client.post(url, data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertTrue('token' in response.data)
+            self.assertEqual(response.data['username'], 'testuser')
+        def test_login_new_device_requires_otp(self):
+            """Test login from new device requires OTP"""
+            from unittest.mock import patch, MagicMock
+        
+            test_device_id = 'new_device_67890'
+        
+            # Mock the device identifier and email sending
+            with patch('gardenplanner.apps.garden.views.userauth.get_device_identifier', return_value=test_device_id), \
+                 patch('gardenplanner.apps.garden.views.userauth.send_mail') as mock_send_mail:
+            
+                url = reverse('garden:login')
+                data = {
+                    'username': 'testuser',
+                    'password': 'testpassword'
+                }
+            
+                response = self.client.post(url, data, format='json')
+            
+                # Should return 202 and indicate OTP is required
+                self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+                self.assertTrue(response.data['otp_required'])
+                self.assertEqual(response.data['device_identifier'], test_device_id)
+                self.assertIn('device_name', response.data)
+            
+                # Verify OTP email was sent
+                mock_send_mail.assert_called_once()
+            
+                # Verify LoginOTP was created
+                from .models import LoginOTP
+                otp = LoginOTP.objects.filter(user=self.user, device_identifier=test_device_id).first()
+                self.assertIsNotNone(otp)
+                self.assertFalse(otp.is_used)
+    
+        def test_verify_otp_success(self):
+            """Test successful OTP verification"""
+            from .models import LoginOTP, DeviceFingerprint
+            from django.utils import timezone
+            from datetime import timedelta
+        
+            test_device_id = 'test_device_otp_123'
+            otp_code = '123456'
+        
+            # Create an OTP for the user
+            LoginOTP.objects.create(
+                user=self.user,
+                otp_code=otp_code,
+                device_identifier=test_device_id,
+                ip_address='127.0.0.1',
+                expires_at=timezone.now() + timedelta(minutes=10)
+            )
+        
+            url = reverse('garden:verify-otp')
+            data = {
+                'username': 'testuser',
+                'otp_code': otp_code,
+                'device_identifier': test_device_id,
+                'trust_device': False
+            }
+        
+            response = self.client.post(url, data, format='json')
+        
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertTrue('token' in response.data)
+            self.assertEqual(response.data['username'], 'testuser')
+        
+            # Verify OTP is marked as used
+            otp = LoginOTP.objects.get(user=self.user, device_identifier=test_device_id)
+            self.assertTrue(otp.is_used)
+        
+            # Verify device was NOT trusted
+            device = DeviceFingerprint.objects.filter(user=self.user, device_identifier=test_device_id).first()
+            self.assertIsNone(device)
+    
+        def test_verify_otp_with_trust_device(self):
+            """Test OTP verification with trust device option"""
+            from .models import LoginOTP, DeviceFingerprint
+            from django.utils import timezone
+            from datetime import timedelta
+        
+            test_device_id = 'test_device_trust_456'
+            otp_code = '654321'
+        
+            # Create an OTP for the user
+            LoginOTP.objects.create(
+                user=self.user,
+                otp_code=otp_code,
+                device_identifier=test_device_id,
+                ip_address='127.0.0.1',
+                expires_at=timezone.now() + timedelta(minutes=10)
+            )
+        
+            url = reverse('garden:verify-otp')
+            data = {
+                'username': 'testuser',
+                'otp_code': otp_code,
+                'device_identifier': test_device_id,
+                'trust_device': True
+            }
+        
+            response = self.client.post(url, data, format='json')
+        
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertTrue('token' in response.data)
+        
+            # Verify device was trusted
+            device = DeviceFingerprint.objects.filter(user=self.user, device_identifier=test_device_id).first()
+            self.assertIsNotNone(device)
+            self.assertTrue(device.is_trusted)
+    
+        def test_verify_otp_invalid_code(self):
+            """Test OTP verification with invalid code"""
+            from .models import LoginOTP
+            from django.utils import timezone
+            from datetime import timedelta
+        
+            test_device_id = 'test_device_invalid_789'
+            otp_code = '111111'
+        
+            # Create an OTP for the user
+            LoginOTP.objects.create(
+                user=self.user,
+                otp_code=otp_code,
+                device_identifier=test_device_id,
+                ip_address='127.0.0.1',
+                expires_at=timezone.now() + timedelta(minutes=10)
+            )
+        
+            url = reverse('garden:verify-otp')
+            data = {
+                'username': 'testuser',
+                'otp_code': '999999',  # Wrong code
+                'device_identifier': test_device_id,
+                'trust_device': False
+            }
+        
+            response = self.client.post(url, data, format='json')
+        
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn('error', response.data)
+    
+        def test_verify_otp_expired_code(self):
+            """Test OTP verification with expired code"""
+            from .models import LoginOTP
+            from django.utils import timezone
+            from datetime import timedelta
+        
+            test_device_id = 'test_device_expired_999'
+            otp_code = '222222'
+        
+            # Create an expired OTP
+            LoginOTP.objects.create(
+                user=self.user,
+                otp_code=otp_code,
+                device_identifier=test_device_id,
+                ip_address='127.0.0.1',
+                expires_at=timezone.now() - timedelta(minutes=1)  # Expired
+            )
+        
+            url = reverse('garden:verify-otp')
+            data = {
+                'username': 'testuser',
+                'otp_code': otp_code,
+                'device_identifier': test_device_id,
+                'trust_device': False
+            }
+        
+            response = self.client.post(url, data, format='json')
+        
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn('error', response.data)
+    
+        def test_verify_otp_missing_fields(self):
+            """Test OTP verification with missing required fields"""
+            url = reverse('garden:verify-otp')
+        
+            # Missing otp_code
+            data = {
+                'username': 'testuser',
+                'device_identifier': 'some_device'
+            }
+            response = self.client.post(url, data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+            # Missing device_identifier
+            data = {
+                'username': 'testuser',
+                'otp_code': '123456'
+            }
+            response = self.client.post(url, data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
     
     def test_logout(self):
         """Test user logout"""
@@ -4614,3 +4822,161 @@ class BestAnswerTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         # Database should remain unchanged
         self.assertIsNone(self.post_obj.best_answer)
+
+
+class ImpactSummaryTests(APITestCase):
+    """Tests for the Impact Summary endpoint."""
+    
+    def setUp(self):
+        # Create users
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpassword'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='testpassword'
+        )
+        
+        # Create tokens
+        self.user_token = Token.objects.create(user=self.user)
+        self.other_token = Token.objects.create(user=self.other_user)
+        
+        # Create a garden and membership for the user
+        self.garden = Garden.objects.create(
+            name="Test Garden",
+            description="A test garden",
+            is_public=True
+        )
+        
+        GardenMembership.objects.create(
+            user=self.user,
+            garden=self.garden,
+            role='MANAGER',
+            status='ACCEPTED'
+        )
+        
+        # Create tasks
+        self.task1 = Task.objects.create(
+            garden=self.garden,
+            title="Task 1",
+            assigned_by=self.user,
+            status='COMPLETED'
+        )
+        self.task1.assigned_to.add(self.user)
+        
+        self.task2 = Task.objects.create(
+            garden=self.garden,
+            title="Task 2",
+            assigned_by=self.other_user,
+            status='PENDING'
+        )
+        self.task2.assigned_to.add(self.user)
+        
+        # Create forum post and comment
+        self.post = ForumPost.objects.create(
+            title="Test Post",
+            content="Test content",
+            author=self.user
+        )
+        
+        self.comment = Comment.objects.create(
+            forum_post=self.post,
+            content="Test comment",
+            author=self.user
+        )
+        
+        # Create event
+        self.event = GardenEvent.objects.create(
+            garden=self.garden,
+            title="Test Event",
+            start_at=timezone.now(),
+            created_by=self.user
+        )
+        
+        # Create event attendance
+        EventAttendance.objects.create(
+            event=self.event,
+            user=self.user,
+            status=AttendanceStatus.GOING
+        )
+        
+        # Create a follower relationship
+        self.other_user.profile.follow(self.user.profile)
+        self.url = reverse('garden:user-impact-summary', args=[self.user.id])
+    
+    def test_impact_summary_authenticated_access(self):
+        """Test that authenticated user can access impact summary."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.other_token.key}')
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('member_since', response.data)
+        self.assertIn('followers_count', response.data)
+        self.assertIn('tasks_completed', response.data)
+        self.assertIn('posts_created', response.data)
+    
+    def test_impact_summary_unauthenticated_access(self):
+        """Test that unauthenticated user cannot access impact summary."""
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_impact_summary_metrics_accuracy(self):
+        """Test that all metrics are calculated correctly."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.other_token.key}')
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Profile stats
+        self.assertEqual(response.data['followers_count'], 1)  # other_user follows user
+        self.assertEqual(response.data['following_count'], 0)
+        
+        # Garden activity
+        self.assertEqual(response.data['gardens_joined'], 1)
+        self.assertEqual(response.data['gardens_managed'], 1)
+        
+        # Task stats
+        self.assertEqual(response.data['tasks_completed'], 1)
+        self.assertEqual(response.data['tasks_assigned'], 1)  # user assigned task1
+        
+        # Forum engagement
+        self.assertEqual(response.data['posts_created'], 1)
+        self.assertEqual(response.data['comments_made'], 1)
+        
+        # Events
+        self.assertEqual(response.data['events_created'], 1)
+        self.assertEqual(response.data['events_attended'], 1)
+    
+    def test_impact_summary_blocked_user(self):
+        """Test that blocked user cannot access impact summary."""
+        # Block the other user
+        self.user.profile.blocked_users.add(self.other_user.profile)
+        
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.other_token.key}')
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_impact_summary_nonexistent_user(self):
+        """Test that requesting non-existent user returns 404."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.other_token.key}')
+        
+        url = reverse('garden:user-impact-summary', args=[99999])
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_impact_summary_own_profile(self):
+        """Test that user can access their own impact summary."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

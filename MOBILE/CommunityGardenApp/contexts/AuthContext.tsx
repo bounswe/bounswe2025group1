@@ -16,9 +16,10 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<any>;
   register: (userData: any) => Promise<void>;
   logout: () => Promise<void>;
+  verifyOTP: (username: string, otpCode: string, deviceIdentifier: string, trustDevice: boolean) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,6 +57,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
 
+      // Check if OTP is required (202 status = OTP needed)
+      if (response.status === 202 && response.data.otp_required) {
+        // Return the OTP requirement data so caller can navigate to verification
+        return {
+          otpRequired: true,
+          deviceIdentifier: response.data.device_identifier,
+          deviceName: response.data.device_name,
+          message: response.data.message,
+        };
+      }
+
+      // Check if too many requests (429)
+      if (response.status === 429) {
+        const error = new Error('Too many login attempts. Please try again later.');
+        error.response = response;
+        throw error;
+      }
+
       const { token: newToken, user_id, username: responseUsername } = response.data;
       
       const userData = {
@@ -75,6 +94,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       registerDeviceForPushNotifications(newToken).catch(err => {
         console.warn('Failed to register for push notifications:', err);
       });
+
+      return { otpRequired: false };
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message);
       throw error;
@@ -131,6 +152,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const verifyOTP = async (username: string, otpCode: string, deviceIdentifier: string, trustDevice: boolean) => {
+    try {
+      const response = await axios.post(`${API_URL}/verify-otp/`, {
+        username,
+        otp_code: otpCode,
+        device_identifier: deviceIdentifier,
+        trust_device: trustDevice,
+      });
+
+      const { token: newToken, user_id, username: responseUsername } = response.data;
+      
+      const userData = {
+        id: user_id,
+        username: responseUsername,
+        email: '',
+      };
+
+      await AsyncStorage.setItem('token', newToken);
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      
+      setToken(newToken);
+      setUser(userData);
+      axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
+
+      // Register device for push notifications
+      registerDeviceForPushNotifications(newToken).catch(err => {
+        console.warn('Failed to register for push notifications:', err);
+      });
+    } catch (error) {
+      console.error('OTP verification error:', error.response?.data || error.message);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       if (token) {
@@ -150,7 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, verifyOTP }}>
       {children}
     </AuthContext.Provider>
   );

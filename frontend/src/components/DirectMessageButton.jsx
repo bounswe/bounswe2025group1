@@ -1,10 +1,11 @@
 import React from 'react';
 import { useState } from 'react';
-import { Button, CircularProgress } from '@mui/material';
+import { Button, CircularProgress, IconButton, Tooltip } from '@mui/material';
 import { Chat as ChatIcon } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { db } from '../config/firebaseConfig';
 import { createDirectMessage } from '../utils/chatUtils';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Button component to initiate a direct message with a user
@@ -12,9 +13,11 @@ import { createDirectMessage } from '../utils/chatUtils';
  * @param {number} props.targetUserId - Django user ID of the target user
  * @param {string} props.variant - Button variant (text, contained, outlined)
  * @param {string} props.size - Button size
+ * @param {boolean} props.iconOnly - If true, render as IconButton with Tooltip
  */
-const DirectMessageButton = ({ targetUserId, variant = 'outlined', size = 'small', sx }) => {
+const DirectMessageButton = ({ targetUserId, variant = 'outlined', size = 'small', sx, iconOnly = false }) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
   const handleStartChat = async () => {
@@ -34,8 +37,8 @@ const DirectMessageButton = ({ targetUserId, variant = 'outlined', size = 'small
       const chatId = await createDirectMessage(db, currentFirebaseUid, targetFirebaseUid);
 
       // Dispatch custom event to open chat widget with this chat
-      window.dispatchEvent(new CustomEvent('openDirectMessage', { 
-        detail: { chatId } 
+      window.dispatchEvent(new CustomEvent('openDirectMessage', {
+        detail: { chatId }
       }));
     } catch (error) {
       console.error('Error starting chat:', error);
@@ -49,6 +52,21 @@ const DirectMessageButton = ({ targetUserId, variant = 'outlined', size = 'small
     return null;
   }
 
+  if (iconOnly) {
+    return (
+      <Tooltip title={t('chat.direct_message')}>
+        <IconButton
+          onClick={handleStartChat}
+          disabled={loading}
+          color="primary"
+          sx={sx}
+        >
+          {loading ? <CircularProgress size={20} /> : <ChatIcon />}
+        </IconButton>
+      </Tooltip>
+    );
+  }
+
   return (
     <Button
       variant={variant}
@@ -58,9 +76,10 @@ const DirectMessageButton = ({ targetUserId, variant = 'outlined', size = 'small
       disabled={loading}
       sx={sx}
     >
-      Message
+      {t('chat.direct_message')}
     </Button>
   );
 };
 
 export default DirectMessageButton;
+

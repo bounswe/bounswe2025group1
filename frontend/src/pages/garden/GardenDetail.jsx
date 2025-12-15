@@ -969,6 +969,7 @@ const GardenDetail = () => {
                           targetUserId={member.user_id}
                           variant="outlined"
                           size="small"
+                          iconOnly
                           sx={{ mr: 1 }}
                         />
                       )}
