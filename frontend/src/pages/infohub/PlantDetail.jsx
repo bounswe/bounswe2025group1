@@ -802,9 +802,25 @@ const PlantDetail = () => {
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
                     {t('infohub.plantDetail.phRange', 'pH Range')}:
                   </Typography>
-                  <Typography variant="body1">
-                    {plant.growthRequirements.ph.min || 'N/A'} - {plant.growthRequirements.ph.max || 'N/A'}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <Typography variant="h6">
+                      {plant.growthRequirements.ph.min || 'N/A'} - {plant.growthRequirements.ph.max || 'N/A'}
+                    </Typography>
+                  </Box>
+                  {plant.growthRequirements.ph.min && plant.growthRequirements.ph.max && (
+                    <Box sx={{ position: 'relative', height: 8, borderRadius: 4, backgroundColor: 'action.hover', overflow: 'hidden' }}>
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          left: `${(plant.growthRequirements.ph.min / 14) * 100}%`,
+                          width: `${((plant.growthRequirements.ph.max - plant.growthRequirements.ph.min) / 14) * 100}%`,
+                          height: '100%',
+                          backgroundColor: 'secondary.main',
+                          borderRadius: 4,
+                        }}
+                      />
+                    </Box>
+                  )}
                 </Grid>
               )}
 
