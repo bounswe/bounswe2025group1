@@ -77,7 +77,7 @@ const InfohubHome = () => {
           }}
         >
           <Typography variant="h2" sx={{ fontWeight: 'bold', mb: 2 }}>
-            🌿 Garden Wiki
+            🌿 Information Hub
           </Typography>
           <Typography variant="h5" sx={{ opacity: 0.9 }}>
             Your complete guide to community gardening
@@ -145,7 +145,7 @@ const InfohubHome = () => {
             🌻 Getting Started
           </Typography>
           <Typography variant="body1" paragraph>
-            Welcome to the Garden Wiki! Here you'll find everything you need to know about 
+            Welcome to the Information Hub! Here you'll find everything you need to know about 
             community gardening.
           </Typography>
           <Typography variant="body1" paragraph>
