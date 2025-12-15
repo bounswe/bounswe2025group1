@@ -165,30 +165,43 @@ const PlantList = () => {
                   }}
                   onClick={() => navigate(`/infohub/plants/${plant.id}`)}
                 >
-                  {plant.image && plant.image.startsWith('http') ? (
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={plant.image}
-                      alt={getTranslatedField(plant, 'name', currentLang)}
-                      sx={{ objectFit: 'cover' }}
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextElementSibling.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
                   <Box
                     sx={{
-                      height: plant.image && plant.image.startsWith('http') ? 0 : 160,
-                      display: plant.image && plant.image.startsWith('http') ? 'none' : 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: theme.palette.action.hover,
-                      fontSize: '5rem',
+                      height: 200,
+                      width: '100%',
+                      overflow: 'hidden',
+                      position: 'relative',
                     }}
                   >
-                    {plant.image && !plant.image.startsWith('http') ? plant.image : '🌿'}
+                    {plant.image && plant.image.startsWith('http') ? (
+                      <CardMedia
+                        component="img"
+                        image={plant.image}
+                        alt={getTranslatedField(plant, 'name', currentLang)}
+                        sx={{ 
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextElementSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <Box
+                      sx={{
+                        height: '100%',
+                        width: '100%',
+                        display: plant.image && plant.image.startsWith('http') ? 'none' : 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: theme.palette.action.hover,
+                        fontSize: '5rem',
+                      }}
+                    >
+                      {plant.image && !plant.image.startsWith('http') ? plant.image : '🌿'}
+                    </Box>
                   </Box>
                   <CardContent sx={{ flexGrow: 1 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
