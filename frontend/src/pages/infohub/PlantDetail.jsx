@@ -45,9 +45,9 @@ import { fetchPlantById, fetchPlants, fetchSoilTypes } from '../../services/plan
 // Helper function to recommend soil type based on plant soil description
 const recommendSoilType = (soilDescription, soilTypes) => {
   if (!soilDescription || !soilTypes) return null;
-  
+
   const desc = soilDescription.toLowerCase();
-  
+
   // Check for specific soil type mentions first
   if (desc.includes('sandy-loam') || desc.includes('sandy loam')) {
     const found = soilTypes.find(s => s.id === 'sandy-loam');
@@ -97,7 +97,7 @@ const recommendSoilType = (soilDescription, soilTypes) => {
   if (desc.includes('moist') || desc.includes('wet') || desc.includes('water')) {
     return 'silty';
   }
-  
+
   // Default to loamy if no specific match
   return 'loamy';
 };
@@ -105,26 +105,26 @@ const recommendSoilType = (soilDescription, soilTypes) => {
 // Helper function to find plant ID by name (async)
 const findPlantIdByName = async (plantName) => {
   if (!plantName) return null;
-  
+
   try {
     const result = await fetchPlants({ search: plantName, perPage: 100 });
     const normalizedName = plantName.toLowerCase().trim();
-    
+
     // Try exact match first
     let found = result.data.find(
       (p) => p.name.toLowerCase() === normalizedName
     );
-    
+
     if (found) return found.id;
-    
+
     // Try partial match
     found = result.data.find((p) => {
       const pName = p.name.toLowerCase();
       return pName.includes(normalizedName) || normalizedName.includes(pName);
     });
-    
+
     if (found) return found.id;
-    
+
     return null;
   } catch (error) {
     console.error('Error finding plant by name:', error);
@@ -163,14 +163,14 @@ const PlantDetail = () => {
             ...(plantData.companionPlants.growsWellWith || []),
             ...(plantData.companionPlants.avoidNear || []),
           ];
-          
+
           await Promise.all(
             allCompanions.map(async (name) => {
               const id = await findPlantIdByName(name);
               if (id) ids[name] = id;
             })
           );
-          
+
           setCompanionPlantIds(ids);
         }
       } catch (err) {
@@ -225,11 +225,13 @@ const PlantDetail = () => {
   const plantCommonProblems = plant.commonProblems || [];
   const plantCompanionPlants = plant.companionPlants || { growsWellWith: [], avoidNear: [] };
 
+  console.log(plant);
+
   return (
-    <Box sx={{ 
-      width: '100%', 
+    <Box sx={{
+      width: '100%',
       minHeight: '100vh',
-      backgroundColor: theme.palette.background.default 
+      backgroundColor: theme.palette.background.default
     }}>
       <Container maxWidth="lg" sx={{ py: 4 }}>
         {/* Back Button */}
@@ -255,9 +257,9 @@ const PlantDetail = () => {
             }}
           >
             {plant.image && plant.image.startsWith('http') ? (
-              <img 
-                src={plant.image} 
-                alt={plantName} 
+              <img
+                src={plant.image}
+                alt={plantName}
                 style={{
                   width: '100%',
                   height: '100%',
@@ -270,9 +272,9 @@ const PlantDetail = () => {
                 }}
               />
             ) : null}
-            <Typography 
-              sx={{ 
-                fontSize: '10rem', 
+            <Typography
+              sx={{
+                fontSize: '10rem',
                 lineHeight: 1,
                 display: plant.image && plant.image.startsWith('http') ? 'none' : 'block',
                 position: plant.image && plant.image.startsWith('http') ? 'absolute' : 'static',
@@ -280,14 +282,14 @@ const PlantDetail = () => {
             >
               {plant.image && !plant.image.startsWith('http') ? plant.image : '🌿'}
             </Typography>
-            <Box 
-              sx={{ 
-                position: 'absolute', 
-                bottom: 0, 
-                left: 0, 
-                right: 0, 
-                p: 3, 
-                background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' 
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                p: 3,
+                background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)'
               }}
             >
               <Typography variant="h2" sx={{ color: 'white', fontWeight: 'bold' }}>
@@ -296,10 +298,31 @@ const PlantDetail = () => {
               <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.9)', fontStyle: 'italic' }}>
                 {plant.scientificName}
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                <Chip label={plant.type} sx={{ backgroundColor: 'rgba(255,255,255,0.9)' }} />
-                <Chip label={plant.difficulty} sx={{ backgroundColor: 'rgba(255,255,255,0.9)' }} />
-                <Chip label={plant.season} sx={{ backgroundColor: 'rgba(255,255,255,0.9)' }} />
+              <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
+                <Chip label={plant.type} sx={{ backgroundColor: 'primary.main' }} />
+                <Chip label={plant.difficulty} sx={{ backgroundColor: 'primary.main' }} />
+                <Chip label={plant.season} sx={{ backgroundColor: 'primary.main' }} />
+                {plant.edible !== undefined && (
+                  <Chip
+                    label={plant.edible ? 'Edible' : 'Not Edible'}
+                    sx={{
+                      backgroundColor: plant.edible ? 'primary.main' : 'grey.600',
+                      color: 'white',
+                    }}
+                  />
+                )}
+                {plant.toxicity && plant.toxicity !== 'none' && (
+                  <Chip
+                    label={`Toxicity: ${plant.toxicity}`}
+                    sx={{
+                      backgroundColor:
+                        plant.toxicity === 'high' ? 'error.main' :
+                          plant.toxicity === 'medium' ? 'warning.main' : 'warning.light',
+                      color: plant.toxicity === 'low' ? 'text.primary' : 'white',
+                      textTransform: 'capitalize',
+                    }}
+                  />
+                )}
               </Box>
             </Box>
           </Box>
@@ -312,95 +335,6 @@ const PlantDetail = () => {
           </Typography>
         </Paper>
 
-        {/* Edibility & Safety */}
-        {(plant.edible !== undefined || plant.toxicity || plant.edibleParts || plant.vegetable) && (
-          <Paper 
-            sx={{ 
-              p: 3, 
-              mb: 3,
-              border: plant.toxicity && plant.toxicity !== 'none' ? 2 : 0,
-              borderColor: plant.toxicity === 'high' ? 'error.main' : 
-                          plant.toxicity === 'medium' ? 'warning.main' :
-                          plant.toxicity === 'low' ? 'warning.light' : 'transparent'
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <RestaurantIcon sx={{ mr: 1, color: plant.edible ? 'success.main' : 'text.secondary', fontSize: 28 }} />
-              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                Edibility & Safety
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {/* Edible Badge */}
-              {plant.edible !== undefined && (
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    Edible:
-                  </Typography>
-                  <Chip 
-                    label={plant.edible ? 'Yes' : 'No'}
-                    color={plant.edible ? 'success' : 'default'}
-                    sx={{ fontWeight: 'bold' }}
-                  />
-                </Box>
-              )}
-
-              {/* Edible Parts */}
-              {plant.edibleParts && plant.edibleParts.length > 0 && (
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    Edible Parts:
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {plant.edibleParts.map((part, i) => (
-                      <Chip 
-                        key={i} 
-                        label={part} 
-                        size="small" 
-                        color="success" 
-                        variant="outlined" 
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              )}
-
-              {/* Toxicity Warning */}
-              {plant.toxicity && (
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    Toxicity Level:
-                  </Typography>
-                  <Alert 
-                    severity={
-                      plant.toxicity === 'none' ? 'success' :
-                      plant.toxicity === 'low' ? 'info' :
-                      plant.toxicity === 'medium' ? 'warning' : 'error'
-                    }
-                    icon={plant.toxicity !== 'none' ? <DangerousIcon /> : undefined}
-                  >
-                    <Typography variant="body2" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
-                      {plant.toxicity} {plant.toxicity !== 'none' && '- Handle with care'}
-                    </Typography>
-                  </Alert>
-                </Box>
-              )}
-
-              {/* Vegetable Badge */}
-              {plant.vegetable && (
-                <Box>
-                  <Chip 
-                    label="Vegetable"
-                    color="success"
-                    variant="outlined"
-                  />
-                </Box>
-              )}
-            </Box>
-          </Paper>
-        )}
-
         {/* Image Gallery */}
         {plant.imagesDetailed && (
           <Paper sx={{ p: 3, mb: 3 }}>
@@ -411,8 +345,8 @@ const PlantDetail = () => {
               </Typography>
             </Box>
 
-            <Tabs 
-              value={imageTab} 
+            <Tabs
+              value={imageTab}
               onChange={(e, newValue) => setImageTab(newValue)}
               variant="scrollable"
               scrollButtons="auto"
@@ -485,12 +419,12 @@ const PlantDetail = () => {
         >
           {/* Habitat with Climate Zone */}
           <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <GrassIcon sx={{ mr: 1, color: 'success.main', fontSize: 28 }} />
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                  Where It Lives
-                </Typography>
-              </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <GrassIcon sx={{ mr: 1, color: 'primary.main', fontSize: 28 }} />
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                Where It Lives
+              </Typography>
+            </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
               <Typography variant="body1" sx={{ mb: plantClimateZone ? 2 : 0 }}>
                 {plantHabitat}
@@ -531,15 +465,15 @@ const PlantDetail = () => {
             <Typography variant="body1" sx={{ mb: 3 }}>
               {plantSunlight}
             </Typography>
-            
+
             <Divider sx={{ my: 2 }} />
-            
+
             {/* Soil */}
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Box
                 component="span"
-                sx={{ 
-                  mr: 1, 
+                sx={{
+                  mr: 1,
                   fontSize: 24,
                   display: 'flex',
                   alignItems: 'center',
@@ -554,12 +488,12 @@ const PlantDetail = () => {
             <Typography variant="body1" sx={{ mb: 2 }}>
               {plantSoil}
             </Typography>
-            
+
             {/* Soil Recommendation Badge */}
             {(() => {
               const recommendedSoilId = recommendSoilType(plantSoil, soilTypes);
               const recommendedSoil = soilTypes?.find(s => s.id === recommendedSoilId);
-              
+
               if (recommendedSoil) {
                 // Determine text color based on background brightness
                 const hex = recommendedSoil.color.replace('#', '');
@@ -568,7 +502,7 @@ const PlantDetail = () => {
                 const b = parseInt(hex.substr(4, 2), 16);
                 const brightness = (r * 299 + g * 587 + b * 114) / 1000;
                 const textColor = brightness > 128 ? '#000000' : '#ffffff';
-                
+
                 return (
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
@@ -628,7 +562,7 @@ const PlantDetail = () => {
           {plantSpacing && Object.keys(plantSpacing).length > 0 && (
             <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <HeightIcon sx={{ mr: 1, color: 'success.main', fontSize: 28 }} />
+                <HeightIcon sx={{ mr: 1, color: 'primary.main', fontSize: 28 }} />
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                   Spacing & Height
                 </Typography>
@@ -669,11 +603,11 @@ const PlantDetail = () => {
                   </Typography>
                 </>
               )}
-              
+
               {plantGrowthDuration && plantCommonProblems && plantCommonProblems.length > 0 && (
                 <Divider sx={{ my: 2 }} />
               )}
-              
+
               {/* Common Problems */}
               {plantCommonProblems && plantCommonProblems.length > 0 && (
                 <>
@@ -697,7 +631,7 @@ const PlantDetail = () => {
           {plantCompanionPlants && (plantCompanionPlants.growsWellWith?.length > 0 || plantCompanionPlants.avoidNear?.length > 0) && (
             <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <LocalFloristIcon sx={{ mr: 1, color: 'success.main', fontSize: 28 }} />
+                <LocalFloristIcon sx={{ mr: 1, color: 'primary.main', fontSize: 28 }} />
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                   Companion Plants
                 </Typography>
@@ -785,9 +719,9 @@ const PlantDetail = () => {
                     <WbSunnyIcon sx={{ color: 'warning.main' }} />
                     <Typography variant="h6">{plant.growthRequirements.light}/10</Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={plant.growthRequirements.light * 10} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={plant.growthRequirements.light * 10}
                     sx={{ height: 8, borderRadius: 4 }}
                   />
                 </Grid>
@@ -850,9 +784,9 @@ const PlantDetail = () => {
                     <WaterDropIcon sx={{ color: 'info.main' }} />
                     <Typography variant="h6">{plant.growthRequirements.atmosphericHumidity}/10</Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={plant.growthRequirements.atmosphericHumidity * 10} 
+                  <LinearProgress
+                    variant="determinate"
+                    value={plant.growthRequirements.atmosphericHumidity * 10}
                     sx={{ height: 8, borderRadius: 4 }}
                     color="info"
                   />
@@ -868,9 +802,9 @@ const PlantDetail = () => {
                         Soil Nutriments:
                       </Typography>
                       <Typography variant="h6">{plant.growthRequirements.soil.nutriments}/10</Typography>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={plant.growthRequirements.soil.nutriments * 10} 
+                      <LinearProgress
+                        variant="determinate"
+                        value={plant.growthRequirements.soil.nutriments * 10}
                         sx={{ height: 8, borderRadius: 4 }}
                         color="success"
                       />
@@ -894,7 +828,7 @@ const PlantDetail = () => {
         {plant.growthCharacteristics && (
           <Paper sx={{ p: 3, mt: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <ScheduleIcon sx={{ mr: 1, color: 'success.main', fontSize: 28 }} />
+              <ScheduleIcon sx={{ mr: 1, color: 'primary.main', fontSize: 28 }} />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                 Growth Characteristics
               </Typography>
@@ -1031,7 +965,7 @@ const PlantDetail = () => {
                     </TableCell>
                   </TableRow>
                 )}
-                
+
                 {/* Flower Conspicuous */}
                 {plant.visualCharacteristics.flower?.conspicuous !== undefined && (
                   <TableRow>
