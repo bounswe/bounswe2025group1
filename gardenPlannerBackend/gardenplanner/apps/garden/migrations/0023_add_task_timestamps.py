@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('garden', '0021_add_recurring_tasks'),
+        ('garden', '0022_loginotp_devicefingerprint'),
     ]
 
     operations = [
