@@ -4,6 +4,10 @@
     "subtitle": "Keşfet, Yetiştir, Paylaş",
     "exploreMore": "Keşfet",
     "backToCategories": "Tüm Kategorilere Dön",
+    "translationNotice": {
+      "title": "Çeviri Bildirimi",
+      "message": "Bilgi Merkezi içeriği için Türkçe çeviriler yakında gelecek! Tüm içeriği tercih ettiğiniz dilde sunabilmek için çalışıyoruz."
+    },
     "detailsComingSoon": "Bu kategori için detaylı bilgiler yakında eklenecek. Takipte kalın!",
     "categories": {
       "plantCare": {

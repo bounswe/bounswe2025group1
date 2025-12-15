@@ -12,16 +12,24 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  useTheme 
+  useTheme,
+  Alert,
+  AlertTitle 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import LocalFloristIcon from '@mui/icons-material/LocalFlorist';
 import GrassIcon from '@mui/icons-material/Grass';
 import BuildIcon from '@mui/icons-material/Build';
+import InfoIcon from '@mui/icons-material/Info';
 
 const InfohubHome = () => {
   const navigate = useNavigate();
   const theme = useTheme();
+  const { t, i18n } = useTranslation();
+  
+  // Show translation notice for Turkish and Arabic languages
+  const showTranslationNotice = i18n.language === 'tr' || i18n.language === 'ar';
 
   const mainCategories = [
     {
@@ -64,6 +72,23 @@ const InfohubHome = () => {
       backgroundColor: theme.palette.background.default 
     }}>
       <Container maxWidth="lg" sx={{ py: 4 }}>
+        {/* Translation Notice */}
+        {showTranslationNotice && (
+          <Alert 
+            severity="info" 
+            icon={<InfoIcon />}
+            sx={{ 
+              mb: 3,
+              '& .MuiAlert-message': {
+                width: '100%'
+              }
+            }}
+          >
+            
+            {t('infohub.translationNotice.message')}
+          </Alert>
+        )}
+        
         {/* Header */}
         <Paper
           sx={{
