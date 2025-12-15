@@ -13,6 +13,8 @@ import {
   Button,
   Pagination,
   useTheme,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -21,8 +23,7 @@ import DangerousIcon from '@mui/icons-material/Dangerous';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import plantsData from '../../data/plants.json';
-import { getTranslatedField } from '../../utils/plantTranslations';
+import { fetchPlants } from '../../services/plantService';
 
 const PlantList = () => {
   const { t, i18n } = useTranslation();
@@ -31,24 +32,40 @@ const PlantList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [page, setPage] = useState(1);
+  const [plants, setPlants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
   const plantsPerPage = 20;
   const currentLang = i18n.language || 'en';
 
-  const plants = plantsData.plants;
   const types = ['all', 'vegetable', 'herb', 'flower', 'tree', 'fruit', 'succulent', 'shrub'];
 
-  const filteredPlants = plants.filter((plant) => {
-    const plantName = getTranslatedField(plant, 'name', currentLang);
-    const matchesSearch = plantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      plant.scientificName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = selectedType === 'all' || plant.type === selectedType;
-    return matchesSearch && matchesType;
-  });
+  // Fetch plants from Supabase
+  useEffect(() => {
+    const loadPlants = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await fetchPlants({
+          search: searchQuery || undefined,
+          type: selectedType !== 'all' ? selectedType : undefined,
+          page,
+          perPage: plantsPerPage,
+          lang: currentLang,
+        });
+        setPlants(result.data);
+        setTotalPages(Math.ceil(result.total / plantsPerPage));
+      } catch (err) {
+        console.error('Error loading plants:', err);
+        setError(err.message || 'Failed to load plants');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const totalPages = Math.ceil(filteredPlants.length / plantsPerPage);
-  const startIndex = (page - 1) * plantsPerPage;
-  const endIndex = startIndex + plantsPerPage;
-  const currentPlants = filteredPlants.slice(startIndex, endIndex);
+    loadPlants();
+  }, [searchQuery, selectedType, page, currentLang]);
 
   // Reset to page 1 when search or filter changes
   useEffect(() => {
@@ -92,7 +109,7 @@ const PlantList = () => {
             {t('infohub.plantEncyclopedia.subtitle', 'Browse our collection of plants with care guides')}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
-            {filteredPlants.length} {t('infohub.plantEncyclopedia.plants', 'plants')} {searchQuery && t('infohub.plantEncyclopedia.found', 'found')} • {t('infohub.plantEncyclopedia.page', 'Page')} {totalPages > 0 ? page : 0} {t('infohub.plantEncyclopedia.of', 'of')} {totalPages}
+            {plants.length} {t('infohub.plantEncyclopedia.plants', 'plants')} {searchQuery && t('infohub.plantEncyclopedia.found', 'found')} • {t('infohub.plantEncyclopedia.page', 'Page')} {totalPages > 0 ? page : 0} {t('infohub.plantEncyclopedia.of', 'of')} {totalPages}
           </Typography>
         </Paper>
 
@@ -127,7 +144,15 @@ const PlantList = () => {
           </Box>
         </Paper>
 
-        {filteredPlants.length === 0 ? (
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Alert severity="error" sx={{ mb: 4 }}>
+            {error}
+          </Alert>
+        ) : plants.length === 0 ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
               {t('infohub.plantEncyclopedia.noResults', 'No plants found matching your search.')}
@@ -149,7 +174,7 @@ const PlantList = () => {
                 mb: 4,
               }}
             >
-              {currentPlants.map((plant) => (
+              {plants.map((plant) => (
                 <Card
                   key={plant.id}
                   sx={{
@@ -177,7 +202,7 @@ const PlantList = () => {
                       <CardMedia
                         component="img"
                         image={plant.image}
-                        alt={getTranslatedField(plant, 'name', currentLang)}
+                        alt={plant.name}
                         sx={{ 
                           width: '100%',
                           height: '100%',
@@ -205,7 +230,7 @@ const PlantList = () => {
                   </Box>
                   <CardContent sx={{ flexGrow: 1 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                      {getTranslatedField(plant, 'name', currentLang)}
+                      {plant.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mb: 1 }}>
                       {plant.scientificName}
