@@ -27,6 +27,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import TaskIcon from '@mui/icons-material/Task';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import TaskModal from '../../components/TaskModal';
+import TaskDetailModal from '../../components/TaskDetailModal';
 import CalendarTab from '../../components/CalendarTab';
 import GardenModal from '../../components/GardenModal';
 import TaskBoard from '../../components/TaskBoard';
@@ -58,6 +59,8 @@ const GardenDetail = () => {
   const handleCloseGardenEditModal = () => setOpenGardenEditModal(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
+  const [taskDetailModalOpen, setTaskDetailModalOpen] = useState(false);
+  const [selectedTaskForDetail, setSelectedTaskForDetail] = useState(null);
   const [isMember, setIsMember] = useState(false);
   const [isManager, setIsManager] = useState(false);
   const [userMembership, setUserMembership] = useState(null);
@@ -199,12 +202,19 @@ const GardenDetail = () => {
   };
 
   const handleTaskChipClick = (task) => {
-    // Format the task data to ensure consistent structure for the modal
-    setSelectedTask({
+    // Format the task data to ensure consistent structure for the detail modal
+    setSelectedTaskForDetail({
       status: task.status || 'PENDING',
       custom_type: task.custom_type || task.task_type,
       ...task,
     });
+    setTaskDetailModalOpen(true);
+  };
+
+  const handleTaskDetailEditClick = () => {
+    // Close detail modal and open edit modal
+    setTaskDetailModalOpen(false);
+    setSelectedTask(selectedTaskForDetail);
     setEditTaskModalOpen(true);
   };
 
@@ -1209,6 +1219,85 @@ const GardenDetail = () => {
         gardenId={gardenId}
         members={members}
         mode="edit"
+      />
+      <TaskDetailModal
+        open={taskDetailModalOpen}
+        onClose={() => {
+          setTaskDetailModalOpen(false);
+          setSelectedTaskForDetail(null);
+        }}
+        task={selectedTaskForDetail}
+        onTaskUpdated={(updatedTask) => {
+          setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+          // Update selectedTaskForDetail with the updated task
+          setSelectedTaskForDetail(updatedTask);
+        }}
+        onTaskDeleted={(taskId) => {
+          setTasks((prev) => prev.filter((t) => t.id !== taskId));
+          setTaskDetailModalOpen(false);
+          setSelectedTaskForDetail(null);
+        }}
+        canEdit={
+          selectedTaskForDetail &&
+          (selectedTaskForDetail.assigned_by_username === user?.username || isManager)
+        }
+        canDelete={
+          selectedTaskForDetail &&
+          (selectedTaskForDetail.assigned_by_username === user?.username || isManager)
+        }
+        handleAcceptTask={async (task) => {
+          try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/accept/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`,
+              },
+              body: JSON.stringify(task),
+            });
+
+            if (response.ok) {
+              const updated = await response.json();
+              setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+              setSelectedTaskForDetail(updated);
+              toast.success('Task accepted!');
+            } else {
+              const errorText = await response.text();
+              console.error('Accept failed:', errorText);
+              toast.error('Accept failed');
+            }
+          } catch (err) {
+            console.error('Error accepting task:', err);
+            toast.error('Could not accept task.');
+          }
+        }}
+        handleDeclineTask={async (task) => {
+          try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/decline/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`,
+              },
+              body: JSON.stringify(task),
+            });
+
+            if (response.ok) {
+              const updated = await response.json();
+              setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+              setSelectedTaskForDetail(updated);
+              toast.success('Task declined!');
+            } else {
+              const errorText = await response.text();
+              console.error('Decline failed:', errorText);
+              toast.error('Decline failed');
+            }
+          } catch (err) {
+            console.error('Error declining task:', err);
+            toast.error('Could not decline task.');
+          }
+        }}
+        onEditClick={handleTaskDetailEditClick}
       />
       <EventCreateDialog
         open={openEventCreateDialog}
