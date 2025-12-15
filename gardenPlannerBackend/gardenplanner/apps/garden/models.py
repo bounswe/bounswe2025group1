@@ -169,6 +169,8 @@ class Task(models.Model):
     recurrence_end_date = models.DateTimeField(null=True, blank=True, help_text="When to stop generating recurring instances")
     parent_task = models.ForeignKey('self', on_delete=models.CASCADE, related_name='recurring_instances', null=True, blank=True, help_text="Parent task template for recurring tasks")
     
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

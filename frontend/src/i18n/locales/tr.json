@@ -365,7 +365,31 @@
     "userNotFound": "Kullanıcı bulunamadı",
     "failedToUpdateFollowStatus": "Takip durumu güncellenemedi",
     "failedToUpdateProfile": "Profil güncellenemedi",
-    "receiveNotifications": "Bildirimleri almak istiyorum"
+    "receiveNotifications": "Bildirimleri almak istiyorum",
+    "noGardensYet": "Henüz bahçe yok",
+    "noFollowersYet": "Henüz takipçi yok",
+    "impactSummary": "Etki",
+    "memberSince": "Üyelik Başlangıcı",
+    "gardensJoined": "Katıldığı Bahçeler",
+    "gardensManaged": "Yönettiği Bahçeler",
+    "tasks": "Görevler",
+    "tasksCompleted": "Tamamlanan Görevler",
+    "tasksAssignedBy": "Atadığı Görevler",
+    "tasksAssignedTo": "Atanan Görevler",
+    "taskCompletionRate": "Tamamlama Oranı",
+    "avgResponseTime": "Ort. Yanıt Süresi",
+    "forum": "Forum",
+    "postsCreated": "Oluşturulan Gönderiler",
+    "commentsMade": "Yapılan Yorumlar",
+    "likesReceived": "Alınan Beğeniler",
+    "bestAnswers": "En İyi Cevaplar",
+    "eventsCreated": "Oluşturulan Etkinlikler",
+    "eventsAttended": "Katılınan Etkinlikler",
+    "minutes": "dakika",
+    "hours": "saat",
+    "days": "gün",
+    "noDataAvailable": "Etki verisi mevcut değil",
+    "impactSummaryBlocked": "Bu kullanıcının etki özetini görüntüleyemezsiniz"
   },
   "badges": {
     "names": {
@@ -647,7 +671,11 @@
     "images": "resim",
     "maxImagesReached": "En fazla {{max}} resim yüklenebilir",
     "fileSizeError": "Dosya boyutu {{size}}MB'dan küçük olmalıdır",
-    "fileTypeError": "Dosya türü desteklenmiyor. Lütfen şunları kullanın: {{types}}"
+    "fileTypeError": "Dosya türü desteklenmiyor. Lütfen şunları kullanın: {{types}}",
+    "uploadImages": "Resim Yükle",
+    "supportedFormats": "Desteklenen formatlar",
+    "maxSize": "En fazla boyut",
+    "maxImages": "En fazla resim"
   },
   "validation": {
     "required": "Bu alan gereklidir",

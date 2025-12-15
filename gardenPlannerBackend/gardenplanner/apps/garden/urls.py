@@ -61,6 +61,9 @@ urlpatterns = [
     path('badges/', views.BadgeListView.as_view(), name='badge-list'),
     path('user/<int:user_id>/badges/', views.UserBadgeListView.as_view(), name='user-badges'),
 
+    # Impact Summary endpoint
+    path('user/<int:user_id>/impact-summary/', views.UserImpactSummaryView.as_view(), name='user-impact-summary'),
+
     # Like toggle endpoints
     path('forum-posts/<int:pk>/like/', views.ForumPostLikeToggleView.as_view(), name='forum-post-like'),
     path('comments/<int:pk>/like/', views.CommentLikeToggleView.as_view(), name='comment-like'),

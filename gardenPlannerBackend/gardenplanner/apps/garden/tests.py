@@ -4822,3 +4822,161 @@ class BestAnswerTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         # Database should remain unchanged
         self.assertIsNone(self.post_obj.best_answer)
+
+
+class ImpactSummaryTests(APITestCase):
+    """Tests for the Impact Summary endpoint."""
+    
+    def setUp(self):
+        # Create users
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpassword'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='testpassword'
+        )
+        
+        # Create tokens
+        self.user_token = Token.objects.create(user=self.user)
+        self.other_token = Token.objects.create(user=self.other_user)
+        
+        # Create a garden and membership for the user
+        self.garden = Garden.objects.create(
+            name="Test Garden",
+            description="A test garden",
+            is_public=True
+        )
+        
+        GardenMembership.objects.create(
+            user=self.user,
+            garden=self.garden,
+            role='MANAGER',
+            status='ACCEPTED'
+        )
+        
+        # Create tasks
+        self.task1 = Task.objects.create(
+            garden=self.garden,
+            title="Task 1",
+            assigned_by=self.user,
+            status='COMPLETED'
+        )
+        self.task1.assigned_to.add(self.user)
+        
+        self.task2 = Task.objects.create(
+            garden=self.garden,
+            title="Task 2",
+            assigned_by=self.other_user,
+            status='PENDING'
+        )
+        self.task2.assigned_to.add(self.user)
+        
+        # Create forum post and comment
+        self.post = ForumPost.objects.create(
+            title="Test Post",
+            content="Test content",
+            author=self.user
+        )
+        
+        self.comment = Comment.objects.create(
+            forum_post=self.post,
+            content="Test comment",
+            author=self.user
+        )
+        
+        # Create event
+        self.event = GardenEvent.objects.create(
+            garden=self.garden,
+            title="Test Event",
+            start_at=timezone.now(),
+            created_by=self.user
+        )
+        
+        # Create event attendance
+        EventAttendance.objects.create(
+            event=self.event,
+            user=self.user,
+            status=AttendanceStatus.GOING
+        )
+        
+        # Create a follower relationship
+        self.other_user.profile.follow(self.user.profile)
+        self.url = reverse('garden:user-impact-summary', args=[self.user.id])
+    
+    def test_impact_summary_authenticated_access(self):
+        """Test that authenticated user can access impact summary."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.other_token.key}')
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('member_since', response.data)
+        self.assertIn('followers_count', response.data)
+        self.assertIn('tasks_completed', response.data)
+        self.assertIn('posts_created', response.data)
+    
+    def test_impact_summary_unauthenticated_access(self):
+        """Test that unauthenticated user cannot access impact summary."""
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_impact_summary_metrics_accuracy(self):
+        """Test that all metrics are calculated correctly."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.other_token.key}')
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Profile stats
+        self.assertEqual(response.data['followers_count'], 1)  # other_user follows user
+        self.assertEqual(response.data['following_count'], 0)
+        
+        # Garden activity
+        self.assertEqual(response.data['gardens_joined'], 1)
+        self.assertEqual(response.data['gardens_managed'], 1)
+        
+        # Task stats
+        self.assertEqual(response.data['tasks_completed'], 1)
+        self.assertEqual(response.data['tasks_assigned'], 1)  # user assigned task1
+        
+        # Forum engagement
+        self.assertEqual(response.data['posts_created'], 1)
+        self.assertEqual(response.data['comments_made'], 1)
+        
+        # Events
+        self.assertEqual(response.data['events_created'], 1)
+        self.assertEqual(response.data['events_attended'], 1)
+    
+    def test_impact_summary_blocked_user(self):
+        """Test that blocked user cannot access impact summary."""
+        # Block the other user
+        self.user.profile.blocked_users.add(self.other_user.profile)
+        
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.other_token.key}')
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_impact_summary_nonexistent_user(self):
+        """Test that requesting non-existent user returns 404."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.other_token.key}')
+        
+        url = reverse('garden:user-impact-summary', args=[99999])
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_impact_summary_own_profile(self):
+        """Test that user can access their own impact summary."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.user_token.key}')
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
