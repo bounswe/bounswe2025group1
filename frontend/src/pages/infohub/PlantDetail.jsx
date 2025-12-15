@@ -19,6 +19,10 @@ import {
   Card,
   CardMedia,
   CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
@@ -483,37 +487,39 @@ const PlantDetail = () => {
           }}
         >
           {/* Habitat with Climate Zone */}
-          <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column' }}>
+          <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <GrassIcon sx={{ mr: 1, color: 'success.main', fontSize: 28 }} />
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                   {t('infohub.plantDetail.whereItLives', 'Where It Lives')}
                 </Typography>
               </Box>
-            <Typography variant="body1" sx={{ mb: plantClimateZone ? 2 : 0 }}>
-              {plantHabitat}
-            </Typography>
-            {plantClimateZone && Object.keys(plantClimateZone).length > 0 && (
-              <>
-                <Divider sx={{ my: 2 }} />
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                    {t('infohub.plantDetail.idealTemperatureRange', 'Ideal Temperature Range')}:
-                  </Typography>
-                  <Typography variant="body1">
-                    {plantClimateZone.idealTemperatureRange}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                    {t('infohub.plantDetail.frostTolerance', 'Frost Tolerance')}:
-                  </Typography>
-                  <Typography variant="body1">
-                    {plantClimateZone.frostTolerance}
-                  </Typography>
-                </Box>
-              </>
-            )}
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+              <Typography variant="body1" sx={{ mb: plantClimateZone ? 2 : 0 }}>
+                {plantHabitat}
+              </Typography>
+              {plantClimateZone && Object.keys(plantClimateZone).length > 0 && (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      {t('infohub.plantDetail.idealTemperatureRange', 'Ideal Temperature Range')}:
+                    </Typography>
+                    <Typography variant="body1">
+                      {plantClimateZone.idealTemperatureRange}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      {t('infohub.plantDetail.frostTolerance', 'Frost Tolerance')}:
+                    </Typography>
+                    <Typography variant="body1">
+                      {plantClimateZone.frostTolerance}
+                    </Typography>
+                  </Box>
+                </>
+              )}
+            </Box>
           </Paper>
 
           {/* Sunlight & Soil */}
@@ -995,85 +1001,93 @@ const PlantDetail = () => {
               </Typography>
             </Box>
 
-            <Grid container spacing={3}>
-              {/* Flower */}
-              {plant.visualCharacteristics.flower && (
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    {t('infohub.plantDetail.flower', 'Flower')}
-                  </Typography>
-                  {plant.visualCharacteristics.flower.colors && plant.visualCharacteristics.flower.colors.length > 0 && (
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('infohub.plantDetail.colors', 'Colors')}:
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+            <Table>
+              <TableBody>
+                {/* Flower Colors */}
+                {plant.visualCharacteristics.flower?.colors && plant.visualCharacteristics.flower.colors.length > 0 && (
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
+                      {t('infohub.plantDetail.flower', 'Flower')} - {t('infohub.plantDetail.colors', 'Colors')}
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                         {plant.visualCharacteristics.flower.colors.map((color, i) => (
                           <Chip key={i} label={color} size="small" sx={{ textTransform: 'capitalize' }} />
                         ))}
                       </Box>
-                    </Box>
-                  )}
-                  {plant.visualCharacteristics.flower.conspicuous !== undefined && (
-                    <Typography variant="body2">
-                      {t('infohub.plantDetail.conspicuous', 'Conspicuous')}: {plant.visualCharacteristics.flower.conspicuous ? t('infohub.plantDetail.yes', 'Yes') : t('infohub.plantDetail.no', 'No')}
-                    </Typography>
-                  )}
-                </Grid>
-              )}
+                    </TableCell>
+                  </TableRow>
+                )}
+                
+                {/* Flower Conspicuous */}
+                {plant.visualCharacteristics.flower?.conspicuous !== undefined && (
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
+                      {t('infohub.plantDetail.flower', 'Flower')} - {t('infohub.plantDetail.conspicuous', 'Conspicuous')}
+                    </TableCell>
+                    <TableCell>
+                      {plant.visualCharacteristics.flower.conspicuous ? t('infohub.plantDetail.yes', 'Yes') : t('infohub.plantDetail.no', 'No')}
+                    </TableCell>
+                  </TableRow>
+                )}
 
-              {/* Foliage */}
-              {plant.visualCharacteristics.foliage && (
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    {t('infohub.plantDetail.foliage', 'Foliage')}
-                  </Typography>
-                  {plant.visualCharacteristics.foliage.texture && (
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      {t('infohub.plantDetail.texture', 'Texture')}: <strong>{plant.visualCharacteristics.foliage.texture}</strong>
-                    </Typography>
-                  )}
-                  {plant.visualCharacteristics.foliage.colors && plant.visualCharacteristics.foliage.colors.length > 0 && (
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('infohub.plantDetail.colors', 'Colors')}:
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                {/* Foliage Texture */}
+                {plant.visualCharacteristics.foliage?.texture && (
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
+                      {t('infohub.plantDetail.foliage', 'Foliage')} - {t('infohub.plantDetail.texture', 'Texture')}
+                    </TableCell>
+                    <TableCell sx={{ textTransform: 'capitalize' }}>
+                      {plant.visualCharacteristics.foliage.texture}
+                    </TableCell>
+                  </TableRow>
+                )}
+
+                {/* Foliage Colors */}
+                {plant.visualCharacteristics.foliage?.colors && plant.visualCharacteristics.foliage.colors.length > 0 && (
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
+                      {t('infohub.plantDetail.foliage', 'Foliage')} - {t('infohub.plantDetail.colors', 'Colors')}
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                         {plant.visualCharacteristics.foliage.colors.map((color, i) => (
                           <Chip key={i} label={color} size="small" sx={{ textTransform: 'capitalize' }} />
                         ))}
                       </Box>
-                    </Box>
-                  )}
-                </Grid>
-              )}
+                    </TableCell>
+                  </TableRow>
+                )}
 
-              {/* Fruit */}
-              {plant.visualCharacteristics.fruit && (
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    {t('infohub.plantDetail.fruit', 'Fruit')}
-                  </Typography>
-                  {plant.visualCharacteristics.fruit.colors && plant.visualCharacteristics.fruit.colors.length > 0 && (
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('infohub.plantDetail.colors', 'Colors')}:
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                {/* Fruit Colors */}
+                {plant.visualCharacteristics.fruit?.colors && plant.visualCharacteristics.fruit.colors.length > 0 && (
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
+                      {t('infohub.plantDetail.fruit', 'Fruit')} - {t('infohub.plantDetail.colors', 'Colors')}
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                         {plant.visualCharacteristics.fruit.colors.map((color, i) => (
                           <Chip key={i} label={color} size="small" sx={{ textTransform: 'capitalize' }} />
                         ))}
                       </Box>
-                    </Box>
-                  )}
-                  {plant.visualCharacteristics.fruit.shape && (
-                    <Typography variant="body2">
-                      {t('infohub.plantDetail.shape', 'Shape')}: <strong>{plant.visualCharacteristics.fruit.shape}</strong>
-                    </Typography>
-                  )}
-                </Grid>
-              )}
-            </Grid>
+                    </TableCell>
+                  </TableRow>
+                )}
+
+                {/* Fruit Shape */}
+                {plant.visualCharacteristics.fruit?.shape && (
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
+                      {t('infohub.plantDetail.fruit', 'Fruit')} - {t('infohub.plantDetail.shape', 'Shape')}
+                    </TableCell>
+                    <TableCell sx={{ textTransform: 'capitalize' }}>
+                      {plant.visualCharacteristics.fruit.shape}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </Paper>
         )}
 
