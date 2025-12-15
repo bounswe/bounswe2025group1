@@ -26,6 +26,7 @@ class Profile(models.Model):
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True)
     blocked_users = models.ManyToManyField('self', symmetrical=False, related_name='blocked_by', blank=True)
     receives_notifications = models.BooleanField(default=True)
+    is_private = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -63,6 +64,8 @@ class Garden(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
     is_public = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -142,6 +145,13 @@ class Task(models.Model):
         ('MAINTENANCE', 'Maintenance'),
         ('CUSTOM', 'Custom'),
     ]
+
+    RECURRENCE_PERIOD_CHOICES = [
+        ('DAILY', 'Daily'),
+        ('WEEKLY', 'Weekly'),
+        ('MONTHLY', 'Monthly'),
+        ('YEARLY', 'Yearly'),
+    ]
     
     garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='tasks')
     title = models.CharField(max_length=100)
@@ -149,14 +159,53 @@ class Task(models.Model):
     task_type = models.CharField(max_length=20, choices=TASK_TYPE_CHOICES, default='CUSTOM')
     custom_type = models.ForeignKey(CustomTaskType, on_delete=models.SET_NULL, related_name='tasks', null=True, blank=True)
     assigned_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks_assigned')
-    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks_received', null=True, blank=True)
+    assigned_to = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     due_date = models.DateTimeField(null=True, blank=True)
+    
+    # Recurring task fields
+    is_recurring = models.BooleanField(default=False)
+    recurrence_period = models.CharField(max_length=20, choices=RECURRENCE_PERIOD_CHOICES, null=True, blank=True)
+    recurrence_end_date = models.DateTimeField(null=True, blank=True, help_text="When to stop generating recurring instances")
+    parent_task = models.ForeignKey('self', on_delete=models.CASCADE, related_name='recurring_instances', null=True, blank=True, help_text="Parent task template for recurring tasks")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.title
+    
+    def is_parent_task(self):
+        """Check if this task is a parent recurring task template"""
+        return self.is_recurring and self.parent_task is None
+    
+    def get_next_due_date(self):
+        """Calculate the next due date based on recurrence period"""
+        if not self.is_recurring or not self.recurrence_period or not self.due_date:
+            return None
+        
+        from datetime import timedelta
+        from django.utils import timezone
+        
+        current_due = self.due_date
+        if isinstance(current_due, str):
+            from django.utils.dateparse import parse_datetime
+            current_due = parse_datetime(current_due)
+        
+        if not current_due:
+            return None
+        
+        period_map = {
+            'DAILY': timedelta(days=1),
+            'WEEKLY': timedelta(weeks=1),
+            'MONTHLY': timedelta(days=30),  # Approximate month
+            'YEARLY': timedelta(days=365),
+        }
+        
+        delta = period_map.get(self.recurrence_period)
+        if delta:
+            return current_due + delta
+        return None
 
 
 class ForumPost(models.Model):
@@ -166,6 +215,7 @@ class ForumPost(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
+    best_answer = models.ForeignKey('Comment', on_delete=models.SET_NULL, null=True, blank=True, related_name='best_answer_for')
 
     #soft delete (content will be shown as moderated and not actually deleted from the db)
     def delete(self):
@@ -189,6 +239,31 @@ class Comment(models.Model):
     
     def __str__(self):
         return f"Comment by {self.author.username} on {self.forum_post.title}"
+
+
+class ForumPostLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_likes")
+    post = models.ForeignKey(ForumPost, on_delete=models.CASCADE, related_name="likes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # Ensures a user can only like a specific post once
+        unique_together = ('user', 'post')
+
+    def __str__(self):
+        return f"{self.user.username} likes {self.post.title}"
+
+
+class CommentLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comment_likes")
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="likes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'comment')
+
+    def __str__(self):
+        return f"{self.user.username} likes comment {self.comment.id}"
 
 
 class ForumPostImage(models.Model):

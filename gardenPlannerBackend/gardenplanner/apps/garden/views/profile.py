@@ -2,7 +2,6 @@
 
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
-from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -19,7 +18,7 @@ class ProfileView(APIView):
 
     def get(self, request):
         """Get current user's profile"""
-        serializer = UserSerializer(request.user)
+        serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
     def put(self, request):
@@ -44,8 +43,15 @@ class UserProfileView(APIView):
                 {"error": "You cannot view this profile due to blocking restrictions."},
                 status=status.HTTP_403_FORBIDDEN
             )
+
+        # Check if profile is private
+        if user.profile.is_private and request.user != user:
+            return Response(
+                {"detail": "This profile is private."},
+                status=status.HTTP_403_FORBIDDEN
+            )
             
-        serializer = UserSerializer(user)
+        serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data)
     
 
@@ -157,7 +163,7 @@ class UserTasksView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
-        """Get tasks related to a specific user (assigned to or assigned by).
+        """Get tasks assigned to a specific user.
 
         Visibility rules:
         - Deny if either user has blocked the other.
@@ -174,10 +180,10 @@ class UserTasksView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Tasks either assigned to or assigned by the target user
-        tasks_qs = Task.objects.filter(Q(assigned_to=user) | Q(assigned_by=user)).select_related(
-            'garden', 'assigned_by', 'assigned_to', 'custom_type'
-        )
+        # Tasks assigned to the target user only (not tasks they created)
+        tasks_qs = Task.objects.filter(assigned_to=user).select_related(
+            'garden', 'assigned_by', 'custom_type'
+        ).prefetch_related('assigned_to')
 
         visible_tasks = []
         for task in tasks_qs:

@@ -145,7 +145,12 @@
       "statuses": {
         "ACCEPTED": "Kabul Edildi",
         "PENDING": "Beklemede"
-      }
+      },
+      "showDirections": "Yol Tarifi Göster",
+      "noLocation": "Bahçe konumu mevcut değil.",
+      "mapsError": "Harita uygulaması açılamadı. Lütfen bir harita uygulaması yüklü olduğundan emin olun.",
+      "joinRequestSent": "Katılım isteği gönderildi! Yönetici onayı bekleniyor.",
+      "joinRequestError": "Katılım isteği gönderilemedi"
     },
     "create": {
       "title": "Yeni Bahçe Oluştur",

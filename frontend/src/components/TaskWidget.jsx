@@ -72,7 +72,7 @@ const TaskWidget = () => {
       >
         <CircularProgress color="success" size={40} />
         <Typography variant="body2" sx={{ mt: 2 }}>
-          Loading tasks...
+          {t('tasks.loading')}
         </Typography>
       </Paper>
     );

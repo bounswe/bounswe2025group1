@@ -59,4 +59,14 @@ urlpatterns = [
     # Badge endpoints
     path('badges/', views.BadgeListView.as_view(), name='badge-list'),
     path('user/<int:user_id>/badges/', views.UserBadgeListView.as_view(), name='user-badges'),
+
+    # Like toggle endpoints
+    path('forum-posts/<int:pk>/like/', views.ForumPostLikeToggleView.as_view(), name='forum-post-like'),
+    path('comments/<int:pk>/like/', views.CommentLikeToggleView.as_view(), name='comment-like'),
+    
+    path('forum-posts/<int:pk>/likes/list/', views.PostLikeListView.as_view(), name='post-likes-list'),
+    path('comments/<int:pk>/likes/list/', views.CommentLikeListView.as_view(), name='comment-likes-list'),
+
+    path('comments/<int:pk>/mark-best/', views.ToggleBestAnswerView.as_view(), name='mark-best-answer'),
+
 ] 

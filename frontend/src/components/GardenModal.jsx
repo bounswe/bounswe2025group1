@@ -22,6 +22,18 @@ const GardenModal = ({
   const [coverImage, setCoverImage] = useState('');
   const [galleryImages, setGalleryImages] = useState([]);
 
+  const [coordinates, setCoordinates] = useState({ 
+    lat: form.latitude || null, 
+    lng: form.longitude || null 
+  });
+
+  useEffect(() => {
+  setCoordinates({
+      lat: form.latitude || null,
+      lng: form.longitude || null
+  });
+  }, [form.latitude, form.longitude]);
+
   // Create keyboard handler for the form
   const formKeyboardHandler = createFormKeyboardHandler(handleSubmit, onClose);
 
@@ -34,11 +46,20 @@ const GardenModal = ({
       ...form,
       cover_image_base64: coverImage,
       gallery_base64: galleryImages,
+      latitude: coordinates.lat,
+      longitude: coordinates.lng,
     };
     
     
     // Call the original handleSubmit with enhanced form data
     handleSubmit(e, formData);
+  };
+
+  const handleLocationUpdate = (data) => {
+    // data contains: { lat, lng, address } from your LocationPicker
+
+    handleChange({ target: { name: 'location', value: data.address } });
+    setCoordinates({ lat: data.lat, lng: data.lng });
   };
 
   // Initialize images when modal opens or existing images change
@@ -152,6 +173,7 @@ const GardenModal = ({
           <LocationPicker
             value={form.location}
             onChange={(value) => handleChange({ target: { name: 'location', value } })}
+            onLocationChange={handleLocationUpdate}
             label={t('gardens.gardenLocation')}
             required
             height={{ xs: 200, sm: 250, md: 300 }}

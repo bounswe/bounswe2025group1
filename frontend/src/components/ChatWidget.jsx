@@ -57,6 +57,12 @@ const ChatWidget = () => {
 
   // Get Firebase UID for the current user
   useEffect(() => {
+    setSelectedChat(null);
+    setCurrentView('list');
+    setMessages([]);
+    setUnreadCounts({});
+    setIsOpen(false);
+
     if (!user) {
       setFirebaseUid(null);
       return;

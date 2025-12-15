@@ -2,17 +2,19 @@
 
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.exceptions import PermissionDenied
 
 
 from ..serializers import (
-    ForumPostSerializer, CommentSerializer
+    ForumPostSerializer, CommentSerializer, LikerSerializer
 )
-from ..models import ForumPost, Comment
+from ..models import ForumPost, Comment, ForumPostLike, CommentLike
 
 
 class ForumPostListCreateView(generics.ListCreateAPIView):
@@ -87,6 +89,44 @@ class ForumPostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         return super().destroy(request, *args, **kwargs)
 
 
+class LikeToggleView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def toggle_like(self, model_class, like_model_class, pk, request):
+        obj = get_object_or_404(model_class, pk=pk, is_deleted=False)
+
+        # Toggle Logic
+        like_instance = like_model_class.objects.filter(user=request.user, **{self.lookup_field: obj}).first()
+
+        if like_instance:
+            # If like exists, remove it (Unlike)
+            like_instance.delete()
+            return Response({"detail": "Unliked", "is_liked": False, "likes_count": obj.likes.count()}, status=status.HTTP_200_OK)
+        else:
+            # If like does not exist, create it (Like)
+            like_model_class.objects.create(user=request.user, **{self.lookup_field: obj})
+            return Response({"detail": "Liked", "is_liked": True, "likes_count": obj.likes.count()}, status=status.HTTP_201_CREATED)
+
+
+class ForumPostLikeToggleView(LikeToggleView):
+    lookup_field = 'post'
+
+    def post(self, request, pk):
+        return self.toggle_like(ForumPost, ForumPostLike, pk, request)
+
+
+class PostLikeListView(generics.ListAPIView):
+    serializer_class = LikerSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        post_id = self.kwargs['pk']
+        likes = ForumPostLike.objects.filter(post_id=post_id).select_related('user__profile')
+        
+        # 3. Return the PROFILES of the users who liked it
+        return [like.user.profile for like in likes]
+
+
 class CommentListCreateView(generics.ListCreateAPIView):
     queryset = Comment.objects.filter(is_deleted=False)
     serializer_class = CommentSerializer
@@ -145,3 +185,51 @@ class CommentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             return Response({"detail": "You do not have permission to delete this comment."},
                             status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
+
+
+class CommentLikeToggleView(LikeToggleView):
+    lookup_field = 'comment'
+
+    def post(self, request, pk):
+        return self.toggle_like(Comment, CommentLike, pk, request)
+
+
+class CommentLikeListView(generics.ListAPIView):
+    serializer_class = LikerSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        comment_id = self.kwargs['pk']
+        likes = CommentLike.objects.filter(comment_id=comment_id).select_related('user__profile')
+        
+        return [like.user.profile for like in likes]
+
+
+class ToggleBestAnswerView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+
+        comment = get_object_or_404(Comment, pk=pk, is_deleted=False)
+        post = comment.forum_post
+
+        # Permission Check: Only the post author can mark a best answer
+        if post.author != request.user:
+            raise PermissionDenied("Only the author of the post can select the best answer.")
+
+        if post.best_answer == comment:
+            # If this is already the best answer, unmark it
+            post.best_answer = None
+            action = "unmarked"
+        else:
+            # Mark this comment as best whether or not another best answer exists
+            post.best_answer = comment
+            action = "marked"
+        
+        post.save()
+
+        return Response({
+            "detail": f"Comment {action} as best answer.",
+            "best_answer_id": comment.id if action == "marked" else None,
+            "is_best_answer": action == "marked"
+        }, status=status.HTTP_200_OK)
