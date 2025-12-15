@@ -290,6 +290,27 @@ def award_badge(user, badge_key):
         UserBadge.objects.create(user=user, badge=badge)
 
 
+@receiver(post_save, sender=UserBadge)
+def badge_awarded_notification(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    user = instance.user
+    badge = instance.badge
+
+    message = f"🎉 You earned a new badge: {badge.name}!"
+
+    _send_notification(
+        notification_receiver=user,
+        notification_title="New Badge Earned!",
+        notification_message=message,
+        notification_category=NotificationCategory.BADGE,
+        link="/profile",  # adjust if needed
+        send_push_notification=True
+    )
+
+
+
 @receiver(post_save, sender=Task)
 def check_task_badges(sender, instance, created, **kwargs):
     created_by_user = instance.assigned_by

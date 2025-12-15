@@ -315,6 +315,7 @@ class NotificationCategory(models.TextChoices):
     SOCIAL = 'SOCIAL', 'Social Activity'
     FORUM = 'FORUM', 'Forum Activity'
     WEATHER = 'WEATHER', 'Weather Alert'
+    BADGE = "BADGE", "Badge"
     # Add other categories as needed
 
 class Notification(models.Model):
