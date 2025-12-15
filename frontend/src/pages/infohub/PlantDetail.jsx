@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -18,6 +18,7 @@ import {
   LinearProgress,
   Card,
   CardMedia,
+  CircularProgress,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
@@ -36,32 +37,25 @@ import ImageIcon from '@mui/icons-material/Image';
 import PublicIcon from '@mui/icons-material/Public';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import plantsData from '../../data/plants.json';
-import { 
-  getTranslatedField, 
-  getTranslatedObject, 
-  getTranslatedArray,
-  getTranslatedCompanionPlants 
-} from '../../utils/plantTranslations';
+import { fetchPlantById, fetchPlants, fetchSoilTypes } from '../../services/plantService';
 
 // Helper function to recommend soil type based on plant soil description
-const recommendSoilType = (soilDescription) => {
-  if (!soilDescription) return null;
+const recommendSoilType = (soilDescription, soilTypes) => {
+  if (!soilDescription || !soilTypes) return null;
   
   const desc = soilDescription.toLowerCase();
-  const soils = plantsData.soilTypes || [];
   
   // Check for specific soil type mentions first
   if (desc.includes('sandy-loam') || desc.includes('sandy loam')) {
-    const found = soils.find(s => s.id === 'sandy-loam');
+    const found = soilTypes.find(s => s.id === 'sandy-loam');
     if (found) return 'sandy-loam';
   }
   if (desc.includes('clay-loam') || desc.includes('clay loam')) {
-    const found = soils.find(s => s.id === 'clay-loam');
+    const found = soilTypes.find(s => s.id === 'clay-loam');
     if (found) return 'clay-loam';
   }
   if (desc.includes('silty-loam') || desc.includes('silty loam')) {
-    const found = soils.find(s => s.id === 'silty-loam');
+    const found = soilTypes.find(s => s.id === 'silty-loam');
     if (found) return 'silty-loam';
   }
   if (desc.includes('sandy') || desc.includes('rocky') || (desc.includes('well-drained') && desc.includes('dry'))) {
@@ -86,11 +80,11 @@ const recommendSoilType = (soilDescription) => {
     return 'saline';
   }
   if (desc.includes('acidic') || desc.includes('acid')) {
-    const found = soils.find(s => s.id === 'acidic');
+    const found = soilTypes.find(s => s.id === 'acidic');
     if (found) return 'acidic';
   }
   if (desc.includes('rich') && desc.includes('well-draining')) {
-    const found = soils.find(s => s.id === 'humus-rich');
+    const found = soilTypes.find(s => s.id === 'humus-rich');
     if (found) return 'humus-rich';
     return 'loamy';
   }
@@ -105,55 +99,34 @@ const recommendSoilType = (soilDescription) => {
   return 'loamy';
 };
 
-// Helper function to find plant ID by name
-const findPlantIdByName = (plantName) => {
+// Helper function to find plant ID by name (async)
+const findPlantIdByName = async (plantName, lang = 'en') => {
   if (!plantName) return null;
   
-  const normalizedName = plantName.toLowerCase().trim();
-  
-  // Try exact match first
-  let found = plantsData.plants.find(
-    (p) => p.name.toLowerCase() === normalizedName
-  );
-  
-  if (found) return found.id;
-  
-  // Try matching singular/plural forms
-  const singularName = normalizedName.replace(/s$/, '');
-  const pluralName = normalizedName + 's';
-  
-  found = plantsData.plants.find((p) => {
-    const pName = p.name.toLowerCase();
-    return pName === singularName || pName === pluralName || 
-           singularName === pName.replace(/s$/, '') ||
-           pluralName === pName;
-  });
-  
-  if (found) return found.id;
-  
-  // Try partial match (plant name contains search term or vice versa)
-  found = plantsData.plants.find((p) => {
-    const pName = p.name.toLowerCase();
-    return pName.includes(normalizedName) || normalizedName.includes(pName);
-  });
-  
-  if (found) return found.id;
-  
-  // Try matching without common suffixes/prefixes
-  const nameWithoutSuffixes = normalizedName
-    .replace(/\s*\(.*?\)/g, '') // Remove parentheses content
-    .replace(/\s+tree$/i, '') // Remove " tree"
-    .replace(/\s+plant$/i, '') // Remove " plant"
-    .trim();
-  
-  if (nameWithoutSuffixes !== normalizedName) {
-    found = plantsData.plants.find(
-      (p) => p.name.toLowerCase() === nameWithoutSuffixes
+  try {
+    const result = await fetchPlants({ search: plantName, lang, perPage: 100 });
+    const normalizedName = plantName.toLowerCase().trim();
+    
+    // Try exact match first
+    let found = result.data.find(
+      (p) => p.name.toLowerCase() === normalizedName
     );
+    
     if (found) return found.id;
+    
+    // Try partial match
+    found = result.data.find((p) => {
+      const pName = p.name.toLowerCase();
+      return pName.includes(normalizedName) || normalizedName.includes(pName);
+    });
+    
+    if (found) return found.id;
+    
+    return null;
+  } catch (error) {
+    console.error('Error finding plant by name:', error);
+    return null;
   }
-  
-  return null;
 };
 
 const PlantDetail = () => {
@@ -163,35 +136,93 @@ const PlantDetail = () => {
   const { plantId } = useParams();
   const currentLang = i18n.language || 'en';
   const [imageTab, setImageTab] = useState(0);
+  const [plant, setPlant] = useState(null);
+  const [soilTypes, setSoilTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [companionPlantIds, setCompanionPlantIds] = useState({});
 
-  const plant = plantsData.plants.find((p) => p.id === plantId);
-  
-  // Get translated plant data
-  const plantName = getTranslatedField(plant, 'name', currentLang);
-  const plantDescription = getTranslatedField(plant, 'description', currentLang);
-  const plantHabitat = getTranslatedField(plant, 'habitat', currentLang);
-  const plantSoil = getTranslatedField(plant, 'soil', currentLang);
-  const plantSunlight = getTranslatedField(plant, 'sunlight', currentLang);
-  const plantNotes = getTranslatedField(plant, 'notes', currentLang);
-  const plantGrowthDuration = getTranslatedField(plant, 'growthDuration', currentLang);
-  const plantWatering = getTranslatedObject(plant, 'watering', currentLang);
-  const plantSpacing = getTranslatedObject(plant, 'spacing', currentLang);
-  const plantClimateZone = getTranslatedObject(plant, 'climateZone', currentLang);
-  const plantCommonProblems = getTranslatedArray(plant, 'commonProblems', currentLang);
-  const plantCompanionPlants = getTranslatedCompanionPlants(plant, currentLang);
+  // Fetch plant data
+  useEffect(() => {
+    const loadPlant = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [plantData, soilTypesData] = await Promise.all([
+          fetchPlantById(plantId, currentLang),
+          fetchSoilTypes(currentLang),
+        ]);
+        setPlant(plantData);
+        setSoilTypes(soilTypesData);
 
-  if (!plant) {
+        // Pre-fetch companion plant IDs
+        if (plantData?.companionPlants) {
+          const ids = {};
+          const allCompanions = [
+            ...(plantData.companionPlants.growsWellWith || []),
+            ...(plantData.companionPlants.avoidNear || []),
+          ];
+          
+          await Promise.all(
+            allCompanions.map(async (name) => {
+              const id = await findPlantIdByName(name, currentLang);
+              if (id) ids[name] = id;
+            })
+          );
+          
+          setCompanionPlantIds(ids);
+        }
+      } catch (err) {
+        console.error('Error loading plant:', err);
+        setError(err.message || 'Failed to load plant');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (plantId) {
+      loadPlant();
+    }
+  }, [plantId, currentLang]);
+
+  if (loading) {
+    return (
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
+  if (error || !plant) {
     return (
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/infohub/plants')}>
           {t('infohub.backToPlants', 'Back to Plants')}
         </Button>
         <Paper sx={{ p: 4, mt: 2, textAlign: 'center' }}>
-          <Typography variant="h5">{t('infohub.plantDetail.notFound', 'Plant not found')}</Typography>
+          <Typography variant="h5">
+            {error || t('infohub.plantDetail.notFound', 'Plant not found')}
+          </Typography>
         </Paper>
       </Container>
     );
   }
+
+  // Get plant data (already translated by service)
+  const plantName = plant.name;
+  const plantDescription = plant.description;
+  const plantHabitat = plant.habitat;
+  const plantSoil = plant.soil;
+  const plantSunlight = plant.sunlight;
+  const plantNotes = plant.notes;
+  const plantGrowthDuration = plant.growthDuration;
+  const plantWatering = plant.watering || {};
+  const plantSpacing = plant.spacing || {};
+  const plantClimateZone = plant.climateZone || {};
+  const plantCommonProblems = plant.commonProblems || [];
+  const plantCompanionPlants = plant.companionPlants || { growsWellWith: [], avoidNear: [] };
 
   return (
     <Box sx={{ 
@@ -523,8 +554,8 @@ const PlantDetail = () => {
             
             {/* Soil Recommendation Badge */}
             {(() => {
-              const recommendedSoilId = recommendSoilType(plantSoil);
-              const recommendedSoil = plantsData.soilTypes?.find(s => s.id === recommendedSoilId);
+              const recommendedSoilId = recommendSoilType(plantSoil, soilTypes);
+              const recommendedSoil = soilTypes?.find(s => s.id === recommendedSoilId);
               
               if (recommendedSoil) {
                 // Determine text color based on background brightness
@@ -675,7 +706,7 @@ const PlantDetail = () => {
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {plantCompanionPlants.growsWellWith.map((companion, i) => {
-                      const companionPlantId = findPlantIdByName(companion);
+                      const companionPlantId = companionPlantIds[companion];
                       return (
                         <Chip
                           key={i}
@@ -704,7 +735,7 @@ const PlantDetail = () => {
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {plantCompanionPlants.avoidNear.map((avoid, i) => {
-                      const avoidPlantId = findPlantIdByName(avoid);
+                      const avoidPlantId = companionPlantIds[avoid];
                       return (
                         <Chip
                           key={i}
