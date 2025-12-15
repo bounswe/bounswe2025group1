@@ -22,11 +22,9 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import DangerousIcon from '@mui/icons-material/Dangerous';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { fetchPlants } from '../../services/plantService';
 
 const PlantList = () => {
-  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,7 +35,6 @@ const PlantList = () => {
   const [error, setError] = useState(null);
   const [totalPages, setTotalPages] = useState(1);
   const plantsPerPage = 20;
-  const currentLang = i18n.language || 'en';
 
   const types = ['all', 'vegetable', 'herb', 'flower', 'tree', 'fruit', 'succulent', 'shrub'];
 
@@ -52,7 +49,6 @@ const PlantList = () => {
           type: selectedType !== 'all' ? selectedType : undefined,
           page,
           perPage: plantsPerPage,
-          lang: currentLang,
         });
         setPlants(result.data);
         setTotalPages(Math.ceil(result.total / plantsPerPage));
@@ -65,7 +61,7 @@ const PlantList = () => {
     };
 
     loadPlants();
-  }, [searchQuery, selectedType, page, currentLang]);
+  }, [searchQuery, selectedType, page]);
 
   // Reset to page 1 when search or filter changes
   useEffect(() => {
@@ -90,7 +86,7 @@ const PlantList = () => {
           onClick={() => navigate('/infohub')}
           sx={{ mb: 2 }}
         >
-          {t('infohub.backToCategories', 'Back to Infohub')}
+          Back to Infohub
         </Button>
 
         {/* Header */}
@@ -103,13 +99,13 @@ const PlantList = () => {
           }}
         >
           <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 1 }}>
-            🌱 {t('infohub.plantEncyclopedia.title', 'Plant Encyclopedia')}
+            🌱 Plant Encyclopedia
           </Typography>
           <Typography variant="h6" sx={{ opacity: 0.9 }}>
-            {t('infohub.plantEncyclopedia.subtitle', 'Browse our collection of plants with care guides')}
+            Browse our collection of plants with care guides
           </Typography>
           <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
-            {plants.length} {t('infohub.plantEncyclopedia.plants', 'plants')} {searchQuery && t('infohub.plantEncyclopedia.found', 'found')} • {t('infohub.plantEncyclopedia.page', 'Page')} {totalPages > 0 ? page : 0} {t('infohub.plantEncyclopedia.of', 'of')} {totalPages}
+            {plants.length} plants {searchQuery && 'found'} • Page {totalPages > 0 ? page : 0} of {totalPages}
           </Typography>
         </Paper>
 
@@ -118,7 +114,7 @@ const PlantList = () => {
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'center' }}>
             <TextField
               fullWidth
-              placeholder={t('infohub.plantEncyclopedia.searchPlaceholder', 'Search plants...')}
+              placeholder="Search plants..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               sx={{ flex: 1 }}
@@ -134,7 +130,7 @@ const PlantList = () => {
               {types.map((type) => (
                 <Chip
                   key={type}
-                  label={type === 'all' ? t('infohub.plantEncyclopedia.all', 'All') : t(`infohub.plantTypes.${type}`, type.charAt(0).toUpperCase() + type.slice(1))}
+                  label={type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
                   onClick={() => setSelectedType(type)}
                   color={selectedType === type ? 'primary' : 'default'}
                   variant={selectedType === type ? 'filled' : 'outlined'}
@@ -155,7 +151,7 @@ const PlantList = () => {
         ) : plants.length === 0 ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
-              {t('infohub.plantEncyclopedia.noResults', 'No plants found matching your search.')}
+              No plants found matching your search.
             </Typography>
           </Paper>
         ) : (
@@ -246,7 +242,7 @@ const PlantList = () => {
                       {plant.edible && (
                         <Chip 
                           icon={<RestaurantIcon />} 
-                          label={t('infohub.plantList.edible', 'Edible')} 
+                          label="Edible" 
                           size="small" 
                           color="success" 
                           variant="filled"

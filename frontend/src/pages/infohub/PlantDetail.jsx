@@ -40,7 +40,6 @@ import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import ImageIcon from '@mui/icons-material/Image';
 import PublicIcon from '@mui/icons-material/Public';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { fetchPlantById, fetchPlants, fetchSoilTypes } from '../../services/plantService';
 
 // Helper function to recommend soil type based on plant soil description
@@ -104,11 +103,11 @@ const recommendSoilType = (soilDescription, soilTypes) => {
 };
 
 // Helper function to find plant ID by name (async)
-const findPlantIdByName = async (plantName, lang = 'en') => {
+const findPlantIdByName = async (plantName) => {
   if (!plantName) return null;
   
   try {
-    const result = await fetchPlants({ search: plantName, lang, perPage: 100 });
+    const result = await fetchPlants({ search: plantName, perPage: 100 });
     const normalizedName = plantName.toLowerCase().trim();
     
     // Try exact match first
@@ -134,11 +133,9 @@ const findPlantIdByName = async (plantName, lang = 'en') => {
 };
 
 const PlantDetail = () => {
-  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const theme = useTheme();
   const { plantId } = useParams();
-  const currentLang = i18n.language || 'en';
   const [imageTab, setImageTab] = useState(0);
   const [plant, setPlant] = useState(null);
   const [soilTypes, setSoilTypes] = useState([]);
@@ -153,8 +150,8 @@ const PlantDetail = () => {
       setError(null);
       try {
         const [plantData, soilTypesData] = await Promise.all([
-          fetchPlantById(plantId, currentLang),
-          fetchSoilTypes(currentLang),
+          fetchPlantById(plantId),
+          fetchSoilTypes(),
         ]);
         setPlant(plantData);
         setSoilTypes(soilTypesData);
@@ -169,7 +166,7 @@ const PlantDetail = () => {
           
           await Promise.all(
             allCompanions.map(async (name) => {
-              const id = await findPlantIdByName(name, currentLang);
+              const id = await findPlantIdByName(name);
               if (id) ids[name] = id;
             })
           );
@@ -187,7 +184,7 @@ const PlantDetail = () => {
     if (plantId) {
       loadPlant();
     }
-  }, [plantId, currentLang]);
+  }, [plantId]);
 
   if (loading) {
     return (
@@ -203,11 +200,11 @@ const PlantDetail = () => {
     return (
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/infohub/plants')}>
-          {t('infohub.backToPlants', 'Back to Plants')}
+          Back to Plants
         </Button>
         <Paper sx={{ p: 4, mt: 2, textAlign: 'center' }}>
           <Typography variant="h5">
-            {error || t('infohub.plantDetail.notFound', 'Plant not found')}
+            {error || 'Plant not found'}
           </Typography>
         </Paper>
       </Container>
@@ -241,7 +238,7 @@ const PlantDetail = () => {
           onClick={() => navigate('/infohub/plants')}
           sx={{ mb: 2 }}
         >
-          {t('infohub.backToPlants', 'Back to Plants')}
+          Back to Plants
         </Button>
 
         {/* Header with Image */}
@@ -300,8 +297,8 @@ const PlantDetail = () => {
                 {plant.scientificName}
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                <Chip label={t(`infohub.plantTypes.${plant.type}`, plant.type)} sx={{ backgroundColor: 'rgba(255,255,255,0.9)' }} />
-                <Chip label={t(`infohub.difficulty.${plant.difficulty?.toLowerCase().replace(/\s+/g, '')}`, plant.difficulty)} sx={{ backgroundColor: 'rgba(255,255,255,0.9)' }} />
+                <Chip label={plant.type} sx={{ backgroundColor: 'rgba(255,255,255,0.9)' }} />
+                <Chip label={plant.difficulty} sx={{ backgroundColor: 'rgba(255,255,255,0.9)' }} />
                 <Chip label={plant.season} sx={{ backgroundColor: 'rgba(255,255,255,0.9)' }} />
               </Box>
             </Box>
@@ -330,7 +327,7 @@ const PlantDetail = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <RestaurantIcon sx={{ mr: 1, color: plant.edible ? 'success.main' : 'text.secondary', fontSize: 28 }} />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                {t('infohub.plantDetail.edibilityAndSafety', 'Edibility & Safety')}
+                Edibility & Safety
               </Typography>
             </Box>
 
@@ -339,10 +336,10 @@ const PlantDetail = () => {
               {plant.edible !== undefined && (
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.edible', 'Edible')}:
+                    Edible:
                   </Typography>
                   <Chip 
-                    label={plant.edible ? t('infohub.plantDetail.yes', 'Yes') : t('infohub.plantDetail.no', 'No')}
+                    label={plant.edible ? 'Yes' : 'No'}
                     color={plant.edible ? 'success' : 'default'}
                     sx={{ fontWeight: 'bold' }}
                   />
@@ -353,7 +350,7 @@ const PlantDetail = () => {
               {plant.edibleParts && plant.edibleParts.length > 0 && (
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.edibleParts', 'Edible Parts')}:
+                    Edible Parts:
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {plant.edibleParts.map((part, i) => (
@@ -373,7 +370,7 @@ const PlantDetail = () => {
               {plant.toxicity && (
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.toxicity', 'Toxicity Level')}:
+                    Toxicity Level:
                   </Typography>
                   <Alert 
                     severity={
@@ -384,7 +381,7 @@ const PlantDetail = () => {
                     icon={plant.toxicity !== 'none' ? <DangerousIcon /> : undefined}
                   >
                     <Typography variant="body2" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
-                      {plant.toxicity} {plant.toxicity !== 'none' && t('infohub.plantDetail.toxicityWarning', '- Handle with care')}
+                      {plant.toxicity} {plant.toxicity !== 'none' && '- Handle with care'}
                     </Typography>
                   </Alert>
                 </Box>
@@ -394,7 +391,7 @@ const PlantDetail = () => {
               {plant.vegetable && (
                 <Box>
                   <Chip 
-                    label={t('infohub.plantDetail.vegetable', 'Vegetable')}
+                    label="Vegetable"
                     color="success"
                     variant="outlined"
                   />
@@ -410,7 +407,7 @@ const PlantDetail = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <ImageIcon sx={{ mr: 1, color: 'primary.main', fontSize: 28 }} />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                {t('infohub.plantDetail.imageGallery', 'Image Gallery')}
+                Image Gallery
               </Typography>
             </Box>
 
@@ -422,22 +419,22 @@ const PlantDetail = () => {
               sx={{ mb: 2 }}
             >
               {plant.imagesDetailed.flower?.length > 0 && (
-                <Tab label={`${t('infohub.plantDetail.flowers', 'Flowers')} (${plant.imagesDetailed.flower.length})`} />
+                <Tab label={`Flowers (${plant.imagesDetailed.flower.length})`} />
               )}
               {plant.imagesDetailed.leaf?.length > 0 && (
-                <Tab label={`${t('infohub.plantDetail.leaves', 'Leaves')} (${plant.imagesDetailed.leaf.length})`} />
+                <Tab label={`Leaves (${plant.imagesDetailed.leaf.length})`} />
               )}
               {plant.imagesDetailed.fruit?.length > 0 && (
-                <Tab label={`${t('infohub.plantDetail.fruits', 'Fruits')} (${plant.imagesDetailed.fruit.length})`} />
+                <Tab label={`Fruits (${plant.imagesDetailed.fruit.length})`} />
               )}
               {plant.imagesDetailed.habit?.length > 0 && (
-                <Tab label={`${t('infohub.plantDetail.habit', 'Habit')} (${plant.imagesDetailed.habit.length})`} />
+                <Tab label={`Habit (${plant.imagesDetailed.habit.length})`} />
               )}
               {plant.imagesDetailed.bark?.length > 0 && (
-                <Tab label={`${t('infohub.plantDetail.bark', 'Bark')} (${plant.imagesDetailed.bark.length})`} />
+                <Tab label={`Bark (${plant.imagesDetailed.bark.length})`} />
               )}
               {plant.imagesDetailed.other?.length > 0 && (
-                <Tab label={`${t('infohub.plantDetail.other', 'Other')} (${plant.imagesDetailed.other.length})`} />
+                <Tab label={`Other (${plant.imagesDetailed.other.length})`} />
               )}
             </Tabs>
 
@@ -450,7 +447,7 @@ const PlantDetail = () => {
               if (images.length === 0) {
                 return (
                   <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
-                    {t('infohub.plantDetail.noImages', 'No images available')}
+                    No images available
                   </Typography>
                 );
               }
@@ -491,7 +488,7 @@ const PlantDetail = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <GrassIcon sx={{ mr: 1, color: 'success.main', fontSize: 28 }} />
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                  {t('infohub.plantDetail.whereItLives', 'Where It Lives')}
+                  Where It Lives
                 </Typography>
               </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
@@ -503,7 +500,7 @@ const PlantDetail = () => {
                   <Divider sx={{ my: 2 }} />
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      {t('infohub.plantDetail.idealTemperatureRange', 'Ideal Temperature Range')}:
+                      Ideal Temperature Range:
                     </Typography>
                     <Typography variant="body1">
                       {plantClimateZone.idealTemperatureRange}
@@ -511,7 +508,7 @@ const PlantDetail = () => {
                   </Box>
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      {t('infohub.plantDetail.frostTolerance', 'Frost Tolerance')}:
+                      Frost Tolerance:
                     </Typography>
                     <Typography variant="body1">
                       {plantClimateZone.frostTolerance}
@@ -528,7 +525,7 @@ const PlantDetail = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <WbSunnyIcon sx={{ mr: 1, color: 'warning.main', fontSize: 28 }} />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                {t('infohub.plantDetail.sunlight', 'Sunlight')}
+                Sunlight
               </Typography>
             </Box>
             <Typography variant="body1" sx={{ mb: 3 }}>
@@ -551,7 +548,7 @@ const PlantDetail = () => {
                 🪴
               </Box>
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                {t('infohub.plantDetail.soil', 'Soil')}
+                Soil
               </Typography>
             </Box>
             <Typography variant="body1" sx={{ mb: 2 }}>
@@ -575,7 +572,7 @@ const PlantDetail = () => {
                 return (
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                      {t('infohub.plantDetail.recommendedSoilType', 'Recommended Soil Type')}:
+                      Recommended Soil Type:
                     </Typography>
                     <Chip
                       label={recommendedSoil.name}
@@ -606,12 +603,12 @@ const PlantDetail = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <OpacityIcon sx={{ mr: 1, color: 'info.main', fontSize: 28 }} />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                {t('infohub.plantDetail.watering', 'Watering')}
+                Watering
               </Typography>
             </Box>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle2" color="text.secondary">
-                {t('infohub.plantDetail.firstMonth', 'First Month')}:
+                First Month:
               </Typography>
               <Typography variant="body1">
                 {plantWatering.initial}
@@ -619,7 +616,7 @@ const PlantDetail = () => {
             </Box>
             <Box>
               <Typography variant="subtitle2" color="text.secondary">
-                {t('infohub.plantDetail.afterEstablished', 'After Established')}:
+                After Established:
               </Typography>
               <Typography variant="body1">
                 {plantWatering.established}
@@ -633,12 +630,12 @@ const PlantDetail = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <HeightIcon sx={{ mr: 1, color: 'success.main', fontSize: 28 }} />
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                  {t('infohub.plantDetail.spacingHeight', 'Spacing & Height')}
+                  Spacing & Height
                 </Typography>
               </Box>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                  {t('infohub.plantDetail.seedSpacing', 'Seed Spacing')}:
+                  Seed Spacing:
                 </Typography>
                 <Typography variant="body1">
                   {plantSpacing.seedSpacing}
@@ -646,7 +643,7 @@ const PlantDetail = () => {
               </Box>
               <Box>
                 <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                  {t('infohub.plantDetail.matureHeight', 'Mature Plant Height')}:
+                  Mature Plant Height:
                 </Typography>
                 <Typography variant="body1">
                   {plantSpacing.matureHeight}
@@ -664,7 +661,7 @@ const PlantDetail = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <ScheduleIcon sx={{ mr: 1, color: 'warning.main', fontSize: 28 }} />
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                      {t('infohub.plantDetail.growthDuration', 'Growth Duration')}
+                      Growth Duration
                     </Typography>
                   </Box>
                   <Typography variant="body1" sx={{ mb: plantCommonProblems && plantCommonProblems.length > 0 ? 3 : 0 }}>
@@ -683,7 +680,7 @@ const PlantDetail = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <WarningIcon sx={{ mr: 1, color: 'error.main', fontSize: 28 }} />
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                      {t('infohub.plantDetail.commonProblems', 'Common Problems')}
+                      Common Problems
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -702,13 +699,13 @@ const PlantDetail = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <LocalFloristIcon sx={{ mr: 1, color: 'success.main', fontSize: 28 }} />
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                  {t('infohub.plantDetail.companionPlants', 'Companion Plants')}
+                  Companion Plants
                 </Typography>
               </Box>
               {plantCompanionPlants.growsWellWith && plantCompanionPlants.growsWellWith.length > 0 && (
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.growsWellWith', 'Grows Well With')}:
+                    Grows Well With:
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {plantCompanionPlants.growsWellWith.map((companion, i) => {
@@ -737,7 +734,7 @@ const PlantDetail = () => {
               {plantCompanionPlants.avoidNear && plantCompanionPlants.avoidNear.length > 0 && (
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.avoidNear', 'Avoid Near')}:
+                    Avoid Near:
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {plantCompanionPlants.avoidNear.map((avoid, i) => {
@@ -773,7 +770,7 @@ const PlantDetail = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <ThermostatIcon sx={{ mr: 1, color: 'info.main', fontSize: 28 }} />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                {t('infohub.plantDetail.growthRequirements', 'Growth Requirements')}
+                Growth Requirements
               </Typography>
             </Box>
 
@@ -782,7 +779,7 @@ const PlantDetail = () => {
               {plant.growthRequirements.light !== undefined && (
                 <Grid item xs={12} sm={6} md={4}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.lightRequirement', 'Light Requirement')}:
+                    Light Requirement:
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <WbSunnyIcon sx={{ color: 'warning.main' }} />
@@ -800,7 +797,7 @@ const PlantDetail = () => {
               {plant.growthRequirements.ph && (
                 <Grid item xs={12} sm={6} md={4}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.phRange', 'pH Range')}:
+                    pH Range:
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <Typography variant="h6">
@@ -828,7 +825,7 @@ const PlantDetail = () => {
               {plant.growthRequirements.temperature && (
                 <Grid item xs={12} sm={6} md={4}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.temperature', 'Temperature Range')}:
+                    Temperature Range:
                   </Typography>
                   {plant.growthRequirements.temperature.min && (
                     <Typography variant="body2">
@@ -847,7 +844,7 @@ const PlantDetail = () => {
               {plant.growthRequirements.atmosphericHumidity !== undefined && (
                 <Grid item xs={12} sm={6} md={4}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.humidity', 'Humidity')}:
+                    Humidity:
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <WaterDropIcon sx={{ color: 'info.main' }} />
@@ -868,7 +865,7 @@ const PlantDetail = () => {
                   {plant.growthRequirements.soil.nutriments !== undefined && (
                     <Grid item xs={12} sm={6} md={4}>
                       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                        {t('infohub.plantDetail.soilNutriments', 'Soil Nutriments')}:
+                        Soil Nutriments:
                       </Typography>
                       <Typography variant="h6">{plant.growthRequirements.soil.nutriments}/10</Typography>
                       <LinearProgress 
@@ -882,7 +879,7 @@ const PlantDetail = () => {
                   {plant.growthRequirements.soil.texture !== undefined && (
                     <Grid item xs={12} sm={6} md={4}>
                       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                        {t('infohub.plantDetail.soilTexture', 'Soil Texture')}:
+                        Soil Texture:
                       </Typography>
                       <Typography variant="body1">{plant.growthRequirements.soil.texture}/10</Typography>
                     </Grid>
@@ -899,7 +896,7 @@ const PlantDetail = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <ScheduleIcon sx={{ mr: 1, color: 'success.main', fontSize: 28 }} />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                {t('infohub.plantDetail.growthCharacteristics', 'Growth Characteristics')}
+                Growth Characteristics
               </Typography>
             </Box>
 
@@ -908,7 +905,7 @@ const PlantDetail = () => {
               {plant.growthCharacteristics.duration && plant.growthCharacteristics.duration.length > 0 && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.duration', 'Duration')}:
+                    Duration:
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {plant.growthCharacteristics.duration.map((dur, i) => (
@@ -922,7 +919,7 @@ const PlantDetail = () => {
               {plant.growthCharacteristics.daysToHarvest && (
                 <Grid item xs={12} sm={6}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.daysToHarvest', 'Days to Harvest')}:
+                    Days to Harvest:
                   </Typography>
                   <Typography variant="h6">{plant.growthCharacteristics.daysToHarvest} days</Typography>
                 </Grid>
@@ -932,7 +929,7 @@ const PlantDetail = () => {
               {plant.growthCharacteristics.rate && (
                 <Grid item xs={12} sm={6}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.growthRate', 'Growth Rate')}:
+                    Growth Rate:
                   </Typography>
                   <Chip label={plant.growthCharacteristics.rate} color="secondary" sx={{ textTransform: 'capitalize' }} />
                 </Grid>
@@ -942,16 +939,16 @@ const PlantDetail = () => {
               {plant.growthCharacteristics.height && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.height', 'Height')}:
+                    Height:
                   </Typography>
                   {plant.growthCharacteristics.height.average && (
                     <Typography variant="body2">
-                      {t('infohub.plantDetail.average', 'Average')}: {plant.growthCharacteristics.height.average} cm
+                      Average: {plant.growthCharacteristics.height.average} cm
                     </Typography>
                   )}
                   {plant.growthCharacteristics.height.maximum && (
                     <Typography variant="body2">
-                      {t('infohub.plantDetail.maximum', 'Maximum')}: {plant.growthCharacteristics.height.maximum} cm
+                      Maximum: {plant.growthCharacteristics.height.maximum} cm
                     </Typography>
                   )}
                 </Grid>
@@ -961,13 +958,13 @@ const PlantDetail = () => {
               {(plant.growthCharacteristics.growthMonths || plant.growthCharacteristics.bloomMonths || plant.growthCharacteristics.fruitMonths) && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    {t('infohub.plantDetail.seasonalCalendar', 'Seasonal Calendar')}:
+                    Seasonal Calendar:
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     {plant.growthCharacteristics.growthMonths && plant.growthCharacteristics.growthMonths.length > 0 && (
                       <Box>
                         <Typography variant="caption" color="text.secondary">
-                          {t('infohub.plantDetail.growthMonths', 'Growth')}:
+                          Growth:
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
                           {plant.growthCharacteristics.growthMonths.map((month, i) => (
@@ -979,7 +976,7 @@ const PlantDetail = () => {
                     {plant.growthCharacteristics.bloomMonths && plant.growthCharacteristics.bloomMonths.length > 0 && (
                       <Box>
                         <Typography variant="caption" color="text.secondary">
-                          {t('infohub.plantDetail.bloomMonths', 'Bloom')}:
+                          Bloom:
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
                           {plant.growthCharacteristics.bloomMonths.map((month, i) => (
@@ -991,7 +988,7 @@ const PlantDetail = () => {
                     {plant.growthCharacteristics.fruitMonths && plant.growthCharacteristics.fruitMonths.length > 0 && (
                       <Box>
                         <Typography variant="caption" color="text.secondary">
-                          {t('infohub.plantDetail.fruitMonths', 'Fruit')}:
+                          Fruit:
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
                           {plant.growthCharacteristics.fruitMonths.map((month, i) => (
@@ -1013,7 +1010,7 @@ const PlantDetail = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <LocalFloristIcon sx={{ mr: 1, color: 'secondary.main', fontSize: 28 }} />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                {t('infohub.plantDetail.visualCharacteristics', 'Visual Characteristics')}
+                Visual Characteristics
               </Typography>
             </Box>
 
@@ -1023,7 +1020,7 @@ const PlantDetail = () => {
                 {plant.visualCharacteristics.flower?.colors && plant.visualCharacteristics.flower.colors.length > 0 && (
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
-                      {t('infohub.plantDetail.flower', 'Flower')} - {t('infohub.plantDetail.colors', 'Colors')}
+                      Flower - Colors
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
@@ -1039,10 +1036,10 @@ const PlantDetail = () => {
                 {plant.visualCharacteristics.flower?.conspicuous !== undefined && (
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
-                      {t('infohub.plantDetail.flower', 'Flower')} - {t('infohub.plantDetail.conspicuous', 'Conspicuous')}
+                      Flower - Conspicuous
                     </TableCell>
                     <TableCell>
-                      {plant.visualCharacteristics.flower.conspicuous ? t('infohub.plantDetail.yes', 'Yes') : t('infohub.plantDetail.no', 'No')}
+                      {plant.visualCharacteristics.flower.conspicuous ? 'Yes' : 'No'}
                     </TableCell>
                   </TableRow>
                 )}
@@ -1051,7 +1048,7 @@ const PlantDetail = () => {
                 {plant.visualCharacteristics.foliage?.texture && (
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
-                      {t('infohub.plantDetail.foliage', 'Foliage')} - {t('infohub.plantDetail.texture', 'Texture')}
+                      Foliage - Texture
                     </TableCell>
                     <TableCell sx={{ textTransform: 'capitalize' }}>
                       {plant.visualCharacteristics.foliage.texture}
@@ -1063,7 +1060,7 @@ const PlantDetail = () => {
                 {plant.visualCharacteristics.foliage?.colors && plant.visualCharacteristics.foliage.colors.length > 0 && (
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
-                      {t('infohub.plantDetail.foliage', 'Foliage')} - {t('infohub.plantDetail.colors', 'Colors')}
+                      Foliage - Colors
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
@@ -1079,7 +1076,7 @@ const PlantDetail = () => {
                 {plant.visualCharacteristics.fruit?.colors && plant.visualCharacteristics.fruit.colors.length > 0 && (
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
-                      {t('infohub.plantDetail.fruit', 'Fruit')} - {t('infohub.plantDetail.colors', 'Colors')}
+                      Fruit - Colors
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
@@ -1095,7 +1092,7 @@ const PlantDetail = () => {
                 {plant.visualCharacteristics.fruit?.shape && (
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
-                      {t('infohub.plantDetail.fruit', 'Fruit')} - {t('infohub.plantDetail.shape', 'Shape')}
+                      Fruit - Shape
                     </TableCell>
                     <TableCell sx={{ textTransform: 'capitalize' }}>
                       {plant.visualCharacteristics.fruit.shape}
@@ -1113,14 +1110,14 @@ const PlantDetail = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <PublicIcon sx={{ mr: 1, color: 'info.main', fontSize: 28 }} />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                {t('infohub.plantDetail.distribution', 'Distribution')}
+                Distribution
               </Typography>
             </Box>
 
             {plant.distribution.native && plant.distribution.native.length > 0 && (
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                  {t('infohub.plantDetail.nativeTo', 'Native to')}:
+                  Native to:
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   {plant.distribution.native.map((zone, i) => (
@@ -1133,7 +1130,7 @@ const PlantDetail = () => {
             {plant.distribution.introduced && plant.distribution.introduced.length > 0 && (
               <Box>
                 <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                  {t('infohub.plantDetail.introducedTo', 'Introduced to')}:
+                  Introduced to:
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   {plant.distribution.introduced.map((zone, i) => (

@@ -15,11 +15,9 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { fetchSoilTypes } from '../../services/plantService';
 
 const SoilTypes = () => {
-  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const theme = useTheme();
   const [allSoilTypes, setAllSoilTypes] = useState([]);
@@ -28,7 +26,6 @@ const SoilTypes = () => {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const soilsPerPage = 4;
-  const currentLang = i18n.language || 'en';
   
   // Fetch soil types from Supabase
   useEffect(() => {
@@ -36,7 +33,7 @@ const SoilTypes = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetchSoilTypes(currentLang);
+        const data = await fetchSoilTypes();
         setAllSoilTypes(data);
       } catch (err) {
         console.error('Error loading soil types:', err);
@@ -47,7 +44,7 @@ const SoilTypes = () => {
     };
 
     loadSoilTypes();
-  }, [currentLang]);
+  }, []);
   
   // Reset to page 1 when search changes
   useEffect(() => {

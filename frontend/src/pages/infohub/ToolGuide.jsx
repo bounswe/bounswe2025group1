@@ -23,11 +23,9 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SearchIcon from '@mui/icons-material/Search';
 import CheckIcon from '@mui/icons-material/Check';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { fetchTools } from '../../services/plantService';
 
 const ToolGuide = () => {
-  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const theme = useTheme();
   const [allTools, setAllTools] = useState([]);
@@ -36,7 +34,6 @@ const ToolGuide = () => {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const toolsPerPage = 6;
-  const currentLang = i18n.language || 'en';
 
   // Fetch tools from Supabase
   useEffect(() => {
@@ -44,7 +41,7 @@ const ToolGuide = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetchTools(currentLang);
+        const data = await fetchTools();
         setAllTools(data);
       } catch (err) {
         console.error('Error loading tools:', err);
@@ -55,7 +52,7 @@ const ToolGuide = () => {
     };
 
     loadTools();
-  }, [currentLang]);
+  }, []);
   
   // Filter tools based on search query
   const filteredTools = allTools.filter((tool) => {
@@ -235,7 +232,7 @@ const ToolGuide = () => {
                     </Typography>
                     
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 'bold' }}>
-                      {t('infohub.toolGuide.uses', 'Uses')}:
+                      Uses:
                     </Typography>
                     <List dense sx={{ flexGrow: 1 }}>
                       {toolUses.map((use, i) => (
@@ -259,7 +256,7 @@ const ToolGuide = () => {
                         borderRadius: 1 
                       }}>
                         <Typography variant="caption" color="text.secondary">
-                          💡 <strong>{t('infohub.toolGuide.tips', 'Tip')}:</strong> {toolTips}
+                          💡 <strong>Tip:</strong> {toolTips}
                         </Typography>
                       </Box>
                     )}

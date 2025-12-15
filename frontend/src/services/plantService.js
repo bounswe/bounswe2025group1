@@ -1,20 +1,10 @@
 import { supabase } from '../config/supabaseConfig';
 
 /**
- * Get language-specific field name
+ * Build select query - always uses English fields
  */
-function getLangField(field, lang) {
-  if (lang === 'en') return field;
-  if (lang === 'tr') return `${field}_tr`;
-  if (lang === 'ar') return `${field}_ar`;
-  return field;
-}
-
-/**
- * Build select query with language-specific fields
- */
-function buildSelectQuery(lang = 'en') {
-  const baseFields = [
+function buildSelectQuery() {
+  return [
     'id',
     'name',
     'scientific_name',
@@ -40,63 +30,36 @@ function buildSelectQuery(lang = 'en') {
     'growth_characteristics',
     'visual_characteristics',
     'images_detailed',
-  ];
-
-  const fields = [...baseFields];
-  
-  // Add language-specific fields if not English
-  if (lang !== 'en') {
-    fields.push(
-      getLangField('name', lang),
-      getLangField('description', lang),
-      getLangField('habitat', lang),
-      getLangField('soil', lang),
-      getLangField('sunlight', lang),
-      getLangField('watering', lang),
-      getLangField('spacing', lang),
-      getLangField('growth_duration', lang),
-      getLangField('common_problems', lang),
-      getLangField('companion_plants', lang)
-    );
-  }
-
-  return fields.join(', ');
+  ].join(', ');
 }
 
 /**
- * Transform plant data to match frontend expectations
+ * Transform plant data to match frontend expectations - always uses English fields
  */
-function transformPlant(plant, lang = 'en') {
+function transformPlant(plant) {
   if (!plant) return null;
-
-  // Helper to get translated field
-  const getField = (field) => {
-    if (lang === 'en') return plant[field];
-    const langField = getLangField(field, lang);
-    return plant[langField] || plant[field];
-  };
 
   return {
     id: plant.id,
-    name: getField('name'),
+    name: plant.name,
     scientificName: plant.scientific_name,
     type: plant.type,
     image: plant.image,
-    description: getField('description'),
-    habitat: getField('habitat'),
-    sunlight: getField('sunlight'),
-    soil: getField('soil'),
+    description: plant.description,
+    habitat: plant.habitat,
+    sunlight: plant.sunlight,
+    soil: plant.soil,
     notes: plant.notes,
     difficulty: plant.difficulty,
     season: plant.season,
     edible: plant.edible,
     vegetable: plant.vegetable,
-    watering: getField('watering') || plant.watering,
-    spacing: getField('spacing') || plant.spacing,
+    watering: plant.watering,
+    spacing: plant.spacing,
     climateZone: plant.climate_zone,
-    growthDuration: getField('growth_duration'),
-    commonProblems: getField('common_problems') || plant.common_problems,
-    companionPlants: getField('companion_plants') || plant.companion_plants,
+    growthDuration: plant.growth_duration,
+    commonProblems: plant.common_problems,
+    companionPlants: plant.companion_plants,
     distribution: plant.distribution,
     growthRequirements: plant.growth_requirements,
     growthCharacteristics: plant.growth_characteristics,
@@ -112,14 +75,13 @@ function transformPlant(plant, lang = 'en') {
  * @param {string} params.type - Filter by plant type
  * @param {number} params.page - Page number (default: 1)
  * @param {number} params.perPage - Items per page (default: 20)
- * @param {string} params.lang - Language code ('en', 'tr', 'ar')
  * @returns {Promise<Object>} - { data: plants[], total: number, page: number, perPage: number }
  */
-export async function fetchPlants({ search, type, page = 1, perPage = 20, lang = 'en' } = {}) {
+export async function fetchPlants({ search, type, page = 1, perPage = 20 } = {}) {
   try {
     let query = supabase
       .from('plants')
-      .select(buildSelectQuery(lang), { count: 'exact' });
+      .select(buildSelectQuery(), { count: 'exact' });
 
     // Apply filters
     if (type && type !== 'all') {
@@ -146,7 +108,7 @@ export async function fetchPlants({ search, type, page = 1, perPage = 20, lang =
     }
 
     return {
-      data: data.map(plant => transformPlant(plant, lang)),
+      data: data.map(plant => transformPlant(plant)),
       total: count || 0,
       page,
       perPage,
@@ -160,14 +122,13 @@ export async function fetchPlants({ search, type, page = 1, perPage = 20, lang =
 /**
  * Fetch a single plant by ID
  * @param {string} id - Plant ID
- * @param {string} lang - Language code ('en', 'tr', 'ar')
  * @returns {Promise<Object>} - Plant object
  */
-export async function fetchPlantById(id, lang = 'en') {
+export async function fetchPlantById(id) {
   try {
     const { data, error } = await supabase
       .from('plants')
-      .select(buildSelectQuery(lang))
+      .select(buildSelectQuery())
       .eq('id', id)
       .single();
 
@@ -176,7 +137,7 @@ export async function fetchPlantById(id, lang = 'en') {
       throw error;
     }
 
-    return transformPlant(data, lang);
+    return transformPlant(data);
   } catch (error) {
     console.error('Error in fetchPlantById:', error);
     throw error;
@@ -185,22 +146,13 @@ export async function fetchPlantById(id, lang = 'en') {
 
 /**
  * Fetch all soil types
- * @param {string} lang - Language code ('en', 'tr', 'ar')
  * @returns {Promise<Array>} - Array of soil types
  */
-export async function fetchSoilTypes(lang = 'en') {
+export async function fetchSoilTypes() {
   try {
-    const fields = ['id', 'name', 'color', 'description'];
-    if (lang !== 'en') {
-      fields.push(
-        getLangField('name', lang),
-        getLangField('description', lang)
-      );
-    }
-
     const { data, error } = await supabase
       .from('soil_types')
-      .select(fields.join(', '))
+      .select('id, name, color, description')
       .order('name', { ascending: true });
 
     if (error) {
@@ -210,9 +162,9 @@ export async function fetchSoilTypes(lang = 'en') {
 
     return data.map(soilType => ({
       id: soilType.id,
-      name: lang === 'en' ? soilType.name : (soilType[getLangField('name', lang)] || soilType.name),
+      name: soilType.name,
       color: soilType.color,
-      description: lang === 'en' ? soilType.description : (soilType[getLangField('description', lang)] || soilType.description),
+      description: soilType.description,
     }));
   } catch (error) {
     console.error('Error in fetchSoilTypes:', error);
@@ -222,27 +174,13 @@ export async function fetchSoilTypes(lang = 'en') {
 
 /**
  * Fetch all tools
- * @param {string} lang - Language code ('en', 'tr', 'ar')
  * @returns {Promise<Array>} - Array of tools
  */
-export async function fetchTools(lang = 'en') {
+export async function fetchTools() {
   try {
-    const fields = ['id', 'name', 'category', 'type', 'skill_level', 'image', 'description', 'uses', 'tips'];
-    if (lang !== 'en') {
-      fields.push(
-        getLangField('name', lang),
-        getLangField('category', lang),
-        getLangField('type', lang),
-        getLangField('skill_level', lang),
-        getLangField('description', lang),
-        getLangField('uses', lang),
-        getLangField('tips', lang)
-      );
-    }
-
     const { data, error } = await supabase
       .from('tools')
-      .select(fields.join(', '))
+      .select('id, name, category, type, skill_level, image, description, uses, tips')
       .order('name', { ascending: true });
 
     if (error) {
@@ -250,25 +188,17 @@ export async function fetchTools(lang = 'en') {
       throw error;
     }
 
-    return data.map(tool => {
-      const getField = (field) => {
-        if (lang === 'en') return tool[field];
-        const langField = getLangField(field, lang);
-        return tool[langField] || tool[field];
-      };
-
-      return {
-        id: tool.id,
-        name: getField('name'),
-        category: getField('category'),
-        type: getField('type'),
-        skillLevel: getField('skill_level'),
-        image: tool.image,
-        description: getField('description'),
-        uses: getField('uses') || tool.uses,
-        tips: getField('tips'),
-      };
-    });
+    return data.map(tool => ({
+      id: tool.id,
+      name: tool.name,
+      category: tool.category,
+      type: tool.type,
+      skillLevel: tool.skill_level,
+      image: tool.image,
+      description: tool.description,
+      uses: tool.uses,
+      tips: tool.tips,
+    }));
   } catch (error) {
     console.error('Error in fetchTools:', error);
     throw error;

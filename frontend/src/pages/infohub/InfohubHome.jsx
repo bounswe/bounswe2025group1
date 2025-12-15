@@ -15,13 +15,11 @@ import {
   useTheme 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import LocalFloristIcon from '@mui/icons-material/LocalFlorist';
 import GrassIcon from '@mui/icons-material/Grass';
 import BuildIcon from '@mui/icons-material/Build';
 
 const InfohubHome = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const theme = useTheme();
 
