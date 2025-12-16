@@ -57,11 +57,17 @@ const ChatWidget = () => {
 
   // Get Firebase UID for the current user
   useEffect(() => {
+    setSelectedChat(null);
+    setCurrentView('list');
+    setMessages([]);
+    setUnreadCounts({});
+    setIsOpen(false);
+
     if (!user) {
       setFirebaseUid(null);
       return;
     }
-    
+
     // Firebase UID format: django_{userId}
     const uid = `django_${user.id}`;
     setFirebaseUid(uid);
@@ -88,7 +94,7 @@ const ChatWidget = () => {
 
         // Set up unread count listeners for each chat
         const unreadUnsubscribes = [];
-        
+
         chatsList.forEach((chat) => {
           const messagesQuery = query(
             collection(db, 'chats', chat.id, 'messages'),
@@ -104,7 +110,7 @@ const ChatWidget = () => {
                 return !data.readBy || !data.readBy.includes(firebaseUid);
               }).length;
 
-              if(unreadCount){
+              if (unreadCount) {
                 console.log(`Chat ${chat.id} has ${unreadCount} unread messages.`);
               }
 
@@ -142,7 +148,7 @@ const ChatWidget = () => {
 
     const fetchUserProfiles = async () => {
       const userIdsToFetch = new Set();
-      
+
       // Collect all user IDs from direct message chats
       chats.forEach((chat) => {
         if (chat.type === 'direct') {
@@ -167,7 +173,7 @@ const ChatWidget = () => {
         // Use functional update to avoid dependency on userProfiles
         setUserProfiles((prevProfiles) => {
           const toFetch = Array.from(userIdsToFetch).filter(id => !prevProfiles[id]);
-          
+
           if (toFetch.length === 0) return prevProfiles;
 
           // Fetch in parallel
@@ -182,7 +188,7 @@ const ChatWidget = () => {
                     },
                   }
                 );
-                
+
                 if (response.ok) {
                   const data = await response.json();
                   return {
@@ -224,7 +230,7 @@ const ChatWidget = () => {
 
     const fetchGardenProfiles = async () => {
       const gardenIdsToFetch = new Set();
-      
+
       // Collect all garden IDs from group chats
       chats.forEach((chat) => {
         if (chat.type === 'group' && chat.gardenId) {
@@ -237,7 +243,7 @@ const ChatWidget = () => {
         // Use functional update to avoid dependency on gardenProfiles
         setGardenProfiles((prevProfiles) => {
           const toFetch = Array.from(gardenIdsToFetch).filter(id => !prevProfiles[id]);
-          
+
           if (toFetch.length === 0) return prevProfiles;
 
           // Fetch in parallel
@@ -252,7 +258,7 @@ const ChatWidget = () => {
                     },
                   }
                 );
-                
+
                 if (response.ok) {
                   const data = await response.json();
                   return {
@@ -322,17 +328,17 @@ const ChatWidget = () => {
           messagesList.forEach((message) => {
             // Skip messages sent by current user
             if (message.senderId === firebaseUid) return;
-            
+
             // Skip messages already read by current user
             if (message.readBy && message.readBy.includes(firebaseUid)) return;
 
             const messageRef = doc(db, 'chats', selectedChat.id, 'messages', message.id);
             const updatedReadBy = message.readBy ? [...message.readBy, firebaseUid] : [firebaseUid];
-            
+
             batch.update(messageRef, {
               readBy: updatedReadBy,
             });
-            
+
             batchCount++;
           });
 
@@ -361,10 +367,10 @@ const ChatWidget = () => {
   useEffect(() => {
     const handleOpenDirectMessage = (event) => {
       const { chatId } = event.detail;
-      
+
       // Find the chat in the chats list
       const chat = chats.find((c) => c.id === chatId);
-      
+
       if (chat) {
         // Open the widget and select the chat
         setIsOpen(true);
@@ -444,7 +450,7 @@ const ChatWidget = () => {
     // For direct messages, show the other user's username
     const otherUserId = chat.members.find((id) => id !== firebaseUid);
     if (!otherUserId) return t('chat.direct_message');
-    
+
     // Extract Django user ID from Firebase UID (format: django_{userId})
     const djangoUserId = otherUserId.replace('django_', '');
     return userProfiles[djangoUserId]?.username || t('chat.user_with_id', { id: djangoUserId });
@@ -506,8 +512,8 @@ const ChatWidget = () => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Badge 
-            badgeContent={totalUnreadCount} 
+          <Badge
+            badgeContent={totalUnreadCount}
             color="error"
             max={99}
           >
@@ -568,45 +574,47 @@ const ChatWidget = () => {
 
                   return (
                     <div key={chat.id}>
-                      <ListItemButton onClick={() => handleSelectChat(chat)}>
-                        <Avatar 
+                      <ListItemButton
+                        data-testid="chat-list-item"
+                        onClick={() => handleSelectChat(chat)}>
+                        <Avatar
                           src={chat.type === 'group' ? (gardenProfile?.cover_image || chat.cover_image) : otherUserProfile?.profile_picture}
                           sx={{ mr: 2, bgcolor: theme.palette.secondary.main }}
                         >
                           {chat.type === 'group' ? <GroupIcon /> : <PersonIcon />}
                         </Avatar>
-                      <ListItemText
-                        primary={
-                          <Box
-                            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                          >
-                            <Typography variant="subtitle2">{getChatDisplayName(chat)}</Typography>
-                            {unreadCounts[chat.id] > 0 && (
-                              <Badge 
-                                badgeContent={unreadCounts[chat.id]} 
-                                color="error"
-                                max={99}
-                                sx={{ ml: 1 }}
-                              />
-                            )}
-                          </Box>
-                        }
-                        secondary={
-                          <Box>
-                            <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
-                              {chat.lastMessage?.text || t('chat.no_messages')}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {formatTimestamp(chat.lastMessage?.createdAt)}
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </ListItemButton>
-                    <Divider />
-                  </div>
-                )
-              }))}
+                        <ListItemText
+                          primary={
+                            <Box
+                              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                            >
+                              <Typography variant="subtitle2">{getChatDisplayName(chat)}</Typography>
+                              {unreadCounts[chat.id] > 0 && (
+                                <Badge
+                                  badgeContent={unreadCounts[chat.id]}
+                                  color="error"
+                                  max={99}
+                                  sx={{ ml: 1 }}
+                                />
+                              )}
+                            </Box>
+                          }
+                          secondary={
+                            <Box>
+                              <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
+                                {chat.lastMessage?.text || t('chat.no_messages')}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {formatTimestamp(chat.lastMessage?.createdAt)}
+                              </Typography>
+                            </Box>
+                          }
+                        />
+                      </ListItemButton>
+                      <Divider />
+                    </div>
+                  )
+                }))}
             </List>
           ) : (
             // Messages view
@@ -650,8 +658,8 @@ const ChatWidget = () => {
                           {senderUsername.charAt(0).toUpperCase()}
                         </Avatar>
                       )}
-                      <Box sx={{ 
-                        maxWidth: '70%', 
+                      <Box sx={{
+                        maxWidth: '70%',
                         minWidth: 0,
                         display: 'flex',
                         flexDirection: 'column',
@@ -662,10 +670,10 @@ const ChatWidget = () => {
                           sx={{
                             py: 1,
                             px: 1.5,
-                            bgcolor: isOwn 
-                              ? theme.palette.primary.main 
-                              : theme.palette.mode === 'dark' 
-                                ? theme.palette.grey[800] 
+                            bgcolor: isOwn
+                              ? theme.palette.primary.main
+                              : theme.palette.mode === 'dark'
+                                ? theme.palette.grey[800]
                                 : theme.palette.grey[100],
                             color: isOwn ? 'white' : 'text.primary',
                             width: 'fit-content',
@@ -777,7 +785,7 @@ const ChatWidget = () => {
                             <SendIcon />
                           </IconButton>
                         </InputAdornment>
-                    ),
+                      ),
                     }
                   }}
                 />

@@ -58,6 +58,8 @@ const GardenList = () => {
     name: '',
     description: '',
     location: '',
+    latitude: null,
+    longitude: null,
     size: '',
     isPublic: true,
   });
@@ -82,7 +84,7 @@ const GardenList = () => {
           if (profileResponse.ok) {
             const profileData = await profileResponse.json();
             const profileLocation = profileData?.profile?.location || profileData?.location;
-            
+
             if (profileLocation) {
               // Geocode the profile location
               locationCoords = await geocodeAddress(profileLocation);
@@ -169,6 +171,7 @@ const GardenList = () => {
   };
 
   // Calculate distances automatically when gardens and user location are available
+  // Calculate distances automatically when gardens and user location are available
   useEffect(() => {
     const calculateDistances = async () => {
       if (!userLocation || gardens.length === 0) {
@@ -176,35 +179,64 @@ const GardenList = () => {
         return;
       }
 
-      setLoadingLocation(true);
-      
-      // Geocode addresses with delay to respect rate limits (1 request per second)
+      // We only show loading if we actually need to fetch something
+      let needsGeocoding = false;
+      for (const garden of gardens) {
+        if (garden.location && (garden.latitude === null || garden.latitude === undefined)) {
+          needsGeocoding = true;
+          break;
+        }
+      }
+
+      if (needsGeocoding) {
+        setLoadingLocation(true);
+      }
+
       const gardensWithDist = [];
+
+      // Process gardens
       for (let i = 0; i < gardens.length; i++) {
         const garden = gardens[i];
-        
+        let distance = null;
+
+        // 1. Try using backend coordinates (FAST)
+        if (garden.latitude && garden.longitude) {
+          const dist = calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            garden.latitude,
+            garden.longitude
+          );
+          distance = Math.round(dist * 10) / 10;
+          gardensWithDist.push({ ...garden, distance });
+          continue;
+        }
+
+        // 2. Fallback to client-side geocoding (SLOW)
         if (!garden.location) {
           gardensWithDist.push({ ...garden, distance: null });
           continue;
         }
 
-        // Add delay between requests (except for the first one)
-        if (i > 0) {
+        // Add delay between requests (except for the first one) to respect rate limits
+        if (i > 0 && needsGeocoding) {
           await new Promise(resolve => setTimeout(resolve, 1100)); // 1.1 seconds delay
         }
 
+        console.log("Geocoding garden:", garden);
+
         const gardenCoords = await geocodeAddress(garden.location);
         if (gardenCoords) {
-          const distance = calculateDistance(
+          const dist = calculateDistance(
             userLocation.lat,
             userLocation.lng,
             gardenCoords.lat,
             gardenCoords.lng
           );
-          gardensWithDist.push({ ...garden, distance: Math.round(distance * 10) / 10 }); // Round to 1 decimal
-        } else {
-          gardensWithDist.push({ ...garden, distance: null });
+          distance = Math.round(dist * 10) / 10;
         }
+
+        gardensWithDist.push({ ...garden, distance });
       }
 
       // Sort by distance (null distances last)
@@ -237,8 +269,8 @@ const GardenList = () => {
     const value = event.target.value;
     setSearchTerm(value);
 
-    const sourceGardens = showNearby && gardensWithDistance.length > 0 
-      ? gardensWithDistance 
+    const sourceGardens = showNearby && gardensWithDistance.length > 0
+      ? gardensWithDistance
       : gardens;
 
     const filtered = applyFilters(sourceGardens, value, radiusFilter, showNearby);
@@ -249,8 +281,8 @@ const GardenList = () => {
     const newRadius = event.target.value;
     setRadiusFilter(newRadius);
 
-    const sourceGardens = showNearby && gardensWithDistance.length > 0 
-      ? gardensWithDistance 
+    const sourceGardens = showNearby && gardensWithDistance.length > 0
+      ? gardensWithDistance
       : gardens;
 
     const filtered = applyFilters(sourceGardens, searchTerm, newRadius, showNearby);
@@ -260,7 +292,7 @@ const GardenList = () => {
   const handleToggleNearby = () => {
     const newShowNearby = !showNearby;
     setShowNearby(newShowNearby);
-    
+
     if (newShowNearby) {
       // Filter out gardens without distance and apply radius filter
       const nearbyGardens = gardensWithDistance.filter(g => g.distance !== null);
@@ -288,10 +320,12 @@ const GardenList = () => {
     try {
       // Extract image data if provided
       const { cover_image_base64, gallery_base64, ...basicFormData } = formData || form;
-      
+
       const requestBody = {
         name: basicFormData.name || form.name,
         location: basicFormData.location || form.location,
+        latitude: basicFormData.latitude !== undefined ? basicFormData.latitude : form.latitude,
+        longitude: basicFormData.longitude !== undefined ? basicFormData.longitude : form.longitude,
         description: basicFormData.description || form.description,
         is_public: basicFormData.isPublic !== undefined ? basicFormData.isPublic : form.isPublic,
       };
@@ -333,6 +367,8 @@ const GardenList = () => {
         name: '',
         description: '',
         location: '',
+        latitude: null,
+        longitude: null,
         size: '',
         isPublic: true,
       });
@@ -414,6 +450,7 @@ const GardenList = () => {
           >
             {user && (
               <Button
+                data-testid="toggle-nearby-button"
                 variant={showNearby ? "contained" : "outlined"}
                 color="primary"
                 startIcon={<LocationOnIcon />}
@@ -423,7 +460,7 @@ const GardenList = () => {
                   backgroundColor: showNearby ? '#558b2f' : 'transparent',
                   color: showNearby ? 'white' : '#558b2f',
                   borderColor: '#558b2f',
-                  '&:hover': { 
+                  '&:hover': {
                     backgroundColor: showNearby ? '#33691e' : 'rgba(85, 139, 47, 0.1)',
                     borderColor: '#33691e',
                   },
@@ -570,14 +607,16 @@ const GardenList = () => {
           </Box>
         )}
       </Grid>
-      <GardenModal
-        open={openModal}
-        onClose={handleCloseModal}
-        form={form}
-        handleChange={handleChange}
-        handleTogglePublic={() => setForm((prev) => ({ ...prev, isPublic: !prev.isPublic }))}
-        handleSubmit={handleSubmit}
-      />
+      {openModal && (
+        <GardenModal
+          open={openModal}
+          onClose={handleCloseModal}
+          form={form}
+          handleChange={handleChange}
+          handleTogglePublic={() => setForm((prev) => ({ ...prev, isPublic: !prev.isPublic }))}
+          handleSubmit={handleSubmit}
+        />
+      )}
     </Container>
   );
 };

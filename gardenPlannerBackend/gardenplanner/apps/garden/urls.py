@@ -34,9 +34,11 @@ urlpatterns = [
     # Authentication endpoints
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
+    path('verify-otp/', views.VerifyLoginOTPView.as_view(), name='verify-otp'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('password-reset/', views.PasswordResetAPIView.as_view(), name='password_reset'),
     path('reset/<uidb64>/<token>/', views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('suspension-status/', views.SuspensionStatusView.as_view(), name='suspension_status'),
     
     # Profile management
     path('profile/', views.ProfileView.as_view(), name='profile'),
@@ -59,4 +61,17 @@ urlpatterns = [
     # Badge endpoints
     path('badges/', views.BadgeListView.as_view(), name='badge-list'),
     path('user/<int:user_id>/badges/', views.UserBadgeListView.as_view(), name='user-badges'),
+
+    # Impact Summary endpoint
+    path('user/<int:user_id>/impact-summary/', views.UserImpactSummaryView.as_view(), name='user-impact-summary'),
+
+    # Like toggle endpoints
+    path('forum-posts/<int:pk>/like/', views.ForumPostLikeToggleView.as_view(), name='forum-post-like'),
+    path('comments/<int:pk>/like/', views.CommentLikeToggleView.as_view(), name='comment-like'),
+    
+    path('forum-posts/<int:pk>/likes/list/', views.PostLikeListView.as_view(), name='post-likes-list'),
+    path('comments/<int:pk>/likes/list/', views.CommentLikeListView.as_view(), name='comment-likes-list'),
+
+    path('comments/<int:pk>/mark-best/', views.ToggleBestAnswerView.as_view(), name='mark-best-answer'),
+
 ] 

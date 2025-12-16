@@ -17,7 +17,6 @@ import {
   Palette as PaletteIcon,
 } from '@mui/icons-material';
 import { useTheme } from '../contexts/ThemeContext';
-import { themeNames } from '../themes/themeConfig';
 import { useTranslation } from 'react-i18next';
 
 const ThemeToggle = () => {
@@ -54,6 +53,10 @@ const ThemeToggle = () => {
 
   const getCurrentThemeIcon = () => {
     return getThemeIcon(currentTheme);
+  };
+
+  const getThemeName = (themeName) => {
+    return t(`theme.${themeName}`);
   };
 
   return (
@@ -116,7 +119,7 @@ const ThemeToggle = () => {
             <ListItemIcon sx={{ minWidth: 'auto' }}>
               {getThemeIcon(themeName)}
             </ListItemIcon>
-            <ListItemText primary={themeNames[themeName]} />
+            <ListItemText primary={getThemeName(themeName)} />
           </MenuItem>
         ))}
         

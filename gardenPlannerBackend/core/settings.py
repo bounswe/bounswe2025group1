@@ -60,7 +60,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -69,6 +69,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'gardenplanner.apps.garden.middleware.SuspensionMiddleware',
 ]
 
 # Security settings for HTTPS
@@ -93,6 +94,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://communitygarden.app",
     "https://localhost:5173",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://communitygarden.app",
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -187,6 +192,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '5/minute',
+    }
 }
 
 

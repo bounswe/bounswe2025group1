@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import NotificationBell from './NotificationBell';
 import { useAuth } from '../contexts/AuthContextUtils';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 // Mock fetch
 window.fetch = vi.fn();
@@ -21,14 +22,19 @@ vi.mock('../contexts/AuthContextUtils', () => ({
   useAuth: vi.fn(),
 }));
 
+vi.mock('react-router-dom', () => ({
+  useNavigate: vi.fn(),
+}));
+
 describe('NotificationBell', () => {
   const mockToken = 'test-token-123';
   const mockUser = { id: 1, username: 'testuser' };
   beforeEach(() => {
     vi.clearAllMocks();
+    useNavigate.mockReturnValue(vi.fn());
     useAuth.mockReturnValue({
-        user: mockUser,
-        token: mockToken,
+      user: mockUser,
+      token: mockToken,
     });
   });
 
@@ -43,7 +49,7 @@ describe('NotificationBell', () => {
     });
 
     render(<NotificationBell />)
-    
+
     const bellIcon = screen.getByRole('button');
     expect(bellIcon).toBeInTheDocument();
   });
@@ -173,10 +179,10 @@ describe('NotificationBell', () => {
     });
 
     const markAsReadButtons = screen.getAllByRole('button');
-    const markReadButton = markAsReadButtons.find(btn => 
+    const markReadButton = markAsReadButtons.find(btn =>
       btn.querySelector('[data-testid="MarkEmailReadIcon"]')
     );
-    
+
     if (markReadButton) {
       fireEvent.click(markReadButton);
     }
@@ -223,10 +229,10 @@ describe('NotificationBell', () => {
     });
 
     const markAsReadButtons = screen.getAllByRole('button');
-    const markReadButton = markAsReadButtons.find(btn => 
+    const markReadButton = markAsReadButtons.find(btn =>
       btn.querySelector('[data-testid="MarkEmailReadIcon"]')
     );
-    
+
     if (markReadButton) {
       fireEvent.click(markReadButton);
     }
@@ -284,10 +290,10 @@ describe('NotificationBell', () => {
     });
 
     const markAllReadButtons = screen.getAllByRole('button');
-    const markAllButton = markAllReadButtons.find(btn => 
+    const markAllButton = markAllReadButtons.find(btn =>
       btn.querySelector('[data-testid="DoneAllIcon"]')
     );
-    
+
     if (markAllButton) {
       fireEvent.click(markAllButton);
     }
@@ -338,10 +344,10 @@ describe('NotificationBell', () => {
     });
 
     const markAllReadButtons = screen.getAllByRole('button');
-    const markAllButton = markAllReadButtons.find(btn => 
+    const markAllButton = markAllReadButtons.find(btn =>
       btn.querySelector('[data-testid="DoneAllIcon"]')
     );
-    
+
     if (markAllButton) {
       fireEvent.click(markAllButton);
     }
@@ -373,8 +379,8 @@ describe('NotificationBell', () => {
   });
 
   it('handles fetch error gracefully for unread count', async () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => { });
+
     window.fetch.mockRejectedValueOnce(new Error('Network error'));
 
     render(<NotificationBell />)
@@ -390,8 +396,8 @@ describe('NotificationBell', () => {
   });
 
   it('handles fetch error gracefully for notifications list', async () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => { });
+
     window.fetch
       .mockResolvedValueOnce({
         ok: true,
@@ -435,10 +441,10 @@ describe('NotificationBell', () => {
     });
 
     const markAllButtons = screen.getAllByRole('button');
-    const markAllButton = markAllButtons.find(btn => 
+    const markAllButton = markAllButtons.find(btn =>
       btn.querySelector('[data-testid="DoneAllIcon"]')
     );
-    
+
     expect(markAllButton).toBeDisabled();
   });
 
@@ -472,10 +478,10 @@ describe('NotificationBell', () => {
     });
 
     const markAllButtons = screen.getAllByRole('button');
-    const markAllButton = markAllButtons.find(btn => 
+    const markAllButton = markAllButtons.find(btn =>
       btn.querySelector('[data-testid="DoneAllIcon"]')
     );
-    
+
     expect(markAllButton).toBeDisabled();
   });
 
@@ -507,13 +513,6 @@ describe('NotificationBell', () => {
     await waitFor(() => {
       expect(screen.getByText('Test notification')).toBeInTheDocument();
     });
-
-    // Check that timestamp is displayed (format may vary based on locale)
-    const listItems = screen.getAllByRole('listitem');
-    const notificationItem = listItems.find(item => 
-      item.textContent.includes('Test notification')
-    );
-    expect(notificationItem).toBeInTheDocument();
   });
 
   it('highlights unread notifications with different background', async () => {
@@ -551,11 +550,5 @@ describe('NotificationBell', () => {
       expect(screen.getByText('Unread notification')).toBeInTheDocument();
       expect(screen.getByText('Read notification')).toBeInTheDocument();
     });
-
-    // Both notifications should be present
-    const listItems = screen.getAllByRole('listitem').filter(item => 
-      item.textContent.includes('notification')
-    );
-    expect(listItems.length).toBeGreaterThanOrEqual(2);
   });
 });

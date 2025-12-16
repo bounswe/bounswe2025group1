@@ -27,6 +27,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import TaskIcon from '@mui/icons-material/Task';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import TaskModal from '../../components/TaskModal';
+import TaskDetailModal from '../../components/TaskDetailModal';
 import CalendarTab from '../../components/CalendarTab';
 import GardenModal from '../../components/GardenModal';
 import TaskBoard from '../../components/TaskBoard';
@@ -38,6 +39,9 @@ import EventCard from '../../components/EventCard';
 import EventCreateDialog from '../../components/EventCreateDialog';
 import EventDetailModal from '../../components/EventDetailModal';
 import EventIcon from '@mui/icons-material/Event';
+import FlagIcon from '@mui/icons-material/Flag';
+import IconButton from '@mui/material/IconButton';
+import ReportDialog from '../../components/ReportDialog';
 
 const GardenDetail = () => {
   const { t, i18n } = useTranslation();
@@ -58,9 +62,12 @@ const GardenDetail = () => {
   const handleCloseGardenEditModal = () => setOpenGardenEditModal(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
+  const [taskDetailModalOpen, setTaskDetailModalOpen] = useState(false);
+  const [selectedTaskForDetail, setSelectedTaskForDetail] = useState(null);
   const [isMember, setIsMember] = useState(false);
   const [isManager, setIsManager] = useState(false);
   const [userMembership, setUserMembership] = useState(null);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [taskForm, setTaskForm] = useState({
     type: 'CUSTOM',
     title: '',
@@ -77,6 +84,8 @@ const GardenDetail = () => {
     name: '',
     description: '',
     location: '',
+    latitude: null,
+    longitude: null,
     isPublic: false,
   });
 
@@ -95,7 +104,7 @@ const GardenDetail = () => {
         if (token) {
           gardenHeaders.Authorization = `Token ${token}`;
         }
-        
+
         const gardenRes = await fetch(`${import.meta.env.VITE_API_URL}/gardens/${gardenId}/`, {
           method: 'GET',
           headers: gardenHeaders,
@@ -158,6 +167,8 @@ const GardenDetail = () => {
           name: gardenData.name || '',
           description: gardenData.description || '',
           location: gardenData.location || '',
+          latitude: gardenData.latitude || null,
+          longitude: gardenData.longitude || null,
           isPublic: gardenData.is_public || false,
         });
       } catch (error) {
@@ -195,22 +206,30 @@ const GardenDetail = () => {
   };
 
   const handleTaskChipClick = (task) => {
-    // Format the task data to ensure consistent structure for the modal
-    setSelectedTask({
+    // Format the task data to ensure consistent structure for the detail modal
+    setSelectedTaskForDetail({
       status: task.status || 'PENDING',
       custom_type: task.custom_type || task.task_type,
       ...task,
     });
+    setTaskDetailModalOpen(true);
+  };
+
+  const handleTaskDetailEditClick = () => {
+    // Close detail modal and open edit modal
+    setTaskDetailModalOpen(false);
+    setSelectedTask(selectedTaskForDetail);
     setEditTaskModalOpen(true);
   };
 
   const handleTaskUpdate = async (updatedTask) => {
     try {
-      const wasUnassigned = !selectedTask?.assigned_to || selectedTask.assigned_to === null;
-      const isSelfAssignment = updatedTask.assigned_to === user?.user_id;
-      const isUnassigning = !updatedTask.assigned_to || updatedTask.assigned_to === null;
-      
-      if (wasUnassigned && isSelfAssignment && !isManager && !isUnassigning) {
+      const wasUnassigned = !selectedTask?.assigned_to || selectedTask.assigned_to.length === 0;
+      const isSelfAssignment = updatedTask.assigned_to && updatedTask.assigned_to.includes(user?.user_id);
+      const isUnassigning = !updatedTask.assigned_to || updatedTask.assigned_to.length === 0;
+      const wasNotAssignedToUser = !selectedTask?.assigned_to?.includes(user?.user_id);
+
+      if (wasUnassigned && isSelfAssignment && !isManager && !isUnassigning && wasNotAssignedToUser) {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${updatedTask.id}/self-assign/`, {
           method: 'POST',
           headers: {
@@ -564,11 +583,13 @@ const GardenDetail = () => {
     try {
       // Extract image data if provided
       const { cover_image_base64, gallery_base64, ...basicFormData } = formData || editForm;
-      
+
       const requestBody = {
         name: basicFormData.name || editForm.name,
         description: basicFormData.description || editForm.description,
         location: basicFormData.location || editForm.location,
+        latitude: basicFormData.latitude !== undefined ? basicFormData.latitude : editForm.latitude,
+        longitude: basicFormData.longitude !== undefined ? basicFormData.longitude : editForm.longitude,
         is_public: basicFormData.isPublic !== undefined ? basicFormData.isPublic : editForm.isPublic,
       };
 
@@ -658,19 +679,19 @@ const GardenDetail = () => {
             }}
           >
             {/* Content overlay */}
-            <Box sx={{ 
-              position: 'absolute', 
-              bottom: 0, 
-              left: 0, 
-              right: 0, 
+            <Box sx={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
               p: { xs: 3, sm: 4, md: 5 },
               zIndex: 2,
               background: 'linear-gradient(transparent, rgba(0,0,0,0.8))'
             }}>
-              <Typography 
-                variant="h2" 
-                sx={{ 
-                  color: 'white', 
+              <Typography
+                variant="h2"
+                sx={{
+                  color: 'white',
                   fontWeight: 700,
                   fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
                   textShadow: '0 2px 8px rgba(0,0,0,0.6)',
@@ -682,9 +703,9 @@ const GardenDetail = () => {
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <LocationOnIcon sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.2rem' }} />
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
+                <Typography
+                  variant="h6"
+                  sx={{
                     color: 'rgba(255,255,255,0.9)',
                     textShadow: '0 1px 4px rgba(0,0,0,0.6)',
                     fontWeight: 400
@@ -694,9 +715,9 @@ const GardenDetail = () => {
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 0.5,
                   px: 2,
                   py: 1,
@@ -709,9 +730,9 @@ const GardenDetail = () => {
                     {t('gardens.members', { count: members.length })}
                   </Typography>
                 </Box>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 0.5,
                   px: 2,
                   py: 1,
@@ -749,7 +770,7 @@ const GardenDetail = () => {
                   icon={<LocationOnIcon />}
                   label={translateLocationString(garden.location, i18n.language)}
                   size="small"
-                  sx={{ 
+                  sx={{
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
                     color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
                   }}
@@ -758,7 +779,7 @@ const GardenDetail = () => {
                   icon={<GroupIcon />}
                   label={t('gardens.members', { count: members.length })}
                   size="small"
-                  sx={{ 
+                  sx={{
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
                     color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
                   }}
@@ -767,7 +788,7 @@ const GardenDetail = () => {
                   icon={<TaskIcon />}
                   label={t('gardens.tasks', { count: tasks.length })}
                   size="small"
-                  sx={{ 
+                  sx={{
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : '#e8f5e9',
                     color: theme.palette.mode === 'dark' ? '#4caf50' : theme.palette.text.primary
                   }}
@@ -790,6 +811,7 @@ const GardenDetail = () => {
                   </Button>
                 ) : (
                   <Button
+                    data-testid="leave-garden-button"
                     variant="outlined"
                     color="error"
                     onClick={handleLeaveGarden}
@@ -800,6 +822,7 @@ const GardenDetail = () => {
                 )
               ) : (
                 <Button
+                  data-testid="join-garden-button"
                   variant="contained"
                   onClick={handleJoinGarden}
                   sx={{ mr: 1 }}
@@ -818,12 +841,23 @@ const GardenDetail = () => {
             )}
             {isManager && (
               <Button
+                data-testid="edit-garden-button"
                 variant="outlined"
                 color="primary"
                 onClick={handleOpenGardenEditModal}
+                sx={{ mr: 1 }}
               >
                 {t('gardens.manageGarden')}
               </Button>
+            )}
+            {user && !isManager && (
+              <IconButton
+                onClick={() => setReportDialogOpen(true)}
+                title={t('report.reportGarden', 'Report Garden')}
+                sx={{ color: 'text.secondary' }}
+              >
+                <FlagIcon />
+              </IconButton>
             )}
           </Grid>
         </Grid>
@@ -868,8 +902,8 @@ const GardenDetail = () => {
             </Box>
 
             {!token ? (
-              <Box sx={{ 
-                display: 'flex', 
+              <Box sx={{
+                display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -902,8 +936,8 @@ const GardenDetail = () => {
         {activeTab === 1 && (
           <Box>
             {!token ? (
-              <Box sx={{ 
-                display: 'flex', 
+              <Box sx={{
+                display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -924,84 +958,85 @@ const GardenDetail = () => {
             ) : (
               <List>
                 {members.map((member) => (
-                <Paper key={member.id} elevation={1} sx={{ mb: 2 }}>
-                  <ListItem>
-                    <ListItemAvatar>
-                      <Avatar>
-                        <AccountCircleIcon />
-                      </Avatar>
-                    </ListItemAvatar>{' '}
-                    <ListItemText
-                      primary={
-                        <Typography
-                          variant="body1"
-                          sx={{ cursor: 'pointer' }}
-                          onClick={() => navigate(`/profile/${member.user_id}`)}
-                        >
-                          {member.username || `User ${member.id || 'Unknown'}`}
-                        </Typography>
-                      }
-                      secondary={`${t('gardens.role')}: ${t(`gardens.${member.role.toLowerCase()}`)} • ${t('gardens.status')}: ${t(`gardens.${member.status.toLowerCase()}`)}`}
-                    />{' '}
-                    {/* Show Direct Message button for accepted members (except yourself) */}
-                    {member.status === 'ACCEPTED' && user && member.user_id !== user.id && (
-                      <DirectMessageButton 
-                        targetUserId={member.user_id}
-                        variant="outlined"
-                        size="small"
-                        sx={{ mr: 1 }}
-                      />
-                    )}
-                    {isManager && member.id !== userMembership?.id && (
-                      <>
-                        {member.status === 'PENDING' ? (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            color="success"
-                            onClick={() => handleAcceptMember(member.id)}
-                            sx={{ mr: 1 }}
+                  <Paper key={member.id} elevation={1} sx={{ mb: 2 }}>
+                    <ListItem>
+                      <ListItemAvatar>
+                        <Avatar>
+                          <AccountCircleIcon />
+                        </Avatar>
+                      </ListItemAvatar>{' '}
+                      <ListItemText
+                        primary={
+                          <Typography
+                            variant="body1"
+                            sx={{ cursor: 'pointer' }}
+                            onClick={() => navigate(`/profile/${member.user_id}`)}
                           >
-                            {t('gardens.accept')}
-                          </Button>
-                        ) : (
+                            {member.username || `User ${member.id || 'Unknown'}`}
+                          </Typography>
+                        }
+                        secondary={`${t('gardens.role')}: ${t(`gardens.${member.role.toLowerCase()}`)} • ${t('gardens.status')}: ${t(`gardens.${member.status.toLowerCase()}`)}`}
+                      />{' '}
+                      {/* Show Direct Message button for accepted members (except yourself) */}
+                      {member.status === 'ACCEPTED' && user && member.user_id !== user.id && (
+                        <DirectMessageButton
+                          targetUserId={member.user_id}
+                          variant="outlined"
+                          size="small"
+                          iconOnly
+                          sx={{ mr: 1 }}
+                        />
+                      )}
+                      {isManager && member.id !== userMembership?.id && (
+                        <>
+                          {member.status === 'PENDING' ? (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="success"
+                              onClick={() => handleAcceptMember(member.id)}
+                              sx={{ mr: 1 }}
+                            >
+                              {t('gardens.accept')}
+                            </Button>
+                          ) : (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="primary"
+                              onClick={() =>
+                                handleChangeMemberRole(
+                                  member.id,
+                                  member.role === 'MANAGER' ? 'WORKER' : 'MANAGER'
+                                )
+                              }
+                              sx={{ mr: 1 }}
+                            >
+                              {member.role === 'MANAGER' ? t('gardens.demote') : t('gardens.promote')}
+                            </Button>
+                          )}
                           <Button
                             size="small"
                             variant="outlined"
-                            color="primary"
-                            onClick={() =>
-                              handleChangeMemberRole(
-                                member.id,
-                                member.role === 'MANAGER' ? 'WORKER' : 'MANAGER'
-                              )
-                            }
-                            sx={{ mr: 1 }}
+                            color="error"
+                            onClick={() => handleRemoveMember(member.id)}
                           >
-                            {member.role === 'MANAGER' ? t('gardens.demote') : t('gardens.promote')}
+                            {t('gardens.remove')}
                           </Button>
-                        )}
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="error"
-                          onClick={() => handleRemoveMember(member.id)}
-                        >
-                          {t('gardens.remove')}
-                        </Button>
-                      </>
-                    )}
-                  </ListItem>
-                </Paper>
-              ))}
-              {members.length === 0 && (
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                  sx={{ textAlign: 'center', mt: 3 }}
-                >
-                  {t('gardens.noMembersFound')}
-                </Typography>
-              )}
+                        </>
+                      )}
+                    </ListItem>
+                  </Paper>
+                ))}
+                {members.length === 0 && (
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    sx={{ textAlign: 'center', mt: 3 }}
+                  >
+                    {t('gardens.noMembersFound')}
+                  </Typography>
+                )}
               </List>
             )}
           </Box>
@@ -1030,8 +1065,8 @@ const GardenDetail = () => {
             </Box>
 
             {!token ? (
-              <Box sx={{ 
-                display: 'flex', 
+              <Box sx={{
+                display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -1050,10 +1085,10 @@ const GardenDetail = () => {
                 </Button>
               </Box>
             ) : events.length === 0 ? (
-              <Box sx={{ 
-                p: 4, 
-                textAlign: 'center', 
-                backgroundColor: 'background.paper', 
+              <Box sx={{
+                p: 4,
+                textAlign: 'center',
+                backgroundColor: 'background.paper',
                 borderRadius: 2,
                 border: '2px dashed',
                 borderColor: 'divider'
@@ -1101,8 +1136,8 @@ const GardenDetail = () => {
         {/* Calendar Tab */}
         {activeTab === 3 && (
           !token ? (
-            <Box sx={{ 
-              display: 'flex', 
+            <Box sx={{
+              display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
@@ -1137,12 +1172,12 @@ const GardenDetail = () => {
 
         {/* Gallery Tab */}
         {activeTab === 4 && (
-          <Box>
+          <Box data-testid="image-gallery">
             <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, mb: 3 }}>
               {t('gardens.gardenGallery')}
             </Typography>
             {garden?.images && garden.images.length > 0 ? (
-              <ImageGallery 
+              <ImageGallery
                 images={garden.images}
                 coverImage={garden.cover_image}
                 maxColumns={3}
@@ -1150,10 +1185,10 @@ const GardenDetail = () => {
                 showCoverBadge={true}
               />
             ) : (
-              <Box sx={{ 
-                p: 4, 
-                textAlign: 'center', 
-                backgroundColor: 'background.paper', 
+              <Box sx={{
+                p: 4,
+                textAlign: 'center',
+                backgroundColor: 'background.paper',
                 borderRadius: 2,
                 border: '2px dashed',
                 borderColor: 'divider'
@@ -1200,6 +1235,85 @@ const GardenDetail = () => {
         members={members}
         mode="edit"
       />
+      <TaskDetailModal
+        open={taskDetailModalOpen}
+        onClose={() => {
+          setTaskDetailModalOpen(false);
+          setSelectedTaskForDetail(null);
+        }}
+        task={selectedTaskForDetail}
+        onTaskUpdated={(updatedTask) => {
+          setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+          // Update selectedTaskForDetail with the updated task
+          setSelectedTaskForDetail(updatedTask);
+        }}
+        onTaskDeleted={(taskId) => {
+          setTasks((prev) => prev.filter((t) => t.id !== taskId));
+          setTaskDetailModalOpen(false);
+          setSelectedTaskForDetail(null);
+        }}
+        canEdit={
+          selectedTaskForDetail &&
+          (selectedTaskForDetail.assigned_by_username === user?.username || isManager)
+        }
+        canDelete={
+          selectedTaskForDetail &&
+          (selectedTaskForDetail.assigned_by_username === user?.username || isManager)
+        }
+        handleAcceptTask={async (task) => {
+          try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/accept/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`,
+              },
+              body: JSON.stringify(task),
+            });
+
+            if (response.ok) {
+              const updated = await response.json();
+              setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+              setSelectedTaskForDetail(updated);
+              toast.success('Task accepted!');
+            } else {
+              const errorText = await response.text();
+              console.error('Accept failed:', errorText);
+              toast.error('Accept failed');
+            }
+          } catch (err) {
+            console.error('Error accepting task:', err);
+            toast.error('Could not accept task.');
+          }
+        }}
+        handleDeclineTask={async (task) => {
+          try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${task.id}/decline/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`,
+              },
+              body: JSON.stringify(task),
+            });
+
+            if (response.ok) {
+              const updated = await response.json();
+              setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+              setSelectedTaskForDetail(updated);
+              toast.success('Task declined!');
+            } else {
+              const errorText = await response.text();
+              console.error('Decline failed:', errorText);
+              toast.error('Decline failed');
+            }
+          } catch (err) {
+            console.error('Error declining task:', err);
+            toast.error('Could not decline task.');
+          }
+        }}
+        onEditClick={handleTaskDetailEditClick}
+      />
       <EventCreateDialog
         open={openEventCreateDialog}
         onClose={() => setOpenEventCreateDialog(false)}
@@ -1230,6 +1344,12 @@ const GardenDetail = () => {
           selectedEvent &&
           (selectedEvent.created_by?.id === user?.id || isManager)
         }
+      />
+      <ReportDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        contentType="garden"
+        objectId={parseInt(gardenId)}
       />
     </Container>
   );

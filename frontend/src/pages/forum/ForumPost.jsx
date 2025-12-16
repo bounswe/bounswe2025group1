@@ -343,17 +343,25 @@ const ForumPost = () => {
         ) : (
           <>
             <Box
-              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, mb: 2 }}
             >
               <Typography
                 variant="h4"
-                gutterBottom
-                sx={{ color: '#2e7d32', fontWeight: 'bold', textAlign: 'left' }}
+                sx={{ 
+                  color: '#2e7d32', 
+                  fontWeight: 'bold', 
+                  textAlign: 'left',
+                  flex: 1,
+                  minWidth: 0,
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
+                  pr: 1
+                }}
               >
                 {post.title}
               </Typography>
               {post.author === user?.id ? (
-                <Box>
+                <Box sx={{ flexShrink: 0, display: 'flex', gap: 0.5 }}>
                   <IconButton
                     onClick={() => setEditMode(true)}
                     color="primary"
@@ -367,7 +375,7 @@ const ForumPost = () => {
                   </IconButton>
                 </Box>
               ) : (
-                <Box>
+                <Box sx={{ flexShrink: 0 }}>
                   <IconButton
                     onClick={() => setReportConfig({ open: true, type: 'forumpost', id: post.id })}
                     color="default"

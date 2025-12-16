@@ -3,123 +3,113 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import InfohubHome from './InfohubHome';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 
 // Mock the modules/hooks
 vi.mock('react-router-dom', () => ({
   useNavigate: vi.fn(),
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: vi.fn(),
-}));
-
 describe('InfohubHome Component', () => {
   const mockNavigate = vi.fn();
-  const mockT = vi.fn((key) => {
-    const translations = {
-      'infohub.title': 'Community Garden Infohub',
-      'infohub.subtitle': 'Learn, Grow, Connect.',
-      'infohub.exploreMore': 'Explore',
-      'infohub.categories.plantCare.title': 'Plant Care',
-      'infohub.categories.pestDisease.title': 'Pest & Disease Control',
-      'infohub.categories.soilComposting.title': 'Soil & Composting',
-      'infohub.categories.gardeningCalendar.title': 'Gardening Calendar',
-      'infohub.categories.toolsTechniques.title': 'Tools & Techniques',
-      'infohub.categories.sustainableGardening.title': 'Sustainable Gardening',
-    };
-    return translations[key] || key;
-  });
 
   beforeEach(() => {
     vi.clearAllMocks();
     useNavigate.mockReturnValue(mockNavigate);
-    useTranslation.mockReturnValue({
-      t: mockT,
-      i18n: { language: 'en' },
-    });
   });
 
   describe('Rendering', () => {
-    test('renders infohub home page with title and subtitle', () => {
+    test('renders the main title and subtitle', () => {
       render(<InfohubHome />);
 
-      expect(screen.getByText('Community Garden Infohub')).toBeInTheDocument();
-      expect(screen.getByText('Learn, Grow, Connect.')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 2, name: /Information Hub/i })).toBeInTheDocument();
+      expect(screen.getByText(/Your complete guide to community gardening/i)).toBeInTheDocument();
     });
 
-    test('renders all 6 category cards', () => {
+    test('renders Browse by Category section', () => {
       render(<InfohubHome />);
 
-      expect(screen.getByText('Plant Care')).toBeInTheDocument();
-      expect(screen.getByText('Pest & Disease Control')).toBeInTheDocument();
-      expect(screen.getByText('Soil & Composting')).toBeInTheDocument();
-      expect(screen.getByText('Gardening Calendar')).toBeInTheDocument();
-      expect(screen.getByText('Tools & Techniques')).toBeInTheDocument();
-      expect(screen.getByText('Sustainable Gardening')).toBeInTheDocument();
+      expect(screen.getByText('Browse by Category')).toBeInTheDocument();
     });
 
-    test('renders explore buttons for each category', () => {
+    test('renders all three main category cards', () => {
       render(<InfohubHome />);
 
-      const exploreButtons = screen.getAllByText('Explore');
-      expect(exploreButtons).toHaveLength(6);
+      expect(screen.getByText('Plant Encyclopedia')).toBeInTheDocument();
+      expect(screen.getByText('Soil Types')).toBeInTheDocument();
+      expect(screen.getByText('Tool Guide')).toBeInTheDocument();
+    });
+
+    test('renders Getting Started section', () => {
+      render(<InfohubHome />);
+
+      expect(screen.getByText(/Getting Started/i)).toBeInTheDocument();
+      expect(screen.getByText(/Welcome to the Information Hub!/i)).toBeInTheDocument();
+    });
+
+    test('renders Quick Links section with all links', () => {
+      render(<InfohubHome />);
+
+      expect(screen.getByText(/Quick Links/i)).toBeInTheDocument();
+      expect(screen.getByText('Gardening Basics')).toBeInTheDocument();
+      expect(screen.getByText('Community Rules & Safety')).toBeInTheDocument();
+      expect(screen.getByText('FAQ')).toBeInTheDocument();
+      expect(screen.getByText('Support')).toBeInTheDocument();
     });
   });
 
   describe('Navigation', () => {
-    test('navigates to plant care detail when explore button is clicked', () => {
+    test('navigates to plants page when Plant Encyclopedia card is clicked', () => {
       render(<InfohubHome />);
 
-      const exploreButtons = screen.getAllByText('Explore');
-      fireEvent.click(exploreButtons[0]);
+      const plantCard = screen.getByText('Plant Encyclopedia').closest('div[class*="MuiCard"]');
+      fireEvent.click(plantCard);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/infohub/plant-care');
+      expect(mockNavigate).toHaveBeenCalledWith('/infohub/plants');
     });
 
-    test('navigates to pest disease detail when explore button is clicked', () => {
+    test('navigates to soil-types page when Soil Types card is clicked', () => {
       render(<InfohubHome />);
 
-      const exploreButtons = screen.getAllByText('Explore');
-      fireEvent.click(exploreButtons[1]);
+      const soilCard = screen.getByText('Soil Types').closest('div[class*="MuiCard"]');
+      fireEvent.click(soilCard);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/infohub/pest-disease');
+      expect(mockNavigate).toHaveBeenCalledWith('/infohub/soil-types');
     });
 
-    test('navigates to soil composting detail when explore button is clicked', () => {
+    test('navigates to tool-guide page when Tool Guide card is clicked', () => {
       render(<InfohubHome />);
 
-      const exploreButtons = screen.getAllByText('Explore');
-      fireEvent.click(exploreButtons[2]);
+      const toolCard = screen.getByText('Tool Guide').closest('div[class*="MuiCard"]');
+      fireEvent.click(toolCard);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/infohub/soil-composting');
+      expect(mockNavigate).toHaveBeenCalledWith('/infohub/tool-guide');
     });
 
-    test('navigates to gardening calendar detail when explore button is clicked', () => {
+    test('navigates to gardening-basics when quick link is clicked', () => {
       render(<InfohubHome />);
 
-      const exploreButtons = screen.getAllByText('Explore');
-      fireEvent.click(exploreButtons[3]);
+      const gardeningBasicsLink = screen.getByText('Gardening Basics');
+      fireEvent.click(gardeningBasicsLink);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/infohub/gardening-calendar');
+      expect(mockNavigate).toHaveBeenCalledWith('/infohub/gardening-basics');
     });
 
-    test('navigates to tools techniques detail when explore button is clicked', () => {
+    test('navigates to faq when FAQ quick link is clicked', () => {
       render(<InfohubHome />);
 
-      const exploreButtons = screen.getAllByText('Explore');
-      fireEvent.click(exploreButtons[4]);
+      const faqLink = screen.getByText('FAQ');
+      fireEvent.click(faqLink);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/infohub/tools-techniques');
+      expect(mockNavigate).toHaveBeenCalledWith('/infohub/faq');
     });
 
-    test('navigates to sustainable gardening detail when explore button is clicked', () => {
+    test('navigates to support when Support quick link is clicked', () => {
       render(<InfohubHome />);
 
-      const exploreButtons = screen.getAllByText('Explore');
-      fireEvent.click(exploreButtons[5]);
+      const supportLink = screen.getByText('Support');
+      fireEvent.click(supportLink);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/infohub/sustainable-gardening');
+      expect(mockNavigate).toHaveBeenCalledWith('/infohub/support');
     });
   });
 });

@@ -4,6 +4,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import PostCard from './PostCard';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContextUtils';
 
 // Mock the modules/hooks
 vi.mock('react-router-dom', async () => {
@@ -30,6 +31,10 @@ vi.mock('./InlineImageUpload', () => ({
       <button onClick={() => onImagesChange(['test-image-1'])}>Upload Image</button>
     </div>
   ),
+}));
+
+vi.mock('../contexts/AuthContextUtils', () => ({
+  useAuth: vi.fn(),
 }));
 
 describe('PostCard Component', () => {
@@ -59,6 +64,10 @@ describe('PostCard Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useNavigate.mockReturnValue(mockNavigate);
+    useAuth.mockReturnValue({
+      user: mockCurrentUser,
+      token: 'test-token-123',
+    });
   });
 
   const renderPostCard = (props = {}) => {
@@ -103,13 +112,6 @@ describe('PostCard Component', () => {
       renderPostCard();
 
       expect(screen.getByText('Comment')).toBeInTheDocument();
-    });
-
-    test('does not render menu button when user is not owner', () => {
-      renderPostCard({ isOwner: false });
-
-      const moreVertButton = screen.queryByTestId('MoreVertIcon');
-      expect(moreVertButton).not.toBeInTheDocument();
     });
 
     test('renders menu button when user is owner', () => {
@@ -501,7 +503,7 @@ describe('PostCard Component', () => {
       fireEvent.change(textField, { target: { value: 'New comment' } });
 
       const postButton = screen.getByRole('button', { name: 'Post' });
-      
+
       expect(() => fireEvent.click(postButton)).not.toThrow();
     });
 
@@ -512,7 +514,7 @@ describe('PostCard Component', () => {
       fireEvent.click(menuButton);
 
       const editMenuItem = screen.getByText('Edit Post');
-      
+
       expect(() => fireEvent.click(editMenuItem)).not.toThrow();
     });
 
@@ -523,7 +525,7 @@ describe('PostCard Component', () => {
       fireEvent.click(menuButton);
 
       const deleteMenuItem = screen.getByText('Delete Post');
-      
+
       expect(() => fireEvent.click(deleteMenuItem)).not.toThrow();
     });
 

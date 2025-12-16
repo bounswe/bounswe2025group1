@@ -10,7 +10,7 @@
  */
 export const translateLocationString = (location, language) => {
   if (!location || typeof location !== 'string') return location || '';
-  
+
   // Country and region name translations
   const locationTranslations = {
     // Countries
@@ -30,7 +30,7 @@ export const translateLocationString = (location, language) => {
     'İspanya': language === 'tr' ? 'İspanya' : 'Spain',
     'Greece': language === 'tr' ? 'Yunanistan' : 'Greece',
     'Yunanistan': language === 'tr' ? 'Yunanistan' : 'Greece',
-    
+
     // Turkish Regions
     'Marmara Region': language === 'tr' ? 'Marmara Bölgesi' : 'Marmara Region',
     'Marmara Bölgesi': language === 'tr' ? 'Marmara Bölgesi' : 'Marmara Region',
@@ -47,16 +47,16 @@ export const translateLocationString = (location, language) => {
     'Southeastern Anatolia Region': language === 'tr' ? 'Güneydoğu Anadolu Bölgesi' : 'Southeastern Anatolia Region',
     'Güneydoğu Anadolu Bölgesi': language === 'tr' ? 'Güneydoğu Anadolu Bölgesi' : 'Southeastern Anatolia Region',
   };
-  
+
   let translatedLocation = location;
-  
+
   // Apply translations for each location name found in the location string
   Object.entries(locationTranslations).forEach(([original, translated]) => {
     // Use word boundaries to avoid partial matches
     const regex = new RegExp(`\\b${original}\\b`, 'gi');
     translatedLocation = translatedLocation.replace(regex, translated);
   });
-  
+
   return translatedLocation;
 };
 
@@ -68,12 +68,12 @@ export const translateLocationString = (location, language) => {
  */
 export const translateCountryName = (countryName, language) => {
   if (!countryName) return '';
-  
+
   // Handle Turkey/Türkiye translation specifically
   if (countryName.toLowerCase().includes('turkey') || countryName.toLowerCase().includes('türkiye')) {
     return language === 'tr' ? 'Türkiye' : 'Turkey';
   }
-  
+
   // Use a simplified translation map for individual country names
   const countryTranslations = {
     'Turkey': language === 'tr' ? 'Türkiye' : 'Turkey',
@@ -93,7 +93,7 @@ export const translateCountryName = (countryName, language) => {
     'Greece': language === 'tr' ? 'Yunanistan' : 'Greece',
     'Yunanistan': language === 'tr' ? 'Yunanistan' : 'Greece',
   };
-  
+
   return countryTranslations[countryName] || countryName;
 };
 
@@ -151,9 +151,9 @@ export const calculateDistance = (lat1, lng1, lat2, lng2) => {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLng / 2) *
+    Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };

@@ -28,19 +28,19 @@ class GardenViewSet(viewsets.ModelViewSet):
         user = self.request.user
         queryset = Garden.objects.prefetch_related('images')
 
-        # Unauthenticated users can only see public gardens
+        # Unauthenticated users can only see public, non-hidden gardens
         if not user.is_authenticated:
-            return queryset.filter(is_public=True)
+            return queryset.filter(is_public=True, is_hidden=False)
 
-        # Authenticated users can see public gardens and gardens they are members of
+        # Authenticated users can see public, non-hidden gardens and gardens they are members of (even if hidden)
         member_garden_ids = GardenMembership.objects.filter(
             user=user,
             status='ACCEPTED'  # make sure only accepted memberships
         ).values_list('garden_id', flat=True)
 
-        # Return public gardens OR gardens user is a member of
+        # Return public non-hidden gardens OR gardens user is a member of (members can see hidden gardens they belong to)
         return queryset.filter(
-            Q(is_public=True) | Q(id__in=list(member_garden_ids))
+            Q(is_public=True, is_hidden=False) | Q(id__in=list(member_garden_ids))
         )
     
     
@@ -173,6 +173,9 @@ class GardenMembershipViewSet(viewsets.ModelViewSet):
                 if random_member:
                     random_member.role = 'MANAGER'
                     random_member.save()
+        
+        # Sync chat members after deletion (if garden still exists)
+        self._sync_garden_chat_members(garden.id)
     
     def _sync_garden_chat_members(self, garden_id):
         """Sync garden chat members with accepted memberships"""

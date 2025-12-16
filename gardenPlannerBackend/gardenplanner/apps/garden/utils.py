@@ -1,9 +1,45 @@
 import requests
+import random
+import hashlib
 from django.conf import settings
 from rest_framework.exceptions import APIException
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def generate_otp():
+    """Generate a 6-digit OTP code"""
+    return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
+
+def get_device_identifier(request):
+    """Generate device identifier from request headers."""
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
+    return hashlib.sha256(user_agent.encode()).hexdigest()[:32]
+
+
+def get_device_name(request):
+    """Extract device/browser name from User-Agent."""
+    ua = request.META.get('HTTP_USER_AGENT', 'Unknown')
+    # Simple parsing; use user-agent library for production
+    if 'Chrome' in ua:
+        return 'Chrome'
+    elif 'Firefox' in ua:
+        return 'Firefox'
+    elif 'Safari' in ua:
+        return 'Safari'
+    elif 'Mobile' in ua or 'Android' in ua or 'iPhone' in ua:
+        return 'Mobile App'
+    return 'Unknown Browser'
+
+
+def get_client_ip(request):
+    """Get client IP address."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '127.0.0.1')
 
 def get_location_coordinates(location):
     """

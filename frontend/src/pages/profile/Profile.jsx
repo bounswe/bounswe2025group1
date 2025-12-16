@@ -33,6 +33,7 @@ import { Switch, FormControlLabel, IconButton, Tooltip } from '@mui/material';
 import { ALL_BADGES } from '../../components/GardenBadges';
 import ReportDialog from '../../components/ReportDialog';
 import FlagIcon from '@mui/icons-material/Flag';
+import ImpactSummaryTab from '../../components/ImpactSummaryTab';
 
 const Profile = () => {
   const { t, i18n } = useTranslation();
@@ -42,6 +43,7 @@ const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isPrivateProfile, setIsPrivateProfile] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   const [editedProfile, setEditedProfile] = useState({
@@ -49,6 +51,7 @@ const Profile = () => {
     email: '',
     location: '',
     receives_notifications: false,
+    is_private: false,
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [gardens, setGardens] = useState([]);
@@ -66,7 +69,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (userId && isNaN(Number(userId))) {
-      toast.error('Invalid profile ID');
+      toast.error(t('profile.invalidProfileId'));
       navigate('/profile');
       return;
     }
@@ -74,6 +77,13 @@ const Profile = () => {
 
   // Fetch profile data
   useEffect(() => {
+    setIsEditing(false);
+    setIsPrivateProfile(false);
+    setIsFollowing(false);
+    setProfile(null);
+    setError(null);
+    setLoading(true);
+
     const fetchProfileData = async () => {
       if (!token) {
         navigate('/auth/login');
@@ -81,7 +91,7 @@ const Profile = () => {
       }
 
       if (userId && isNaN(Number(userId))) {
-        return; 
+        return;
       }
 
       try {
@@ -92,7 +102,15 @@ const Profile = () => {
         });
 
         if (!response.ok) {
-          toast.error('Failed to load profile');
+          if (response.status === 403) {
+            const errorData = await response.json();
+            if (errorData.detail === "This profile is private.") {
+              setIsPrivateProfile(true);
+              setLoading(false);
+              return;
+            }
+          }
+          toast.error(t('profile.failedToLoadProfile'));
           return;
         }
 
@@ -107,16 +125,8 @@ const Profile = () => {
           email: data.email,
           location: data.profile?.location || '',
           receives_notifications: data.profile.receives_notifications,
+          is_private: data.profile.is_private,
         });
-        
-        // Set earned badges from profile data (if available)
-        // For now, defaulting to empty array - backend can provide badges array
-        // Tiny Sprout is always earned
-        const badges = data.badges || data.profile?.badges || [];
-        if (!badges.includes('Tiny Sprout') && !badges.some(b => typeof b === 'string' ? b === 'Tiny Sprout' : b?.name === 'Tiny Sprout')) {
-          badges.push('Tiny Sprout');
-        }
-        setEarnedBadges(badges);
 
         // Check if current user is following this profile
         if (!isOwnProfile && user) {
@@ -136,7 +146,7 @@ const Profile = () => {
         }
       } catch (err) {
         setError(err.message);
-        toast.error('Error loading profile');
+        toast.error(t('profile.errorLoadingProfile'));
       }
     };
 
@@ -159,6 +169,27 @@ const Profile = () => {
         }
       } catch (gardenError) {
         console.error('Error fetching gardens:', gardenError);
+      }
+    };
+
+    const fetchUserBadges = async () => {
+      if (!token) return;
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/user/${userId}/badges/`,
+          {
+            headers: {
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const badgesData = await response.json();
+          setEarnedBadges(badgesData);
+        }
+      } catch (badgeError) {
+        console.error('Error fetching badges:', badgeError);
       }
     };
 
@@ -199,6 +230,7 @@ const Profile = () => {
       setLoading(true);
       await fetchProfileData();
       await fetchUserGardens();
+      await fetchUserBadges();
       await fetchRelationships();
       setLoading(false);
     };
@@ -213,6 +245,7 @@ const Profile = () => {
       email: profile.email,
       location: profile.profile?.location || '',
       receives_notifications: profile.receives_notifications ?? false,
+      is_private: profile.profile?.is_private ?? false,
     });
     setSelectedFile(null);
   };
@@ -257,7 +290,9 @@ const Profile = () => {
       formData.append('username', editedProfile.username);
       formData.append('email', editedProfile.email);
       formData.append('location', editedProfile.location);
+      formData.append('location', editedProfile.location);
       formData.append('receives_notifications', editedProfile.receives_notifications);
+      formData.append('is_private', editedProfile.is_private);
 
       if (selectedFile) {
         formData.append('profile_picture', selectedFile);
@@ -272,7 +307,7 @@ const Profile = () => {
       });
 
       if (!response.ok) {
-        toast.error('Failed to update profile');
+        toast.error(t('profile.failedToUpdateProfile'));
         return;
       }
 
@@ -286,6 +321,7 @@ const Profile = () => {
           profile_picture: updatedProfile.profile.profile_picture,
           location: updatedProfile.profile.location,
           receives_notifications: updatedProfile.profile.receives_notifications,
+          is_private: updatedProfile.profile.is_private,
         },
       });
 
@@ -300,9 +336,10 @@ const Profile = () => {
             profile_picture: updatedProfile.profile.profile_picture,
             location: updatedProfile.profile.location,
             receives_notifications: updatedProfile.profile.receives_notifications,
+            is_private: updatedProfile.profile.is_private,
           },
         };
-        
+
         updateUser(updatedUserData);
       }
 
@@ -328,7 +365,7 @@ const Profile = () => {
       });
 
       if (!response.ok) {
-        toast.error('Failed to update follow status');
+        toast.error(t('profile.failedToUpdateFollowStatus'));
         return;
       }
 
@@ -367,10 +404,28 @@ const Profile = () => {
       <Container>
         <Box my={4} textAlign="center">
           <Typography variant="h5" color="error">
-            Error: {error}
+            {t('common.error')}: {error}
           </Typography>
           <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => navigate('/')}>
-            Go Home
+            {t('common.goHome')}
+          </Button>
+        </Box>
+      </Container>
+    );
+  }
+
+  if (isPrivateProfile) {
+    return (
+      <Container>
+        <Box my={4} textAlign="center">
+          <Typography variant="h4" gutterBottom>
+            {t('profile.privateProfile')}
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            {t('profile.privateProfileMessage')}
+          </Typography>
+          <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => navigate('/')}>
+            {t('common.goHome', 'Go Home')}
           </Button>
         </Box>
       </Container>
@@ -381,9 +436,9 @@ const Profile = () => {
     return (
       <Container>
         <Box my={4} textAlign="center">
-          <Typography variant="h5">User not found</Typography>
+          <Typography variant="h5">{t('profile.userNotFound')}</Typography>
           <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => navigate('/')}>
-            Go Home
+            {t('common.goHome')}
           </Button>
         </Box>
       </Container>
@@ -405,17 +460,17 @@ const Profile = () => {
             />
 
             {isEditing && (
-              <Button 
-                variant="outlined" 
-                component="label" 
-                sx={{ 
+              <Button
+                variant="outlined"
+                component="label"
+                sx={{
                   mb: 2,
                   '&:focus': {
                     outline: '2px solid #558b2f',
                     outlineOffset: '2px',
                   },
                 }}
-                onKeyDown={createButtonKeyboardHandler(() => {})}
+                onKeyDown={createButtonKeyboardHandler(() => { })}
               >
                 {t('profile.uploadPhoto')}
                 <input
@@ -431,34 +486,43 @@ const Profile = () => {
               {profile.username}
             </Typography>
 
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
               {profile.profile?.location ? translateLocationString(profile.profile.location, i18n.language) : t('profile.noLocationSet')}
             </Typography>
 
+            {profile.profile?.created_at && (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {t('profile.memberSince')}: {new Date(profile.profile.created_at).toLocaleDateString(i18n.language, {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </Typography>
+            )}
+
             {!isOwnProfile && (
               <Box sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center' }}>
-                <Button
-                  variant={isFollowing ? 'outlined' : 'contained'}
-                  color={isFollowing ? 'error' : 'primary'}
-                  startIcon={isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
-                  onClick={handleFollowToggle}
-                  onKeyDown={createButtonKeyboardHandler(handleFollowToggle)}
-                  sx={{ 
-                    '&:focus': {
-                      outline: '2px solid #558b2f',
-                      outlineOffset: '2px',
-                    },
-                  }}
-                  aria-label={isFollowing ? t('profile.unfollowUser') : t('profile.followUser')}
-                >
-                  {isFollowing ? t('profile.unfollow') : t('profile.follow')}
-                </Button>
-                <DirectMessageButton 
+                <Tooltip title={isFollowing ? t('profile.unfollowUser') : t('profile.followUser')}>
+                  <IconButton
+                    onClick={handleFollowToggle}
+                    onKeyDown={createButtonKeyboardHandler(handleFollowToggle)}
+                    color="primary"
+                    sx={{
+                      '&:focus': {
+                        outline: '2px solid #558b2f',
+                        outlineOffset: '2px',
+                      },
+                    }}
+                    aria-label={isFollowing ? t('profile.unfollowUser') : t('profile.followUser')}
+                  >
+                    {isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
+                  </IconButton>
+                </Tooltip>
+                <DirectMessageButton
                   targetUserId={parseInt(userId)}
-                  variant="contained"
-                  size="medium"
+                  iconOnly
                 />
-                {user && (
+                {user && !isOwnProfile && (
                   <Tooltip title={t('report.reportUser', 'Report User')}>
                     <IconButton onClick={() => setReportOpen(true)} color="default">
                       <FlagIcon />
@@ -474,7 +538,7 @@ const Profile = () => {
                 startIcon={<EditIcon />}
                 onClick={() => setIsEditing(true)}
                 onKeyDown={createButtonKeyboardHandler(() => setIsEditing(true))}
-                sx={{ 
+                sx={{
                   mb: 2,
                   '&:focus': {
                     outline: '2px solid #558b2f',
@@ -489,9 +553,9 @@ const Profile = () => {
 
             {isEditing && (
               <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <Button 
-                  variant="contained" 
-                  startIcon={<SaveIcon />} 
+                <Button
+                  variant="contained"
+                  startIcon={<SaveIcon />}
                   onClick={handleSaveProfile}
                   onKeyDown={createButtonKeyboardHandler(handleSaveProfile)}
                   sx={{
@@ -504,9 +568,9 @@ const Profile = () => {
                 >
                   {t('profile.save')}
                 </Button>
-                <Button 
-                  variant="outlined" 
-                  startIcon={<CancelIcon />} 
+                <Button
+                  variant="outlined"
+                  startIcon={<CancelIcon />}
                   onClick={handleCancelEdit}
                   onKeyDown={createButtonKeyboardHandler(handleCancelEdit)}
                   sx={{
@@ -569,10 +633,22 @@ const Profile = () => {
                       type="checkbox"
                     />
                   }
-                  label={t('Would you like to receive notifications?')}
+                  label={t('profile.receiveNotifications')}
                   sx={{ mt: 1, mb: 1, display: 'block' }}
                 />
-                {}
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={editedProfile.is_private}
+                      onChange={handleInputChange}
+                      name="is_private"
+                      type="checkbox"
+                    />
+                  }
+                  label={t('profile.makeProfilePrivate')}
+                  sx={{ mt: 1, mb: 1, display: 'block' }}
+                />
+                { }
                 <LocationPicker
                   value={editedProfile.location}
                   onChange={(value) => setEditedProfile({ ...editedProfile, location: value })}
@@ -590,9 +666,9 @@ const Profile = () => {
                     aria-label="profile tabs"
                     role="tablist"
                   >
-                    <Tab 
+                    <Tab
                       ref={(el) => (tabRefs.current[0] = el)}
-                      label={t('profile.gardens')} 
+                      label={t('profile.gardens')}
                       id="tab-0"
                       role="tab"
                       aria-selected={tabValue === 0}
@@ -606,7 +682,7 @@ const Profile = () => {
                           setTabValue(1);
                         } else if (e.key === 'ArrowLeft') {
                           e.preventDefault();
-                          setTabValue(3);
+                          setTabValue(4);
                         }
                       }}
                       sx={{
@@ -616,9 +692,9 @@ const Profile = () => {
                         },
                       }}
                     />
-                    <Tab 
+                    <Tab
                       ref={(el) => (tabRefs.current[1] = el)}
-                      label={t('profile.followers')} 
+                      label={t('profile.followers')}
                       id="tab-1"
                       role="tab"
                       aria-selected={tabValue === 1}
@@ -642,9 +718,9 @@ const Profile = () => {
                         },
                       }}
                     />
-                    <Tab 
+                    <Tab
                       ref={(el) => (tabRefs.current[2] = el)}
-                      label={t('profile.following')} 
+                      label={t('profile.following')}
                       id="tab-2"
                       role="tab"
                       aria-selected={tabValue === 2}
@@ -668,9 +744,9 @@ const Profile = () => {
                         },
                       }}
                     />
-                    <Tab 
+                    <Tab
                       ref={(el) => (tabRefs.current[3] = el)}
-                      label={t('profile.badges')} 
+                      label={t('profile.badges')}
                       id="tab-3"
                       role="tab"
                       aria-selected={tabValue === 3}
@@ -681,10 +757,36 @@ const Profile = () => {
                           setTabValue(3);
                         } else if (e.key === 'ArrowRight') {
                           e.preventDefault();
-                          setTabValue(0);
+                          setTabValue(4);
                         } else if (e.key === 'ArrowLeft') {
                           e.preventDefault();
                           setTabValue(2);
+                        }
+                      }}
+                      sx={{
+                        '&:focus': {
+                          outline: '2px solid #558b2f',
+                          outlineOffset: '2px',
+                        },
+                      }}
+                    />
+                    <Tab
+                      ref={(el) => (tabRefs.current[4] = el)}
+                      label={t('profile.impactSummary')}
+                      id="tab-4"
+                      role="tab"
+                      aria-selected={tabValue === 4}
+                      aria-controls="tabpanel-4"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setTabValue(4);
+                        } else if (e.key === 'ArrowRight') {
+                          e.preventDefault();
+                          setTabValue(0);
+                        } else if (e.key === 'ArrowLeft') {
+                          e.preventDefault();
+                          setTabValue(3);
                         }
                       }}
                       sx={{
@@ -878,11 +980,16 @@ const Profile = () => {
                       <Grid container spacing={3}>
                         {ALL_BADGES.map((badge) => {
                           const BadgeComponent = badge.component;
-                          // Tiny Sprout is always earned
-                          const isEarned = badge.name === 'Tiny Sprout' || earnedBadges.includes(badge.name) || earnedBadges.some(b => 
-                            typeof b === 'string' ? b === badge.name : b?.name === badge.name
-                          );
-                          
+
+                          const isEarned =
+                            badge.name === 'Tiny Sprout' ||
+                            earnedBadges.some(b => {
+                              if (b.badge && b.badge.name) return b.badge.name === badge.name;
+                              if (b.name) return b.name === badge.name;
+                              if (typeof b === 'string') return b === badge.name;
+                              return false;
+                            });
+
                           // Get description - seasonal badges get time-sensitive descriptions
                           let description = '';
                           if (badge.descriptionKey) {
@@ -968,6 +1075,13 @@ const Profile = () => {
                     );
                   })()}
                 </Box>
+
+                {/* Impact Summary Tab */}
+                <Box role="tabpanel" hidden={tabValue !== 4} id="tabpanel-4" sx={{ py: 2 }}>
+                  {tabValue === 4 && (
+                    <ImpactSummaryTab userId={userId} />
+                  )}
+                </Box>
               </Box>
             )}
           </Grid>
@@ -984,3 +1098,4 @@ const Profile = () => {
 };
 
 export default Profile;
+

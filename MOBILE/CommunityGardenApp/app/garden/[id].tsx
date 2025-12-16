@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useMemo, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Image, FlatList, Alert, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
+import * as Linking from 'expo-linking';
 import axios from 'axios';
 import { API_URL } from '../../constants/Config';
 import { useAccessibleColors } from '../../contexts/AccessibilityContextSimple';
@@ -336,6 +337,43 @@ export default function GardenDetailScreen() {
     }
   };
 
+  const handleShowDirections = () => {
+    const location = (garden as any)?.location;
+    console.log('=== SHOW DIRECTIONS DEBUG ===');
+    console.log('Garden object:', garden);
+    console.log('Location value:', location);
+    console.log('Location type:', typeof location);
+    
+    if (!location || !String(location).trim()) {
+      console.log('❌ No location available');
+      Alert.alert(t('common.error') || 'Error', t('garden.detail.noLocation') || 'Garden location is not available.');
+      return;
+    }
+
+    // Encode the location for URL
+    const encodedLocation = encodeURIComponent(String(location).trim());
+    console.log('Encoded location:', encodedLocation);
+    
+    // Try to open Google Maps app first, fallback to web
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedLocation}`;
+    const appleMapsUrl = `http://maps.apple.com/?daddr=${encodedLocation}`;
+    
+    console.log('Opening Google Maps URL:', googleMapsUrl);
+    
+    // Try Google Maps first (works on both iOS and Android)
+    Linking.openURL(googleMapsUrl).catch(() => {
+      console.log('Google Maps failed, trying Apple Maps');
+      // Fallback to Apple Maps on iOS if Google Maps fails
+      Linking.openURL(appleMapsUrl).catch((err) => {
+        console.error('Error opening maps:', err);
+        Alert.alert(
+          t('common.error') || 'Error',
+          t('garden.detail.mapsError') || 'Could not open maps application. Please check if you have a maps app installed.'
+        );
+      });
+    });
+  };
+
   const sendDirectMessage = async (recipientUserId: number, messageText: string) => {
     try {
       if (!db || !user) {
@@ -554,10 +592,12 @@ export default function GardenDetailScreen() {
         <View style={styles.headerContent}>
           <Text style={[styles.gardenName, { color: colors.text }]}>{(garden as any).name}</Text>
           <View style={styles.chipRow}>
-            <View style={[styles.chip, { backgroundColor: colors.secondary }]}>
-              <Ionicons name="location-outline" size={16} color={colors.primary} />
-              <Text style={[styles.chipText, { color: colors.text }]}>{(garden as any).location}</Text>
-            </View>
+            {(garden as any).location && (
+              <View style={[styles.chip, { backgroundColor: colors.secondary }]}>
+                <Ionicons name="location-outline" size={16} color={colors.primary} />
+                <Text style={[styles.chipText, { color: colors.text }]}>{(garden as any).location}</Text>
+              </View>
+            )}
             <View style={[styles.chip, { backgroundColor: colors.secondary }]}>
               <Ionicons name="people-outline" size={16} color={colors.primary} />
               <Text style={[styles.chipText, { color: colors.text }]}>{members.filter(m => m.status === 'ACCEPTED').length} Members</Text>
@@ -567,6 +607,19 @@ export default function GardenDetailScreen() {
               <Text style={[styles.chipText, { color: colors.text }]}>{tasks.length} Tasks</Text>
             </View>
           </View>
+          {garden && (garden as any).location && (
+            <TouchableOpacity
+              style={[styles.directionsButton, { backgroundColor: colors.primary }]}
+              onPress={handleShowDirections}
+              accessibilityLabel={t('garden.detail.showDirections') || 'Show Directions'}
+              accessibilityHint="Opens Google Maps with navigation to this garden"
+            >
+              <Ionicons name="navigate" size={18} color={colors.white} />
+              <Text style={[styles.directionsButtonText, { color: colors.white }]}>
+                {t('garden.detail.showDirections') || 'Show Directions'}
+              </Text>
+            </TouchableOpacity>
+          )}
           <Text style={[styles.gardenDesc, { color: colors.textSecondary }]}>{(garden as any).description}</Text>
           {membershipStatus && (
             <View style={[styles.statusBadge, {
@@ -892,6 +945,19 @@ const styles = StyleSheet.create({
   },
   button: { padding: 10, borderRadius: 8, marginTop: 10 },
   buttonText: { fontWeight: 'bold' },
+  directionsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+    gap: 8,
+  },
+  directionsButtonText: {
+    fontWeight: '600',
+    fontSize: 15,
+  },
   tabsRow: { flexDirection: 'row', borderBottomWidth: 1, marginHorizontal: 16, marginTop: 8 },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
   tabActive: { borderBottomWidth: 3 },
