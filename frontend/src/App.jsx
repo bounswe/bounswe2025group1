@@ -112,6 +112,10 @@ function AppContent() {
                   <Route path="/forum" element={<ForumList />} />
                   <Route path="/forum/:postId" element={<ForumPost />} />
                   <Route path="/infohub" element={<InfohubHome />} />
+                  <Route path="/infohub/plants" element={<PlantList />} />
+                  <Route path="/infohub/plants/:plantId" element={<PlantDetail />} />
+                  <Route path="/infohub/soil-types" element={<SoilTypes />} />
+                  <Route path="/infohub/tool-guide" element={<ToolGuide />} />
                   <Route path="/infohub/:categoryId" element={<InfohubDetail />} />
                   <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                   <Route path="/auth/reset-password" element={<ResetPassword />} />
