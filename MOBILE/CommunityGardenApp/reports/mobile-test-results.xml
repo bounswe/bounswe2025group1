@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Mobile App Tests" tests="149" failures="0" errors="0" time="13.983">
+  <testsuite name="Chat Utils" errors="0" failures="0" skipped="0" timestamp="2025-12-20T19:31:53" time="5.011" tests="2">
+    <testcase classname="Chat Utils createDirectMessage should return existing chat ID if chat exists" name="Chat Utils createDirectMessage should return existing chat ID if chat exists" time="0.03">
+    </testcase>
+    <testcase classname="Chat Utils createDirectMessage should create new chat if it does not exist" name="Chat Utils createDirectMessage should create new chat if it does not exist" time="0.005">
+    </testcase>
+  </testsuite>
+  <testsuite name="Notification Service" errors="0" failures="0" skipped="0" timestamp="2025-12-20T19:31:53" time="5.316" tests="6">
+    <testcase classname="Notification Service fetchNotifications should fetch notifications" name="Notification Service fetchNotifications should fetch notifications" time="0.022">
+    </testcase>
+    <testcase classname="Notification Service fetchUnreadCount should fetch unread count" name="Notification Service fetchUnreadCount should fetch unread count" time="0.003">
+    </testcase>
+    <testcase classname="Notification Service markAsRead should mark notification as read" name="Notification Service markAsRead should mark notification as read" time="0.003">
+    </testcase>
+    <testcase classname="Notification Service markAllAsRead should mark all notifications as read" name="Notification Service markAllAsRead should mark all notifications as read" time="0.004">
+    </testcase>
+    <testcase classname="Notification Service registerDevice should register device for push notifications" name="Notification Service registerDevice should register device for push notifications" time="0.002">
+    </testcase>
+    <testcase classname="Notification Service unregisterDevice should unregister device" name="Notification Service unregisterDevice should unregister device" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Event Service" errors="0" failures="0" skipped="0" timestamp="2025-12-20T19:31:53" time="5.406" tests="14">
+    <testcase classname="Event Service fetchEvents should fetch all events when no gardenId provided" name="Event Service fetchEvents should fetch all events when no gardenId provided" time="0.028">
+    </testcase>
+    <testcase classname="Event Service fetchEvents should fetch events for specific garden" name="Event Service fetchEvents should fetch events for specific garden" time="0.002">
+    </testcase>
+    <testcase classname="Event Service fetchEventById should fetch a single event" name="Event Service fetchEventById should fetch a single event" time="0.004">
+    </testcase>
+    <testcase classname="Event Service createEvent should create an event" name="Event Service createEvent should create an event" time="0.001">
+    </testcase>
+    <testcase classname="Event Service updateEvent should update an event" name="Event Service updateEvent should update an event" time="0.004">
+    </testcase>
+    <testcase classname="Event Service deleteEvent should delete an event" name="Event Service deleteEvent should delete an event" time="0.004">
+    </testcase>
+    <testcase classname="Event Service voteAttendance should vote attendance" name="Event Service voteAttendance should vote attendance" time="0.001">
+    </testcase>
+    <testcase classname="Event Service getEventAttendances should get event attendances" name="Event Service getEventAttendances should get event attendances" time="0.009">
+    </testcase>
+    <testcase classname="Event Service Helper Functions formatEventDate should format date correctly" name="Event Service Helper Functions formatEventDate should format date correctly" time="0.054">
+    </testcase>
+    <testcase classname="Event Service Helper Functions formatEventTime should format time correctly" name="Event Service Helper Functions formatEventTime should format time correctly" time="0.001">
+    </testcase>
+    <testcase classname="Event Service Helper Functions isEventPast should return true for past dates" name="Event Service Helper Functions isEventPast should return true for past dates" time="0.001">
+    </testcase>
+    <testcase classname="Event Service Helper Functions isEventPast should return false for future dates" name="Event Service Helper Functions isEventPast should return false for future dates" time="0.001">
+    </testcase>
+    <testcase classname="Event Service Helper Functions isEventUpcoming should return true for dates within next week" name="Event Service Helper Functions isEventUpcoming should return true for dates within next week" time="0.001">
+    </testcase>
+    <testcase classname="Event Service Helper Functions isEventUpcoming should return false for dates further than a week" name="Event Service Helper Functions isEventUpcoming should return false for dates further than a week" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Forum service helpers" errors="0" failures="0" skipped="0" timestamp="2025-12-20T19:31:53" time="5.489" tests="21">
+    <testcase classname="Forum service helpers validateForumPostInput returns valid when both title and content are provided" name="Forum service helpers validateForumPostInput returns valid when both title and content are provided" time="0.018">
+    </testcase>
+    <testcase classname="Forum service helpers validateForumPostInput rejects empty title" name="Forum service helpers validateForumPostInput rejects empty title" time="0">
+    </testcase>
+    <testcase classname="Forum service helpers validateForumPostInput rejects overly long title" name="Forum service helpers validateForumPostInput rejects overly long title" time="0.001">
+    </testcase>
+    <testcase classname="Forum service helpers validateForumPostInput rejects empty content" name="Forum service helpers validateForumPostInput rejects empty content" time="0.001">
+    </testcase>
+    <testcase classname="Forum service helpers validateForumPostInput rejects overly long content" name="Forum service helpers validateForumPostInput rejects overly long content" time="0.001">
+    </testcase>
+    <testcase classname="Forum service helpers isNonEmptyText detects non-empty input" name="Forum service helpers isNonEmptyText detects non-empty input" time="0.001">
+    </testcase>
+    <testcase classname="Forum service helpers isNonEmptyText rejects empty or whitespace input" name="Forum service helpers isNonEmptyText rejects empty or whitespace input" time="0">
+    </testcase>
+    <testcase classname="Forum service helpers payload creators createForumPostPayload trims inputs" name="Forum service helpers payload creators createForumPostPayload trims inputs" time="0.001">
+    </testcase>
+    <testcase classname="Forum service helpers payload creators createForumCommentPayload trims content and keeps post id" name="Forum service helpers payload creators createForumCommentPayload trims content and keeps post id" time="0.001">
+    </testcase>
+    <testcase classname="Forum service helpers filterForumPosts returns all posts when search term is empty" name="Forum service helpers filterForumPosts returns all posts when search term is empty" time="0.001">
+    </testcase>
+    <testcase classname="Forum service helpers filterForumPosts filters posts by title, content, and author" name="Forum service helpers filterForumPosts filters posts by title, content, and author" time="0.002">
+    </testcase>
+    <testcase classname="Forum service helpers filterForumPosts returns empty array when no matches" name="Forum service helpers filterForumPosts returns empty array when no matches" time="0">
+    </testcase>
+    <testcase classname="Forum service helpers filterForumPosts returns empty array when posts list is invalid" name="Forum service helpers filterForumPosts returns empty array when posts list is invalid" time="0.001">
+    </testcase>
+    <testcase classname="Forum service helpers formatForumDate formats valid dates" name="Forum service helpers formatForumDate formats valid dates" time="0.055">
+    </testcase>
+    <testcase classname="Forum service helpers formatForumDate returns empty string for invalid date" name="Forum service helpers formatForumDate returns empty string for invalid date" time="0.001">
+    </testcase>
+    <testcase classname="Forum service API calls fetchForumPosts fetches all posts" name="Forum service API calls fetchForumPosts fetches all posts" time="0.002">
+    </testcase>
+    <testcase classname="Forum service API calls fetchForumPosts fetches following-only posts when specified" name="Forum service API calls fetchForumPosts fetches following-only posts when specified" time="0">
+    </testcase>
+    <testcase classname="Forum service API calls fetchForumPostById fetches a post by id" name="Forum service API calls fetchForumPostById fetches a post by id" time="0.001">
+    </testcase>
+    <testcase classname="Forum service API calls createForumPost creates a new post" name="Forum service API calls createForumPost creates a new post" time="0.001">
+    </testcase>
+    <testcase classname="Forum service API calls fetchForumComments fetches comments for a post" name="Forum service API calls fetchForumComments fetches comments for a post" time="0.001">
+    </testcase>
+    <testcase classname="Forum service API calls createForumComment creates a new comment" name="Forum service API calls createForumComment creates a new comment" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="Task Utility Functions" errors="0" failures="0" skipped="0" timestamp="2025-12-20T19:31:53" time="5.516" tests="32">
+    <testcase classname="Task Utility Functions validateTaskData should return valid for correct task data" name="Task Utility Functions validateTaskData should return valid for correct task data" time="0.016">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should return invalid when title is empty" name="Task Utility Functions validateTaskData should return invalid when title is empty" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should return invalid when title is only whitespace" name="Task Utility Functions validateTaskData should return invalid when title is only whitespace" time="0.002">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should return invalid when title exceeds 200 characters" name="Task Utility Functions validateTaskData should return invalid when title exceeds 200 characters" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should return invalid when description is empty" name="Task Utility Functions validateTaskData should return invalid when description is empty" time="0.002">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should return invalid when description is only whitespace" name="Task Utility Functions validateTaskData should return invalid when description is only whitespace" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should return invalid when description exceeds 1000 characters" name="Task Utility Functions validateTaskData should return invalid when description exceeds 1000 characters" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should return invalid when due date is null" name="Task Utility Functions validateTaskData should return invalid when due date is null" time="0">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should return invalid when due date is invalid" name="Task Utility Functions validateTaskData should return invalid when due date is invalid" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should return invalid when due date is in the past" name="Task Utility Functions validateTaskData should return invalid when due date is in the past" time="0">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should return valid when due date is today" name="Task Utility Functions validateTaskData should return valid when due date is today" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should accept title with exactly 200 characters" name="Task Utility Functions validateTaskData should accept title with exactly 200 characters" time="0">
+    </testcase>
+    <testcase classname="Task Utility Functions validateTaskData should accept description with exactly 1000 characters" name="Task Utility Functions validateTaskData should accept description with exactly 1000 characters" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions formatDateForAPI should format date to ISO string" name="Task Utility Functions formatDateForAPI should format date to ISO string" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions formatDateForAPI should handle current date" name="Task Utility Functions formatDateForAPI should handle current date" time="0">
+    </testcase>
+    <testcase classname="Task Utility Functions createTaskPayload should create a valid task payload with number garden ID" name="Task Utility Functions createTaskPayload should create a valid task payload with number garden ID" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions createTaskPayload should create a valid task payload with string garden ID" name="Task Utility Functions createTaskPayload should create a valid task payload with string garden ID" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions createTaskPayload should trim whitespace from title and description" name="Task Utility Functions createTaskPayload should trim whitespace from title and description" time="0">
+    </testcase>
+    <testcase classname="Task Utility Functions createTask should create a task successfully" name="Task Utility Functions createTask should create a task successfully" time="0.003">
+    </testcase>
+    <testcase classname="Task Utility Functions createTask should throw error when API request fails" name="Task Utility Functions createTask should throw error when API request fails" time="0.043">
+    </testcase>
+    <testcase classname="Task Utility Functions createTask should include authorization token in headers" name="Task Utility Functions createTask should include authorization token in headers" time="0.002">
+    </testcase>
+    <testcase classname="Task Utility Functions fetchTasksForGarden should fetch tasks for a garden successfully" name="Task Utility Functions fetchTasksForGarden should fetch tasks for a garden successfully" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions fetchTasksForGarden should handle empty task list" name="Task Utility Functions fetchTasksForGarden should handle empty task list" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions fetchTaskById should fetch a single task successfully" name="Task Utility Functions fetchTaskById should fetch a single task successfully" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions fetchTaskById should throw error when task not found" name="Task Utility Functions fetchTaskById should throw error when task not found" time="0.002">
+    </testcase>
+    <testcase classname="Task Utility Functions updateTask should update a task successfully" name="Task Utility Functions updateTask should update a task successfully" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions updateTask should update only specific fields" name="Task Utility Functions updateTask should update only specific fields" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions deleteTask should delete a task successfully" name="Task Utility Functions deleteTask should delete a task successfully" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions deleteTask should throw error when delete fails" name="Task Utility Functions deleteTask should throw error when delete fails" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions markTaskAsCompleted should mark task as completed" name="Task Utility Functions markTaskAsCompleted should mark task as completed" time="0.001">
+    </testcase>
+    <testcase classname="Task Utility Functions Integration scenarios should handle complete task creation workflow" name="Task Utility Functions Integration scenarios should handle complete task creation workflow" time="0.002">
+    </testcase>
+    <testcase classname="Task Utility Functions Integration scenarios should prevent invalid task creation" name="Task Utility Functions Integration scenarios should prevent invalid task creation" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Garden Utility Functions" errors="0" failures="0" skipped="0" timestamp="2025-12-20T19:31:53" time="5.614" tests="48">
+    <testcase classname="Garden Utility Functions validateGardenData should return valid for correct garden data" name="Garden Utility Functions validateGardenData should return valid for correct garden data" time="0.015">
+    </testcase>
+    <testcase classname="Garden Utility Functions validateGardenData should return valid when description is optional" name="Garden Utility Functions validateGardenData should return valid when description is optional" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions validateGardenData should return invalid when name is empty" name="Garden Utility Functions validateGardenData should return invalid when name is empty" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions validateGardenData should return invalid when name is only whitespace" name="Garden Utility Functions validateGardenData should return invalid when name is only whitespace" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions validateGardenData should return invalid when name exceeds 200 characters" name="Garden Utility Functions validateGardenData should return invalid when name exceeds 200 characters" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions validateGardenData should return invalid when description exceeds 1000 characters" name="Garden Utility Functions validateGardenData should return invalid when description exceeds 1000 characters" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions validateGardenData should accept name with exactly 200 characters" name="Garden Utility Functions validateGardenData should accept name with exactly 200 characters" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions validateGardenData should accept description with exactly 1000 characters" name="Garden Utility Functions validateGardenData should accept description with exactly 1000 characters" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions createGardenPayload should create a valid garden payload with required fields" name="Garden Utility Functions createGardenPayload should create a valid garden payload with required fields" time="0.002">
+    </testcase>
+    <testcase classname="Garden Utility Functions createGardenPayload should trim whitespace from name and description" name="Garden Utility Functions createGardenPayload should trim whitespace from name and description" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions createGardenPayload should include optional location" name="Garden Utility Functions createGardenPayload should include optional location" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions createGardenPayload should include cover image base64" name="Garden Utility Functions createGardenPayload should include cover image base64" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions createGardenPayload should include gallery images base64" name="Garden Utility Functions createGardenPayload should include gallery images base64" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions createGardenPayload should create complete payload with all optional fields" name="Garden Utility Functions createGardenPayload should create complete payload with all optional fields" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchMyGardens should fetch gardens successfully without token" name="Garden Utility Functions fetchMyGardens should fetch gardens successfully without token" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchMyGardens should fetch gardens successfully with token" name="Garden Utility Functions fetchMyGardens should fetch gardens successfully with token" time="0.002">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchMyGardens should handle empty garden list" name="Garden Utility Functions fetchMyGardens should handle empty garden list" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions createGarden should create a garden successfully without token" name="Garden Utility Functions createGarden should create a garden successfully without token" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions createGarden should create a garden successfully with token" name="Garden Utility Functions createGarden should create a garden successfully with token" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions createGarden should create garden with cover image and gallery" name="Garden Utility Functions createGarden should create garden with cover image and gallery" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions createGarden should throw error when API request fails" name="Garden Utility Functions createGarden should throw error when API request fails" time="0.031">
+    </testcase>
+    <testcase classname="Garden Utility Functions updateGarden should update a garden successfully" name="Garden Utility Functions updateGarden should update a garden successfully" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions updateGarden should update only specific fields" name="Garden Utility Functions updateGarden should update only specific fields" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions deleteGarden should delete a garden successfully" name="Garden Utility Functions deleteGarden should delete a garden successfully" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions deleteGarden should delete without token" name="Garden Utility Functions deleteGarden should delete without token" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions deleteGarden should throw error when delete fails" name="Garden Utility Functions deleteGarden should throw error when delete fails" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions listPublicGardens should filter and return only public gardens" name="Garden Utility Functions listPublicGardens should filter and return only public gardens" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions listPublicGardens should return empty array when no public gardens exist" name="Garden Utility Functions listPublicGardens should return empty array when no public gardens exist" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchGardenById should fetch a single garden successfully without token" name="Garden Utility Functions fetchGardenById should fetch a single garden successfully without token" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchGardenById should fetch a single garden successfully with token" name="Garden Utility Functions fetchGardenById should fetch a single garden successfully with token" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchGardenById should handle string garden ID" name="Garden Utility Functions fetchGardenById should handle string garden ID" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions joinGarden should create a membership request successfully with default WORKER role" name="Garden Utility Functions joinGarden should create a membership request successfully with default WORKER role" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions joinGarden should create a membership request with MANAGER role" name="Garden Utility Functions joinGarden should create a membership request with MANAGER role" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions joinGarden should handle string garden ID" name="Garden Utility Functions joinGarden should handle string garden ID" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions joinGarden should throw error when join request fails" name="Garden Utility Functions joinGarden should throw error when join request fails" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions acceptMembership should accept a membership request successfully" name="Garden Utility Functions acceptMembership should accept a membership request successfully" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions acceptMembership should throw error when accept fails" name="Garden Utility Functions acceptMembership should throw error when accept fails" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions acceptMembership should throw error when membership not found" name="Garden Utility Functions acceptMembership should throw error when membership not found" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchGardenMembers should fetch garden members successfully" name="Garden Utility Functions fetchGardenMembers should fetch garden members successfully" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchGardenMembers should handle empty member list" name="Garden Utility Functions fetchGardenMembers should handle empty member list" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchGardenMembers should handle string garden ID" name="Garden Utility Functions fetchGardenMembers should handle string garden ID" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchMembershipStatus should fetch membership status when user has membership" name="Garden Utility Functions fetchMembershipStatus should fetch membership status when user has membership" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchMembershipStatus should return null when user has no membership" name="Garden Utility Functions fetchMembershipStatus should return null when user has no membership" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchMembershipStatus should return null when API request fails" name="Garden Utility Functions fetchMembershipStatus should return null when API request fails" time="0">
+    </testcase>
+    <testcase classname="Garden Utility Functions fetchMembershipStatus should handle string garden ID" name="Garden Utility Functions fetchMembershipStatus should handle string garden ID" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions Integration scenarios should handle complete garden creation workflow" name="Garden Utility Functions Integration scenarios should handle complete garden creation workflow" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions Integration scenarios should handle complete membership workflow" name="Garden Utility Functions Integration scenarios should handle complete membership workflow" time="0.001">
+    </testcase>
+    <testcase classname="Garden Utility Functions Integration scenarios should prevent invalid garden creation" name="Garden Utility Functions Integration scenarios should prevent invalid garden creation" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2025-12-20T19:31:53" time="6.48" tests="1">
+    <testcase classname=" renders correctly" name=" renders correctly" time="0.022">
+    </testcase>
+  </testsuite>
+  <testsuite name="Location Utils" errors="0" failures="0" skipped="0" timestamp="2025-12-20T19:31:53" time="9.978" tests="16">
+    <testcase classname="Location Utils translateCountryName should translate Turkey to Türkiye in Turkish" name="Location Utils translateCountryName should translate Turkey to Türkiye in Turkish" time="0.011">
+    </testcase>
+    <testcase classname="Location Utils translateCountryName should keep Turkey as Turkey in English" name="Location Utils translateCountryName should keep Turkey as Turkey in English" time="0">
+    </testcase>
+    <testcase classname="Location Utils translateCountryName should return original name if no translation found" name="Location Utils translateCountryName should return original name if no translation found" time="0.001">
+    </testcase>
+    <testcase classname="Location Utils translateLocationString should translate country names in location string" name="Location Utils translateLocationString should translate country names in location string" time="0.002">
+    </testcase>
+    <testcase classname="Location Utils geocodeAddress should return coordinates for valid address" name="Location Utils geocodeAddress should return coordinates for valid address" time="0.002">
+    </testcase>
+    <testcase classname="Location Utils geocodeAddress should return null for invalid address" name="Location Utils geocodeAddress should return null for invalid address" time="0.001">
+    </testcase>
+    <testcase classname="Location Utils geocodeAddress should return null on fetch error" name="Location Utils geocodeAddress should return null on fetch error" time="0.005">
+    </testcase>
+    <testcase classname="Location Utils reverseGeocode should return address for valid coordinates" name="Location Utils reverseGeocode should return address for valid coordinates" time="0.001">
+    </testcase>
+    <testcase classname="Location Utils reverseGeocode should translate country in address if needed" name="Location Utils reverseGeocode should translate country in address if needed" time="0.001">
+    </testcase>
+    <testcase classname="Location Utils reverseGeocode should return null on fetch error" name="Location Utils reverseGeocode should return null on fetch error" time="0.001">
+    </testcase>
+    <testcase classname="Location Utils calculateDistance should calculate distance between two points" name="Location Utils calculateDistance should calculate distance between two points" time="0.001">
+    </testcase>
+    <testcase classname="Location Utils calculateDistance should return 0 for same points" name="Location Utils calculateDistance should return 0 for same points" time="0">
+    </testcase>
+    <testcase classname="Location Utils getUserCurrentLocation should return location when permission granted" name="Location Utils getUserCurrentLocation should return location when permission granted" time="0.001">
+    </testcase>
+    <testcase classname="Location Utils getUserCurrentLocation should return null when permission denied" name="Location Utils getUserCurrentLocation should return null when permission denied" time="0.001">
+    </testcase>
+    <testcase classname="Location Utils checkLocationPermission should return true when permission granted" name="Location Utils checkLocationPermission should return true when permission granted" time="0">
+    </testcase>
+    <testcase classname="Location Utils checkLocationPermission should return false when permission denied" name="Location Utils checkLocationPermission should return false when permission denied" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Push Notifications Utils" errors="0" failures="0" skipped="0" timestamp="2025-12-20T19:31:53" time="11.015" tests="9">
+    <testcase classname="Push Notifications Utils registerForPushNotificationsAsync should return null if not a physical device" name="Push Notifications Utils registerForPushNotificationsAsync should return null if not a physical device" time="0.01">
+    </testcase>
+    <testcase classname="Push Notifications Utils registerForPushNotificationsAsync should return token if permission granted" name="Push Notifications Utils registerForPushNotificationsAsync should return token if permission granted" time="0.001">
+    </testcase>
+    <testcase classname="Push Notifications Utils registerForPushNotificationsAsync should request permission if not determined" name="Push Notifications Utils registerForPushNotificationsAsync should request permission if not determined" time="0.001">
+    </testcase>
+    <testcase classname="Push Notifications Utils registerForPushNotificationsAsync should return null if permission denied" name="Push Notifications Utils registerForPushNotificationsAsync should return null if permission denied" time="0.001">
+    </testcase>
+    <testcase classname="Push Notifications Utils registerForPushNotificationsAsync should set notification channel on Android" name="Push Notifications Utils registerForPushNotificationsAsync should set notification channel on Android" time="0.001">
+    </testcase>
+    <testcase classname="Push Notifications Utils registerDeviceForPushNotifications should register device if token available" name="Push Notifications Utils registerDeviceForPushNotifications should register device if token available" time="0.001">
+    </testcase>
+    <testcase classname="Push Notifications Utils registerDeviceForPushNotifications should return false if no token" name="Push Notifications Utils registerDeviceForPushNotifications should return false if no token" time="0.001">
+    </testcase>
+    <testcase classname="Push Notifications Utils Badge Count should get badge count" name="Push Notifications Utils Badge Count should get badge count" time="0.001">
+    </testcase>
+    <testcase classname="Push Notifications Utils Badge Count should set badge count" name="Push Notifications Utils Badge Count should set badge count" time="0">
+    </testcase>
+  </testsuite>
+</testsuites>

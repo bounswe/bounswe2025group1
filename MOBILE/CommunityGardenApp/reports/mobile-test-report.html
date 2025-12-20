@@ -1,0 +1,473 @@
+<html><head><meta charset="utf-8"/><title>Mobile Test Report</title><style type="text/css">:root {
+  --text-primary: #111;
+  --text-secondary: #4f4f4f;
+  --success: #006633;
+  --success-bright: #80ffbf;
+  --danger: #cc071e;
+  --danger-bright: #fbdfe0;
+  --warning: #995c00;
+  --warning-bright: #ffeea8;
+  --panel: #eee;
+  --border: #949494;
+  --disabled: #6b6b6b;
+}
+
+html,
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+}
+body {
+  padding: 2rem 1rem;
+}
+.jesthtml-content {
+  margin: 0 auto;
+  max-width: 70rem;
+}
+header {
+  display: flex;
+  align-items: center;
+}
+#title {
+  margin: 0;
+  flex-grow: 1;
+}
+#logo {
+  height: 4rem;
+}
+#timestamp {
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+#metadata-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.additional-information-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/** SUMMARY */
+#summary {
+  color: var(--text-primary);
+  display: flex;
+  font-family: monospace;
+  font-size: 1rem;
+}
+#summary > div {
+  margin-right: 0.5rem;
+  background: var(--panel);
+  padding: 1rem;
+  min-width: 15rem;
+}
+#summary > div:last-child {
+  margin-right: 0;
+}
+@media only screen and (max-width: 720px) {
+  #summary {
+    flex-direction: column;
+  }
+  #summary > div {
+    margin-right: 0;
+    margin-top: 1rem;
+  }
+  #summary > div:first-child {
+    margin-top: 0;
+  }
+}
+
+.summary-total {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+.summary-passed {
+  color: var(--success);
+  border-left: 0.4rem solid var(--success);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-failed,
+.summary-obsolete-snapshots {
+  color: var(--danger);
+  border-left: 0.4rem solid var(--danger);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-pending {
+  color: var(--warning);
+  border-left: 0.4rem solid var(--warning);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-empty {
+  color: var(--disabled);
+  border-left: 0.4rem solid var(--disabled);
+  margin-bottom: 0.15rem;
+}
+
+.test-result {
+  padding: 1rem;
+  margin-bottom: 0.25rem;
+}
+.test-result:last-child {
+  border: 0;
+}
+.test-result.passed {
+  background-color: var(--success-bright);
+  color: var(--success);
+}
+.test-result.failed {
+  background-color: var(--danger-bright);
+  color: var(--danger);
+}
+.test-result.pending {
+  background-color: var(--warning-bright);
+  color: var(--warning);
+}
+
+.test-info {
+  display: flex;
+  justify-content: space-between;
+}
+.test-suitename {
+  width: 20%;
+  text-align: left;
+  font-weight: bold;
+  word-break: break-word;
+}
+.test-title {
+  width: 40%;
+  text-align: left;
+  font-style: italic;
+}
+.test-status {
+  width: 20%;
+  text-align: right;
+}
+.test-duration {
+  width: 10%;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.failureMessages {
+  padding: 0 1rem;
+  margin-top: 1rem;
+  border-top: 1px dashed var(--danger);
+}
+.failureMessages.suiteFailure {
+  border-top: none;
+}
+.failureMsg {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+
+.suite-container {
+  margin-bottom: 1rem;
+}
+.suite-info {
+  padding: 1rem;
+  background-color: var(--panel);
+  color: var(--text-secondary);
+  border: 0.15rem solid;
+  border-color: var(--panel);
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+.suite-info:hover {
+  border-color: var(--border);
+  cursor: pointer;
+}
+.suite-info .suite-path {
+  word-break: break-all;
+  flex-grow: 1;
+  font-family: monospace;
+  font-size: 1rem;
+}
+.suite-info .suite-time {
+  margin-left: 1rem;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.85rem;
+}
+.suite-info .suite-time.warn {
+  background-color: var(--danger);
+  color: #fff;
+}
+.suite-info:before {
+  content: "\2303";
+  display: inline-block;
+  margin-right: 1rem;
+  transform: rotate(180deg) translateY(0.15rem);
+}
+.suite-container[open] .suite-info:before {
+  transform: rotate(0deg) translateY(0.15rem);
+}
+
+/* CONSOLE LOGS */
+.suite-consolelog {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: var(--panel);
+}
+.suite-consolelog-header {
+  font-weight: bold;
+}
+.suite-consolelog-item {
+  padding: 0.5rem;
+}
+.suite-consolelog-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-consolelog-item-origin {
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+.suite-consolelog-item-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+
+/* OBSOLETE SNAPSHOTS */
+.suite-obsolete-snapshots {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: var(--danger-bright);
+  color: var(--danger);
+}
+.suite-obsolete-snapshots-header {
+  font-weight: bold;
+}
+.suite-obsolete-snapshots-item {
+  padding: 0.5rem;
+}
+.suite-obsolete-snapshots-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-obsolete-snapshots-item-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+</style></head><body><main class="jesthtml-content"><header><h1 id="title">Mobile Test Report</h1></header><section id="metadata-container"><div id="timestamp">Started: 2025-12-20 22:31:50</div><div id="summary"><div id="suite-summary"><div class="summary-total">Suites (9)</div><div class="summary-passed ">9 passed</div><div class="summary-failed  summary-empty">0 failed</div><div class="summary-pending  summary-empty">0 pending</div></div><div id="test-summary"><div class="summary-total">Tests (149)</div><div class="summary-passed ">149 passed</div><div class="summary-failed  summary-empty">0 failed</div><div class="summary-pending  summary-empty">0 pending</div></div></div></section><details id="suite-1" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\__tests__\chatUtils.test.ts</div><div class="suite-time warn">5.011s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">Chat Utils &gt; createDirectMessage</div><div class="test-title">should return existing chat ID if chat exists</div><div class="test-status">passed</div><div class="test-duration">0.03s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Chat Utils &gt; createDirectMessage</div><div class="test-title">should create new chat if it does not exist</div><div class="test-status">passed</div><div class="test-duration">0.005s</div></div></div></div></details><details id="suite-2" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\services\__tests__\notification.test.ts</div><div class="suite-time warn">5.316s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">Notification Service &gt; fetchNotifications</div><div class="test-title">should fetch notifications</div><div class="test-status">passed</div><div class="test-duration">0.022s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Notification Service &gt; fetchUnreadCount</div><div class="test-title">should fetch unread count</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Notification Service &gt; markAsRead</div><div class="test-title">should mark notification as read</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Notification Service &gt; markAllAsRead</div><div class="test-title">should mark all notifications as read</div><div class="test-status">passed</div><div class="test-duration">0.004s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Notification Service &gt; registerDevice</div><div class="test-title">should register device for push notifications</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Notification Service &gt; unregisterDevice</div><div class="test-title">should unregister device</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-3" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\services\__tests__\event.test.ts</div><div class="suite-time warn">5.406s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; fetchEvents</div><div class="test-title">should fetch all events when no gardenId provided</div><div class="test-status">passed</div><div class="test-duration">0.028s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; fetchEvents</div><div class="test-title">should fetch events for specific garden</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; fetchEventById</div><div class="test-title">should fetch a single event</div><div class="test-status">passed</div><div class="test-duration">0.004s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; createEvent</div><div class="test-title">should create an event</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; updateEvent</div><div class="test-title">should update an event</div><div class="test-status">passed</div><div class="test-duration">0.004s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; deleteEvent</div><div class="test-title">should delete an event</div><div class="test-status">passed</div><div class="test-duration">0.004s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; voteAttendance</div><div class="test-title">should vote attendance</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; getEventAttendances</div><div class="test-title">should get event attendances</div><div class="test-status">passed</div><div class="test-duration">0.009s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; Helper Functions</div><div class="test-title">formatEventDate should format date correctly</div><div class="test-status">passed</div><div class="test-duration">0.054s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; Helper Functions</div><div class="test-title">formatEventTime should format time correctly</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; Helper Functions</div><div class="test-title">isEventPast should return true for past dates</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; Helper Functions</div><div class="test-title">isEventPast should return false for future dates</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; Helper Functions</div><div class="test-title">isEventUpcoming should return true for dates within next week</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Event Service &gt; Helper Functions</div><div class="test-title">isEventUpcoming should return false for dates further than a week</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-4" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\services\__tests__\forum.test.ts</div><div class="suite-time warn">5.489s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; validateForumPostInput</div><div class="test-title">returns valid when both title and content are provided</div><div class="test-status">passed</div><div class="test-duration">0.018s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; validateForumPostInput</div><div class="test-title">rejects empty title</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; validateForumPostInput</div><div class="test-title">rejects overly long title</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; validateForumPostInput</div><div class="test-title">rejects empty content</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; validateForumPostInput</div><div class="test-title">rejects overly long content</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; isNonEmptyText</div><div class="test-title">detects non-empty input</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; isNonEmptyText</div><div class="test-title">rejects empty or whitespace input</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; payload creators</div><div class="test-title">createForumPostPayload trims inputs</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; payload creators</div><div class="test-title">createForumCommentPayload trims content and keeps post id</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; filterForumPosts</div><div class="test-title">returns all posts when search term is empty</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; filterForumPosts</div><div class="test-title">filters posts by title, content, and author</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; filterForumPosts</div><div class="test-title">returns empty array when no matches</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; filterForumPosts</div><div class="test-title">returns empty array when posts list is invalid</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; formatForumDate</div><div class="test-title">formats valid dates</div><div class="test-status">passed</div><div class="test-duration">0.055s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service helpers &gt; formatForumDate</div><div class="test-title">returns empty string for invalid date</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service API calls &gt; fetchForumPosts</div><div class="test-title">fetches all posts</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service API calls &gt; fetchForumPosts</div><div class="test-title">fetches following-only posts when specified</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service API calls &gt; fetchForumPostById</div><div class="test-title">fetches a post by id</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service API calls &gt; createForumPost</div><div class="test-title">creates a new post</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service API calls &gt; fetchForumComments</div><div class="test-title">fetches comments for a post</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Forum service API calls &gt; createForumComment</div><div class="test-title">creates a new comment</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div></div></details><details id="suite-5" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\services\__tests__\task.test.ts</div><div class="suite-time warn">5.516s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should return valid for correct task data</div><div class="test-status">passed</div><div class="test-duration">0.016s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should return invalid when title is empty</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should return invalid when title is only whitespace</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should return invalid when title exceeds 200 characters</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should return invalid when description is empty</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should return invalid when description is only whitespace</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should return invalid when description exceeds 1000 characters</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should return invalid when due date is null</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should return invalid when due date is invalid</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should return invalid when due date is in the past</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should return valid when due date is today</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should accept title with exactly 200 characters</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; validateTaskData</div><div class="test-title">should accept description with exactly 1000 characters</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; formatDateForAPI</div><div class="test-title">should format date to ISO string</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; formatDateForAPI</div><div class="test-title">should handle current date</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; createTaskPayload</div><div class="test-title">should create a valid task payload with number garden ID</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; createTaskPayload</div><div class="test-title">should create a valid task payload with string garden ID</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; createTaskPayload</div><div class="test-title">should trim whitespace from title and description</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; createTask</div><div class="test-title">should create a task successfully</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; createTask</div><div class="test-title">should throw error when API request fails</div><div class="test-status">passed</div><div class="test-duration">0.043s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; createTask</div><div class="test-title">should include authorization token in headers</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; fetchTasksForGarden</div><div class="test-title">should fetch tasks for a garden successfully</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; fetchTasksForGarden</div><div class="test-title">should handle empty task list</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; fetchTaskById</div><div class="test-title">should fetch a single task successfully</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; fetchTaskById</div><div class="test-title">should throw error when task not found</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; updateTask</div><div class="test-title">should update a task successfully</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; updateTask</div><div class="test-title">should update only specific fields</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; deleteTask</div><div class="test-title">should delete a task successfully</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; deleteTask</div><div class="test-title">should throw error when delete fails</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; markTaskAsCompleted</div><div class="test-title">should mark task as completed</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; Integration scenarios</div><div class="test-title">should handle complete task creation workflow</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Task Utility Functions &gt; Integration scenarios</div><div class="test-title">should prevent invalid task creation</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-6" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\services\__tests__\garden.test.ts</div><div class="suite-time warn">5.614s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; validateGardenData</div><div class="test-title">should return valid for correct garden data</div><div class="test-status">passed</div><div class="test-duration">0.015s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; validateGardenData</div><div class="test-title">should return valid when description is optional</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; validateGardenData</div><div class="test-title">should return invalid when name is empty</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; validateGardenData</div><div class="test-title">should return invalid when name is only whitespace</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; validateGardenData</div><div class="test-title">should return invalid when name exceeds 200 characters</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; validateGardenData</div><div class="test-title">should return invalid when description exceeds 1000 characters</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; validateGardenData</div><div class="test-title">should accept name with exactly 200 characters</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; validateGardenData</div><div class="test-title">should accept description with exactly 1000 characters</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; createGardenPayload</div><div class="test-title">should create a valid garden payload with required fields</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; createGardenPayload</div><div class="test-title">should trim whitespace from name and description</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; createGardenPayload</div><div class="test-title">should include optional location</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; createGardenPayload</div><div class="test-title">should include cover image base64</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; createGardenPayload</div><div class="test-title">should include gallery images base64</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; createGardenPayload</div><div class="test-title">should create complete payload with all optional fields</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchMyGardens</div><div class="test-title">should fetch gardens successfully without token</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchMyGardens</div><div class="test-title">should fetch gardens successfully with token</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchMyGardens</div><div class="test-title">should handle empty garden list</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; createGarden</div><div class="test-title">should create a garden successfully without token</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; createGarden</div><div class="test-title">should create a garden successfully with token</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; createGarden</div><div class="test-title">should create garden with cover image and gallery</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; createGarden</div><div class="test-title">should throw error when API request fails</div><div class="test-status">passed</div><div class="test-duration">0.031s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; updateGarden</div><div class="test-title">should update a garden successfully</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; updateGarden</div><div class="test-title">should update only specific fields</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; deleteGarden</div><div class="test-title">should delete a garden successfully</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; deleteGarden</div><div class="test-title">should delete without token</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; deleteGarden</div><div class="test-title">should throw error when delete fails</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; listPublicGardens</div><div class="test-title">should filter and return only public gardens</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; listPublicGardens</div><div class="test-title">should return empty array when no public gardens exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchGardenById</div><div class="test-title">should fetch a single garden successfully without token</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchGardenById</div><div class="test-title">should fetch a single garden successfully with token</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchGardenById</div><div class="test-title">should handle string garden ID</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; joinGarden</div><div class="test-title">should create a membership request successfully with default WORKER role</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; joinGarden</div><div class="test-title">should create a membership request with MANAGER role</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; joinGarden</div><div class="test-title">should handle string garden ID</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; joinGarden</div><div class="test-title">should throw error when join request fails</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; acceptMembership</div><div class="test-title">should accept a membership request successfully</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; acceptMembership</div><div class="test-title">should throw error when accept fails</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; acceptMembership</div><div class="test-title">should throw error when membership not found</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchGardenMembers</div><div class="test-title">should fetch garden members successfully</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchGardenMembers</div><div class="test-title">should handle empty member list</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchGardenMembers</div><div class="test-title">should handle string garden ID</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchMembershipStatus</div><div class="test-title">should fetch membership status when user has membership</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchMembershipStatus</div><div class="test-title">should return null when user has no membership</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchMembershipStatus</div><div class="test-title">should return null when API request fails</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; fetchMembershipStatus</div><div class="test-title">should handle string garden ID</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; Integration scenarios</div><div class="test-title">should handle complete garden creation workflow</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; Integration scenarios</div><div class="test-title">should handle complete membership workflow</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Garden Utility Functions &gt; Integration scenarios</div><div class="test-title">should prevent invalid garden creation</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div></div></details><details id="suite-7" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\components\__tests__\ThemedText-test.tsx</div><div class="suite-time warn">6.48s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename"> </div><div class="test-title">renders correctly</div><div class="test-status">passed</div><div class="test-duration">0.022s</div></div></div></div><div class="suite-consolelog"><div class="suite-consolelog-header">Console Log</div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\react-test-renderer\cjs\react-test-renderer.development.js:11516:19
+    at runWithFiberInDEV (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\react-test-renderer\cjs\react-test-renderer.development.js:540:16)
+    at warnIfUpdatesNotWrappedWithActDEV (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\react-test-renderer\cjs\react-test-renderer.development.js:11515:9)
+    at scheduleUpdateOnFiber (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\react-test-renderer\cjs\react-test-renderer.development.js:10234:9)
+    at updateContainerImpl (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\react-test-renderer\cjs\react-test-renderer.development.js:12132:10)
+    at updateContainer (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\react-test-renderer\cjs\react-test-renderer.development.js:12076:7)
+    at Object.&lt;anonymous&gt;.process.env.NODE_ENV.exports.create (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\react-test-renderer\cjs\react-test-renderer.development.js:14414:7)
+    at Object.create (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\components\__tests__\ThemedText-test.tsx:13:25)
+    at Promise.then.completed (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:126:9)
+    at run (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:444:34)
+    at Object.worker (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\testWorker.js:106:12)</pre><pre class="suite-consolelog-item-message">An update to Root inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() =&gt; {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act</pre></div></div></details><details id="suite-8" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\__tests__\locationUtils.test.ts</div><div class="suite-time warn">9.978s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; translateCountryName</div><div class="test-title">should translate Turkey to Türkiye in Turkish</div><div class="test-status">passed</div><div class="test-duration">0.011s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; translateCountryName</div><div class="test-title">should keep Turkey as Turkey in English</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; translateCountryName</div><div class="test-title">should return original name if no translation found</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; translateLocationString</div><div class="test-title">should translate country names in location string</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; geocodeAddress</div><div class="test-title">should return coordinates for valid address</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; geocodeAddress</div><div class="test-title">should return null for invalid address</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; geocodeAddress</div><div class="test-title">should return null on fetch error</div><div class="test-status">passed</div><div class="test-duration">0.005s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; reverseGeocode</div><div class="test-title">should return address for valid coordinates</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; reverseGeocode</div><div class="test-title">should translate country in address if needed</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; reverseGeocode</div><div class="test-title">should return null on fetch error</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; calculateDistance</div><div class="test-title">should calculate distance between two points</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; calculateDistance</div><div class="test-title">should return 0 for same points</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; getUserCurrentLocation</div><div class="test-title">should return location when permission granted</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; getUserCurrentLocation</div><div class="test-title">should return null when permission denied</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; checkLocationPermission</div><div class="test-title">should return true when permission granted</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Location Utils &gt; checkLocationPermission</div><div class="test-title">should return false when permission denied</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div></div><div class="suite-consolelog"><div class="suite-consolelog-header">Console Log</div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at error (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\locationUtils.ts:128:13)
+    at Generator.throw (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _throw (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:20:9)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)</pre><pre class="suite-consolelog-item-message">Geocoding error: Error: Network error
+    at Object.&lt;anonymous&gt; (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\__tests__\locationUtils.test.ts:67:53)
+    at Generator.next (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _next (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+    at C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+    at new Promise (&lt;anonymous&gt;)
+    at Object.&lt;anonymous&gt; (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12)
+    at Promise.then.completed (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:444:34)
+    at Object.worker (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\testWorker.js:106:12)</pre></div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at error (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\locationUtils.ts:173:13)
+    at Generator.throw (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _throw (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:20:9)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)</pre><pre class="suite-consolelog-item-message">Reverse geocoding error: Error: Network error
+    at Object.&lt;anonymous&gt; (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\__tests__\locationUtils.test.ts:101:53)
+    at Generator.next (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _next (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+    at C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+    at new Promise (&lt;anonymous&gt;)
+    at Object.&lt;anonymous&gt; (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12)
+    at Promise.then.completed (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:444:34)
+    at Object.worker (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\testWorker.js:106:12)</pre></div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at error (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\locationUtils.ts:214:15)
+    at Generator.next (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _next (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)</pre><pre class="suite-consolelog-item-message">Location permission denied</pre></div></div></details><details id="suite-9" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\__tests__\pushNotifications.test.ts</div><div class="suite-time warn">11.015s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">Push Notifications Utils &gt; registerForPushNotificationsAsync</div><div class="test-title">should return null if not a physical device</div><div class="test-status">passed</div><div class="test-duration">0.01s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Push Notifications Utils &gt; registerForPushNotificationsAsync</div><div class="test-title">should return token if permission granted</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Push Notifications Utils &gt; registerForPushNotificationsAsync</div><div class="test-title">should request permission if not determined</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Push Notifications Utils &gt; registerForPushNotificationsAsync</div><div class="test-title">should return null if permission denied</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Push Notifications Utils &gt; registerForPushNotificationsAsync</div><div class="test-title">should set notification channel on Android</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Push Notifications Utils &gt; registerDeviceForPushNotifications</div><div class="test-title">should register device if token available</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Push Notifications Utils &gt; registerDeviceForPushNotifications</div><div class="test-title">should return false if no token</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Push Notifications Utils &gt; Badge Count</div><div class="test-title">should get badge count</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">Push Notifications Utils &gt; Badge Count</div><div class="test-title">should set badge count</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div></div><div class="suite-consolelog"><div class="suite-consolelog-header">Console Log</div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at warn (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\expo-notifications\src\warnOfExpoGoPushUsage.ts:14:15)
+    at addPushTokenListener (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\expo-notifications\src\TokenEmitter.ts:44:24)
+    at Object.&lt;anonymous&gt; (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\expo-notifications\src\DevicePushTokenAutoRegistration.fx.ts:86:23)
+    at Runtime._execModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1439:24)
+    at Runtime._loadModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1022:12)
+    at Runtime.requireModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:882:12)
+    at Runtime.requireModuleOrMock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1048:21)
+    at Object.require (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\expo-notifications\src\getExpoPushTokenAsync.ts:5:1)
+    at Runtime._execModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1439:24)
+    at Runtime._loadModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1022:12)
+    at Runtime.requireModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:882:12)
+    at Runtime.requireModuleOrMock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1048:21)
+    at Object.require (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\expo-notifications\src\index.ts:16:1)
+    at Runtime._execModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1439:24)
+    at Runtime._loadModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1022:12)
+    at Runtime.requireModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:882:12)
+    at Runtime._generateMock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1690:34)
+    at Runtime.requireMock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:996:39)
+    at Runtime.requireModuleOrMock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1046:21)
+    at Object.require (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\pushNotifications.ts:1:1)
+    at Runtime._execModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1439:24)
+    at Runtime._loadModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1022:12)
+    at Runtime.requireModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:882:12)
+    at Runtime.requireModuleOrMock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1048:21)
+    at Object.require (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\__tests__\pushNotifications.test.ts:1:1)
+    at Runtime._execModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1439:24)
+    at Runtime._loadModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:1022:12)
+    at Runtime.requireModule (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runtime\build\index.js:882:12)
+    at jestAdapter (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:77:13)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runTestInternal (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:444:34)
+    at Object.worker (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\testWorker.js:106:12)</pre><pre class="suite-consolelog-item-message">expo-notifications: Android Push notifications (remote notifications) functionality provided by expo-notifications was removed from Expo Go with the release of SDK 53. Use a development build instead of Expo Go. Read more at https://docs.expo.dev/develop/development-builds/introduction/.</pre></div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at log (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\pushNotifications.ts:24:13)
+    at Generator.next (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _next (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+    at C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+    at new Promise (&lt;anonymous&gt;)
+    at C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12
+    at apply (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\pushNotifications.ts:66:2)
+    at apply (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\pushNotifications.ts:19:56)
+    at Object.&lt;anonymous&gt; (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\__tests__\pushNotifications.test.ts:37:60)
+    at Generator.next (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _next (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+    at C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+    at new Promise (&lt;anonymous&gt;)
+    at Object.&lt;anonymous&gt; (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12)
+    at Promise.then.completed (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:444:34)
+    at Object.worker (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\testWorker.js:106:12)</pre><pre class="suite-consolelog-item-message">Push notifications require a physical device</pre></div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at log (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\pushNotifications.ts:39:13)
+    at Generator.next (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _next (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)</pre><pre class="suite-consolelog-item-message">Failed to get push notification permissions</pre></div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at log (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\pushNotifications.ts:81:13)
+    at Generator.next (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _next (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)</pre><pre class="suite-consolelog-item-message">Device registered for push notifications</pre></div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at log (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\pushNotifications.ts:24:13)
+    at Generator.next (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _next (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+    at C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+    at new Promise (&lt;anonymous&gt;)
+    at C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12
+    at apply (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\pushNotifications.ts:19:56)
+    at registerForPushNotificationsAsync (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\pushNotifications.ts:73:29)
+    at Generator.next (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _next (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+    at C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+    at new Promise (&lt;anonymous&gt;)
+    at C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12
+    at apply (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\pushNotifications.ts:71:57)
+    at Object.&lt;anonymous&gt; (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\__tests__\pushNotifications.test.ts:137:62)
+    at Generator.next (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _next (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+    at C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+    at new Promise (&lt;anonymous&gt;)
+    at Object.&lt;anonymous&gt; (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12)
+    at Promise.then.completed (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\runTest.js:444:34)
+    at Object.worker (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\jest-runner\build\testWorker.js:106:12)</pre><pre class="suite-consolelog-item-message">Push notifications require a physical device</pre></div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at log (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\utils\pushNotifications.ts:76:15)
+    at Generator.next (&lt;anonymous&gt;)
+    at asyncGeneratorStep (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+    at _next (C:\Projeler\CMPE 352\bounswe2025group1\MOBILE\CommunityGardenApp\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)</pre><pre class="suite-consolelog-item-message">No push token available</pre></div></div></details></main></body></html>
