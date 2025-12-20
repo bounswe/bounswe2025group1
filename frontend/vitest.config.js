@@ -7,6 +7,10 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/setupTests.js',
+    reporters: ['default', 'junit'],
+    outputFile: {
+      junit: './reports/web-test-results.xml'
+    },
     coverage: {
       provider: 'istanbul',
       include: ['src/**/*.{js,jsx,ts,tsx}'],
