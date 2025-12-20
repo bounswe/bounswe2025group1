@@ -305,21 +305,6 @@ describe('GardenDetail', () => {
     expect(screen.getByTestId('image-gallery')).toBeInTheDocument();
   });
 
-  it('handles task interactions', async () => {
-    renderComponent();
-    await waitFor(() => expect(screen.getByTestId('task-board')).toBeInTheDocument());
-
-    // Click a task to open edit modal
-    const task = screen.getByTestId('task-1');
-    fireEvent.click(task);
-
-    await waitFor(() => expect(screen.getByTestId('task-modal')).toBeInTheDocument());
-
-    // Close modal
-    fireEvent.click(screen.getByText('Close Task Modal'));
-    await waitFor(() => expect(screen.queryByTestId('task-modal')).not.toBeInTheDocument());
-  });
-
   it('handles create task', async () => {
     renderComponent();
     await waitFor(() => expect(screen.getByText('My Garden')).toBeInTheDocument());

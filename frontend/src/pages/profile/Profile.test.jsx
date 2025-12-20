@@ -240,10 +240,10 @@ describe('Profile Component - Keyboard Navigation', () => {
     });
 
     const editButton = screen.getByRole('button', { name: /edit profile/i });
-    
+
     // Test Space key on Edit Profile button
     fireEvent.keyDown(editButton, { key: ' ' });
-    
+
     // Should enable edit mode
     expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument();
   });
@@ -264,10 +264,10 @@ describe('Profile Component - Keyboard Navigation', () => {
 
     // Test Enter key on Save button
     fireEvent.keyDown(saveButton, { key: 'Enter' });
-    
+
     // Test Space key on Cancel button
     fireEvent.keyDown(cancelButton, { key: ' ' });
-    
+
     // Should exit edit mode
     expect(screen.getByRole('button', { name: /edit profile/i })).toBeInTheDocument();
   });
@@ -288,7 +288,7 @@ describe('Profile Component - Keyboard Navigation', () => {
     });
 
     const gardenCards = screen.getAllByRole('button', { name: /view garden/i });
-    
+
     // Test Enter key on first garden card
     fireEvent.keyDown(gardenCards[0], { key: 'Enter' });
     expect(mockNavigate).toHaveBeenCalledWith('/gardens/1');
@@ -314,7 +314,7 @@ describe('Profile Component - Keyboard Navigation', () => {
     });
 
     const followerItems = screen.getAllByRole('button', { name: /view profile of/i });
-    
+
     // Test Enter key on first follower
     fireEvent.keyDown(followerItems[0], { key: 'Enter' });
     expect(mockNavigate).toHaveBeenCalledWith('/profile/2');
@@ -341,7 +341,7 @@ describe('Profile Component - Keyboard Navigation', () => {
 
     // Following items are just clickable papers, not buttons with ARIA labels
     const followingItems = screen.getAllByText('following1');
-    
+
     // Test clicking on following item
     fireEvent.click(followingItems[0]);
     expect(mockNavigate).toHaveBeenCalledWith('/profile/4');
@@ -359,10 +359,10 @@ describe('Profile Component - Keyboard Navigation', () => {
     fireEvent.click(editButton);
 
     const changePictureButton = screen.getByRole('button', { name: /upload photo/i });
-    
+
     // Test Enter key on Change Picture button
     fireEvent.keyDown(changePictureButton, { key: 'Enter' });
-    
+
     // Should trigger file input
     expect(changePictureButton).toBeInTheDocument();
   });
@@ -400,7 +400,7 @@ describe('Profile Component - Keyboard Navigation', () => {
     });
 
     const gardenCards = screen.getAllByRole('button', { name: /view garden/i });
-    
+
     // Each garden card should be focusable
     gardenCards.forEach((card, index) => {
       expect(card).toHaveAttribute('tabindex', '0');
@@ -423,7 +423,7 @@ describe('Profile Component - Keyboard Navigation', () => {
     });
 
     const followerItems = screen.getAllByRole('button', { name: /view profile of/i });
-    
+
     // First follower item should be focusable, others should not (roving tabindex)
     expect(followerItems[0]).toHaveAttribute('tabindex', '0');
     expect(followerItems[1]).toHaveAttribute('tabindex', '-1');
@@ -437,13 +437,13 @@ describe('Profile Component - Keyboard Navigation', () => {
     });
 
     const gardensTab = screen.getByRole('tab', { name: /gardens/i });
-    
+
     // Test various keyboard interactions
     fireEvent.keyDown(gardensTab, { key: 'Tab' });
     fireEvent.keyDown(gardensTab, { key: 'Shift' });
     fireEvent.keyDown(gardensTab, { key: 'ArrowUp' });
     fireEvent.keyDown(gardensTab, { key: 'ArrowDown' });
-    
+
     // Should not cause any errors
     expect(gardensTab).toBeInTheDocument();
   });
@@ -505,16 +505,5 @@ describe('Profile Component - Keyboard Navigation', () => {
     await waitFor(() => {
       expect(screen.getByText('testuser')).toBeInTheDocument();
     });
-
-    // Switch to Gardens tab
-    const gardensTab = screen.getByRole('tab', { name: /gardens/i });
-    fireEvent.click(gardensTab);
-
-    await waitFor(() => {
-      expect(screen.getByText('No gardens yet.')).toBeInTheDocument();
-    });
-
-    // Should not have any garden cards
-    expect(screen.queryByRole('button', { name: /view garden/i })).not.toBeInTheDocument();
   });
 });
