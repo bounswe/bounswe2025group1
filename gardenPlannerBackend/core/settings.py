@@ -227,12 +227,12 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'DEBUG',  # Change this to 'INFO', 'WARNING', 'ERROR', or 'CRITICAL' as needed
+        'level': 'WARNING',  # Change this to 'INFO', 'WARNING', 'ERROR', or 'CRITICAL' as needed
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'DEBUG',  # Specifically for Django's internal logs
+            'level': 'WARNING',  # Specifically for Django's internal logs
             'propagate': False,
         },
     },

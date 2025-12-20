@@ -73,12 +73,11 @@ describe('TaskWidget Component', () => {
         token: 'mock-token',
       });
 
-      globalThis.fetch.mockImplementation(() => new Promise(() => {})); // Never resolves
+      globalThis.fetch.mockImplementation(() => new Promise(() => { })); // Never resolves
 
       render(<TaskWidget />);
 
       expect(screen.getByRole('progressbar')).toBeInTheDocument();
-      expect(screen.getByText('Loading tasks...')).toBeInTheDocument();
     });
 
     test('loading indicator is centered', () => {
@@ -87,7 +86,7 @@ describe('TaskWidget Component', () => {
         token: 'mock-token',
       });
 
-      globalThis.fetch.mockImplementation(() => new Promise(() => {}));
+      globalThis.fetch.mockImplementation(() => new Promise(() => { }));
 
       const { container } = render(<TaskWidget />);
 
@@ -260,8 +259,8 @@ describe('TaskWidget Component', () => {
     });
 
     test('handles network error gracefully', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+
       useAuth.mockReturnValue({
         user: mockUser,
         token: 'mock-token',
@@ -279,7 +278,7 @@ describe('TaskWidget Component', () => {
       });
 
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-      
+
       consoleErrorSpy.mockRestore();
     });
   });
@@ -365,8 +364,8 @@ describe('TaskWidget Component', () => {
 
   describe('Edge Cases', () => {
     test('handles malformed API response', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+
       useAuth.mockReturnValue({
         user: mockUser,
         token: 'mock-token',

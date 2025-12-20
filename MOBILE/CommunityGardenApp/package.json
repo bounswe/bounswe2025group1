@@ -13,7 +13,41 @@
     "lint": "expo lint"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "testMatch": [
+      "**/__tests__/**/*.{js,jsx,ts,tsx}",
+      "**/?(*.)+(spec|test).{js,jsx,ts,tsx}"
+    ],
+    "collectCoverageFrom": [
+      "**/*.{js,jsx,ts,tsx}",
+      "!**/node_modules/**",
+      "!**/coverage/**",
+      "!**/reports/**",
+      "!**/.expo/**",
+      "!**/babel.config.js",
+      "!**/metro.config.js"
+    ],
+    "coverageDirectory": "./reports/coverage",
+    "reporters": [
+      "default",
+      [
+        "jest-junit",
+        {
+          "outputDirectory": "./reports",
+          "outputName": "mobile-test-results.xml",
+          "suiteName": "Mobile App Tests"
+        }
+      ],
+      [
+        "jest-html-reporter",
+        {
+          "pageTitle": "Mobile Test Report",
+          "outputPath": "./reports/mobile-test-report.html",
+          "includeFailureMsg": true,
+          "includeConsoleLog": true
+        }
+      ]
+    ]
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -64,6 +98,8 @@
     "@types/react-test-renderer": "^19.0.0",
     "jest": "~29.7.0",
     "jest-expo": "^54.0.13",
+    "jest-html-reporter": "^4.3.0",
+    "jest-junit": "^16.0.0",
     "react-test-renderer": "19.0.0",
     "typescript": "~5.8.3"
   },

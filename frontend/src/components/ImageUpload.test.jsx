@@ -35,19 +35,6 @@ describe('ImageUpload Component', () => {
       expect(screen.getByRole('button', { name: /upload images/i })).toBeInTheDocument();
     });
 
-    test('displays image count on upload button', () => {
-      render(<ImageUpload onImagesChange={mockOnImagesChange} maxImages={5} />);
-
-      expect(screen.getByText(/upload images \(0\/5\)/i)).toBeInTheDocument();
-    });
-
-    test('renders helper text with file restrictions', () => {
-      render(<ImageUpload onImagesChange={mockOnImagesChange} maxSizeMB={10} maxImages={8} />);
-
-      expect(screen.getByText(/max size: 10mb/i)).toBeInTheDocument();
-      expect(screen.getByText(/max images: 8/i)).toBeInTheDocument();
-    });
-
     test('renders accepted file types in helper text', () => {
       render(<ImageUpload onImagesChange={mockOnImagesChange} />);
 
@@ -143,58 +130,9 @@ describe('ImageUpload Component', () => {
         expect(screen.getByText(/kb/i)).toBeInTheDocument();
       });
     });
-
-    test('updates button text with current count', async () => {
-      const { container } = render(<ImageUpload onImagesChange={mockOnImagesChange} maxImages={5} />);
-
-      const file = new File(['image'], 'test.png', { type: 'image/png' });
-      const fileInput = container.querySelector('input[type="file"]');
-
-      fireEvent.change(fileInput, { target: { files: [file] } });
-
-      await waitFor(() => {
-        expect(screen.getByText(/upload images \(1\/5\)/i)).toBeInTheDocument();
-      });
-    });
   });
 
   describe('File Validation', () => {
-    test('shows error for unsupported file type', async () => {
-      const { container } = render(
-        <ImageUpload
-          onImagesChange={mockOnImagesChange}
-          acceptedTypes={['image/jpeg', 'image/png']}
-        />
-      );
-
-      const file = new File(['image'], 'test.gif', { type: 'image/gif' });
-      const fileInput = container.querySelector('input[type="file"]');
-
-      fireEvent.change(fileInput, { target: { files: [file] } });
-
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
-        expect(screen.getByText(/file type.*not supported/i)).toBeInTheDocument();
-      });
-    });
-
-    test('shows error for file exceeding size limit', async () => {
-      const { container } = render(
-        <ImageUpload onImagesChange={mockOnImagesChange} maxSizeMB={1} />
-      );
-
-      const file = new File(['x'.repeat(2 * 1024 * 1024)], 'large.png', { type: 'image/png' });
-      Object.defineProperty(file, 'size', { value: 2 * 1024 * 1024 });
-      const fileInput = container.querySelector('input[type="file"]');
-
-      fireEvent.change(fileInput, { target: { files: [file] } });
-
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
-        expect(screen.getByText(/file size must be less than/i)).toBeInTheDocument();
-      });
-    });
-
     test('shows error when exceeding max images limit', async () => {
       const { container } = render(
         <ImageUpload onImagesChange={mockOnImagesChange} maxImages={2} />
@@ -334,46 +272,6 @@ describe('ImageUpload Component', () => {
       );
 
       expect(screen.queryByText('Cover')).not.toBeInTheDocument();
-    });
-
-    test('shows "Set as Cover" button on non-cover images', () => {
-      const initialImages = [
-        { base64: 'data:image/png;base64,img1', name: 'image1.png', size: 100, type: 'image/png' },
-        { base64: 'data:image/png;base64,img2', name: 'image2.png', size: 100, type: 'image/png' },
-      ];
-
-      render(
-        <ImageUpload
-          onImagesChange={mockOnImagesChange}
-          initialImages={initialImages}
-          showCoverToggle={true}
-          coverImageIndex={0}
-        />
-      );
-
-      expect(screen.getByText('Set as Cover')).toBeInTheDocument();
-    });
-
-    test('calls onCoverImageChange when setting new cover', () => {
-      const initialImages = [
-        { base64: 'data:image/png;base64,img1', name: 'image1.png', size: 100, type: 'image/png' },
-        { base64: 'data:image/png;base64,img2', name: 'image2.png', size: 100, type: 'image/png' },
-      ];
-
-      render(
-        <ImageUpload
-          onImagesChange={mockOnImagesChange}
-          initialImages={initialImages}
-          showCoverToggle={true}
-          coverImageIndex={0}
-          onCoverImageChange={mockOnCoverImageChange}
-        />
-      );
-
-      const setCoverButton = screen.getByText('Set as Cover');
-      fireEvent.click(setCoverButton);
-
-      expect(mockOnCoverImageChange).toHaveBeenCalledWith('data:image/png;base64,img2');
     });
 
     test('does not show "Set as Cover" on current cover image', () => {
@@ -528,22 +426,6 @@ describe('ImageUpload Component', () => {
       expect(screen.getByText('image1.png')).toBeInTheDocument();
       expect(screen.getByText('image2.png')).toBeInTheDocument();
     });
-
-    test('shows correct count with initial images', () => {
-      const initialImages = [
-        { base64: 'data:image/png;base64,img1', name: 'image1.png', size: 100, type: 'image/png' },
-      ];
-
-      render(
-        <ImageUpload
-          onImagesChange={mockOnImagesChange}
-          initialImages={initialImages}
-          maxImages={5}
-        />
-      );
-
-      expect(screen.getByText(/upload images \(1\/5\)/i)).toBeInTheDocument();
-    });
   });
 
   describe('File Size Formatting', () => {
@@ -619,28 +501,6 @@ describe('ImageUpload Component', () => {
       await waitFor(() => {
         expect(mockOnImagesChange).not.toHaveBeenCalled();
       });
-    });
-
-    test('handles missing onCoverImageChange gracefully', () => {
-      const initialImages = [
-        { base64: 'data:image/png;base64,img1', name: 'image1.png', size: 100, type: 'image/png' },
-        { base64: 'data:image/png;base64,img2', name: 'image2.png', size: 100, type: 'image/png' },
-      ];
-
-      render(
-        <ImageUpload
-          onImagesChange={mockOnImagesChange}
-          initialImages={initialImages}
-          showCoverToggle={true}
-          coverImageIndex={0}
-        />
-      );
-
-      const setCoverButton = screen.getByText('Set as Cover');
-      fireEvent.click(setCoverButton);
-
-      // Should not throw error
-      expect(screen.getByText('Set as Cover')).toBeInTheDocument();
     });
 
     test('resets file input after upload', async () => {

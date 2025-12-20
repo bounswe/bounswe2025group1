@@ -865,6 +865,7 @@ class ReportingSystemTests(APITestCase):
         self.get_auth_token = get_auth_token
 
         self.user = User.objects.create_user(username='reporter', password='pw')
+        self.author_user = User.objects.create_user(username='author', password='pw')
         self.admin_user = User.objects.create_superuser(username='admin', email='a@a.com', password='pw')
         Profile.objects.filter(user=self.admin_user).update(role='ADMIN')
 
@@ -875,8 +876,8 @@ class ReportingSystemTests(APITestCase):
         self.report_url = reverse('garden:report-list')
         self.admin_reports_url = reverse('garden:admin-report-list')
 
-        self.post = ForumPost.objects.create(title="Post to Report", content="Content", author=self.user)
-        self.comment = Comment.objects.create(forum_post=self.post, content="Comment", author=self.user)
+        self.post = ForumPost.objects.create(title="Post to Report", content="Content", author=self.author_user)
+        self.comment = Comment.objects.create(forum_post=self.post, content="Comment", author=self.author_user)
 
 
     # --- Test Report Creation (User) ---
@@ -960,6 +961,9 @@ class NotificationTests(TestCase):
         self.client = APIClient()
         self.user1 = User.objects.create_user(username='user1', password='password123')
         self.user2 = User.objects.create_user(username='user2', password='password123')
+        
+        # Clear any notifications created by signals during user creation
+        Notification.objects.all().delete()
         
         self.notification1_user1 = Notification.objects.create(recipient=self.user1, message='Message 1 for user1', read=False, category='FORUM')
         self.notification2_user1 = Notification.objects.create(recipient=self.user1, message='Message 2 for user1', read=False, category='FORUM')
@@ -2320,6 +2324,10 @@ class SignalTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='password123')
         self.user2 = User.objects.create_user(username='testuser2', password='password123')
+        
+        # Clear any notifications created by signals during user creation
+        Notification.objects.all().delete()
+        
         self.garden = Garden.objects.create(name='Test Garden', is_public=True)
         GardenMembership.objects.create(user=self.user2, garden=self.garden, role='WORKER', status='ACCEPTED')
         self.task_type = CustomTaskType.objects.create(garden=self.garden, name='Test Type')
@@ -2375,8 +2383,8 @@ class SignalTests(TestCase):
         )
         task.assigned_to.add(self.user2)
         
-        # Should not create notification
-        notifications = Notification.objects.filter(recipient=self.user2)
+        # Should not create TASK notification (badges may still be awarded)
+        notifications = Notification.objects.filter(recipient=self.user2, category='TASK')
         self.assertEqual(notifications.count(), 0)
     
     @patch('push_notifications.models.GCMDeviceQuerySet.send_message')
@@ -2384,18 +2392,27 @@ class SignalTests(TestCase):
         """Test notification on follow"""
         self.user.profile.following.add(self.user2.profile)
         
-        # Check notification was created
-        notifications = Notification.objects.filter(recipient=self.user2, category='SOCIAL')
+        # Check notification was created - filter by message to exclude badge notifications
+        notifications = Notification.objects.filter(
+            recipient=self.user2, 
+            category='SOCIAL',
+            message__icontains='started following'
+        )
         self.assertEqual(notifications.count(), 1)
         self.assertIn('testuser', notifications.first().message)
         self.assertEqual(notifications.first().link, f'/profile/{self.user.id}')
         
-        # Check push notification was sent with link
+        # Check push notification was sent with link - check all calls for the follower notification
         self.assertTrue(mock_send_message.called)
-        call_args = mock_send_message.call_args
-        self.assertIn('extra', call_args[1])
-        self.assertIn('link', call_args[1]['extra'])
-        self.assertEqual(call_args[1]['extra']['link'], f'/profile/{self.user.id}')
+        # Find the call that matches our follower notification
+        follower_call = None
+        for call in mock_send_message.call_args_list:
+            if 'extra' in call[1] and 'link' in call[1]['extra']:
+                if call[1]['extra']['link'] == f'/profile/{self.user.id}':
+                    follower_call = call
+                    break
+        self.assertIsNotNone(follower_call)
+        self.assertEqual(follower_call[1]['extra']['link'], f'/profile/{self.user.id}')
     
     def test_new_follower_notification_signal_notifications_disabled(self):
         """Test no notification when user has notifications disabled"""
@@ -2404,8 +2421,8 @@ class SignalTests(TestCase):
         
         self.user.profile.following.add(self.user2.profile)
         
-        # Should not create notification
-        notifications = Notification.objects.filter(recipient=self.user2)
+        # Should not create SOCIAL notification (badges may still be awarded)
+        notifications = Notification.objects.filter(recipient=self.user2, category='SOCIAL')
         self.assertEqual(notifications.count(), 0)
     
     @patch('push_notifications.models.GCMDeviceQuerySet.send_message')
@@ -2417,18 +2434,26 @@ class SignalTests(TestCase):
             author=self.user2
         )
         
-        # Check notification was created
-        notifications = Notification.objects.filter(recipient=self.user, category='FORUM')
+        # Check notification was created - filter by message to exclude badge notifications
+        notifications = Notification.objects.filter(
+            recipient=self.user, 
+            category='FORUM',
+            message__icontains='commented on your post'
+        )
         self.assertEqual(notifications.count(), 1)
         self.assertIn('testuser2', notifications.first().message)
         self.assertEqual(notifications.first().link, f'/forum/{self.post.id}')
         
-        # Check push notification was sent with link
+        # Check push notification was sent with link - find the comment notification call
         self.assertTrue(mock_send_message.called)
-        call_args = mock_send_message.call_args
-        self.assertIn('extra', call_args[1])
-        self.assertIn('link', call_args[1]['extra'])
-        self.assertEqual(call_args[1]['extra']['link'], f'/forum/{self.post.id}')
+        comment_call = None
+        for call in mock_send_message.call_args_list:
+            if 'extra' in call[1] and 'link' in call[1]['extra']:
+                if call[1]['extra']['link'] == f'/forum/{self.post.id}':
+                    comment_call = call
+                    break
+        self.assertIsNotNone(comment_call)
+        self.assertEqual(comment_call[1]['extra']['link'], f'/forum/{self.post.id}')
     
     def test_new_comment_notification_signal_own_post(self):
         """Test no notification when commenting on own post"""
@@ -2438,8 +2463,8 @@ class SignalTests(TestCase):
             author=self.user
         )
         
-        # Should not create notification
-        notifications = Notification.objects.filter(recipient=self.user)
+        # Should not create FORUM notification (badges may still be awarded)
+        notifications = Notification.objects.filter(recipient=self.user, category='FORUM')
         self.assertEqual(notifications.count(), 0)
     
     def test_new_comment_notification_signal_notifications_disabled(self):
@@ -2453,8 +2478,8 @@ class SignalTests(TestCase):
             author=self.user2
         )
         
-        # Should not create notification
-        notifications = Notification.objects.filter(recipient=self.user)
+        # Should not create FORUM notification (badges may still be awarded)
+        notifications = Notification.objects.filter(recipient=self.user, category='FORUM')
         self.assertEqual(notifications.count(), 0)
 
     @patch('push_notifications.models.GCMDeviceQuerySet.send_message')
@@ -3466,6 +3491,10 @@ class SignalHandlerTests(TestCase):
     def setUp(self):
         self.user1 = User.objects.create_user(username='user1', password='pass1')
         self.user2 = User.objects.create_user(username='user2', password='pass2')
+        
+        # Clear any notifications created by signals during user creation
+        Notification.objects.all().delete()
+        
         self.garden = Garden.objects.create(
             name="Test Garden",
             description="Test",
@@ -3498,7 +3527,7 @@ class SignalHandlerTests(TestCase):
         )
         task.assigned_to.add(self.user2)
         
-        notifications = Notification.objects.filter(recipient=self.user2)
+        notifications = Notification.objects.filter(recipient=self.user2, category='TASK')
         self.assertEqual(notifications.count(), 1)
         self.assertIn("assigned a new task", notifications.first().message)
     
@@ -3534,7 +3563,7 @@ class SignalHandlerTests(TestCase):
         
         self.user1.profile.follow(self.user2.profile)
         
-        notifications = Notification.objects.filter(recipient=self.user2)
+        notifications = Notification.objects.filter(recipient=self.user2, category='SOCIAL')
         self.assertEqual(notifications.count(), 1)
         self.assertIn("started following you", notifications.first().message)
     
@@ -3555,7 +3584,7 @@ class SignalHandlerTests(TestCase):
             content="Test comment"
         )
         
-        notifications = Notification.objects.filter(recipient=self.user1)
+        notifications = Notification.objects.filter(recipient=self.user1, category='FORUM')
         self.assertEqual(notifications.count(), 1)
         self.assertIn("commented on your post", notifications.first().message)
     
@@ -3567,7 +3596,7 @@ class SignalHandlerTests(TestCase):
         self.user2.profile.receives_notifications = False
         self.user2.profile.save()
         
-        Task.objects.create(
+        task = Task.objects.create(
             garden=self.garden,
             title="Task",
             description="Test",
@@ -3575,8 +3604,10 @@ class SignalHandlerTests(TestCase):
             assigned_by=self.user1,
             status='PENDING'
         )
+        task.assigned_to.add(self.user2)
         
-        notifications = Notification.objects.filter(recipient=self.user2)
+        # Should not create TASK notification (badges may still be awarded)
+        notifications = Notification.objects.filter(recipient=self.user2, category='TASK')
         self.assertEqual(notifications.count(), 0)
 
 
@@ -3586,6 +3617,9 @@ class NotificationViewTests(APITestCase):
         self.user2 = User.objects.create_user(username='user2', password='pass2')
         self.token1 = Token.objects.create(user=self.user1)
         self.token2 = Token.objects.create(user=self.user2)
+        
+        # Clear any notifications created by signals during user creation
+        Notification.objects.all().delete()
         
         # Create some notifications
         self.notif1 = Notification.objects.create(
@@ -4943,7 +4977,9 @@ class ImpactSummaryTests(APITestCase):
         
         # Task stats
         self.assertEqual(response.data['tasks_completed'], 1)
-        self.assertEqual(response.data['tasks_assigned'], 1)  # user assigned task1
+        self.assertEqual(response.data['tasks_assigned_by'], 1)  # user assigned task1
+        # User was assigned to both task1 and task2
+        self.assertEqual(response.data['tasks_assigned_to'], 2)
         
         # Forum engagement
         self.assertEqual(response.data['posts_created'], 1)

@@ -17,6 +17,7 @@ vi.mock('@mui/icons-material', () => ({
   Logout: () => <div data-testid="logout-icon">Logout</div>,
   Person: () => <div data-testid="person-icon">Person</div>,
   Settings: () => <div data-testid="settings-icon">Settings</div>,
+  TextFields: () => <div data-testid="text-fields-icon">TextFields</div>,
 }));
 
 // Mock the modules/hooks
@@ -118,10 +119,10 @@ describe('Navbar Component - Keyboard Navigation', () => {
     renderWithProviders(<Navbar />);
 
     const homeButton = screen.getByRole('button', { name: /home/i });
-    
+
     // Focus the button
     homeButton.focus();
-    
+
     // Check that the button is focusable
     expect(homeButton).toHaveAttribute('tabindex', '0');
   });
@@ -130,10 +131,10 @@ describe('Navbar Component - Keyboard Navigation', () => {
     renderWithProviders(<Navbar />);
 
     const userMenuButton = screen.getByRole('button', { name: /open user menu/i });
-    
+
     // Test Enter key on user menu button
     fireEvent.keyDown(userMenuButton, { key: 'Enter' });
-    
+
     // Menu should open
     expect(screen.getByText('testuser')).toBeInTheDocument();
   });
@@ -171,10 +172,10 @@ describe('Navbar Component - Keyboard Navigation', () => {
     renderWithProviders(<Navbar />);
 
     const menuToggle = screen.getByRole('button', { name: /open drawer/i });
-    
+
     // Test Enter key on menu toggle
     fireEvent.keyDown(menuToggle, { key: 'Enter' });
-    
+
     // Drawer should open - wait for it to appear
     expect(screen.getByText('Menu')).toBeInTheDocument();
   });
@@ -218,10 +219,10 @@ describe('Navbar Component - Keyboard Navigation', () => {
     fireEvent.click(menuToggle);
 
     const closeButton = screen.getByRole('button', { name: /close menu/i });
-    
+
     // Test Enter key on close button
     fireEvent.keyDown(closeButton, { key: 'Enter' });
-    
+
     // Drawer should close - wait for it to disappear
     await waitFor(() => {
       expect(screen.queryByText('Menu')).not.toBeInTheDocument();
@@ -243,7 +244,7 @@ describe('Navbar Component - Keyboard Navigation', () => {
     renderWithProviders(<Navbar />);
 
     const userMenuButton = screen.getByRole('button', { name: /open user menu/i });
-    
+
     expect(userMenuButton).toHaveAttribute('aria-haspopup', 'true');
     expect(userMenuButton).toHaveAttribute('aria-expanded', 'false');
   });
@@ -256,7 +257,7 @@ describe('Navbar Component - Keyboard Navigation', () => {
 
     // Check that the drawer is open by looking for the Menu text
     expect(screen.getByText('Menu')).toBeInTheDocument();
-    
+
     // Check that the close button is present
     const closeButton = screen.getByRole('button', { name: /close menu/i });
     expect(closeButton).toBeInTheDocument();
@@ -266,13 +267,13 @@ describe('Navbar Component - Keyboard Navigation', () => {
     renderWithProviders(<Navbar />);
 
     const homeButton = screen.getByRole('button', { name: /home/i });
-    
+
     // Test various keyboard interactions
     fireEvent.keyDown(homeButton, { key: 'Tab' });
     fireEvent.keyDown(homeButton, { key: 'Shift' });
     fireEvent.keyDown(homeButton, { key: 'ArrowUp' });
     fireEvent.keyDown(homeButton, { key: 'ArrowDown' });
-    
+
     // Should not cause any errors
     expect(homeButton).toBeInTheDocument();
   });
